@@ -1,0 +1,211 @@
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { 
+    FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
+    FiTool, FiChevronDown, FiChevronUp
+} from "react-icons/fi";
+
+export default function AdminDashboardLayout({ children }) {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [devDropdownOpen, setDevDropdownOpen] = useState(false);
+    const [userData, setUserData] = useState({ username: '', name: '' });
+    const [hasDevAccess, setHasDevAccess] = useState(false);
+    const pathname = usePathname();
+    const router = useRouter();
+
+    useEffect(() => {
+        // Fetch user data from token
+        const fetchUserData = async () => {
+            try {
+                const response = await fetch('/api/auth/me');
+                if (response.ok) {
+                    const data = await response.json();
+                    const username = data.username || '2300032048';
+                    setUserData({
+                        username,
+                        name: data.name || 'G Pavan Karthik'
+                    });
+                    // Check if user has dev access (specific username)
+                    setHasDevAccess(username === '2300032048');
+                }
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+            }
+        };
+        fetchUserData();
+    }, []);
+
+    const navigation = [
+        { name: 'Overview', href: '/dashboard/admin', icon: FiHome },
+        { name: 'Clubs', href: '/dashboard/admin/clubs', icon: FiFolder },
+        { name: 'Projects', href: '/dashboard/admin/projects', icon: FiFolder },
+        { name: 'Students', href: '/dashboard/admin/students', icon: FiFolder }
+
+    ];
+
+    const devNavigation = [
+        { name: 'Email Queue', href: '/dashboard/admin/dev/email-queue', icon: FiMail },
+        { name: 'Database Query', href: '/dashboard/admin/dev/db-query', icon: FiDatabase },
+    ];
+
+    const handleLogout = () => {
+        // Add logout logic here
+        router.push('/auth/login');
+    };
+
+    return (
+        <div className="h-screen flex flex-col" style={{ backgroundColor: '#1a1a1a' }}>
+            {/* Top Navbar - Fixed */}
+            <nav className="text-white shadow-lg relative z-30 flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
+                <div className="px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-14">
+                        {/* Left side */}
+                        <div className="flex items-center">
+                            <button
+                                onClick={() => setSidebarOpen(!sidebarOpen)}
+                                className="lg:hidden p-2 rounded-md transition-colors"
+                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                            >
+                                {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+                            </button>
+                            <h1 className="text-xl font-bold ml-4 lg:ml-0">Admin Dashboard</h1>
+                        </div>
+
+                        {/* Right side */}
+                        <div className="flex items-center space-x-4">
+                            <span className="hidden sm:block text-sm">
+                                ID: {userData.username}
+                            </span>
+                            <span className="hidden sm:block text-sm font-medium">{userData.name}</span>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center space-x-2 px-3 py-2 rounded-md transition-colors text-sm"
+                                style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                            >
+                                <FiLogOut size={16} />
+                                <span>Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div className="flex flex-1 overflow-hidden">
+                {/* Sidebar - Fixed */}
+                <div 
+                    className={`
+                        fixed lg:static inset-y-0 left-0 z-20 mt-16 lg:mt-0
+                        w-64 text-white transform transition-transform duration-300 ease-in-out flex-shrink-0
+                        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                    `}
+                    style={{ backgroundColor: '#1a1a1a' }}
+                >
+                    <div className="flex flex-col h-full">
+                        <div className="flex-1 px-4 py-6 overflow-y-auto">
+                            <nav className="space-y-1">
+                                {navigation.map((item) => {
+                                    const isActive = pathname === item.href;
+                                    return (
+                                        <Link
+                                            key={item.name}
+                                            href={item.href}
+                                            className={`flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group ${
+                                                isActive 
+                                                    ? 'bg-red-700 text-white shadow-lg' 
+                                                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                            }`}
+                                            onClick={() => setSidebarOpen(false)}
+                                        >
+                                            <item.icon className={`mr-3 h-5 w-5 ${
+                                                isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                            }`} />
+                                            {item.name}
+                                        </Link>
+                                    );
+                                })}
+                                
+                                {/* Dev Dropdown - Only show for authorized users */}
+                                {hasDevAccess && (
+                                    <div className="pt-4">
+                                        <button
+                                            onClick={() => setDevDropdownOpen(!devDropdownOpen)}
+                                            className="flex items-center justify-between w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:text-white group"
+                                        >
+                                            <div className="flex items-center">
+                                                <FiTool className="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" />
+                                                Dev
+                                            </div>
+                                            {devDropdownOpen ? (
+                                                <FiChevronUp className="h-4 w-4" />
+                                            ) : (
+                                                <FiChevronDown className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                        
+                                        {devDropdownOpen && (
+                                            <div className="mt-2 ml-6 space-y-1">
+                                            {devNavigation.map((item) => {
+                                                const isActive = pathname === item.href;
+                                                return (
+                                                    <Link
+                                                        key={item.name}
+                                                        href={item.href}
+                                                        className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
+                                                            isActive 
+                                                                ? 'bg-red-700 text-white shadow-lg' 
+                                                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                                        }`}
+                                                        onClick={() => setSidebarOpen(false)}
+                                                    >
+                                                        <item.icon className={`mr-3 h-4 w-4 ${
+                                                            isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'
+                                                        }`} />
+                                                        {item.name}
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                                )}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content - Scrollable */}
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    <main className="flex-1 bg-white overflow-y-auto">
+                        <div className="px-4 py-6 sm:px-6 lg:px-8 text-black">
+                            {children}
+                        </div>
+                    </main>
+                </div>
+            </div>
+
+            {/* Footer - Fixed */}
+            <footer className="text-white py-2 px-4 text-center text-sm flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
+                <div className="flex flex-col sm:flex-row justify-between items-center">
+                    <span>© 2024 Smart Village Revolution. All Rights Reserved.</span>
+                    <span className="mt-1 sm:mt-0">
+                        Designed and Developed by Pavan Karthik Garaga | ZeroOne CodeClub
+                    </span>
+                </div>
+            </footer>
+
+            {/* Mobile sidebar overlay */}
+            {sidebarOpen && (
+                <button 
+                    className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                    aria-label="Close sidebar"
+                ></button>
+            )}
+        </div>
+    );
+}
