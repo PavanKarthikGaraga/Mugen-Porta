@@ -31,11 +31,11 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL,
-    role ENUM('student', 'lead', 'faculty', 'admin') NOT NULL DEFAULT 'student',
+    role ENUM('student', 'lead', 'faculty', 'admin') NOT NULL DEFAULT 'student'
 );
 
 CREATE TABLE clubs (
-    id BIGINT PRIMARY KEY,
+    id VARCHAR(20) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     domain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB', 'Rural') NOT NULL,

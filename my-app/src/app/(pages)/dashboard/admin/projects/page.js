@@ -252,9 +252,9 @@ export default function ProjectsPage() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Category
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Description
-                                    </th>
+                                    </th> */}
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Actions
                                     </th>
@@ -282,9 +282,9 @@ export default function ProjectsPage() {
                                                 {project.category}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                                        {/* <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
                                             {project.description}
-                                        </td>
+                                        </td> */}
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <button
                                                 onClick={() => startEdit(project)}

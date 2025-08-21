@@ -191,7 +191,7 @@ export default function AdminDashboardLayout({ children }) {
             {/* Footer - Fixed */}
             <footer className="text-white py-2 px-4 text-center text-sm flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
                 <div className="flex flex-col sm:flex-row justify-between items-center">
-                    <span>© 2024 Smart Village Revolution. All Rights Reserved.</span>
+                    <span>© 2025 KL University SAC Activities. All Rights Reserved.</span>
                     <span className="mt-1 sm:mt-0">
                         Designed and Developed by Pavan Karthik Garaga | ZeroOne CodeClub
                     </span>

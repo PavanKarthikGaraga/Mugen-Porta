@@ -10,8 +10,8 @@ const poppins = Poppins({
 
 
 export const metadata = {
-  title: "KL University SIL",
-  description: "SIL Management portal for KL University SAC",
+  title: "KL SAC Activities Portal",
+  description: "SAC Activities",
 };
 
 export default function RootLayout({ children }) {

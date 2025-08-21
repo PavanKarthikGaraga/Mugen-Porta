@@ -235,7 +235,7 @@ export default function ClubsPage() {
                                 </label>
                                 <input
                                     id="clubId"
-                                    type="number"
+                                    type="text"
                                     value={formData.id}
                                     onChange={(e) => setFormData({ ...formData, id: e.target.value })}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
