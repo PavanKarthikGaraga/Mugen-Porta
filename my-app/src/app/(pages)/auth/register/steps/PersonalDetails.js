@@ -1,5 +1,5 @@
-import { branchNames } from "../../../Data/branches.js";
-import { countryCodes } from "../../../Data/coutries.js";
+import { branchNames } from "../../../../Data/branches.js";
+import { countryCodes } from "../../../../Data/coutries.js";
 
 export default function PersonalDetails({ formData, updateFormData }) {
 

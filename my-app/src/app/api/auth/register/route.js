@@ -28,17 +28,20 @@ export async function POST(req) {
             busRoute,
             
             // Project Selection
-            selectedProject,
+            selectedProject: originalSelectedProject,
             projectName,
             selectedClub,
-            selectedCategory,
+            selectedCategory: originalSelectedCategory,
             selectedDomain,
-            isY24Student,
             socialInternshipId,
             
             // Agreements
             agreedToTerms
         } = await req.json();
+
+        // Create mutable variables for project-related fields that might be cleared for Y25 students
+        let selectedProject = originalSelectedProject;
+        let selectedCategory = originalSelectedCategory;
 
         // Validate required fields
         if (!username || !name || !email || !phoneNumber || !branch || !gender || !cluster || !year) {
@@ -55,9 +58,33 @@ export async function POST(req) {
             );
         }
 
-        if (!selectedProject || !selectedClub || !selectedCategory || !selectedDomain) {
+        // Check if it's Y24 or Y25 student based on username
+        const isY24Student = username.startsWith('24');
+        const isY25Student = username.startsWith('25');
+
+        // Validation based on student year
+        if (isY24Student) {
+            // Y24 students must select a project
+            if (!selectedProject || !selectedClub || !selectedCategory || !selectedDomain) {
+                return NextResponse.json(
+                    { message: "Project selection is required for Y24 students" },
+                    { status: 400 }
+                );
+            }
+        } else if (isY25Student) {
+            // Y25 students must select a club but not a project
+            if (!selectedClub || !selectedDomain) {
+                return NextResponse.json(
+                    { message: "Club selection is required for Y25 students" },
+                    { status: 400 }
+                );
+            }
+            // Clear project-related fields for Y25 students
+            selectedProject = null;
+            selectedCategory = null;
+        } else {
             return NextResponse.json(
-                { message: "Project selection is required" },
+                { message: "Invalid username format. Must start with 24 or 25" },
                 { status: 400 }
             );
         }
@@ -121,6 +148,44 @@ export async function POST(req) {
             );
         }
 
+        // Check member limits based on student year
+        if (isY24Student && selectedDomain === 'TEC') {
+            // TEC projects limited to 2 members for Y24 students
+            const [projectMembers] = await pool.execute(
+                "SELECT COUNT(*) as currentMembers FROM students WHERE projectId = ?",
+                [selectedProject]
+            );
+            
+            const currentMembers = projectMembers[0].currentMembers;
+            if (currentMembers >= 2) {
+                return NextResponse.json(
+                    { message: "This TEC project is full. TEC projects can only have a maximum of 2 members. Please select a different project." },
+                    { status: 400 }
+                );
+            }
+        } else if (isY25Student) {
+            // Get club member limit dynamically from database
+            const [clubInfo] = await pool.execute(
+                "SELECT memberLimit FROM clubs WHERE id = ?",
+                [selectedClub]
+            );
+
+            const [clubMembers] = await pool.execute(
+                "SELECT COUNT(*) as currentMembers FROM students WHERE clubId = ?",
+                [selectedClub]
+            );
+            
+            const currentMembers = clubMembers[0].currentMembers;
+            const memberLimit = clubInfo[0]?.memberLimit || 50; // Default to 50 if not found
+            
+            if (currentMembers >= memberLimit) {
+                return NextResponse.json(
+                    { message: `This club is full. Maximum ${memberLimit} members allowed per club. Please select a different club.` },
+                    { status: 400 }
+                );
+            }
+        }
+
         // Hash password
         const saltRounds = 12;
         const hashedPassword = await bcrypt.hash(generatedPassword, saltRounds);
@@ -145,9 +210,12 @@ export async function POST(req) {
                     username, projectId, clubId, name, email, branch, gender, 
                     cluster, year, phoneNumber, residenceType, hostelName, busRoute,
                     country, state, district, pincode, selectedDomain, socialInternshipId
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?)`,
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    username, selectedProject, selectedClub, name, email, branch, gender,
+                    username, 
+                    isY24Student ? selectedProject : null, // Y24 can have projects, Y25 null
+                    selectedClub,                          // Both Y24 and Y25 can have clubs
+                    name, email, branch, gender,
                     cluster, year, phoneNumber, residenceType, 
                     hostelName || 'N/A', busRoute || null,
                     countryName || country, state, district, pincode, selectedDomain, socialInternshipId || null

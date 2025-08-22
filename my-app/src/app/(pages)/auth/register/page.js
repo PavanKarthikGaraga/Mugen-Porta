@@ -1,7 +1,6 @@
 "use client"
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 // Import step components
@@ -50,8 +49,8 @@ export default function Register() {
         { id: 1, name: "Overview", component: Overview },
         { id: 2, name: "Rules", component: Rules },
         { id: 3, name: "Undertaking", component: Undertaking },
-        { id: 4, name: "Project Selection", component: ProjectSelection },
-        { id: 5, name: "Personal Details", component: PersonalDetails },
+        { id: 4, name: "Personal Details", component: PersonalDetails },
+        { id: 5, name: "Project Selection", component: ProjectSelection },
         { id: 6, name: "Address Details", component: AddressDetails },
         { id: 7, name: "Confirmation", component: Confirmation },
     ];
@@ -71,13 +70,7 @@ export default function Register() {
                     return false;
                 }
                 break;
-            case 4: // Project Selection
-                if (!formData.selectedProject) {
-                    toast.error("Please select a project");
-                    return false;
-                }
-                break;
-            case 5: // Personal Details
+            case 4: // Personal Details
                 if (!formData.username || !formData.name || !formData.email || !formData.phoneNumber || !formData.branch || !formData.gender || !formData.cluster || !formData.year) {
                     toast.error("Please fill all required fields");
                     return false;
@@ -85,6 +78,12 @@ export default function Register() {
                 // Validate username format
                 if (!formData.username || formData.username.length !== 10 || !/^\d{10}$/.test(formData.username) || (!formData.username.startsWith('24') && !formData.username.startsWith('25'))) {
                     toast.error("Username must be exactly 10 digits and start with 24 or 25");
+                    return false;
+                }
+                break;
+            case 5: // Project Selection
+                if (!formData.selectedProject && !formData.selectedClub) {
+                    toast.error("Please select a project or club");
                     return false;
                 }
                 break;

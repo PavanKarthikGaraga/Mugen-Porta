@@ -3,7 +3,8 @@ import Image from "next/image";
 
 export default function ProjectSelection({ formData, updateFormData }) {
     const [isY24Student, setIsY24Student] = useState(null);
-    const [showY24Modal, setShowY24Modal] = useState(true);
+    const [isY25Student, setIsY25Student] = useState(null);
+    const [showYearModal, setShowYearModal] = useState(true);
     const [socialInternshipId, setSocialInternshipId] = useState("");
     const [socialInternshipData, setSocialInternshipData] = useState(null);
     const [selectedDomain, setSelectedDomain] = useState("");
@@ -14,7 +15,13 @@ export default function ProjectSelection({ formData, updateFormData }) {
     const [availableProjects, setAvailableProjects] = useState([]);
     const [allClubs, setAllClubs] = useState([]);
     const [allProjects, setAllProjects] = useState([]);
+    const [projectMemberCounts, setProjectMemberCounts] = useState({});
+    const [clubMemberCounts, setClubMemberCounts] = useState({});
+    const [clubMemberLimits, setClubMemberLimits] = useState({});
     const [loading, setLoading] = useState(true);
+
+    // Determine student year from form data
+    const studentYear = formData.username ? (formData.username.startsWith('24') ? 'Y24' : formData.username.startsWith('25') ? 'Y25' : null) : null;
 
     // Domain categories
     const domains = [
@@ -39,6 +46,13 @@ export default function ProjectSelection({ formData, updateFormData }) {
                 const data = await response.json();
                 setAllClubs(data.clubs);
                 setAllProjects(data.projects);
+                
+                // Fetch member counts for TEC projects
+                await fetchProjectMemberCounts(data.projects);
+                
+                // Fetch member counts for clubs (for Y25 students)
+                await fetchClubMemberCounts(data.clubs);
+                
                 console.log('Registration data loaded:', {
                     clubs: data.clubs.length,
                     projects: data.projects.length,
@@ -54,9 +68,65 @@ export default function ProjectSelection({ formData, updateFormData }) {
         }
     };
 
+    const fetchProjectMemberCounts = async (projects) => {
+        try {
+            // Only fetch counts for TEC projects
+            const tecProjects = projects.filter(project => project.domain === 'TEC');
+            const memberCounts = {};
+            
+            for (const project of tecProjects) {
+                try {
+                    const response = await fetch(`/api/project-members?projectId=${project.id}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        memberCounts[project.id] = data.memberCount || 0;
+                    } else {
+                        memberCounts[project.id] = 0;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching member count for project ${project.id}:`, error);
+                    memberCounts[project.id] = 0;
+                }
+            }
+            
+            setProjectMemberCounts(memberCounts);
+        } catch (error) {
+            console.error('Error fetching project member counts:', error);
+        }
+    };
+
+    const fetchClubMemberCounts = async (clubs) => {
+        try {
+            const memberCounts = {};
+            const memberLimits = {};
+            
+            for (const club of clubs) {
+                try {
+                    const response = await fetch(`/api/club-members?clubId=${club.id}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        memberCounts[club.id] = data.currentMembers || 0;
+                        memberLimits[club.id] = data.memberLimit || 50;
+                    } else {
+                        memberCounts[club.id] = 0;
+                        memberLimits[club.id] = 50;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching member count for club ${club.id}:`, error);
+                    memberCounts[club.id] = 0;
+                    memberLimits[club.id] = 50;
+                }
+            }
+            
+            setClubMemberCounts(memberCounts);
+            setClubMemberLimits(memberLimits);
+        } catch (error) {
+            console.error('Error fetching club member counts:', error);
+        }
+    };
+
     const handleY24Response = (response) => {
         setIsY24Student(response);
-        setShowY24Modal(false);
         if (!response) {
             setSelectedDomain("");
         }
@@ -158,7 +228,36 @@ export default function ProjectSelection({ formData, updateFormData }) {
         }
     };
 
+    const handleClubSelectionForY25 = (club) => {
+        // Check club member limits dynamically from database
+        const memberCount = clubMemberCounts[club.id] || 0;
+        const memberLimit = clubMemberLimits[club.id] || 50;
+        
+        if (memberCount >= memberLimit) {
+            alert(`This club is full. Maximum ${memberLimit} members allowed per club.`);
+            return;
+        }
+        
+        setSelectedClub(club.id);
+        updateFormData({ 
+            selectedClub: club.id,
+            selectedDomain: club.domain,
+            selectedProject: null, // Y25 students don't select projects
+            projectName: null,
+            projectDescription: null
+        });
+    };
+
     const handleProjectSelection = (project) => {
+        // Check one more time if TEC project is full before allowing selection
+        if (project.domain === 'TEC') {
+            const memberCount = projectMemberCounts[project.id] || 0;
+            if (memberCount >= 2) {
+                alert('This TEC project is full. Please select a different project.');
+                return;
+            }
+        }
+        
         updateFormData({
             selectedProject: project.id,
             projectName: project.name,
@@ -170,34 +269,138 @@ export default function ProjectSelection({ formData, updateFormData }) {
 
     return (
         <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-none">
-            <h2 className="text-2xl font-bold mb-6 text-center">Project Selection</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">
+                {studentYear === 'Y25' ? 'Club Selection' : 'Project Selection'}
+            </h2>
             
-            {/* Y24 Student Modal */}
-            {showY24Modal && (
-                <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white p-8 rounded-lg shadow-xl max-w-md mx-4">
-                        <h3 className="text-xl font-bold mb-4 text-center">Student Verification</h3>
-                        <p className="text-gray-700 mb-6 text-center">Are you a Y24 student with completed social internship?</p>
-                        <div className="flex gap-4 justify-center">
-                            <button
-                                onClick={() => handleY24Response(true)}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                Yes
-                            </button>
-                            <button
-                                onClick={() => handleY24Response(false)}
-                                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                            >
-                                No
-                            </button>
+            {/* Student Year Info */}
+            {studentYear && (
+                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span className="text-blue-600 font-bold text-sm">ℹ️</span>
+                            </div>
+                        </div>
+                        <div className="ml-3">
+                            <h4 className="text-sm font-medium text-blue-800">
+                                {studentYear} Student Registration
+                            </h4>
+                            <p className="text-sm text-blue-700">
+                                {studentYear === 'Y25' 
+                                    ? "As a Y25 student, you can only register for clubs. Project selection is available for Y24 students only."
+                                    : "As a Y24 student, you can select specific projects within clubs."
+                                }
+                            </p>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Y24 Student - Social Internship Credentials */}
-            {isY24Student === true && !socialInternshipData && (
+            {/* Y25 Student - Club Selection Only */}
+            {studentYear === 'Y25' && (
+                <>
+                    {/* Domain Selection for Y25 */}
+                    <div className="mb-6">
+                        <h3 className="text-lg font-semibold mb-4">Select Domain</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {domains.map((domain) => (
+                                <button
+                                    key={domain.id}
+                                    onClick={() => handleDomainSelection(domain.id)}
+                                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                                        selectedDomain === domain.id
+                                            ? "border-blue-500 bg-blue-50"
+                                            : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                                    }`}
+                                    type="button"
+                                >
+                                    <h4 className="font-semibold text-gray-800 mb-2">{domain.name}</h4>
+                                    <p className="text-sm text-gray-600">{domain.description}</p>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Club Selection for Y25 */}
+                    {selectedDomain && (
+                        <div className="mb-6">
+                            <h3 className="text-lg font-semibold mb-4">Select Club</h3>
+                            {loading ? (
+                                <div className="flex justify-center py-8">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                </div>
+                            ) : availableClubs.length === 0 ? (
+                                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <p className="text-yellow-800">No clubs found for domain: {selectedDomain}</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {availableClubs.map((club) => {
+                                        const memberCount = clubMemberCounts[club.id] || 0;
+                                        const memberLimit = clubMemberLimits[club.id] || 50;
+                                        const isFull = memberCount >= memberLimit;
+                                        const spotsRemaining = Math.max(0, memberLimit - memberCount);
+
+                                        return (
+                                            <button
+                                                key={club.id}
+                                                onClick={() => !isFull && handleClubSelectionForY25(club)}
+                                                disabled={isFull}
+                                                className={`p-4 rounded-lg border-2 transition-all text-left ${
+                                                    isFull
+                                                        ? "border-red-300 bg-red-50 cursor-not-allowed opacity-60"
+                                                        : selectedClub === club.id
+                                                        ? "border-blue-500 bg-blue-50 cursor-pointer"
+                                                        : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
+                                                }`}
+                                                type="button"
+                                            >
+                                                {/* Club Member Count Badge */}
+                                                <div className="mb-2">
+                                                    {isFull ? (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                            ❌ Full ({memberCount}/{memberLimit} members)
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                            ✅ {spotsRemaining} spots available ({memberCount}/{memberLimit} members)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                
+                                                <h4 className={`font-semibold mb-2 ${
+                                                    isFull ? 'text-gray-500' : 'text-gray-800'
+                                                }`}>{club.name}</h4>
+                                                <p className={`text-sm ${
+                                                    isFull ? 'text-gray-400' : 'text-gray-600'
+                                                }`}>{club.description}</p>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Selected Club Summary for Y25 */}
+                    {formData.selectedClub && studentYear === 'Y25' && (
+                        <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                            <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Club</h3>
+                            <div className="space-y-2 text-sm">
+                                <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
+                                <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+
+            {/* Y24 Student - Existing Project Selection Logic */}
+            {studentYear === 'Y24' && (
+                <>
+                    {/* Y24 Student - Social Internship Credentials */}
+                    {!socialInternshipData && (
                 <div className="mb-6 p-6 bg-blue-50 rounded-lg border border-blue-200">
                     <h3 className="text-lg font-semibold mb-4 text-blue-800">Social Internship Verification</h3>
                     <div className="space-y-4">
@@ -425,6 +628,27 @@ export default function ProjectSelection({ formData, updateFormData }) {
             {(availableProjects.length > 0 || (selectedDomain === "Rural" && allProjects.length > 0)) && (
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-4">Select Project</h3>
+                    
+                    {/* TEC Project Info Banner */}
+                    {selectedDomain === 'TEC' && (
+                        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0">
+                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <span className="text-blue-600 font-bold text-sm">⚠️</span>
+                                    </div>
+                                </div>
+                                <div className="ml-3">
+                                    <h4 className="text-sm font-medium text-blue-800">TEC Project Registration Limit</h4>
+                                    <p className="text-sm text-blue-700">
+                                        TEC (Technical) projects are limited to a maximum of <strong>2 members</strong> per project. 
+                                        Projects marked as &quot;Full&quot; cannot accept new registrations.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
                     {loading ? (
                         <div className="flex justify-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -448,17 +672,41 @@ export default function ProjectSelection({ formData, updateFormData }) {
                                     project.clubName.toLowerCase().includes('art')
                                 );
                                 
+                                // Check if this is a TEC project and if it's full
+                                const isTecProject = project.domain === 'TEC';
+                                const memberCount = projectMemberCounts[project.id] || 0;
+                                const isFull = isTecProject && memberCount >= 2;
+                                const spotsRemaining = isTecProject ? Math.max(0, 2 - memberCount) : null;
+                                
                                 return (
                                     <button
                                         key={project.id}
-                                        onClick={() => handleProjectSelection(project)}
+                                        onClick={() => !isFull && handleProjectSelection(project)}
+                                        disabled={isFull}
                                         className={`p-4 rounded-lg border-2 cursor-pointer transition-all text-left w-full hover:shadow-md ${
-                                            formData.selectedProject === project.id
+                                            isFull
+                                                ? "border-red-300 bg-red-50 cursor-not-allowed opacity-60"
+                                                : formData.selectedProject === project.id
                                                 ? "border-blue-500 bg-blue-50 shadow-md"
                                                 : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
                                         }`}
                                         type="button"
                                     >
+                                        {/* TEC Project Member Count Badge */}
+                                        {isTecProject && (
+                                            <div className="mb-2">
+                                                {isFull ? (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                        ❌ Full (2/2 members)
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        ✅ {spotsRemaining} spot{spotsRemaining !== 1 ? 's' : ''} available ({memberCount}/2 members)
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                        
                                         {/* Project Image for Handicrafts/Painting clubs */}
                                         {isHandicraftsOrPainting && project.images?.length > 0 && (
                                             <div className="mb-4">
@@ -484,21 +732,17 @@ export default function ProjectSelection({ formData, updateFormData }) {
                                         
                                         {/* Project Details */}
                                         <div>
-                                            <h4 className="font-semibold text-gray-800 mb-2 text-base">{project.name}</h4>
-                                            <p className="text-sm text-gray-600 mb-3 overflow-hidden" style={{
+                                            <h4 className={`font-semibold mb-2 text-base ${
+                                                isFull ? 'text-gray-500' : 'text-gray-800'
+                                            }`}>{project.name}</h4>
+                                            <p className={`text-sm mb-3 overflow-hidden ${
+                                                isFull ? 'text-gray-400' : 'text-gray-600'
+                                            }`} style={{
                                                 display: '-webkit-box',
                                                 WebkitLineClamp: 3,
                                                 WebkitBoxOrient: 'vertical',
                                                 textOverflow: 'ellipsis'
                                             }}>{project.description}</p>
-                                            {/* {isHandicraftsOrPainting && project.hasImages && (
-                                                <div className="flex items-center justify-center gap-2 text-xs text-blue-600">
-                                                    <span>🎨</span>
-                                                    <span className="bg-blue-100 px-2 py-1 rounded-full">
-                                                        {project.images?.length || 0} image{project.images?.length !== 1 ? 's' : ''}
-                                                    </span>
-                                                </div>
-                                            )} */}
                                         </div>
                                     </button>
                                 );
@@ -509,7 +753,7 @@ export default function ProjectSelection({ formData, updateFormData }) {
             )}
 
             {/* Selected Project Summary */}
-            {formData.selectedProject && (
+            {formData.selectedProject && studentYear === 'Y24' && (
                 <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
                     <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Project</h3>
                     <div className="space-y-2 text-sm">
@@ -520,10 +764,12 @@ export default function ProjectSelection({ formData, updateFormData }) {
                     </div>
                 </div>
             )}
+                </>
+            )}
 
             <div className="mt-6 bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-blue-800">
-                    <strong>Note:</strong> Your project selection will determine your club assignment and learning path. 
+                    <strong>Note:</strong> Your {studentYear === 'Y25' ? 'club' : 'project'} selection will determine your learning path. 
                     Choose carefully as changes may not be allowed after registration.
                 </p>
             </div>

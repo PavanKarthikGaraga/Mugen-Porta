@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { countryCodes } from "../../../Data/coutries.js";
-import { stateNames } from "../../../Data/states.js";
-import { districtNames } from "../../../Data/districts.js";
-import { girlHostels, boyHostels, busRoutes } from "../../../Data/locations.js";
+import { countryCodes } from "../../../../Data/coutries.js";
+import { stateNames } from "../../../../Data/states.js";
+import { districtNames } from "../../../../Data/districts.js";
+import { girlHostels, boyHostels, busRoutes } from "../../../../Data/locations.js";
 
 export default function AddressDetails({ formData, updateFormData }) {
     const [selectedCountry, setSelectedCountry] = useState(formData.country || "IN");
@@ -209,6 +209,7 @@ export default function AddressDetails({ formData, updateFormData }) {
                             onChange={handleInputChange}
                         >
                             <option value="">Select Bus Route</option>
+                            <option value="Own Transport">Own Transport</option>
                             {busRoutes.map((route) => (
                                 <option key={route["S.No"]} value={`${route["Route ID"]} - ${route.Route}`}>
                                     {route["Route ID"]} - {route.Route} ({route.Location})
