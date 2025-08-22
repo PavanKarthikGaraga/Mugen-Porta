@@ -40,4 +40,4 @@ jobs:
 
       - name: Restart PM2
         run: |
-          pm2 restart Mugen
+          pm2 restart mugen
