@@ -1,4 +1,3 @@
-cat deploy.yml 
 name: Deploy to Ubuntu Server
 
 on:
