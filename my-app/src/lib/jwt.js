@@ -21,6 +21,6 @@ export const verifyToken = async(token) => {
         return payload;
     } catch (error) {
         console.error("Token verification failed:", error);
-        throw new Error("Invalid token");
+        return null; // Return null instead of throwing error
     }
 }

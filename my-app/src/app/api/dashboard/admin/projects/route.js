@@ -57,7 +57,6 @@ export async function POST(request) {
                 const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
                 fs.writeFileSync(imagePath, base64Data, 'base64');
                 
-                console.log(`Image saved successfully at: ${imagePath}`);
             } catch (imageError) {
                 console.error('Error saving image:', imageError);
                 return NextResponse.json({ error: 'Failed to save image' }, { status: 500 });

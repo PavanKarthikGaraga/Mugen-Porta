@@ -16,6 +16,11 @@ export async function middleware(request) {
         try {
             const payload = await verifyToken(token);
             
+            // Check if token verification failed (expired or invalid)
+            if (!payload) {
+                return NextResponse.redirect(new URL('/auth/login', request.url));
+            }
+            
             // Check if accessing admin routes
             if (pathname.startsWith('/dashboard/admin')) {
                 if (payload.role !== 'admin') {

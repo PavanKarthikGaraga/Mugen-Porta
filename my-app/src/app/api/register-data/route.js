@@ -48,8 +48,51 @@ function getProjectImages(clubName, projectName) {
     }
 }
 
-export async function GET() {
+export async function GET(request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const clubId = searchParams.get('clubId');
+        const projectId = searchParams.get('projectId');
+        
+        // If specific club or project member count is requested
+        if (clubId) {
+            // Get current member count and club limit
+            const [memberResult] = await pool.execute(
+                "SELECT COUNT(*) as memberCount FROM students WHERE clubId = ?",
+                [clubId]
+            );
+
+            const [clubResult] = await pool.execute(
+                "SELECT `limit` FROM clubs WHERE id = ?",
+                [clubId]
+            );
+
+            const currentMembers = memberResult[0].memberCount;
+            const memberLimit = clubResult[0]?.limit || 50; // Default to 50 if not found
+
+            return NextResponse.json({
+                currentMembers,
+                memberLimit,
+                availableSpots: memberLimit - currentMembers
+            });
+        }
+        
+        if (projectId) {
+            // Get the current member count for the project
+            const [result] = await pool.execute(
+                'SELECT COUNT(*) as memberCount FROM students WHERE projectId = ?',
+                [projectId]
+            );
+
+            return NextResponse.json({
+                success: true,
+                projectId: projectId,
+                memberCount: result[0].memberCount
+            });
+        }
+        
+        // Default: Return all registration data
+        
         // Fetch clubs
         const [clubs] = await pool.execute('SELECT * FROM clubs ORDER BY id');
         

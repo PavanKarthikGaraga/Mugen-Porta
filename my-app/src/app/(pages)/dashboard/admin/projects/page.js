@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from "react";
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiFolder } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX } from "react-icons/fi";
 
 export default function ProjectsPage() {
     const [projects, setProjects] = useState([]);
@@ -19,6 +19,30 @@ export default function ProjectsPage() {
     const [selectedClubCategories, setSelectedClubCategories] = useState([]);
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+
+    // Function to generate category abbreviation
+    const generateCategoryAbbreviation = (category) => {
+        const words = category.split(' ');
+        if (words.length === 1) {
+            return words[0].substring(0, 2).toUpperCase();
+        } else {
+            return words.map(word => word.charAt(0).toUpperCase()).join('');
+        }
+    };
+
+    // Function to generate next project ID
+    const generateProjectId = (clubId, category) => {
+        if (!clubId || !category) return '';
+        
+        const categoryAbbr = generateCategoryAbbreviation(category);
+        const baseId = `${clubId}${categoryAbbr}`;
+        
+        // Find existing projects with same base
+        const existingProjects = projects.filter(p => p.id.startsWith(baseId));
+        const nextNumber = existingProjects.length + 1;
+        
+        return `${baseId}${nextNumber}`;
+    };
 
     useEffect(() => {
         fetchProjects();
@@ -65,7 +89,6 @@ export default function ProjectsPage() {
                 });
 
                 projectData.image = base64;
-                console.log('Adding image data for project:', projectData.name);
             }
 
             // Save the project with image data
@@ -83,7 +106,6 @@ export default function ProjectsPage() {
             if (response.ok) {
                 fetchProjects();
                 resetForm();
-                console.log('Project saved successfully');
             } else {
                 const errorData = await response.json();
                 console.error('Failed to save project:', errorData);
@@ -170,7 +192,7 @@ export default function ProjectsPage() {
     };
 
     const handleClubChange = (clubId) => {
-        setFormData({ ...formData, clubId, category: '' });
+        setFormData({ ...formData, clubId, category: '', id: '' });
         
         const club = clubs.find(c => c.id == clubId);
         if (club) {
@@ -179,6 +201,17 @@ export default function ProjectsPage() {
         } else {
             setSelectedClubCategories([]);
         }
+    };
+
+    const handleCategoryChange = (category) => {
+        const newFormData = { ...formData, category };
+        
+        // Auto-generate project ID if not editing
+        if (!editingProject && formData.clubId && category) {
+            newFormData.id = generateProjectId(formData.clubId, category);
+        }
+        
+        setFormData(newFormData);
     };
 
     const getFilteredClubs = () => {
@@ -211,10 +244,7 @@ export default function ProjectsPage() {
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg transition-colors"
-                    style={{ backgroundColor: 'rgb(151, 0, 3)' }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = 'rgb(120, 0, 2)'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = 'rgb(151, 0, 3)'}
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors"
                 >
                     <FiPlus className="h-4 w-4" />
                     <span>Add Project</span>
@@ -222,17 +252,21 @@ export default function ProjectsPage() {
             </div>
 
             {/* Projects List */}
-            <div className="bg-white rounded-lg shadow-md">
-                {loading ? (
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+                {loading && (
                     <div className="p-8 text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-800 mx-auto"></div>
                         <p className="mt-2 text-gray-600">Loading projects...</p>
                     </div>
-                ) : projects.length === 0 ? (
+                )}
+                
+                {!loading && projects.length === 0 && (
                     <div className="p-8 text-center">
-                        <p className="text-gray-600">No projects found. Create your first project!</p>
+                        <p className="text-gray-500">No projects found. Create your first project!</p>
                     </div>
-                ) : (
+                )}
+                
+                {!loading && projects.length > 0 && (
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
@@ -270,7 +304,7 @@ export default function ProjectsPage() {
                                             {project.name}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-black text-white">
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                 {project.domain}
                                             </span>
                                         </td>
@@ -278,23 +312,20 @@ export default function ProjectsPage() {
                                             {getClubName(project.clubId)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-900">
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300">
                                                 {project.category}
                                             </span>
                                         </td>
-                                        {/* <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                                            {project.description}
-                                        </td> */}
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <button
                                                 onClick={() => startEdit(project)}
-                                                className="text-gray-600 hover:text-gray-900"
+                                                className="text-red-800 hover:text-red-900 p-1 rounded"
                                             >
                                                 <FiEdit2 className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(project.id)}
-                                                className="text-gray-600 hover:text-gray-900"
+                                                className="text-red-600 hover:text-red-900 p-1 rounded"
                                             >
                                                 <FiTrash2 className="h-4 w-4" />
                                             </button>
@@ -310,53 +341,57 @@ export default function ProjectsPage() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-                        <div className="flex justify-between items-center p-6 border-b">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 border border-gray-300">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-200">
                             <h3 className="text-lg font-medium text-gray-900">
                                 {editingProject ? 'Edit Project' : 'Add New Project'}
                             </h3>
                             <button
                                 onClick={resetForm}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="text-gray-400 hover:text-gray-600 p-1 rounded"
                             >
                                 <FiX className="h-6 w-6" />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="projectId" className="block text-sm font-medium text-gray-700 mb-1">
                                     Project ID
                                 </label>
                                 <input
+                                    id="projectId"
                                     type="text"
                                     value={formData.id}
-                                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-600"
                                     required
-                                    disabled={editingProject}
+                                    disabled={true}
                                     maxLength={10}
+                                    placeholder="Auto-generated when category is selected"
+                                    readOnly
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="projectName" className="block text-sm font-medium text-gray-700 mb-1">
                                     Project Name
                                 </label>
                                 <input
+                                    id="projectName"
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="projectDomain" className="block text-sm font-medium text-gray-700 mb-1">
                                     Domain
                                 </label>
                                 <select
+                                    id="projectDomain"
                                     value={formData.domain}
                                     onChange={(e) => handleDomainChange(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                     required
                                 >
                                     <option value="">Select Domain</option>
@@ -369,13 +404,14 @@ export default function ProjectsPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="projectClub" className="block text-sm font-medium text-gray-700 mb-1">
                                     Club
                                 </label>
                                 <select
+                                    id="projectClub"
                                     value={formData.clubId}
                                     onChange={(e) => handleClubChange(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                     required
                                     disabled={!formData.domain}
                                 >
@@ -389,18 +425,19 @@ export default function ProjectsPage() {
                             </div>
                             {selectedClubCategories.length > 0 && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label htmlFor="projectCategory" className="block text-sm font-medium text-gray-700 mb-1">
                                         Category
                                     </label>
                                     <select
+                                        id="projectCategory"
                                         value={formData.category}
-                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        onChange={(e) => handleCategoryChange(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                         required
                                     >
                                         <option value="">Select Category</option>
-                                        {selectedClubCategories.map((category, index) => (
-                                            <option key={index} value={category}>
+                                        {selectedClubCategories.map((category) => (
+                                            <option key={category} value={category}>
                                                 {category}
                                             </option>
                                         ))}
@@ -408,14 +445,15 @@ export default function ProjectsPage() {
                                 </div>
                             )}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="projectDescription" className="block text-sm font-medium text-gray-700 mb-1">
                                     Description
                                 </label>
                                 <textarea
+                                    id="projectDescription"
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                     required
                                 />
                             </div>
@@ -423,20 +461,22 @@ export default function ProjectsPage() {
                             {/* Image Upload for LCH Handicrafts/Painting Clubs */}
                             {isLCHHandicraftsOrPainting() && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label htmlFor="projectImage" className="block text-sm font-medium text-gray-700 mb-1">
                                         Project Image
                                     </label>
                                     <input
+                                        id="projectImage"
                                         type="file"
                                         accept="image/*"
                                         onChange={handleImageChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                     />
                                     {imagePreview && (
                                         <div className="mt-2">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
                                                 src={imagePreview}
-                                                alt="Preview"
+                                                alt="Project preview"
                                                 className="w-32 h-32 object-cover rounded-md border"
                                             />
                                         </div>
@@ -448,16 +488,13 @@ export default function ProjectsPage() {
                                 <button
                                     type="button"
                                     onClick={resetForm}
-                                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                                    className="px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex items-center space-x-2 px-4 py-2 text-white rounded-md"
-                                    style={{ backgroundColor: 'rgb(151, 0, 3)' }}
-                                    onMouseEnter={(e) => e.target.style.backgroundColor = 'rgb(120, 0, 2)'}
-                                    onMouseLeave={(e) => e.target.style.backgroundColor = 'rgb(151, 0, 3)'}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-red-800 text-white rounded-md hover:bg-red-900 transition-colors"
                                 >
                                     <FiSave className="h-4 w-4" />
                                     <span>{editingProject ? 'Update' : 'Save'}</span>

@@ -14,6 +14,7 @@ export default function Login() {
     const [captcha, setCaptcha] = useState("");
     const [captchaInput, setCaptchaInput] = useState("");
     const [loading,setLoading] = useState(false);
+    const [redirecting, setRedirecting] = useState(false);
 
     const router=useRouter();
 
@@ -30,7 +31,7 @@ export default function Login() {
         setCaptcha(generateCaptcha());
     }, []);
 
-    const handleLogin  = async () => {
+        const handleLogin  = async () => {
             if(captcha!=captchaInput){
                 setCaptchaInput("");
                 toast.error("Invalid Captcha");
@@ -45,26 +46,48 @@ export default function Login() {
                 toast.error("Enter Valid Password");
                 return;
             }
-            // setLoading(true);
-            const response=await fetch("/api/auth/login",{
-                method:"POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password })
-            })
-            if(response.ok) 
-            {
-                const data = await response.json();
-                toast.success("Login Successful");
-                router.push("/dashboard/admin");
-            }else if(response.status===404) { 
-                toast.error("User Not Found");
-            }else if(response.status===401) {
-                toast.error("Invalid Credentials");
+            
+            setLoading(true);
+            try {
+                const response=await fetch("/api/auth/login",{
+                    method:"POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                })
+                
+                if(response.ok) 
+                {
+                    await response.json();
+                    toast.success("Login Successful");
+                    setRedirecting(true);
+                    router.push("/dashboard/admin");
+                }else if(response.status===404) { 
+                    toast.error("User Not Found");
+                }else if(response.status===401) {
+                    toast.error("Invalid Credentials");
+                }
+            } catch (error) {
+                console.error("Login error:", error);
+                toast.error("Login failed. Please try again.");
+            } finally {
+                setLoading(false);
             }
     }
 
     return(
-        <div className="w-full h-screen flex flex-col  justify-center items-center">
+        <>
+            {redirecting? (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="p-8 shadow-lg flex flex-col items-center">
+                        <svg className="animate-spin h-8 w-8 text-black mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p className="text-gray-700">Redirecting to dashboard...</p>
+                    </div>
+                </div>
+            ):(
+            <div className="w-full h-screen flex flex-col  justify-center items-center">
             <h1 className="text-3xl font-bold mb-4">Welcome to SAC SIL Portal</h1>
             <div className="input-container">
                 <div className="flex w-full h-full flex-col items-center"> 
@@ -125,13 +148,24 @@ export default function Login() {
                     onPaste={(e) => {e.preventDefault();}}
                 />
             </div>
-            <button className="w-80 h-12 bg-black text-white rounded hover:bg-gray-900 cursor-pointer transition-colors"
+            <button className="w-80 h-12 bg-black text-white rounded hover:bg-gray-900 cursor-pointer transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleLogin}
-                disabled={loading}
+                disabled={loading || redirecting}
             >
-                Login
+                {loading ? (
+                    <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Logging in...
+                    </>
+                ) : (
+                    "Login"
+                )}
             </button>
             <Link className="w-80 underline" href="/forget-password">Forget Password?</Link>
-        </div>  
+        </div>)}  
+        </>
     );
 }

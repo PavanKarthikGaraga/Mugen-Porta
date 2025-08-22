@@ -35,38 +35,38 @@ export default function ProjectSelection({ formData, updateFormData }) {
 
     // Fetch clubs and projects from unified registration API
     useEffect(() => {
+        const fetchRegistrationData = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch('/api/register-data');
+                if (response.ok) {
+                    const data = await response.json();
+                    setAllClubs(data.clubs);
+                    setAllProjects(data.projects);
+                    
+                    // Fetch member counts for TEC projects
+                    await fetchProjectMemberCounts(data.projects);
+                    
+                    // Fetch member counts for clubs (for Y25 students)
+                    await fetchClubMemberCounts(data.clubs);
+                    
+                    // console.log('Registration data loaded:', {
+                    //     clubs: data.clubs.length,
+                    //     projects: data.projects.length,
+                    //     domains: data.domains.length
+                    // });
+                } else {
+                    console.error('Failed to fetch registration data:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching registration data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchRegistrationData();
     }, []);
-
-    const fetchRegistrationData = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch('/api/register-data');
-            if (response.ok) {
-                const data = await response.json();
-                setAllClubs(data.clubs);
-                setAllProjects(data.projects);
-                
-                // Fetch member counts for TEC projects
-                await fetchProjectMemberCounts(data.projects);
-                
-                // Fetch member counts for clubs (for Y25 students)
-                await fetchClubMemberCounts(data.clubs);
-                
-                console.log('Registration data loaded:', {
-                    clubs: data.clubs.length,
-                    projects: data.projects.length,
-                    domains: data.domains.length
-                });
-            } else {
-                console.error('Failed to fetch registration data:', response.status);
-            }
-        } catch (error) {
-            console.error('Error fetching registration data:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const fetchProjectMemberCounts = async (projects) => {
         try {
@@ -76,7 +76,7 @@ export default function ProjectSelection({ formData, updateFormData }) {
             
             for (const project of tecProjects) {
                 try {
-                    const response = await fetch(`/api/project-members?projectId=${project.id}`);
+                    const response = await fetch(`/api/register-data?projectId=${project.id}`);
                     if (response.ok) {
                         const data = await response.json();
                         memberCounts[project.id] = data.memberCount || 0;
@@ -102,7 +102,7 @@ export default function ProjectSelection({ formData, updateFormData }) {
             
             for (const club of clubs) {
                 try {
-                    const response = await fetch(`/api/club-members?clubId=${club.id}`);
+                    const response = await fetch(`/api/register-data?clubId=${club.id}`);
                     if (response.ok) {
                         const data = await response.json();
                         memberCounts[club.id] = data.currentMembers || 0;
@@ -195,12 +195,12 @@ export default function ProjectSelection({ formData, updateFormData }) {
             project.clubId === club.id || project.clubId === String(club.id)
         );
         
-        console.log('Club selected:', club);
-        console.log('All projects:', allProjects);
-        console.log('Club projects:', clubProjects);
+        // console.log('Club selected:', club);
+        // console.log('All projects:', allProjects);
+        // console.log('Club projects:', clubProjects);
         
         const categories = [...new Set(clubProjects.map(project => project.category).filter(Boolean))];
-        console.log('Available categories:', categories);
+        // console.log('Available categories:', categories);
         
         setAvailableCategories(categories);
         

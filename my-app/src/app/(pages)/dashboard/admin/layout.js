@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
-    FiTool, FiChevronDown, FiChevronUp
+    FiTool, FiChevronDown, FiChevronUp, FiLock
 } from "react-icons/fi";
+import ChangePassword from "@/app/components/ChangePassword";
 
 export default function AdminDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [devDropdownOpen, setDevDropdownOpen] = useState(false);
+    const [changePasswordOpen, setChangePasswordOpen] = useState(false);
     const [userData, setUserData] = useState({ username: '', name: '' });
     const [hasDevAccess, setHasDevAccess] = useState(false);
     const pathname = usePathname();
@@ -175,6 +177,17 @@ export default function AdminDashboardLayout({ children }) {
                                 )}
                             </nav>
                         </div>
+                        
+                        {/* Change Password Button at Bottom of Sidebar */}
+                        <div className="px-4 py-4 border-t border-gray-700">
+                            <button
+                                onClick={() => setChangePasswordOpen(true)}
+                                className="flex items-center w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:text-white group"
+                            >
+                                <FiLock className="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" />
+                                Change Password
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -206,6 +219,12 @@ export default function AdminDashboardLayout({ children }) {
                     aria-label="Close sidebar"
                 ></button>
             )}
+
+            {/* Change Password Modal */}
+            <ChangePassword 
+                isOpen={changePasswordOpen}
+                onClose={() => setChangePasswordOpen(false)}
+            />
         </div>
     );
 }

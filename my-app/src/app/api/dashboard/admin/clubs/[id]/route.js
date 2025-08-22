@@ -11,11 +11,11 @@ export async function PUT(request, { params }) {
 
     try {
         const { id } = params;
-        const { name, description, domain, categories } = await request.json();
+        const { name, description, domain, categories, limit } = await request.json();
         
         const [result] = await pool.execute(
-            'UPDATE clubs SET name = ?, description = ?, domain = ?, categories = ? WHERE id = ?',
-            [name, description, domain, JSON.stringify(categories), id]
+            'UPDATE clubs SET name = ?, description = ?, domain = ?, categories = ?, `limit` = ? WHERE id = ?',
+            [name, description, domain, JSON.stringify(categories), limit || 50, id]
         );
         
         if (result.affectedRows === 0) {

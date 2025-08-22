@@ -2,11 +2,11 @@ import { verifyToken } from '../../../../lib/jwt';
 import { NextResponse } from 'next/server';
 import {cookies} from "next/headers"; 
 
-const DEV_USERNAME = '2300032048';
+const DEV_USERNAME = process.env.DEV_USERNAME || '2300032048';
 
 export async function verifyAdminToken(request) {
     const cookieStore = await cookies();
-    const token = await cookieStore.get('tck')?.value;
+    const token = cookieStore.get('tck')?.value;
 
     if (!token) {
         return {
@@ -20,6 +20,16 @@ export async function verifyAdminToken(request) {
 
     try {
         const payload = await verifyToken(token);
+        
+        if (!payload) {
+            return {
+                success: false,
+                response: NextResponse.json(
+                    { error: 'Invalid or expired token' },
+                    { status: 401 }
+                )
+            };
+        }
         
         if (payload.role !== 'admin') {
             return {

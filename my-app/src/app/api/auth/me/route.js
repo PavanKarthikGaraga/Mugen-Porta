@@ -15,7 +15,14 @@ export async function GET(request) {
         }
 
         const payload = await verifyToken(token);
-        console.log(payload);
+        
+        if (!payload) {
+            return NextResponse.json(
+                { error: 'Invalid or expired token' },
+                { status: 401 }
+            );
+        }
+        
         
         return NextResponse.json({
             username: payload.username,
