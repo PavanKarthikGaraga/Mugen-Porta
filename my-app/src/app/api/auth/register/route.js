@@ -33,6 +33,7 @@ export async function POST(req) {
             selectedClub,
             selectedCategory: originalSelectedCategory,
             selectedDomain,
+            ruralCategory,
             socialInternshipId,
             
             // Agreements
@@ -166,7 +167,7 @@ export async function POST(req) {
         } else if (isY25Student) {
             // Get club member limit dynamically from database
             const [clubInfo] = await pool.execute(
-                "SELECT memberLimit FROM clubs WHERE id = ?",
+                "SELECT `limit` FROM clubs WHERE id = ?",
                 [selectedClub]
             );
 
@@ -176,11 +177,11 @@ export async function POST(req) {
             );
             
             const currentMembers = clubMembers[0].currentMembers;
-            const memberLimit = clubInfo[0]?.memberLimit || 50; // Default to 50 if not found
+            const limit = clubInfo[0]?.limit || 50; // Default to 50 if not found
             
-            if (currentMembers >= memberLimit) {
+            if (currentMembers >= limit) {
                 return NextResponse.json(
-                    { message: `This club is full. Maximum ${memberLimit} members allowed per club. Please select a different club.` },
+                    { message: `This club is full. Maximum ${limit} members allowed per club. Please select a different club.` },
                     { status: 400 }
                 );
             }
@@ -209,8 +210,8 @@ export async function POST(req) {
                 `INSERT INTO students (
                     username, projectId, clubId, name, email, branch, gender, 
                     cluster, year, phoneNumber, residenceType, hostelName, busRoute,
-                    country, state, district, pincode, selectedDomain, socialInternshipId
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    country, state, district, pincode, selectedDomain, ruralCategory, socialInternshipId
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username, 
                     isY24Student ? selectedProject : null, // Y24 can have projects, Y25 null
@@ -218,7 +219,7 @@ export async function POST(req) {
                     name, email, branch, gender,
                     cluster, year, phoneNumber, residenceType, 
                     hostelName || 'N/A', busRoute || null,
-                    countryName || country, state, district, pincode, selectedDomain, socialInternshipId || null
+                    countryName || country, state, district, pincode, selectedDomain, ruralCategory || null, socialInternshipId || null
                 ]
             );
 

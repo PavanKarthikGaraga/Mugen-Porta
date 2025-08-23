@@ -33,7 +33,7 @@ export async function POST(request) {
     }
 
     try {
-        const { id, domain, clubId, category, name, description, image } = await request.json();
+                const { id, domain, clubId, category, rural, ruralCategory, subCategory, name, description, image } = await request.json();
         
         // Verify club exists and get club name
         const [clubCheck] = await pool.execute('SELECT id, name FROM clubs WHERE id = ?', [clubId]);
@@ -65,8 +65,8 @@ export async function POST(request) {
         
         // Insert project into database
         const [result] = await pool.execute(
-            'INSERT INTO projects (id, domain, clubId, category, name, description) VALUES (?, ?, ?, ?, ?, ?)',
-            [id, domain, clubId, category, name, description]
+            'INSERT INTO projects (id, domain, clubId, category, rural, ruralCategory, subCategory, name, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, domain, clubId, category, rural || false, ruralCategory || null, subCategory || null, name, description]
         );
         
         return NextResponse.json({ message: 'Project created successfully', id: result.insertId });

@@ -86,6 +86,11 @@ export default function Register() {
                     toast.error("Please select a project or club");
                     return false;
                 }
+                // If rural domain was selected, make sure a project was chosen (selectedDomain should be updated)
+                if (formData.selectedDomain === "RURAL") {
+                    toast.error("Please complete your rural project selection");
+                    return false;
+                }
                 break;
             case 6: // Address Details
                 if (!formData.country || !formData.state || !formData.district || !formData.pincode || !formData.residenceType) {
@@ -121,10 +126,17 @@ export default function Register() {
 
         setLoading(true);
         try {
+            // Prepare form data for submission
+            let submissionData = { ...formData };
+            
+            // If rural domain was selected but a project was chosen, 
+            // the selectedDomain should already be updated to the project's actual domain
+            // from the ProjectSelection component
+            
             const response = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(submissionData)
             });
 
             if (response.ok) {

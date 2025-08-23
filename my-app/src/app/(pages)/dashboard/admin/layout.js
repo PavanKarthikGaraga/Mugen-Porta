@@ -108,7 +108,7 @@ export default function AdminDashboardLayout({ children }) {
                     style={{ backgroundColor: '#1a1a1a' }}
                 >
                     <div className="flex flex-col h-full">
-                        <div className="flex-1 px-4 py-6 overflow-y-auto">
+                        <div className="flex-1 px-0 py-1 overflow-y-auto">
                             <nav className="space-y-1">
                                 {navigation.map((item) => {
                                     const isActive = pathname === item.href;
@@ -116,7 +116,7 @@ export default function AdminDashboardLayout({ children }) {
                                         <Link
                                             key={item.name}
                                             href={item.href}
-                                            className={`flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group ${
+                                            className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
                                                 isActive 
                                                     ? 'bg-red-700 text-white shadow-lg' 
                                                     : 'text-gray-300 hover:bg-gray-800 hover:text-white'

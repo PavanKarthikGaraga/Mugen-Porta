@@ -1,3 +1,37 @@
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(10) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    role ENUM('student', 'lead', 'faculty', 'admin') NOT NULL DEFAULT 'student'
+);
+
+CREATE TABLE clubs (
+    id VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    domain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
+    category VARCHAR(100) DEFAULT NULL,
+    categories JSON NOT NULL,
+    limit INT DEFAULT 50
+);
+
+CREATE TABLE projects (
+    id VARCHAR(10) PRIMARY KEY,
+    domain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
+    clubId VARCHAR(100) NOT NULL,
+    category TEXT NOT NULL,
+    rural BOOLEAN DEFAULT FALSE,
+    ruralCategory VARCHAR(50) DEFAULT NULL,
+    subCategory VARCHAR(100) DEFAULT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 CREATE TABLE students (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(10) NOT NULL UNIQUE,
@@ -17,40 +51,14 @@ CREATE TABLE students (
     state VARCHAR(50) NOT NULL,
     district VARCHAR(50) NOT NULL,
     pincode VARCHAR(10) NOT NULL,
-    selectedDomain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB', 'Rural') NOT NULL,
+    selectedDomain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
+    ruralCategory VARCHAR(50) DEFAULT NULL,
+    subCategory VARCHAR(100) DEFAULT NULL,
     socialInternshipId VARCHAR(50) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username),
     FOREIGN KEY (projectId) REFERENCES projects(id),
     FOREIGN KEY (clubId) REFERENCES clubs(id)
-);
-
-CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(10) NOT NULL UNIQUE,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(100) NOT NULL,
-    role ENUM('student', 'lead', 'faculty', 'admin') NOT NULL DEFAULT 'student'
-);
-
-CREATE TABLE clubs (
-    id VARCHAR(20) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NOT NULL,
-    domain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB', 'Rural') NOT NULL,
-    categories JSON NOT NULL
-);
-
-CREATE TABLE projects (
-    id VARCHAR(10) PRIMARY KEY,
-    domain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB', 'Rural') NOT NULL,
-    clubId VARCHAR(100) NOT NULL,
-    category TEXT NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NOT NULL,
-    status ENUM('active', 'inactive') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE email_queue (
@@ -69,3 +77,14 @@ CREATE TABLE email_queue (
 
 -- Create index for faster lookups
 CREATE INDEX idx_users_username ON users(username);
+
+
+
+INSERT INTO users (username, name, email, password, role)
+VALUES (
+    '2300032048',
+    'Garaga Pavan Karthik',
+    '2300032048@kluniversity.in',
+    '$2b$12$Xm2xgZ7jNcUef2WbZ/uxtukaftaUM7UfjC.8M4fdNIs9N1.ti2bGK',
+    'admin'
+);

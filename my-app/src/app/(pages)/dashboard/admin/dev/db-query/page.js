@@ -68,6 +68,17 @@ export default function DatabaseQueryPage() {
             return;
         }
 
+        // Double confirmation for UPDATE or DELETE queries
+        const trimmed = query.trim().toUpperCase();
+        if (/^(UPDATE|DELETE)\s+/.test(trimmed)) {
+            if (!window.confirm('You are about to run an UPDATE or DELETE query. Are you sure you want to continue?')) {
+                return;
+            }
+            if (!window.confirm('This action can modify or remove data. Are you absolutely sure?')) {
+                return;
+            }
+        }
+
         setLoading(true);
         setError('');
         setResults(null);

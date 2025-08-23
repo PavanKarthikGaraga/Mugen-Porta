@@ -21,35 +21,7 @@ export async function POST(request) {
 
         const trimmedQuery = query.trim();
 
-        // Security check: Only allow SELECT, SHOW, DESCRIBE, EXPLAIN queries
-        const allowedOperations = /^(SELECT|SHOW|DESCRIBE|DESC|EXPLAIN)\s+/i;
-        if (!allowedOperations.test(trimmedQuery)) {
-            return NextResponse.json(
-                { error: 'Only SELECT, SHOW, DESCRIBE, and EXPLAIN queries are allowed for security reasons' },
-                { status: 403 }
-            );
-        }
-
-        // Additional security: Block potentially dangerous patterns
-        const dangerousPatterns = [
-            /;\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE|TRUNCATE)/i,
-            /--/,
-            /\/\*/,
-            /\*\//,
-            /UNION.*SELECT/i,
-            /LOAD_FILE/i,
-            /INTO\s+OUTFILE/i,
-            /INTO\s+DUMPFILE/i
-        ];
-
-        for (const pattern of dangerousPatterns) {
-            if (pattern.test(trimmedQuery)) {
-                return NextResponse.json(
-                    { error: 'Query contains potentially dangerous patterns and has been blocked' },
-                    { status: 403 }
-                );
-            }
-        }
+    // Removed query type and dangerous pattern restrictions for dev use. Use with caution!
 
         const startTime = Date.now();
         
@@ -57,24 +29,17 @@ export async function POST(request) {
         const connection = await pool.getConnection();
         
         try {
-            // Set a query timeout (10 seconds)
-            await connection.execute('SET SESSION max_execution_time = 10000');
-            
+            // No query timeout or row limit
             const [rows, fields] = await connection.execute(trimmedQuery);
             const executionTime = Date.now() - startTime;
 
-            // Limit the number of rows returned to prevent memory issues
-            const maxRows = 1000;
-            const limitedRows = Array.isArray(rows) ? rows.slice(0, maxRows) : rows;
-            const isLimited = Array.isArray(rows) && rows.length > maxRows;
-
             return NextResponse.json({
                 success: true,
-                data: limitedRows,
+                data: rows,
                 metadata: {
                     rowCount: Array.isArray(rows) ? rows.length : 0,
-                    returnedRows: Array.isArray(limitedRows) ? limitedRows.length : 0,
-                    isLimited,
+                    returnedRows: Array.isArray(rows) ? rows.length : 0,
+                    isLimited: false,
                     executionTime: `${executionTime}ms`,
                     fields: fields ? fields.map(field => ({
                         name: field.name,
@@ -91,32 +56,32 @@ export async function POST(request) {
 
     } catch (error) {
         console.error('Database query error:', error);
-        
+
         let errorMessage = 'Query execution failed';
         let statusCode = 500;
 
-        // Handle specific MySQL errors
         if (error.code === 'ER_PARSE_ERROR') {
-            errorMessage = 'SQL syntax error: ' + error.sqlMessage;
+            errorMessage = 'SQL syntax error: ' + (error.sqlMessage || error.message);
             statusCode = 400;
         } else if (error.code === 'ER_NO_SUCH_TABLE') {
-            errorMessage = 'Table does not exist: ' + error.sqlMessage;
+            errorMessage = 'Table does not exist: ' + (error.sqlMessage || error.message);
             statusCode = 400;
         } else if (error.code === 'ER_BAD_FIELD_ERROR') {
-            errorMessage = 'Column does not exist: ' + error.sqlMessage;
+            errorMessage = 'Column does not exist: ' + (error.sqlMessage || error.message);
             statusCode = 400;
         } else if (error.code === 'ER_QUERY_TIMEOUT') {
             errorMessage = 'Query timeout: The query took too long to execute';
             statusCode = 408;
-        } else if (error.sqlMessage) {
-            errorMessage = error.sqlMessage;
+        } else if (error.sqlMessage || error.message) {
+            errorMessage = error.sqlMessage || error.message;
             statusCode = 400;
         }
 
         return NextResponse.json(
-            { 
+            {
                 error: errorMessage,
-                code: error.code || 'UNKNOWN_ERROR'
+                code: error.code || 'UNKNOWN_ERROR',
+                sql: error.sql || undefined
             },
             { status: statusCode }
         );
