@@ -14,9 +14,9 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get('limit')) || 50;
     const search = searchParams.get('search')?.trim() || '';
     const domain = searchParams.get('domain')?.trim() || '';
-    const gender = searchParams.get('gender')?.trim() || '';
     const year = searchParams.get('year')?.trim() || '';
     const residenceType = searchParams.get('residenceType')?.trim() || '';
+    const clubId = searchParams.get('clubId')?.trim() || '';
 
     const offset = (page - 1) * limit;
 
@@ -35,11 +35,6 @@ export async function GET(request) {
             queryParams.push(domain);
         }
 
-        if (gender && gender.length > 0) {
-            whereConditions.push('s.gender = ?');
-            queryParams.push(gender);
-        }
-
         if (year && year.length > 0) {
             whereConditions.push('s.year = ?');
             queryParams.push(year);
@@ -48,6 +43,11 @@ export async function GET(request) {
         if (residenceType && residenceType.length > 0) {
             whereConditions.push('s.residenceType = ?');
             queryParams.push(residenceType);
+        }
+
+        if (clubId && clubId.length > 0) {
+            whereConditions.push('c.name = ?');
+            queryParams.push(clubId);
         }
 
         const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
@@ -68,8 +68,6 @@ export async function GET(request) {
                 s.id,
                 s.username,
                 s.name,
-                s.email,
-                s.branch,
                 s.gender,
                 s.cluster,
                 s.year,
@@ -85,8 +83,12 @@ export async function GET(request) {
                 s.socialInternshipId,
                 s.created_at,
                 s.projectId,
-                s.clubId
+                s.clubId,
+                p.name as projectName,
+                c.name as clubName
             FROM students s
+            LEFT JOIN projects p ON s.projectId = p.id
+            LEFT JOIN clubs c ON s.clubId = c.id
             ${whereClause}
             ORDER BY s.created_at DESC
             LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}
@@ -98,9 +100,6 @@ export async function GET(request) {
         const statsQuery = `
             SELECT 
                 COUNT(*) as total,
-                COUNT(CASE WHEN gender = 'Male' THEN 1 END) as male,
-                COUNT(CASE WHEN gender = 'Female' THEN 1 END) as female,
-                COUNT(CASE WHEN gender = 'Other' THEN 1 END) as other,
                 COUNT(CASE WHEN selectedDomain = 'TEC' THEN 1 END) as tec,
                 COUNT(CASE WHEN selectedDomain = 'LCH' THEN 1 END) as lch,
                 COUNT(CASE WHEN selectedDomain = 'ESO' THEN 1 END) as eso,
@@ -112,6 +111,19 @@ export async function GET(request) {
 
         const [stats] = await pool.execute(statsQuery);
 
+        // Get club statistics
+        const clubStatsQuery = `
+            SELECT 
+                c.name as clubName,
+                COUNT(s.id) as memberCount
+            FROM clubs c
+            LEFT JOIN students s ON c.id = s.clubId
+            GROUP BY c.id, c.name
+            ORDER BY memberCount DESC
+        `;
+
+        const [clubStats] = await pool.execute(clubStatsQuery);
+
         return NextResponse.json({
             success: true,
             data: {
@@ -122,7 +134,8 @@ export async function GET(request) {
                     total,
                     pages: Math.ceil(total / limit)
                 },
-                stats: stats[0]
+                stats: stats[0],
+                clubStats
             }
         });
 

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { FiEye, FiEyeOff, FiLock, FiSave, FiX } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
+import { handleApiError, handleApiSuccess } from '@/lib/apiErrorHandler';
 
 export default function ChangePassword({ isOpen, onClose }) {
     const [formData, setFormData] = useState({
@@ -94,10 +95,14 @@ export default function ChangePassword({ isOpen, onClose }) {
                 }),
             });
 
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
             const data = await response.json();
 
             if (response.ok) {
-                toast.success('Password changed successfully');
+                handleApiSuccess('Password changed successfully');
                 handleClose();
             } else {
                 toast.error(data.error || 'Failed to change password');

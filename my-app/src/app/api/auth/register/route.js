@@ -167,7 +167,7 @@ export async function POST(req) {
         } else if (isY25Student) {
             // Get club member limit dynamically from database
             const [clubInfo] = await pool.execute(
-                "SELECT `limit` FROM clubs WHERE id = ?",
+                "SELECT memberLimit FROM clubs WHERE id = ?",
                 [selectedClub]
             );
 
@@ -177,11 +177,11 @@ export async function POST(req) {
             );
             
             const currentMembers = clubMembers[0].currentMembers;
-            const limit = clubInfo[0]?.limit || 50; // Default to 50 if not found
+            const memberLimit = clubInfo[0]?.memberLimit || 50; // Default to 50 if not found
             
-            if (currentMembers >= limit) {
+            if (currentMembers >= memberLimit) {
                 return NextResponse.json(
-                    { message: `This club is full. Maximum ${limit} members allowed per club. Please select a different club.` },
+                    { message: `This club is full. Maximum ${memberLimit} members allowed per club. Please select a different club.` },
                     { status: 400 }
                 );
             }
@@ -227,12 +227,38 @@ export async function POST(req) {
             await connection.commit();
             connection.release();
 
+            // Fetch project and club details for email
+            let projectDetails = null;
+            let clubDetails = null;
+
+            if (isY24Student && selectedProject) {
+                const [projectInfo] = await pool.execute(
+                    "SELECT name, description FROM projects WHERE id = ?",
+                    [selectedProject]
+                );
+                projectDetails = projectInfo[0] || null;
+            }
+
+            if (selectedClub) {
+                const [clubInfo] = await pool.execute(
+                    "SELECT name, description FROM clubs WHERE id = ?",
+                    [selectedClub]
+                );
+                clubDetails = clubInfo[0] || null;
+            }
+
             // Queue email for async processing (non-blocking)
             emailQueue.add({
                 email: email,
                 name: name,
                 username: username,
-                password: generatedPassword
+                password: generatedPassword,
+                year: year,
+                selectedDomain: selectedDomain,
+                projectDetails: projectDetails,
+                clubDetails: clubDetails,
+                isY24Student: isY24Student,
+                isY25Student: isY25Student
             });
 
             // Return immediate success response

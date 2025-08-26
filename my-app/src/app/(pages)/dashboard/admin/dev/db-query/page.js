@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { FiDatabase, FiPlay, FiDownload, FiAlertTriangle, FiInfo } from "react-icons/fi";
+import { handleApiError, handleApiSuccess } from '@/lib/apiErrorHandler';
 
 export default function DatabaseQueryPage() {
     const [query, setQuery] = useState('');
@@ -16,6 +17,11 @@ export default function DatabaseQueryPage() {
     const checkAccess = useCallback(async () => {
         try {
             const response = await fetch('/api/auth/me');
+            
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
             if (response.ok) {
                 const data = await response.json();
                 const hasDevAccess = data.username === '2300032048';
@@ -38,6 +44,11 @@ export default function DatabaseQueryPage() {
     const loadDatabaseInfo = useCallback(async () => {
         try {
             const response = await fetch('/api/dashboard/admin/db-query');
+            
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
             const data = await response.json();
             
             if (data.success) {
@@ -92,6 +103,10 @@ export default function DatabaseQueryPage() {
                 body: JSON.stringify({ query: query.trim() }),
             });
 
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
             const data = await response.json();
 
             if (!response.ok) {
@@ -99,6 +114,7 @@ export default function DatabaseQueryPage() {
             }
 
             setResults(data);
+            handleApiSuccess('Query executed successfully');
         } catch (err) {
             setError(err.message);
         } finally {

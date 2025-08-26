@@ -39,7 +39,13 @@ class EmailQueue {
                         emailData.email, 
                         emailData.name, 
                         emailData.username, 
-                        emailData.password
+                        emailData.password,
+                        emailData.year,
+                        emailData.selectedDomain,
+                        emailData.projectDetails,
+                        emailData.clubDetails,
+                        emailData.isY24Student,
+                        emailData.isY25Student
                     );
                     
                     if (result.success) {

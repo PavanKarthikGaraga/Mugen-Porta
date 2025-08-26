@@ -19,7 +19,7 @@ export default function Login() {
     const router=useRouter();
 
     function generateCaptcha(length = 6) {
-        const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         let captcha = "";
         for (let i = 0; i < length; i++) {
             captcha += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -126,19 +126,27 @@ export default function Login() {
                 </div>
             </div>
             <div className="captcha flex gap-0 border-1 mb-4">
-                <button className="bg-gray-200 text-center w-40 h-12 p-3 border-r cursor-pointer"
-                 style={{userSelect: "none", userDrag: "none"}}
+                <div className="bg-gray-200 text-center w-40 h-12 p-3 border-r cursor-pointer select-none"
+                 style={{
+                    userSelect: "none", 
+                    userDrag: "none",
+                    fontFamily: "JMH Typewriter, monospace",
+                    WebkitUserSelect: "none",
+                    MozUserSelect: "none",
+                    msUserSelect: "none"
+                 }}
                  onCopy={(e) => {e.preventDefault(); }}
                  onSelect={(e) => {e.preventDefault(); }}
+                 onMouseDown={(e) => {e.preventDefault(); }}
                  onClick={() => setCaptcha(generateCaptcha())}
                  type="button"
                  >
                     {captcha.split("").map((char, index) => (
-                        <span key={index} className="text-base font-light pr-3">
+                        <span key={`captcha-${char}-${index}`} className="text-base font-light pr-3 select-none" style={{userSelect: "none"}}>
                             {char}
                         </span>
                     ))}
-                </button>
+                </div>
                 <input 
                     type="text" 
                     placeholder="Enter Captcha"

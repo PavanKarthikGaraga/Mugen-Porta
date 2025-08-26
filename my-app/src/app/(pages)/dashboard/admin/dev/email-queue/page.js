@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { FiMail, FiRefreshCw, FiClock, FiCheckCircle, FiXCircle, FiAlertTriangle } from "react-icons/fi";
+import { handleApiError } from '@/lib/apiErrorHandler';
 
 export default function EmailQueuePage() {
     const [queueData, setQueueData] = useState([]);
@@ -18,6 +19,11 @@ export default function EmailQueuePage() {
     const checkAccess = useCallback(async () => {
         try {
             const response = await fetch('/api/auth/me');
+            
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
             if (response.ok) {
                 const data = await response.json();
                 const hasDevAccess = data.username === '2300032048';
@@ -41,6 +47,11 @@ export default function EmailQueuePage() {
         try {
             setLoading(true);
             const response = await fetch('/api/dashboard/admin/email-status');
+            
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
             if (response.ok) {
                 const data = await response.json();
                 setQueueData(data.emails || []);

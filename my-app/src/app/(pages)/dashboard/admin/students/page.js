@@ -1,6 +1,7 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FiSearch, FiRefreshCw, FiDownload, FiEye, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 
 export default function AdminStudents() {
     const [students, setStudents] = useState([]);
@@ -8,9 +9,9 @@ export default function AdminStudents() {
     const [searchTerm, setSearchTerm] = useState("");
     const [filters, setFilters] = useState({
         domain: "",
-        gender: "",
         year: "",
-        residenceType: ""
+        residenceType: "",
+        clubId: ""
     });
     const [pagination, setPagination] = useState({
         page: 1,
@@ -20,9 +21,6 @@ export default function AdminStudents() {
     });
     const [stats, setStats] = useState({
         total: 0,
-        male: 0,
-        female: 0,
-        other: 0,
         tec: 0,
         lch: 0,
         eso: 0,
@@ -30,8 +28,11 @@ export default function AdminStudents() {
         hwb: 0,
         rural: 0
     });
+    const [clubStats, setClubStats] = useState([]);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [studentToDelete, setStudentToDelete] = useState(null);
 
-    const fetchStudents = async (page = 1) => {
+    const fetchStudents = useCallback(async (page = 1) => {
         setLoading(true);
         try {
             const params = new URLSearchParams({
@@ -39,18 +40,23 @@ export default function AdminStudents() {
                 limit: pagination.limit.toString(),
                 search: searchTerm,
                 domain: filters.domain,
-                gender: filters.gender,
                 year: filters.year,
-                residenceType: filters.residenceType
+                residenceType: filters.residenceType,
+                clubId: filters.clubId
             });
 
             const response = await fetch(`/api/dashboard/admin/students?${params}`);
             const data = await response.json();
 
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
             if (data.success) {
                 setStudents(data.data.students);
                 setPagination(data.data.pagination);
                 setStats(data.data.stats);
+                setClubStats(data.data.clubStats || []);
             } else {
                 console.error('Error fetching students:', data.error);
             }
@@ -59,11 +65,11 @@ export default function AdminStudents() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchTerm, filters, pagination.limit]);
 
     useEffect(() => {
         fetchStudents(1);
-    }, [searchTerm, filters]);
+    }, [fetchStudents]);
 
     const handlePageChange = (newPage) => {
         fetchStudents(newPage);
@@ -74,26 +80,36 @@ export default function AdminStudents() {
     };
 
     const deleteStudent = async (studentId) => {
-        if (!confirm('Are you sure you want to delete this student?')) {
-            return;
-        }
-
         try {
             const response = await fetch(`/api/dashboard/admin/students/${studentId}`, {
                 method: 'DELETE'
             });
 
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
             const data = await response.json();
 
             if (data.success) {
-                alert('Student deleted successfully');
+                handleApiSuccess('Student deleted successfully');
+                setShowDeleteModal(false);
+                setStudentToDelete(null);
                 await refreshData();
-            } else {
-                alert('Error deleting student: ' + data.error);
             }
         } catch (error) {
             console.error('Error deleting student:', error);
-            alert('Error deleting student');
+        }
+    };
+
+    const handleDeleteClick = (student) => {
+        setStudentToDelete(student);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = () => {
+        if (studentToDelete) {
+            deleteStudent(studentToDelete.id);
         }
     };
 
@@ -101,8 +117,8 @@ export default function AdminStudents() {
         try {
             // Create CSV content
             const headers = [
-                'ID', 'Username', 'Name', 'Email', 'Branch', 'Gender', 'Year', 'Phone', 
-                'Residence Type', 'Hostel Name', 'Domain', 'Project', 'Club', 'State', 'District'
+                'ID', 'Username', 'Name', 'Gender', 'Year', 'Phone', 
+                'Residence Type', 'Hostel Name', 'Domain', 'Project ID', 'Club', 'State', 'District'
             ];
 
             const csvContent = [
@@ -111,15 +127,13 @@ export default function AdminStudents() {
                     student.id,
                     student.username,
                     `"${student.name}"`,
-                    student.email,
-                    student.branch,
                     student.gender,
                     student.year,
                     student.phoneNumber,
                     student.residenceType,
                     `"${student.hostelName || 'N/A'}"`,
                     student.selectedDomain,
-                    `"${student.projectName || 'N/A'}"`,
+                    student.projectId || 'N/A',
                     `"${student.clubName || 'N/A'}"`,
                     student.state,
                     student.district
@@ -141,13 +155,15 @@ export default function AdminStudents() {
         }
     };
 
-    const domainMapping = {
-        TEC: 'Technology',
-        LCH: 'Literature & Culture',
-        ESO: 'Environment & Social',
-        IIE: 'Innovation & Entrepreneurship',
-        HWB: 'Health & Wellbeing',
-        Rural: 'Rural Development'
+    const getDomainBadgeClass = (domain) => {
+        switch(domain) {
+            case 'TEC': return 'bg-blue-100 text-blue-800';
+            case 'LCH': return 'bg-purple-100 text-purple-800';
+            case 'ESO': return 'bg-green-100 text-green-800';
+            case 'IIE': return 'bg-orange-100 text-orange-800';
+            case 'HWB': return 'bg-pink-100 text-pink-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
     };
 
     return (
@@ -180,15 +196,7 @@ export default function AdminStudents() {
             </div>
 
             {/* Statistics Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <div className="text-sm text-blue-600">Male</div>
-                    <div className="text-2xl font-bold text-blue-800">{stats.male}</div>
-                </div>
-                <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
-                    <div className="text-sm text-pink-600">Female</div>
-                    <div className="text-2xl font-bold text-pink-800">{stats.female}</div>
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                     <div className="text-sm text-green-600">TEC</div>
                     <div className="text-2xl font-bold text-green-800">{stats.tec}</div>
@@ -201,11 +209,34 @@ export default function AdminStudents() {
                     <div className="text-sm text-yellow-600">ESO</div>
                     <div className="text-2xl font-bold text-yellow-800">{stats.eso}</div>
                 </div>
+                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <div className="text-sm text-orange-600">IIE</div>
+                    <div className="text-2xl font-bold text-orange-800">{stats.iie}</div>
+                </div>
+                <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
+                    <div className="text-sm text-pink-600">HWB</div>
+                    <div className="text-2xl font-bold text-pink-800">{stats.hwb}</div>
+                </div>
                 <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
                     <div className="text-sm text-indigo-600">Rural</div>
                     <div className="text-2xl font-bold text-indigo-800">{stats.rural}</div>
                 </div>
             </div>
+
+            {/* Club Statistics */}
+            {clubStats.length > 0 && (
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Club Membership</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {clubStats.slice(0, 8).map((club) => (
+                            <div key={club.clubName || 'no-club'} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                <div className="text-xs text-gray-600 truncate">{club.clubName || 'No Club'}</div>
+                                <div className="text-lg font-bold text-gray-800">{club.memberCount}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Search and Filters */}
             <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -216,7 +247,7 @@ export default function AdminStudents() {
                             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                             <input
                                 type="text"
-                                placeholder="Search by name, email, or username..."
+                                placeholder="Search by name or username..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
@@ -238,20 +269,6 @@ export default function AdminStudents() {
                             <option value="IIE">Innovation & Entrepreneurship</option>
                             <option value="HWB">Health & Wellbeing</option>
                             <option value="Rural">Rural Development</option>
-                        </select>
-                    </div>
-
-                    {/* Gender Filter */}
-                    <div>
-                        <select
-                            value={filters.gender}
-                            onChange={(e) => setFilters({...filters, gender: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
-                            <option value="">All Genders</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
                         </select>
                     </div>
 
@@ -282,6 +299,22 @@ export default function AdminStudents() {
                             <option value="Day Scholar">Day Scholar</option>
                         </select>
                     </div>
+
+                    {/* Club Filter */}
+                    <div>
+                        <select
+                            value={filters.clubId}
+                            onChange={(e) => setFilters({...filters, clubId: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                            <option value="">All Clubs</option>
+                            {clubStats.map((club) => (
+                                <option key={club.clubName} value={club.clubName}>
+                                    {club.clubName} ({club.memberCount})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -294,10 +327,9 @@ export default function AdminStudents() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Club</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -314,25 +346,15 @@ export default function AdminStudents() {
                                         {student.name}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {student.email}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {student.branch}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                            student.selectedDomain === 'TEC' ? 'bg-blue-100 text-blue-800' :
-                                            student.selectedDomain === 'LCH' ? 'bg-purple-100 text-purple-800' :
-                                            student.selectedDomain === 'ESO' ? 'bg-green-100 text-green-800' :
-                                            student.selectedDomain === 'IIE' ? 'bg-orange-100 text-orange-800' :
-                                            student.selectedDomain === 'HWB' ? 'bg-pink-100 text-pink-800' :
-                                            'bg-gray-100 text-gray-800'
-                                        }`}>
-                                            {domainMapping[student.selectedDomain] || student.selectedDomain}
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getDomainBadgeClass(student.selectedDomain)}`}>
+                                            {student.selectedDomain}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {student.projectName || 'Not Assigned'}
+                                        {student.projectId || 'Not Assigned'}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {student.clubName || 'Not Assigned'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <div className="flex space-x-2">
@@ -345,7 +367,7 @@ export default function AdminStudents() {
                                             <button 
                                                 className="p-1 text-red-600 hover:text-red-800 transition-colors"
                                                 title="Delete Student"
-                                                onClick={() => deleteStudent(student.id)}
+                                                onClick={() => handleDeleteClick(student)}
                                             >
                                                 <FiTrash2 className="h-4 w-4" />
                                             </button>
@@ -417,6 +439,40 @@ export default function AdminStudents() {
                             Next
                             <FiChevronRight className="h-4 w-4 ml-1" />
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && studentToDelete && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                        <div className="p-6">
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                Confirm Delete
+                            </h3>
+                            <p className="text-gray-600 mb-6">
+                                Are you sure you want to delete student <strong>{studentToDelete.name}</strong> ({studentToDelete.username})? 
+                                This action cannot be undone.
+                            </p>
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => {
+                                        setShowDeleteModal(false);
+                                        setStudentToDelete(null);
+                                    }}
+                                    className="px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

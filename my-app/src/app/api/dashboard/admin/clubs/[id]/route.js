@@ -10,12 +10,12 @@ export async function PUT(request, { params }) {
     }
 
     try {
-        const { id } = params;
-        const { name, description, domain, categories, limit } = await request.json();
+        const { id } = await params;
+        const { name, description, domain, categories, memberLimit } = await request.json();
         
         const [result] = await pool.execute(
-            'UPDATE clubs SET name = ?, description = ?, domain = ?, categories = ?, `limit` = ? WHERE id = ?',
-            [name, description, domain, JSON.stringify(categories), limit || 50, id]
+            'UPDATE clubs SET name = ?, description = ?, domain = ?, categories = ?, memberLimit = ? WHERE id = ?',
+            [name, description, domain, JSON.stringify(categories), memberLimit || 50, id]
         );
         
         if (result.affectedRows === 0) {
@@ -37,7 +37,7 @@ export async function DELETE(request, { params }) {
     }
 
     try {
-        const { id } = params;
+        const { id } = await params;
         
         // Check if club has projects
         const [projects] = await pool.execute('SELECT COUNT(*) as count FROM projects WHERE clubId = ?', [id]);

@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 // Create transporter with connection pooling for better performance
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransporter({
     host: 'smtp.office365.com',
     port: 587,
     secure: false, // true for 465, false for other ports

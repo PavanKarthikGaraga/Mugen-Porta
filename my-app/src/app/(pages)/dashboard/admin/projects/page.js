@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react";
 import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX } from "react-icons/fi";
+import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 
 export default function ProjectsPage() {
     const [projects, setProjects] = useState([]);
@@ -80,6 +81,11 @@ export default function ProjectsPage() {
     const fetchProjects = async () => {
         try {
             const response = await fetch('/api/dashboard/admin/projects');
+            
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+            
             if (response.ok) {
                 const data = await response.json();
                 setProjects(data);
@@ -93,6 +99,11 @@ export default function ProjectsPage() {
     const fetchClubs = async () => {
         try {
             const response = await fetch('/api/dashboard/admin/clubs');
+            
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+            
             if (response.ok) {
                 const data = await response.json();
                 setClubs(data);
@@ -131,12 +142,14 @@ export default function ProjectsPage() {
                 body: JSON.stringify(projectData),
             });
 
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
             if (response.ok) {
+                handleApiSuccess(editingProject ? 'Project updated successfully' : 'Project created successfully');
                 fetchProjects();
                 resetForm();
-            } else {
-                const errorData = await response.json();
-                console.error('Failed to save project:', errorData);
             }
         } catch (error) {
             console.error('Error saving project:', error);
@@ -144,22 +157,23 @@ export default function ProjectsPage() {
     };
 
     const handleDelete = async (id) => {
-        if (confirm('Are you sure you want to delete this project?')) {
-            try {
-                const response = await fetch(`/api/dashboard/admin/projects/${id}`, {
-                    method: 'DELETE',
-                });
+        try {
+            const response = await fetch(`/api/dashboard/admin/projects/${id}`, {
+                method: 'DELETE',
+            });
 
-                if (response.ok) {
-                    fetchProjects();
-                }
-            } catch (error) {
-                console.error('Error deleting project:', error);
+            if (await handleApiError(response)) {
+                return; // Error was handled
             }
-        }
-    };
 
-    const resetForm = () => {
+            if (response.ok) {
+                handleApiSuccess('Project deleted successfully');
+                fetchProjects();
+            }
+        } catch (error) {
+            console.error('Error deleting project:', error);
+        }
+    };    const resetForm = () => {
         setFormData({
             id: '',
             domain: '',
@@ -192,11 +206,7 @@ export default function ProjectsPage() {
 
     const isLCHHandicraftsOrPainting = () => {
         if (formData.domain === 'LCH' && formData.clubId) {
-            const selectedClub = clubs.find(club => club.id === formData.clubId);
-            if (selectedClub) {
-                const clubName = selectedClub.name.toLowerCase();
-                return clubName.includes('handicraft') || clubName.includes('painting');
-            }
+            return formData.clubId === 'PNT' || formData.clubId === 'HDC';
         }
         return false;
     };

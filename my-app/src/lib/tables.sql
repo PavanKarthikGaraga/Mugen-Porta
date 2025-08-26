@@ -14,7 +14,7 @@ CREATE TABLE clubs (
     domain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
     category VARCHAR(100) DEFAULT NULL,
     categories JSON NOT NULL,
-    limit INT DEFAULT 50
+    memberLimit INT DEFAULT 50
 );
 
 CREATE TABLE projects (

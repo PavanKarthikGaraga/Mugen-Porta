@@ -63,12 +63,12 @@ export async function GET(request) {
             );
 
             const [clubResult] = await pool.execute(
-                "SELECT `limit` FROM clubs WHERE id = ?",
+                "SELECT memberLimit FROM clubs WHERE id = ?",
                 [clubId]
             );
 
             const currentMembers = memberResult[0].memberCount;
-            const memberLimit = clubResult[0]?.limit || 50; // Default to 50 if not found
+            const memberLimit = clubResult[0]?.memberLimit || 50; // Default to 50 if not found
 
             return NextResponse.json({
                 currentMembers,
@@ -109,12 +109,8 @@ export async function GET(request) {
             const clubName = project.clubName;
             const projectName = project.name;
             
-            // Check if this is a Handicrafts or Painting club
-            if (clubName && (
-                clubName.toLowerCase().includes('handicraft') || 
-                clubName.toLowerCase().includes('painting') ||
-                clubName.toLowerCase().includes('art')
-            )) {
+            // Check if this is a Handicrafts or Painting club by club ID
+            if (project.domain === 'LCH' && (project.clubId === 'PNT' || project.clubId === 'HDC')) {
                 const images = getProjectImages(clubName, projectName);
                 return {
                     ...project,

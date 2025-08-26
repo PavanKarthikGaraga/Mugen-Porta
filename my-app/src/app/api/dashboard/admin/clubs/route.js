@@ -26,11 +26,11 @@ export async function POST(request) {
     }
 
     try {
-        const { id, name, description, domain, categories, limit } = await request.json();
+    const { id, name, description, domain, categories, memberLimit } = await request.json();
         
         const [result] = await pool.execute(
-            'INSERT INTO clubs (id, name, description, domain, categories, `limit`) VALUES (?, ?, ?, ?, ?, ?)',
-            [id, name, description, domain, JSON.stringify(categories), limit || 50]
+            'INSERT INTO clubs (id, name, description, domain, categories, memberLimit) VALUES (?, ?, ?, ?, ?, ?)',
+            [id, name, description, domain, JSON.stringify(categories), memberLimit || 50]
         );
         
         return NextResponse.json({ message: 'Club created successfully', id: result.insertId });

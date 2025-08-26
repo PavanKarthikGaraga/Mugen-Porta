@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FiUsers, FiFolder, FiMail, FiBarChart, FiTrendingUp, FiCalendar } from "react-icons/fi";
+import { handleApiError } from '@/lib/apiErrorHandler';
 
 export default function AdminOverviewPage() {
     const [stats, setStats] = useState({
@@ -16,6 +17,11 @@ export default function AdminOverviewPage() {
         const fetchStats = async () => {
             try {
                 const response = await fetch('/api/admin/dashboard-stats');
+                
+                if (await handleApiError(response)) {
+                    return; // Error was handled
+                }
+
                 if (response.ok) {
                     const data = await response.json();
                     setStats(data);

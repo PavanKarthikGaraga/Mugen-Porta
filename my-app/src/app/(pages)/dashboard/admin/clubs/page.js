@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react";
 import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag } from "react-icons/fi";
+import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 
 export default function ClubsPage() {
     const [clubs, setClubs] = useState([]);
@@ -13,7 +14,7 @@ export default function ClubsPage() {
         description: '',
         domain: '',
         categories: [],
-        limit: ''
+    memberLimit: ''
     });
     const [newCategory, setNewCategory] = useState('');
 
@@ -24,6 +25,11 @@ export default function ClubsPage() {
     const fetchClubs = async () => {
         try {
             const response = await fetch('/api/dashboard/admin/clubs');
+            
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+            
             if (response.ok) {
                 const data = await response.json();
                 setClubs(data);
@@ -48,7 +54,12 @@ export default function ClubsPage() {
                 body: JSON.stringify(formData),
             });
 
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
             if (response.ok) {
+                handleApiSuccess(editingClub ? 'Club updated successfully' : 'Club created successfully');
                 fetchClubs();
                 resetForm();
             }
@@ -64,7 +75,12 @@ export default function ClubsPage() {
                     method: 'DELETE',
                 });
 
+                if (await handleApiError(response)) {
+                    return; // Error was handled
+                }
+
                 if (response.ok) {
+                    handleApiSuccess('Club deleted successfully');
                     fetchClubs();
                 }
             } catch (error) {
@@ -80,7 +96,7 @@ export default function ClubsPage() {
             description: '',
             domain: '',
             categories: [],
-            limit: ''
+            memberLimit: ''
         });
         setEditingClub(null);
         setShowModal(false);
@@ -95,7 +111,7 @@ export default function ClubsPage() {
             description: club.description,
             domain: club.domain || '',
             categories: Array.isArray(club.categories) ? club.categories : JSON.parse(club.categories || '[]'),
-            limit: club.limit || ''
+            memberLimit: club.memberLimit || ''
         });
         setShowModal(true);
     };
@@ -199,7 +215,7 @@ export default function ClubsPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {club.limit || '50'}
+                                            {club.memberLimit || '50'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <button
@@ -303,15 +319,15 @@ export default function ClubsPage() {
                                 </select>
                             </div>
                             <div>
-                                <label htmlFor="clubLimit" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="clubMemberLimit" className="block text-sm font-medium text-gray-700 mb-1">
                                     Member Limit
                                 </label>
                                 <input
-                                    id="clubLimit"
+                                    id="clubMemberLimit"
                                     type="number"
                                     min="1"
-                                    value={formData.limit}
-                                    onChange={(e) => setFormData({ ...formData, limit: e.target.value })}
+                                    value={formData.memberLimit}
+                                    onChange={(e) => setFormData({ ...formData, memberLimit: e.target.value })}
                                     placeholder="Default: 50"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                 />

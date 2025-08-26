@@ -44,7 +44,7 @@ export async function POST(request) {
         const clubName = clubCheck[0].name;
         
         // Handle image upload for LCH handicrafts/painting clubs
-        if (domain === 'LCH' && image && (clubName.toLowerCase().includes('handicraft') || clubName.toLowerCase().includes('painting'))) {
+        if (domain === 'LCH' && image && (clubId === 'PNT' || clubId === 'HDC')) {
             try {
                 // Create directory if it doesn't exist
                 const clubDir = path.join(process.cwd(), 'public', clubName);

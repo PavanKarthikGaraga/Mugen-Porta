@@ -9,7 +9,7 @@ export async function GET(request, { params }) {
         return authResult.response;
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     try {
         const query = `
@@ -58,7 +58,7 @@ export async function PUT(request, { params }) {
         return authResult.response;
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     try {
         const body = await request.json();
@@ -170,7 +170,7 @@ export async function DELETE(request, { params }) {
         return authResult.response;
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     try {
         // First check if student exists

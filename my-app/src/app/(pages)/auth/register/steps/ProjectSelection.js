@@ -737,11 +737,7 @@ export default function ProjectSelection({ formData, updateFormData }) {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {availableProjects.map((project) => {
-                                const isHandicraftsOrPainting = project.clubName && (
-                                    project.clubName.toLowerCase().includes('handicraft') || 
-                                    project.clubName.toLowerCase().includes('painting') ||
-                                    project.clubName.toLowerCase().includes('art')
-                                );
+                                const isHandicraftsOrPainting = project.domain === 'LCH' && (project.clubId === 'PNT' || project.clubId === 'HDC');
                                 
                                 // Check if this is a TEC project and if it's full
                                 const isTecProject = project.domain === 'TEC';

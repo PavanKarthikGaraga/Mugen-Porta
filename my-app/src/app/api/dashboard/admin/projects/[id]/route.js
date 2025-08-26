@@ -12,8 +12,8 @@ export async function PUT(request, { params }) {
     }
 
     try {
-        const { id } = params;
-                const { domain, clubId, category, rural, ruralCategory, subCategory, name, description, image } = await request.json();
+        const { id } = await params;
+        const { domain, clubId, category, rural, ruralCategory, subCategory, name, description, image } = await request.json();
         
         // Verify club exists and get club name
         const [clubCheck] = await pool.execute('SELECT id, name FROM clubs WHERE id = ?', [clubId]);
@@ -24,7 +24,7 @@ export async function PUT(request, { params }) {
         const clubName = clubCheck[0].name;
         
         // Handle image upload for LCH handicrafts/painting clubs
-        if (domain === 'LCH' && image && (clubName.toLowerCase().includes('handicraft') || clubName.toLowerCase().includes('painting'))) {
+        if (domain === 'LCH' && image && (clubId === 'PNT' || clubId === 'HDC')) {
             try {
                 // Create directory if it doesn't exist
                 const clubDir = path.join(process.cwd(), 'public', clubName);
@@ -67,7 +67,7 @@ export async function DELETE(request, { params }) {
     }
 
     try {
-        const { id } = params;
+        const { id } = await params;
         
         // Check if project has students
         const [students] = await pool.execute('SELECT COUNT(*) as count FROM students WHERE projectId = ?', [id]);
