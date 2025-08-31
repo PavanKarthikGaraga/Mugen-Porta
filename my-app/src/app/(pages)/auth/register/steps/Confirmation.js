@@ -1,6 +1,6 @@
 export default function Confirmation({ formData, updateFormData }) {
     return (
-        <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-none">
+        <div className="bg-white p-6 md:p-8 max-w-none">
             <h2 className="text-2xl font-bold mb-6 text-center">Confirmation</h2>
             
             <div className="mb-6">

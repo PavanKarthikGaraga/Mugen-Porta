@@ -2,7 +2,7 @@ export default function Overview({ formData, updateFormData }) {
     return (
         <div className="px-6 md:p-8">
             <div className="text-center mb-4">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">KL University – Student Activity Council (SAC)</h1>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">KL University – Student Activity Center (SAC)</h1>
                 <h2 className="text-xl text-gray-600 mb-1">Annual Mission & Activity Overview</h2>
                 <p className="text-lg text-gray-500">Academic Year 2025–26</p>
             </div>
@@ -44,7 +44,7 @@ export default function Overview({ formData, updateFormData }) {
                             
                             <div className="border-l-2 border-gray-300 pl-4">
                                 <h4 className="font-semibold text-gray-800">2. Clubs & Talent Hubs</h4>
-                                <p className="text-sm text-gray-600">Technical, cultural, literary, sports, and creativity activities that help students explore and refine their interests.</p>
+                                <p className="text-sm text-gray-600">Technical, cultural, literary, sports, and creativity clubs that help students explore and refine their interests.</p>
                             </div>
                             
                             <div className="border-l-2 border-gray-300 pl-4">

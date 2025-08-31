@@ -44,7 +44,7 @@ export default function AddressDetails({ formData, updateFormData }) {
     const availableDistricts = selectedState && districtNames[selectedState] ? districtNames[selectedState] : [];
 
     return (
-        <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-none">
+        <div className="bg-white p-6 md:p-8 max-w-none">
             <h2 className="text-2xl font-bold mb-6 text-center">Address Details</h2>
             
             <div className="grid gap-6 lg:grid-cols-2">

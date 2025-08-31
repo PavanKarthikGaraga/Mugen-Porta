@@ -188,20 +188,33 @@ export default function ProjectSelection({ formData, updateFormData }) {
         setSelectedClub(club.id);
         setSelectedCategory("");
         setAvailableProjects([]);
-        
+
+        // For ESO, HWB, IIE domains - directly select club without showing projects
+        const clubOnlyDomains = ['ESO', 'HWB', 'IIE'];
+        if (clubOnlyDomains.includes(selectedDomain)) {
+            // For these domains, just select the club
+            updateFormData({
+                selectedClub: club.id,
+                selectedProject: null,
+                projectName: null,
+                projectDescription: null
+            });
+            return;
+        }
+
         // Get projects for this club, filtered by rural status based on domain
-        let clubProjects = allProjects.filter(project => 
+        let clubProjects = allProjects.filter(project =>
             project.clubId === club.id || project.clubId === String(club.id)
         );
-        
+
         // Filter projects based on domain
         if (selectedDomain === "RURAL") {
             // In Rural domain, only show rural projects
             clubProjects = clubProjects.filter(project => project.rural === 1);
-            
+
             // If rural category is selected, filter by rural category
             if (selectedRuralCategory) {
-                clubProjects = clubProjects.filter(project => 
+                clubProjects = clubProjects.filter(project =>
                     project.ruralCategory === selectedRuralCategory
                 );
             }
@@ -209,12 +222,15 @@ export default function ProjectSelection({ formData, updateFormData }) {
             // In normal domains, only show non-rural projects
             clubProjects = clubProjects.filter(project => project.rural !== 1);
         }
-        
+
         // Show categories
         const categories = [...new Set(clubProjects.map(project => project.category).filter(Boolean))];
         setAvailableCategories(categories);
-        
-        updateFormData({ selectedClub: club.id });
+
+        // For other domains, just set the selected club
+        updateFormData({
+            selectedClub: club.id
+        });
     };
 
     const handleCategorySelection = (category) => {
@@ -288,14 +304,14 @@ export default function ProjectSelection({ formData, updateFormData }) {
         // Check club member limits dynamically from database
         const memberCount = clubMemberCounts[club.id] || 0;
         const memberLimit = clubMemberLimits[club.id] || 50;
-        
+
         if (memberCount >= memberLimit) {
             alert(`This club is full. Maximum ${memberLimit} members allowed per club.`);
             return;
         }
-        
+
         setSelectedClub(club.id);
-        updateFormData({ 
+        updateFormData({
             selectedClub: club.id,
             selectedDomain: club.domain,
             selectedProject: null, // Y25 students don't select projects
@@ -334,13 +350,13 @@ export default function ProjectSelection({ formData, updateFormData }) {
     };
 
     return (
-        <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-none">
+        <div className="bg-white p-6 md:p-8 max-w-none">
             <h2 className="text-2xl font-bold mb-6 text-center">
                 {studentYear === 'Y25' ? 'Club Selection' : 'Project Selection'}
             </h2>
             
             {/* Student Year Info */}
-            {studentYear && (
+            {/* {studentYear && (
                 <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
@@ -361,7 +377,7 @@ export default function ProjectSelection({ formData, updateFormData }) {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
 
             {/* Y25 Student - Club Selection Only */}
             {studentYear === 'Y25' && (
@@ -449,14 +465,24 @@ export default function ProjectSelection({ formData, updateFormData }) {
                         </div>
                     )}
 
-                    {/* Selected Club Summary for Y25 */}
-                    {formData.selectedClub && studentYear === 'Y25' && (
+                    {/* Selected Club Summary for Y25 (excluding ESO/HWB/IIE domains) */}
+                    {formData.selectedClub && studentYear === 'Y25' && !['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
                         <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
                             <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Club</h3>
                             <div className="space-y-2 text-sm">
                                 <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
                                 <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Club Description Display for Y25 */}
+                    {formData.selectedClub && studentYear === 'Y25' && (
+                        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <h4 className="text-md font-semibold mb-2 text-blue-800">Club Description</h4>
+                            <p className="text-sm text-blue-700">
+                                {allClubs.find(c => c.id === formData.selectedClub)?.description}
+                            </p>
                         </div>
                     )}
                 </>
@@ -581,10 +607,18 @@ export default function ProjectSelection({ formData, updateFormData }) {
                                 return (
                                     <button
                                         key={club.id}
-                                        onClick={() => hasProjects && handleClubSelection(club)}
-                                        disabled={!hasProjects}
+                                        onClick={() => {
+                                            // For ESO, HWB, IIE domains, always allow selection
+                                            const clubOnlyDomains = ['ESO', 'HWB', 'IIE'];
+                                            if (clubOnlyDomains.includes(selectedDomain)) {
+                                                handleClubSelection(club);
+                                            } else {
+                                                hasProjects && handleClubSelection(club);
+                                            }
+                                        }}
+                                        disabled={!hasProjects && !['ESO', 'HWB', 'IIE'].includes(selectedDomain)}
                                         className={`p-4 rounded-lg border-2 transition-all text-left ${
-                                            !hasProjects
+                                            (!hasProjects && !['ESO', 'HWB', 'IIE'].includes(selectedDomain))
                                                 ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
                                                 : selectedClub === club.id
                                                 ? "border-blue-500 bg-blue-50 cursor-pointer"
@@ -594,14 +628,19 @@ export default function ProjectSelection({ formData, updateFormData }) {
                                     >
                                         <div className="flex items-center justify-between mb-2">
                                             <h4 className="font-semibold text-gray-800">{club.name}</h4>
-                                            {!hasProjects && (
+                                            {!hasProjects && !['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
                                                 <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
                                                     No Projects
                                                 </span>
                                             )}
+                                            {['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
+                                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                                    Club Only
+                                                </span>
+                                            )}
                                         </div>
                                         <p className="text-sm text-gray-600 mb-2">{club.description}</p>
-                                        {categories.length > 0 && (
+                                        {categories.length > 0 && !['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
                                             <div className="flex flex-wrap gap-1 mt-2">
                                                 {categories.slice(0, 3).map((category, index) => (
                                                     <span key={index} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
@@ -622,6 +661,16 @@ export default function ProjectSelection({ formData, updateFormData }) {
                     )}
                 </div>
             )}
+
+            {/* Club Description Display for Y24 (non-ESO/HWB/IIE domains) */}
+            {/* {formData.selectedClub && studentYear === 'Y24' && !['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="text-md font-semibold mb-2 text-blue-800">Club Description</h4>
+                    <p className="text-sm text-blue-700">
+                        {allClubs.find(c => c.id === formData.selectedClub)?.description}
+                    </p>
+                </div>
+            )} */}
 
             {/* Category Selection */}
             {((selectedClub && availableCategories.length > 0) || 
@@ -819,6 +868,28 @@ export default function ProjectSelection({ formData, updateFormData }) {
                 </div>
             )}
 
+            {/* Club Description Display for ESO/HWB/IIE domains */}
+            {formData.selectedClub && ['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
+                <div className="mt-4 p-4 rounded-lg border border-blue-200">
+                    <h4 className="text-md font-semibold mb-2 ">Club Description</h4>
+                    <p className="text-sm ">
+                        {allClubs.find(c => c.id === formData.selectedClub)?.description}
+                    </p>
+                </div>
+            )}
+            
+            {/* Selected Club Summary for ESO/HWB/IIE domains */}
+            {formData.selectedClub && ['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
+                <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Club</h3>
+                    <div className="space-y-2 text-sm">
+                        <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
+                        <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
+                    </div>
+                </div>
+            )}
+
+
             {/* Selected Project Summary */}
             {formData.selectedProject && studentYear === 'Y24' && (
                 <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
@@ -835,12 +906,12 @@ export default function ProjectSelection({ formData, updateFormData }) {
             )}
 
             {/* Registration Note */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            {/* <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-sm text-blue-800">
                     <strong>Note:</strong> Your {studentYear === 'Y25' ? 'club' : 'project'} selection will determine your learning path. 
                     Choose carefully as changes may not be allowed after registration.
                 </p>
-            </div>
+            </div> */}
         </div>
     );
 }

@@ -82,14 +82,24 @@ export default function Register() {
                 }
                 break;
             case 5: // Project Selection
-                if (!formData.selectedProject && !formData.selectedClub) {
-                    toast.error("Please select a project or club");
-                    return false;
-                }
-                // If rural domain was selected, make sure a project was chosen (selectedDomain should be updated)
-                if (formData.selectedDomain === "RURAL") {
-                    toast.error("Please complete your rural project selection");
-                    return false;
+                // For ESO, HWB, IIE domains - only club selection is required
+                const clubOnlyDomains = ['ESO', 'HWB', 'IIE'];
+                if (clubOnlyDomains.includes(formData.selectedDomain)) {
+                    if (!formData.selectedClub) {
+                        toast.error("Please select a club");
+                        return false;
+                    }
+                } else {
+                    // For other domains - project selection is required
+                    if (!formData.selectedProject && !formData.selectedClub) {
+                        toast.error("Please select a project or club");
+                        return false;
+                    }
+                    // If rural domain was selected, make sure a project was chosen (selectedDomain should be updated)
+                    if (formData.selectedDomain === "RURAL") {
+                        toast.error("Please complete your rural project selection");
+                        return false;
+                    }
                 }
                 break;
             case 6: // Address Details
@@ -128,8 +138,16 @@ export default function Register() {
         try {
             // Prepare form data for submission
             let submissionData = { ...formData };
-            
-            // If rural domain was selected but a project was chosen, 
+
+            // For ESO, HWB, IIE domains - ensure project fields are cleared
+            const clubOnlyDomains = ['ESO', 'HWB', 'IIE'];
+            if (clubOnlyDomains.includes(formData.selectedDomain)) {
+                submissionData.selectedProject = null;
+                submissionData.projectName = null;
+                submissionData.projectDescription = null;
+            }
+
+            // If rural domain was selected but a project was chosen,
             // the selectedDomain should already be updated to the project's actual domain
             // from the ProjectSelection component
             
@@ -158,49 +176,17 @@ export default function Register() {
 
     return (
         <div className="w-full h-screen flex flex-col">
-            {/* Fixed Header */}
-            <div className="flex-shrink-0 ">
-                <div className="py-1">
-                    {/* <h1 className="text-3xl font-bold text-center mb-6">Register for SAC SIL Portal</h1> */}
-                    
-                    {/* Progress Indicator */}
-                    <div className="flex items-center justify-center space-x-2 md:space-x-4 px-4 py-4">
-                        {steps.map((step, index) => (
-                            <div key={step.id} className="flex items-center">
-                                <div className="flex flex-col items-center">
-                                    {/* Step Name */}
-                                    <p className="text-xs font-medium text-gray-600 mb-1 text-center whitespace-nowrap">
-                                        {step.name}
-                                    </p>
-                                    {/* Step Dot */}
-                                    <div
-                                        className={`w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center text-xs font-semibold justify-center p-1 ${
-                                            currentStep > step.id
-                                                ? "bg-green-500"
-                                                : currentStep === step.id
-                                                ? "bg-black text-white"
-                                                : "bg-gray-300"
-                                        }`}
-                                    >
-                                        {step.id}
-                                    </div>
-                                </div>
-                                {index < steps.length - 1 && (
-                                    <div
-                                        className={`w-6 md:w-12 h-0.5 mx-1 md:mx-2 mt-6 ${
-                                            currentStep > step.id ? "bg-green-500" : "bg-gray-300"
-                                        }`}
-                                    />
-                                )}
-                            </div>
-                        ))}
-                    </div>
+            {/* Red Navbar */}
+            <div className="bg-red-800 text-white py-2 px-4 flex-shrink-0">
+                <div className="max-w-7xl mx-auto">
+                    <h1 className="text-2xl font-extrabold text-center">Student Activity Center</h1>
                 </div>
             </div>
 
+
             {/* Scrollable Step Content */}
-            <div className="flex-1 overflow-y-auto bg-gray-50">
-                <div className="w-full max-w-7xl mx-auto px-4 py-4">
+            <div className="flex-1 overflow-y-auto">
+                <div className="w-full max-w-7xl mx-auto px-0 py-1">
                     <CurrentStepComponent 
                         formData={formData} 
                         updateFormData={updateFormData}
@@ -210,7 +196,7 @@ export default function Register() {
 
             {/* Fixed Navigation Footer */}
             <div className="flex-shrink-0">
-                <div className="max-w-7xl mx-auto px-4 py-2">
+                <div className="max-w-7xl mx-auto px-4 py-0">
                     <div className="flex justify-end items-center gap-6">
                         <div className="text-sm text-gray-600 font-medium">
                             Step {currentStep} of {steps.length}
@@ -254,6 +240,9 @@ export default function Register() {
                         </Link>
                     </div> */}
                 </div>
+                    <div className="text-center mt-4">
+                        <p className="text-sm py-1 bg-red-800 text-white">© {new Date().getFullYear()} KLEF - Student Activity Center | Designed & Developed by ZeroOne CodeClub</p>
+                    </div>
             </div>
         </div>
     );

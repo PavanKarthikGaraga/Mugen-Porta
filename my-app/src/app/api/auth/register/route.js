@@ -63,14 +63,26 @@ export async function POST(req) {
         const isY24Student = username.startsWith('24');
         const isY25Student = username.startsWith('25');
 
-        // Validation based on student year
+        // Validation based on student year and domain
+        const clubOnlyDomains = ['ESO', 'HWB', 'IIE'];
+
         if (isY24Student) {
-            // Y24 students must select a project
-            if (!selectedProject || !selectedClub || !selectedCategory || !selectedDomain) {
+            // Y24 students must select either a project or club (depending on domain)
+            if (!selectedClub || !selectedDomain) {
                 return NextResponse.json(
-                    { message: "Project selection is required for Y24 students" },
+                    { message: "Club selection is required for Y24 students" },
                     { status: 400 }
                 );
+            }
+
+            // For ESO, HWB, IIE domains - club selection is sufficient
+            if (!clubOnlyDomains.includes(selectedDomain)) {
+                if (!selectedProject || !selectedCategory) {
+                    return NextResponse.json(
+                        { message: "Project selection is required for this domain" },
+                        { status: 400 }
+                    );
+                }
             }
         } else if (isY25Student) {
             // Y25 students must select a club but not a project
@@ -149,18 +161,39 @@ export async function POST(req) {
             );
         }
 
-        // Check member limits based on student year
+        // Check member limits based on student year and domain
         if (isY24Student && selectedDomain === 'TEC') {
             // TEC projects limited to 2 members for Y24 students
             const [projectMembers] = await pool.execute(
                 "SELECT COUNT(*) as currentMembers FROM students WHERE projectId = ?",
                 [selectedProject]
             );
-            
+
             const currentMembers = projectMembers[0].currentMembers;
             if (currentMembers >= 2) {
                 return NextResponse.json(
                     { message: "This TEC project is full. TEC projects can only have a maximum of 2 members. Please select a different project." },
+                    { status: 400 }
+                );
+            }
+        } else if (isY24Student && clubOnlyDomains.includes(selectedDomain)) {
+            // For ESO, HWB, IIE domains - check club member limits for Y24 students
+            const [clubInfo] = await pool.execute(
+                "SELECT memberLimit FROM clubs WHERE id = ?",
+                [selectedClub]
+            );
+
+            const [clubMembers] = await pool.execute(
+                "SELECT COUNT(*) as currentMembers FROM students WHERE clubId = ?",
+                [selectedClub]
+            );
+
+            const currentMembers = clubMembers[0].currentMembers;
+            const memberLimit = clubInfo[0]?.memberLimit || 50; // Default to 50 if not found
+
+            if (currentMembers >= memberLimit) {
+                return NextResponse.json(
+                    { message: `This club is full. Maximum ${memberLimit} members allowed per club. Please select a different club.` },
                     { status: 400 }
                 );
             }
@@ -175,10 +208,10 @@ export async function POST(req) {
                 "SELECT COUNT(*) as currentMembers FROM students WHERE clubId = ?",
                 [selectedClub]
             );
-            
+
             const currentMembers = clubMembers[0].currentMembers;
             const memberLimit = clubInfo[0]?.memberLimit || 50; // Default to 50 if not found
-            
+
             if (currentMembers >= memberLimit) {
                 return NextResponse.json(
                     { message: `This club is full. Maximum ${memberLimit} members allowed per club. Please select a different club.` },
@@ -231,7 +264,7 @@ export async function POST(req) {
             let projectDetails = null;
             let clubDetails = null;
 
-            if (isY24Student && selectedProject) {
+            if (isY24Student && selectedProject && !clubOnlyDomains.includes(selectedDomain)) {
                 const [projectInfo] = await pool.execute(
                     "SELECT name, description FROM projects WHERE id = ?",
                     [selectedProject]

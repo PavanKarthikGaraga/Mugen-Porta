@@ -1,6 +1,6 @@
 export default function Rules({ formData, updateFormData }) {
     return (
-        <div className="bg-white p-5 md:p-6 rounded-lg shadow-md max-w-none">
+        <div className="bg-white p-5 md:p-6 max-w-none">
             <h2 className="text-xl font-bold mb-5 text-center text-gray-800">General Guidelines & Rules for Students – AY 2025–26</h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 text-sm">
@@ -10,7 +10,7 @@ export default function Rules({ formData, updateFormData }) {
                     <ul className="space-y-2 text-gray-700 text-sm">
                         <li className="flex items-start">
                             <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Every student must enroll in at least one SAC activity from any of the five domains: Health, Technical, Cultural, Innovation & Incubation, Outreach & Extension.</span>
+                            <span>Every student must enroll in at least one SAC Club from any of the five domains: Health, Technical, Cultural, Innovation & Incubation, Outreach & Extension.</span>
                         </li>
                         <li className="flex items-start">
                             <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
