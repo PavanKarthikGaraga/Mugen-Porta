@@ -296,12 +296,43 @@ export default function ProjectSelection({ formData, updateFormData }) {
 
         setAvailableProjects(categoryProjects);
 
-        // Reset formData related to category selection
+        // Generate project ID if no projects exist for this category
+        let projectId = null;
+        let projectName = null;
+        let projectDescription = null;
+
+        if (categoryProjects.length === 0) {
+            // Find the position of this category in the available categories list
+            const categoryIndex = availableCategories.findIndex(cat =>
+                (cat.name || cat) === categoryName
+            );
+
+            if (categoryIndex !== -1) {
+                // Generate project ID: ClubID + CategoryPosition (zero-padded to 2 digits)
+                const position = (categoryIndex + 1).toString().padStart(2, '0');
+
+                // For rural domain, we need to use a different club ID or handle it differently
+                let baseClubId = selectedClub;
+                if (selectedDomain === "RURAL") {
+                    // For rural domain, we might want to use a different identifier
+                    // Since rural projects don't belong to a specific club, use "RUR" prefix
+                    baseClubId = "RUR";
+                }
+
+                projectId = `${baseClubId}${position}`;
+                projectName = `${categoryName} Project`;
+                projectDescription = `Auto-generated project for ${categoryName} category${selectedDomain === "RURAL" ? " in rural domain" : ` in ${selectedClub} club`}`;
+
+
+            }
+        }
+
+        // Update formData with category selection and generated project (if any)
         updateFormData({
             selectedCategory: categoryName,
-            selectedProject: null,
-            projectName: null,
-            projectDescription: null
+            selectedProject: projectId,
+            projectName: projectName,
+            projectDescription: projectDescription
         });
     };
 
@@ -332,7 +363,8 @@ export default function ProjectSelection({ formData, updateFormData }) {
 
         console.log('Available project categories:', projectCategories);
 
-        // Reset formData related to rural category selection
+        // For rural domain, we don't generate project IDs here since categories are selected separately
+        // The actual project ID generation happens in handleCategorySelection
         updateFormData({
             selectedRuralCategory: ruralCategoryId,
             selectedCategory: "",

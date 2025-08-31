@@ -57,7 +57,6 @@ CREATE TABLE students (
     socialInternshipId VARCHAR(50) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username),
-    FOREIGN KEY (projectId) REFERENCES projects(id),
     FOREIGN KEY (clubId) REFERENCES clubs(id)
 );
 

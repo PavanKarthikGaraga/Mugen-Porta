@@ -34,8 +34,9 @@ export default function Register() {
         busRoute: "",
         
         // Project Selection
-        selectedProject: "",
+        selectedProject: null,
         projectPreference: "",
+        
         
         // Undertaking
         agreedToTerms: false,
@@ -82,24 +83,14 @@ export default function Register() {
                 }
                 break;
             case 5: // Project Selection
-                // For ESO, HWB, IIE domains - only club selection is required
-                const clubOnlyDomains = ['ESO', 'HWB', 'IIE'];
-                if (clubOnlyDomains.includes(formData.selectedDomain)) {
-                    if (!formData.selectedClub) {
-                        toast.error("Please select a club");
-                        return false;
-                    }
-                } else {
-                    // For other domains - project selection is required
-                    if (!formData.selectedProject && !formData.selectedClub) {
-                        toast.error("Please select a project or club");
-                        return false;
-                    }
-                    // If rural domain was selected, make sure a project was chosen (selectedDomain should be updated)
-                    if (formData.selectedDomain === "RURAL") {
-                        toast.error("Please complete your rural project selection");
-                        return false;
-                    }
+                // All domains require club and project selection
+                if (!formData.selectedClub) {
+                    toast.error("Please select a club");
+                    return false;
+                }
+                if (!formData.selectedProject || !formData.selectedCategory) {
+                    toast.error("Please select a category (project ID will be generated if no projects exist)");
+                    return false;
                 }
                 break;
             case 6: // Address Details
@@ -139,18 +130,27 @@ export default function Register() {
             // Prepare form data for submission
             let submissionData = { ...formData };
 
-            // For ESO, HWB, IIE domains - ensure project fields are cleared
-            const clubOnlyDomains = ['ESO', 'HWB', 'IIE'];
-            if (clubOnlyDomains.includes(formData.selectedDomain)) {
-                submissionData.selectedProject = null;
-                submissionData.projectName = null;
-                submissionData.projectDescription = null;
-            }
+            // No domain restrictions - any category without projects gets auto-generated project ID
+            // The ProjectSelection component handles generating project IDs when no real projects exist
+            // No need to override or nullify selectedProject here
+
+            // Debug: log the final submission data
+            console.log('Final form submission data:', {
+                selectedDomain: submissionData.selectedDomain,
+                selectedClub: submissionData.selectedClub,
+                selectedCategory: submissionData.selectedCategory,
+                selectedProject: submissionData.selectedProject,
+                projectName: submissionData.projectName,
+                projectDescription: submissionData.projectDescription,
+                isY24Student: formData.username?.startsWith('24')
+            });
+
+
 
             // If rural domain was selected but a project was chosen,
             // the selectedDomain should already be updated to the project's actual domain
             // from the ProjectSelection component
-            
+
             const response = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -159,7 +159,7 @@ export default function Register() {
 
             if (response.ok) {
                 toast.success("Registration Successful! Please login.");
-                router.push("/auth/login");
+                router.push("/auth/register");
             } else {
                 const error = await response.json();
                 toast.error(error.message || "Registration failed");
