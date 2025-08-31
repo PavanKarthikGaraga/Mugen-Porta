@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import PropTypes from "prop-types";
+import { allCategories, getCategoriesByDomain } from "../../../../Data/allCategories";
 
 export default function ProjectSelection({ formData, updateFormData }) {
     const [isY24Student, setIsY24Student] = useState(null);
@@ -150,6 +151,7 @@ export default function ProjectSelection({ formData, updateFormData }) {
 
 
     const handleDomainSelection = (domain) => {
+        // Reset all selection-related state when domain changes
         setSelectedDomain(domain);
         setSelectedClub("");
         setSelectedCategory("");
@@ -158,12 +160,12 @@ export default function ProjectSelection({ formData, updateFormData }) {
         setAvailableProjects([]);
         setAvailableClubs([]);
         setAvailableRuralCategories([]);
-        
+
         if (domain === "RURAL" && studentYear === 'Y24') {
             // For Y24 Rural domain, show rural categories that have actual projects
             const categoriesWithProjects = ruralCategories.filter(category => {
-                return allProjects.some(project => 
-                    (project.rural === 1 || project.rural === true || project.rural === "1") && 
+                return allProjects.some(project =>
+                    (project.rural === 1 || project.rural === true || project.rural === "1") &&
                     project.ruralCategory === category.id
                 );
             });
@@ -171,8 +173,8 @@ export default function ProjectSelection({ formData, updateFormData }) {
         } else if (domain === "RURAL") {
             // For non-Y24 students, show clubs with rural projects
             const clubsWithRuralProjects = allClubs.filter(club => {
-                return allProjects.some(project => 
-                    (project.clubId === club.id || project.clubId === String(club.id)) && 
+                return allProjects.some(project =>
+                    (project.clubId === club.id || project.clubId === String(club.id)) &&
                     project.rural === 1
                 );
             });
@@ -182,73 +184,96 @@ export default function ProjectSelection({ formData, updateFormData }) {
             const domainClubs = allClubs.filter(club => club.domain === domain);
             setAvailableClubs(domainClubs);
         }
-        
-        updateFormData({ selectedDomain: domain });
+
+        // Reset formData related to selections
+        updateFormData({
+            selectedDomain: domain,
+            selectedClub: "",
+            selectedCategory: "",
+            selectedRuralCategory: "",
+            selectedProject: null,
+            projectName: null,
+            projectDescription: null,
+            ruralCategory: null
+        });
     };    const handleClubSelection = (club) => {
+        // Reset category and project related state when club changes
         setSelectedClub(club.id);
         setSelectedCategory("");
         setAvailableProjects([]);
+        setAvailableCategories([]);
 
-        // For ESO, HWB, IIE domains - directly select club without showing projects
-        const clubOnlyDomains = ['ESO', 'HWB', 'IIE'];
-        if (clubOnlyDomains.includes(selectedDomain)) {
-            // For these domains, just select the club
-            updateFormData({
-                selectedClub: club.id,
-                selectedProject: null,
-                projectName: null,
-                projectDescription: null
-            });
-            return;
+        // Extract categories from the club's own categories data for all domains
+        let categoryList = [];
+        try {
+            let rawCategories = typeof club.categories === 'string'
+                ? JSON.parse(club.categories)
+                : club.categories || [];
+
+            // Normalize category structure to ensure consistent format
+            categoryList = rawCategories.map((cat, index) => {
+                if (typeof cat === 'string') {
+                    // If category is just a string, convert to object format
+                    return {
+                        id: `cat_${index}`,
+                        name: cat,
+                        description: `${cat} category`
+                    };
+                } else if (cat && typeof cat === 'object') {
+                    // If category is already an object, ensure it has required fields
+                    return {
+                        id: cat.id || cat.name || `cat_${index}`,
+                        name: cat.name || cat,
+                        description: cat.description || `${cat.name || cat} category`
+                    };
+                }
+                return null;
+            }).filter(Boolean); // Remove any null entries
+
+        } catch (e) {
+            console.error('Error parsing categories for club', club.id, ':', e);
+            categoryList = [];
         }
 
-        // Get projects for this club, filtered by rural status based on domain
-        let clubProjects = allProjects.filter(project =>
-            project.clubId === club.id || project.clubId === String(club.id)
-        );
-
-        // Filter projects based on domain
-        if (selectedDomain === "RURAL") {
-            // In Rural domain, only show rural projects
-            clubProjects = clubProjects.filter(project => project.rural === 1);
-
-            // If rural category is selected, filter by rural category
-            if (selectedRuralCategory) {
-                clubProjects = clubProjects.filter(project =>
-                    project.ruralCategory === selectedRuralCategory
-                );
-            }
-        } else {
-            // In normal domains, only show non-rural projects
-            clubProjects = clubProjects.filter(project => project.rural !== 1);
+        // Fallback to predefined categories for ESO, IIE, and HWB if no categories found
+        if (categoryList.length === 0) {
+            const domainCategories = getCategoriesByDomain(selectedDomain);
+            categoryList = domainCategories.map(cat => ({
+                id: cat.id,
+                name: cat.name,
+                description: cat.description
+            }));
         }
 
-        // Show categories
-        const categories = [...new Set(clubProjects.map(project => project.category).filter(Boolean))];
-        setAvailableCategories(categories);
+        setAvailableCategories(categoryList);
 
-        // For other domains, just set the selected club
+        // Reset formData related to club selection
         updateFormData({
-            selectedClub: club.id
+            selectedClub: club.id,
+            selectedCategory: "",
+            selectedProject: null,
+            projectName: null,
+            projectDescription: null
         });
     };
 
-    const handleCategorySelection = (category) => {
-        setSelectedCategory(category);
-        
+        const handleCategorySelection = (categoryName) => {
+        setSelectedCategory(categoryName);
+        setAvailableProjects([]);
+
         // Filter projects by category, then by rural status based on domain
         let categoryProjects;
-        
+
         if (selectedDomain === "RURAL" && selectedRuralCategory) {
             // For rural domain with rural category selected, filter by rural category and project category
-            categoryProjects = allProjects.filter(project => 
-                (project.rural === 1 || project.rural === true || project.rural === "1") && 
-                project.ruralCategory === selectedRuralCategory && 
-                project.category === category
+            categoryProjects = allProjects.filter(project =>
+                (project.rural === 1 || project.rural === true || project.rural === "1") &&
+                project.ruralCategory === selectedRuralCategory &&
+                project.category === categoryName
             );
             console.log('Rural category filter:', {
                 selectedRuralCategory,
-                category,
+                category: categoryName,
                 totalProjects: allProjects.length,
                 ruralProjects: allProjects.filter(p => p.rural === 1 || p.rural === true || p.rural === "1").length,
                 matchingRuralCategory: allProjects.filter(p => (p.rural === 1 || p.rural === true || p.rural === "1") && p.ruralCategory === selectedRuralCategory).length,
@@ -257,47 +282,64 @@ export default function ProjectSelection({ formData, updateFormData }) {
             });
         } else if (selectedDomain === "RURAL") {
             // For rural domain without rural category (fallback)
-            categoryProjects = allProjects.filter(project => 
-                (project.rural === 1 || project.rural === true || project.rural === "1") && project.category === category
+            categoryProjects = allProjects.filter(project =>
+                (project.rural === 1 || project.rural === true || project.rural === "1") && project.category === categoryName
             );
         } else {
             // For normal domains, filter by club and category, exclude rural projects
-            categoryProjects = allProjects.filter(project => 
-                project.clubId === selectedClub && 
-                project.category === category && 
+            categoryProjects = allProjects.filter(project =>
+                project.clubId === selectedClub &&
+                project.category === categoryName &&
                 project.rural !== 1
             );
         }
-        
+
         setAvailableProjects(categoryProjects);
+
+        // Reset formData related to category selection
+        updateFormData({
+            selectedCategory: categoryName,
+            selectedProject: null,
+            projectName: null,
+            projectDescription: null
+        });
     };
 
     const handleRuralCategorySelection = (ruralCategoryId) => {
+        // Reset category and project related state when rural category changes
         setSelectedRuralCategory(ruralCategoryId);
         setSelectedCategory("");
         setAvailableClubs([]);
         setAvailableProjects([]);
-        
+        setAvailableCategories([]);
+
         // Get all projects for this rural category
-        const ruralProjects = allProjects.filter(project => 
-            (project.rural === 1 || project.rural === true || project.rural === "1") && 
+        const ruralProjects = allProjects.filter(project =>
+            (project.rural === 1 || project.rural === true || project.rural === "1") &&
             project.ruralCategory === ruralCategoryId
         );
-        
+
         console.log('Rural category selection:', {
             ruralCategoryId,
             totalProjects: allProjects.length,
             ruralProjects: ruralProjects.length,
             ruralProjectsData: ruralProjects
         });
-        
+
         // Get unique project categories (the 'category' field from projects table)
         const projectCategories = [...new Set(ruralProjects.map(project => project.category).filter(Boolean))];
         setAvailableCategories(projectCategories);
-        
+
         console.log('Available project categories:', projectCategories);
-        
-        updateFormData({ selectedRuralCategory: ruralCategoryId });
+
+        // Reset formData related to rural category selection
+        updateFormData({
+            selectedRuralCategory: ruralCategoryId,
+            selectedCategory: "",
+            selectedProject: null,
+            projectName: null,
+            projectDescription: null
+        });
     };
 
     const handleClubSelectionForY25 = (club) => {
@@ -310,10 +352,15 @@ export default function ProjectSelection({ formData, updateFormData }) {
             return;
         }
 
+        // Reset category-related state for Y25 students
+        setSelectedCategory("");
+        setAvailableCategories([]);
+
         setSelectedClub(club.id);
         updateFormData({
             selectedClub: club.id,
             selectedDomain: club.domain,
+            selectedCategory: "",
             selectedProject: null, // Y25 students don't select projects
             projectName: null,
             projectDescription: null
@@ -607,20 +654,10 @@ export default function ProjectSelection({ formData, updateFormData }) {
                                 return (
                                     <button
                                         key={club.id}
-                                        onClick={() => {
-                                            // For ESO, HWB, IIE domains, always allow selection
-                                            const clubOnlyDomains = ['ESO', 'HWB', 'IIE'];
-                                            if (clubOnlyDomains.includes(selectedDomain)) {
-                                                handleClubSelection(club);
-                                            } else {
-                                                hasProjects && handleClubSelection(club);
-                                            }
-                                        }}
-                                        disabled={!hasProjects && !['ESO', 'HWB', 'IIE'].includes(selectedDomain)}
+                                        onClick={() => handleClubSelection(club)}
+                                        disabled={false}
                                         className={`p-4 rounded-lg border-2 transition-all text-left ${
-                                            (!hasProjects && !['ESO', 'HWB', 'IIE'].includes(selectedDomain))
-                                                ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
-                                                : selectedClub === club.id
+                                            selectedClub === club.id
                                                 ? "border-blue-500 bg-blue-50 cursor-pointer"
                                                 : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
                                         }`}
@@ -628,23 +665,18 @@ export default function ProjectSelection({ formData, updateFormData }) {
                                     >
                                         <div className="flex items-center justify-between mb-2">
                                             <h4 className="font-semibold text-gray-800">{club.name}</h4>
-                                            {!hasProjects && !['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
+                                            {/* {!hasProjects && (
                                                 <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
                                                     No Projects
                                                 </span>
-                                            )}
-                                            {['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
-                                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                                                    Club Only
-                                                </span>
-                                            )}
+                                            )} */}
                                         </div>
                                         <p className="text-sm text-gray-600 mb-2">{club.description}</p>
-                                        {categories.length > 0 && !['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
+                                        {categories.length > 0 && (
                                             <div className="flex flex-wrap gap-1 mt-2">
                                                 {categories.slice(0, 3).map((category, index) => (
-                                                    <span key={index} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                                        {category}
+                                                    <span key={category.id || category.name || index} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                        {category.name || category || 'Unnamed'}
                                                     </span>
                                                 ))}
                                                 {categories.length > 3 && (
@@ -673,8 +705,7 @@ export default function ProjectSelection({ formData, updateFormData }) {
             )} */}
 
             {/* Category Selection */}
-            {((selectedClub && availableCategories.length > 0) || 
-              (selectedDomain === "RURAL" && studentYear === 'Y24' && selectedRuralCategory && availableCategories.length > 0)) && (
+            {selectedClub && availableCategories.length > 0 && (
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-4">Select Category</h3>
                     <div className="text-sm text-gray-600 mb-4">
@@ -713,27 +744,25 @@ export default function ProjectSelection({ formData, updateFormData }) {
 
                             return (
                                 <button
-                                    key={category}
-                                    onClick={() => hasProjects && handleCategorySelection(category)}
-                                    disabled={!hasProjects}
+                                    key={category.id || category.name || category}
+                                    onClick={() => handleCategorySelection(category.name || category)}
+                                    disabled={false}
                                     className={`p-3 rounded-lg border-2 text-left transition-all ${
-                                        !hasProjects
-                                            ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
-                                            : selectedCategory === category
+                                        selectedCategory === (category.name || category)
                                             ? "border-blue-500 bg-blue-50 text-blue-800 cursor-pointer"
                                             : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
                                     }`}
                                 >
                                     <div className="flex items-center justify-between">
-                                        <span>{category}</span>
-                                        {!hasProjects && (
+                                        <span>{category.name || category || 'Unnamed Category'}</span>
+                                        {/* {!hasProjects && (
                                             <span className="text-xs bg-yellow-100 text-yellow-600 px-1 py-0.5 rounded ml-2">
                                                 No Projects
                                             </span>
-                                        )}
+                                        )} */}
                                         {hasProjects && (
                                             <span className="text-xs bg-blue-100 text-blue-600 px-1 py-0.5 rounded ml-2">
-                                                {categoryProjects.length}
+                                                {categoryProjects.length} project{categoryProjects.length !== 1 ? 's' : ''}
                                             </span>
                                         )}
                                     </div>
@@ -775,7 +804,7 @@ export default function ProjectSelection({ formData, updateFormData }) {
                         </div>
                     ) : availableProjects.length === 0 ? (
                         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p className="text-yellow-800">No projects found</p>
+                            {/* <p className="text-yellow-800">No projects found</p> */}
                             <p className="text-sm text-yellow-600 mt-2">
                                 Selected Domain: {selectedDomain}, 
                                 Selected Club: {selectedClub}, 
@@ -868,27 +897,40 @@ export default function ProjectSelection({ formData, updateFormData }) {
                 </div>
             )}
 
-            {/* Club Description Display for ESO/HWB/IIE domains */}
-            {formData.selectedClub && ['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
-                <div className="mt-4 p-4 rounded-lg border border-blue-200">
-                    <h4 className="text-md font-semibold mb-2 ">Club Description</h4>
-                    <p className="text-sm ">
-                        {allClubs.find(c => c.id === formData.selectedClub)?.description}
-                    </p>
+            {/* Category Description Display for categories without projects */}
+            {selectedCategory && availableProjects.length === 0 && studentYear === 'Y24' && (
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="text-md font-semibold mb-2 text-blue-800">Category Description</h4>
+                    {selectedDomain === 'ESO' || selectedDomain === 'IIE' || selectedDomain === 'HWB' ? (
+                        (() => {
+                            const categoryData = allCategories[selectedDomain]?.find(cat => cat.name === selectedCategory);
+                            return categoryData ? (
+                                <div>
+                                    <h5 className="font-semibold text-blue-900 mb-2">{categoryData.name}</h5>
+                                    <p className="text-sm text-blue-700 mb-3">{categoryData.description}</p>
+                                    <div className="space-y-2">
+                                        <h6 className="font-medium text-blue-800">Available Activities:</h6>
+                                        {categoryData.subcategories.map((subcat, index) => (
+                                            <div key={index} className="ml-4 p-2 bg-blue-100 rounded text-sm">
+                                                <div className="font-medium text-blue-900">{subcat.name}</div>
+                                                <div className="text-blue-700">{subcat.info}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-blue-700">
+                                    {selectedCategory} - This category is currently available for registration but has no active projects at this time.
+                                </p>
+                            );
+                        })()
+                    ) : (
+                        <p className="text-sm text-blue-700">
+                            {selectedCategory} - This category is currently available for registration but has no active projects at this time.
+                        </p>
+                    )}
                 </div>
             )}
-            
-            {/* Selected Club Summary for ESO/HWB/IIE domains */}
-            {formData.selectedClub && ['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
-                <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                    <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Club</h3>
-                    <div className="space-y-2 text-sm">
-                        <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
-                        <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
-                    </div>
-                </div>
-            )}
-
 
             {/* Selected Project Summary */}
             {formData.selectedProject && studentYear === 'Y24' && (
