@@ -384,16 +384,21 @@ export default function ProjectSelection({ formData, updateFormData }) {
             return;
         }
 
-        // Reset category-related state for Y25 students
+        // Reset category and project related state
         setSelectedCategory("");
         setAvailableCategories([]);
+        setAvailableProjects([]);
 
         setSelectedClub(club.id);
+
+        // Check if this club has projects (for TEC, LCH domains)
+        const clubHasProjects = !['ESO', 'HWB', 'IIE'].includes(club.domain);
+
         updateFormData({
             selectedClub: club.id,
             selectedDomain: club.domain,
             selectedCategory: "",
-            selectedProject: null, // Y25 students don't select projects
+            selectedProject: clubHasProjects ? null : null, // Will be set when project is selected
             projectName: null,
             projectDescription: null
         });
@@ -544,13 +549,17 @@ export default function ProjectSelection({ formData, updateFormData }) {
                         </div>
                     )}
 
-                    {/* Selected Club Summary for Y25 (excluding ESO/HWB/IIE domains) */}
-                    {formData.selectedClub && studentYear === 'Y25' && !['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
+
+                    {/* Selected Club Summary for Y25 */}
+                    {formData.selectedClub && studentYear === 'Y25' && (
                         <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
                             <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Club</h3>
                             <div className="space-y-2 text-sm">
                                 <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
                                 <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
+                                <div className="text-green-700 mt-2">
+                                    ✅ You can proceed with this club registration
+                                </div>
                             </div>
                         </div>
                     )}
@@ -961,6 +970,20 @@ export default function ProjectSelection({ formData, updateFormData }) {
                             {selectedCategory} - This category is currently available for registration but has no active projects at this time.
                         </p>
                     )}
+                </div>
+            )}
+
+            {/* Selected Club Summary for Y24 */}
+            {formData.selectedClub && studentYear === 'Y24' && !formData.selectedProject && (
+                <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Club</h3>
+                    <div className="space-y-2 text-sm">
+                        <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
+                        <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
+                        <div className="text-green-700 mt-2">
+                            ✅ You can proceed with this club registration (no projects available)
+                        </div>
+                    </div>
                 </div>
             )}
 

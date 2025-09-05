@@ -83,14 +83,26 @@ export default function Register() {
                 }
                 break;
             case 5: // Project Selection
-                // All domains require club and project selection
                 if (!formData.selectedClub) {
                     toast.error("Please select a club");
                     return false;
                 }
-                if (!formData.selectedProject || !formData.selectedCategory) {
-                    toast.error("Please select a category (project ID will be generated if no projects exist)");
-                    return false;
+
+                // Determine student year from username
+                const isY25Student = formData.username && formData.username.startsWith('25');
+                const isY24Student = formData.username && formData.username.startsWith('24');
+
+                // For Y25 students: ONLY club selection required, no projects
+                if (isY25Student) {
+                    // Y25 students can proceed with just club selection
+                    break;
+                }
+
+                // For Y24 students: can proceed with just club selection if no projects exist
+                if (isY24Student) {
+                    // Y24 students can proceed after selecting club, even if no projects exist
+                    // The project selection is optional and handled in the ProjectSelection component
+                    break;
                 }
                 break;
             case 6: // Address Details
