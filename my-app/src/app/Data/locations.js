@@ -1,7 +1,7 @@
 export const girlHostels = [
   {
       "S.No": "1",
-      "hostelName": "Kanchanaganga Girls Hostel",
+      "hostelName": "Lotus Girls Hostel",
       "Location of the Hostel": "Campus",
       "Hostel Land line Number": "08645-350222"
   },
@@ -46,7 +46,7 @@ export const boyHostels = [
   },
   {
       "S.No": "7",
-      "hostelName": "        Nilagiri",
+      "hostelName": "Nilagiri",
       "Location of the Hostel": "Outside campus"
   },
   {
@@ -58,7 +58,13 @@ export const boyHostels = [
       "S.No": "9",
       "hostelName": "Malabar",
       "Location of the Hostel": "Outside campus"
-  }
+  },
+  {
+    "S.No": "10",
+    "hostelName": "Kanchanaganga Girls Hostel",
+    "Location of the Hostel": "In Campus",
+    "Hostel Land line Number": "08645-350222"
+},
 ]
 
 export const busRoutes = [

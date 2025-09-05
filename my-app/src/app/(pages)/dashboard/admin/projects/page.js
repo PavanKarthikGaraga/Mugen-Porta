@@ -21,8 +21,6 @@ export default function ProjectsPage() {
         description: ''
     });
     const [selectedClubCategories, setSelectedClubCategories] = useState([]);
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
 
     // Rural categories definition
     const ruralCategories = [
@@ -118,17 +116,6 @@ export default function ProjectsPage() {
         try {
             let projectData = { ...formData };
 
-            // Add image data for LCH handicrafts/painting clubs
-            if (isLCHHandicraftsOrPainting() && selectedImage) {
-                // Convert image to base64
-                const base64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(selectedImage);
-                });
-
-                projectData.image = base64;
-            }
 
             // Save the project with image data
             const url = editingProject ? `/api/dashboard/admin/projects/${editingProject.id}` : '/api/dashboard/admin/projects';
@@ -188,28 +175,8 @@ export default function ProjectsPage() {
         setEditingProject(null);
         setShowModal(false);
         setSelectedClubCategories([]);
-        setSelectedImage(null);
-        setImagePreview(null);
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setSelectedImage(file);
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setImagePreview(e.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const isLCHHandicraftsOrPainting = () => {
-        if (formData.domain === 'LCH' && formData.clubId) {
-            return formData.clubId === 'PNT' || formData.clubId === 'HDC';
-        }
-        return false;
-    };
 
     const startEdit = (project) => {
         setEditingProject(project);
@@ -553,31 +520,6 @@ export default function ProjectsPage() {
                                 />
                             </div>
                             
-                            {/* Image Upload for LCH Handicrafts/Painting Clubs */}
-                            {isLCHHandicraftsOrPainting() && (
-                                <div>
-                                    <label htmlFor="projectImage" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Project Image
-                                    </label>
-                                    <input
-                                        id="projectImage"
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                    />
-                                    {imagePreview && (
-                                        <div className="mt-2">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
-                                                src={imagePreview}
-                                                alt="Project preview"
-                                                className="w-32 h-32 object-cover rounded-md border"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                             
                             <div className="flex justify-end space-x-3 pt-4">
                                 <button

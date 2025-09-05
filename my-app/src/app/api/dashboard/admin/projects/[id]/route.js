@@ -1,8 +1,6 @@
 import pool from '../../../../../../lib/db';
 import { NextResponse } from 'next/server';
 import { verifyAdminToken } from '../../auth-helper';
-import fs from 'fs';
-import path from 'path';
 
 export async function PUT(request, { params }) {
     // Verify admin token
@@ -13,7 +11,7 @@ export async function PUT(request, { params }) {
 
     try {
         const { id } = await params;
-        const { domain, clubId, category, rural, ruralCategory, subCategory, name, description, image } = await request.json();
+        const { domain, clubId, category, rural, ruralCategory, subCategory, name, description } = await request.json();
         
         // Verify club exists and get club name
         const [clubCheck] = await pool.execute('SELECT id, name FROM clubs WHERE id = ?', [clubId]);
@@ -23,25 +21,6 @@ export async function PUT(request, { params }) {
         
         const clubName = clubCheck[0].name;
         
-        // Handle image upload for LCH handicrafts/painting clubs
-        if (domain === 'LCH' && image && (clubId === 'PNT' || clubId === 'HDC')) {
-            try {
-                // Create directory if it doesn't exist
-                const clubDir = path.join(process.cwd(), 'public', clubName);
-                if (!fs.existsSync(clubDir)) {
-                    fs.mkdirSync(clubDir, { recursive: true });
-                }
-                
-                // Save image as {name}.png
-                const imagePath = path.join(clubDir, `${name}.png`);
-                const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
-                fs.writeFileSync(imagePath, base64Data, 'base64');
-                
-            } catch (imageError) {
-                console.error('Error saving image:', imageError);
-                return NextResponse.json({ error: 'Failed to save image' }, { status: 500 });
-            }
-        }
         
         const [result] = await pool.execute(
             'UPDATE projects SET domain = ?, clubId = ?, category = ?, rural = ?, ruralCategory = ?, subCategory = ?, name = ?, description = ? WHERE id = ?',

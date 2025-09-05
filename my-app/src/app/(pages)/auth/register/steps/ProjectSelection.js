@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import PropTypes from "prop-types";
 import { allCategories, getCategoriesByDomain } from "../../../../Data/allCategories";
 
@@ -856,8 +855,6 @@ export default function ProjectSelection({ formData, updateFormData }) {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {availableProjects.map((project) => {
-                                const isHandicraftsOrPainting = project.domain === 'LCH' && (project.clubId === 'PNT' || project.clubId === 'HDC');
-                                
                                 // Check if this is a TEC project and if it's full
                                 const isTecProject = project.domain === 'TEC';
                                 const memberCount = projectMemberCounts[project.id] || 0;
@@ -889,29 +886,6 @@ export default function ProjectSelection({ formData, updateFormData }) {
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                         ✅ {spotsRemaining} spot{spotsRemaining !== 1 ? 's' : ''} available ({memberCount}/2 members)
                                                     </span>
-                                                )}
-                                            </div>
-                                        )}
-                                        
-                                        {/* Project Image for Handicrafts/Painting clubs */}
-                                        {isHandicraftsOrPainting && project.images?.length > 0 && (
-                                            <div className="mb-4">
-                                                <div className="w-full h-32 sm:h-40 rounded-lg overflow-hidden bg-gray-100">
-                                                    <Image
-                                                        src={project.images[0].url}
-                                                        alt={project.images[0].name}
-                                                        width={300}
-                                                        height={160}
-                                                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                                                        onError={(e) => {
-                                                            e.target.style.display = 'none';
-                                                        }}
-                                                    />
-                                                </div>
-                                                {project.images.length > 1 && (
-                                                    <div className="text-xs text-center text-gray-500 mt-2">
-                                                        +{project.images.length - 1} more image{project.images.length > 2 ? 's' : ''}
-                                                    </div>
                                                 )}
                                             </div>
                                         )}
@@ -973,19 +947,55 @@ export default function ProjectSelection({ formData, updateFormData }) {
                 </div>
             )}
 
-            {/* Selected Club Summary for Y24 */}
-            {formData.selectedClub && studentYear === 'Y24' && !formData.selectedProject && (
-                <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                    <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Club</h3>
-                    <div className="space-y-2 text-sm">
-                        <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
-                        <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
-                        <div className="text-green-700 mt-2">
-                            ✅ You can proceed with this club registration (no projects available)
+            {/* Selected Club Summary for Y24 - Only show when club has NO projects */}
+            {formData.selectedClub && studentYear === 'Y24' && !formData.selectedProject && (() => {
+                // Check if selected club has any projects
+                const clubProjects = allProjects.filter(project =>
+                    project.clubId === formData.selectedClub &&
+                    project.domain === selectedDomain &&
+                    project.rural !== 1
+                );
+                const hasProjects = clubProjects.length > 0;
+
+                // Only show summary if club has NO projects
+                return !hasProjects ? (
+                    <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                        <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Club</h3>
+                        <div className="space-y-2 text-sm">
+                            <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
+                            <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
+                            <div className="text-green-700 mt-2">
+                                ✅ You can proceed with this club registration (no projects available)
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                ) : null;
+            })()}
+
+            {/* Project Selection Required Warning for Y24 */}
+            {formData.selectedClub && studentYear === 'Y24' && !formData.selectedProject && (() => {
+                // Check if selected club has any projects
+                const clubProjects = allProjects.filter(project =>
+                    project.clubId === formData.selectedClub &&
+                    project.domain === selectedDomain &&
+                    project.rural !== 1
+                );
+                const hasProjects = clubProjects.length > 0;
+
+                // Show warning if club has projects but none selected
+                return hasProjects ? (
+                    <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <h3 className="text-lg font-semibold mb-2 text-yellow-800">⚠️ Project Selection Required</h3>
+                        <div className="space-y-2 text-sm">
+                            <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
+                            <div className="text-yellow-700 mt-2">
+                                This club has {clubProjects.length} project{clubProjects.length !== 1 ? 's' : ''} available.
+                                You must select a project to proceed with registration.
+                            </div>
+                        </div>
+                    </div>
+                ) : null;
+            })()}
 
             {/* Selected Project Summary */}
             {formData.selectedProject && studentYear === 'Y24' && (

@@ -211,9 +211,8 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
             </div>
             
             <div class="footer">
-                <p><strong>SAC Program Team</strong></p>
-                <p>This is an automated email. Please do not reply to this email.</p>
-                <p>For support, contact us at support@sacprogram.edu</p>
+                <p><strong>SAC Activities Team</strong></p>
+                <p>For support, contact us at sac@kluniversity.in</p>
             </div>
         </div>
     </body>

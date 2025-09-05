@@ -1,52 +1,15 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 
 /**
  * Registration Data API - Read Only
  * 
  * This endpoint provides all data needed for the registration process:
  * - Clubs with their details
- * - Projects with their details and images (for Handicrafts/Painting clubs)
+ * - Projects with their details
  * - Domain mappings
  */
 
-// Helper function to get images for a project
-function getProjectImages(clubName, projectName) {
-    try {
-        const publicDir = path.join(process.cwd(), 'public');
-        const clubDir = path.join(publicDir, clubName);
-        
-        if (!fs.existsSync(clubDir)) {
-            return [];
-        }
-        
-        const files = fs.readdirSync(clubDir);
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-        
-        const images = files.filter(file => {
-            const ext = path.extname(file).toLowerCase();
-            return imageExtensions.includes(ext);
-        });
-        
-        // Filter images that match the project name
-        const projectImages = images.filter(image => {
-            const imageName = path.parse(image).name.toLowerCase();
-            const projectNameLower = projectName.toLowerCase();
-            return imageName.includes(projectNameLower) || projectNameLower.includes(imageName);
-        });
-        
-        return projectImages.map(image => ({
-            filename: image,
-            url: `/${encodeURIComponent(clubName)}/${encodeURIComponent(image)}`,
-            name: path.parse(image).name
-        }));
-    } catch (error) {
-        console.error('Error reading project images:', error);
-        return [];
-    }
-}
 
 export async function GET(request) {
     try {
@@ -104,27 +67,12 @@ export async function GET(request) {
             ORDER BY p.id
         `);
         
-        // Enhance projects with images for Handicrafts and Painting clubs
-        const enhancedProjects = projects.map(project => {
-            const clubName = project.clubName;
-            const projectName = project.name;
-            
-            // Check if this is a Handicrafts or Painting club by club ID
-            if (project.domain === 'LCH' && (project.clubId === 'PNT' || project.clubId === 'HDC')) {
-                const images = getProjectImages(clubName, projectName);
-                return {
-                    ...project,
-                    images: images,
-                    hasImages: images.length > 0
-                };
-            }
-            
-            return {
-                ...project,
-                images: [],
-                hasImages: false
-            };
-        });
+        // Return projects without image enhancement
+        const enhancedProjects = projects.map(project => ({
+            ...project,
+            images: [],
+            hasImages: false
+        }));
         
         // Domain categories for reference
         const domains = [

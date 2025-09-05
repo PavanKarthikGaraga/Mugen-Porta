@@ -98,10 +98,19 @@ export default function Register() {
                     break;
                 }
 
-                // For Y24 students: can proceed with just club selection if no projects exist
+                // For Y24 students: enforce project selection if club has projects
                 if (isY24Student) {
-                    // Y24 students can proceed after selecting club, even if no projects exist
-                    // The project selection is optional and handled in the ProjectSelection component
+                    // Check if selected club belongs to domains that typically have projects
+                    const domainsWithProjects = ['TEC', 'LCH'];
+                    const clubHasProjects = formData.selectedDomain && domainsWithProjects.includes(formData.selectedDomain);
+
+                    // If club is likely to have projects but no project selected, prevent proceeding
+                    if (clubHasProjects && !formData.selectedProject) {
+                        toast.error("Please select a project from your chosen club");
+                        return false;
+                    }
+
+                    // If club doesn't typically have projects or project is selected, allow proceeding
                     break;
                 }
                 break;
