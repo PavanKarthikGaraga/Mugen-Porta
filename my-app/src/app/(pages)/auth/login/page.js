@@ -55,12 +55,43 @@ export default function Login() {
                     body: JSON.stringify({ username, password })
                 })
                 
-                if(response.ok) 
+                if(response.ok)
                 {
-                    await response.json();
+                    const userData = await response.json();
+                    console.log("Login response data:", userData); // Debug log
                     toast.success("Login Successful");
                     setRedirecting(true);
-                    router.push("/dashboard/admin");
+
+                    // Redirect based on user role
+                    if (userData.user && userData.user.role){
+                        const role = userData.user.role.toLowerCase();
+                        console.log("User role:", role); // Debug log
+
+                        // Use setTimeout to ensure redirect happens after state updates
+                        setTimeout(() => {
+                            if (role === 'admin'){
+                                console.log("Redirecting to admin dashboard");
+                                router.push("/dashboard/admin");
+                            } else if (role === 'lead'){
+                                console.log("Redirecting to lead dashboard");
+                                router.push("/dashboard/lead");
+                            } else if (role === 'faculty'){
+                                console.log("Redirecting to faculty dashboard");
+                                router.push("/dashboard/faculty");
+                            } else if (role === 'student'){
+                                console.log("Redirecting to student dashboard");
+                                router.push("/dashboard/student");
+                            } else {
+                                console.log("Unknown role, defaulting to student:", role);
+                                router.push("/dashboard/student");
+                            }
+                        }, 100);
+                    } else {
+                        console.log("No role found in userData, defaulting to student");
+                        setTimeout(() => {
+                            router.push("/dashboard/student");
+                        }, 100);
+                    }
                 }else if(response.status===404) { 
                     toast.error("User Not Found");
                 }else if(response.status===401) {
@@ -88,7 +119,7 @@ export default function Login() {
                 </div>
             ):(
             <div className="w-full h-screen flex flex-col  justify-center items-center">
-            <h1 className="text-3xl font-bold mb-4">Welcome to SAC SIL Portal</h1>
+            <h1 className="text-3xl font-bold mb-4">Welcome to SAC Activities Portal</h1>
             <div className="input-container">
                 <div className="flex w-full h-full flex-col items-center"> 
                     <div className="input-container-in">
@@ -172,7 +203,7 @@ export default function Login() {
                     "Login"
                 )}
             </button>
-            <Link className="w-80 underline" href="/forget-password">Forget Password?</Link>
+            <Link className="w-80 underline" href="/auth/forget-password">Forget Password?</Link>
         </div>)}  
         </>
     );

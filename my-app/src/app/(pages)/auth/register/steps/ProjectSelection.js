@@ -107,18 +107,25 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
     };
 
     const handleClubChange = (clubId) => {
+        // Check if the selected club is full
+        const selectedClubData = allClubs.find(club => club.id === clubId);
+        if (!selectedClubData) return;
+
+        if (selectedClubData.isFull) {
+            alert(`This club is already full (${selectedClubData.memberCount}/${selectedClubData.memberLimit} members). Please select a different club.`);
+            return; // Don't proceed with selection
+        }
+
         setSelectedClub(clubId);
         setSelectedCategory(""); // Reset category selection
         setSelectedRuralCategory("");
 
-        const selectedClubData = allClubs.find(club => club.id === clubId);
-        if (!selectedClubData) return;
         // For TEC domain: Y25 can select club but cannot select categories/projects
         if (selectedDomain === 'TEC' && studentYear === 'Y25') {
             // Y25 can join TEC clubs but cannot select categories or projects
-        setSelectedCategory("");
+            setSelectedCategory("");
             setAvailableCategories([]);
-        setAvailableProjects([]);
+            setAvailableProjects([]);
             updateFormData({
                 selectedClub: clubId,
                 selectedCategory: "",
@@ -482,12 +489,28 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
                                     className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                                 >
                                     <option value="">Choose a club...</option>
-                                    {availableClubs.map((club) => (
-                                        <option key={club.id} value={club.id}>
-                                            {club.name}
-                                        </option>
-                                    ))}
+                                    {availableClubs.map((club) => {
+                                        const isFull = club.isFull;
+
+                                        return (
+                                            <option
+                                                key={club.id}
+                                                value={club.id}
+                                                disabled={isFull}
+                                                className={isFull ? 'text-gray-400' : ''}
+                                            >
+                                                {club.name}
+                                                <span className="ml-2 text-xs">
+                                                    ({club.memberCount}/{club.memberLimit} members)
+                                                    {isFull && ' - FULL'}
+                                                </span>
+                                            </option>
+                                        );
+                                    })}
                                 </select>
+                                <p className="mt-2 text-sm text-gray-600">
+                                    Clubs have member limits. Full clubs are disabled.
+                                </p>
                             </div>
                         )}
                     </div>

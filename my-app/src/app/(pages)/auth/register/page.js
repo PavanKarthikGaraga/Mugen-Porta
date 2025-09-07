@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
@@ -44,6 +44,32 @@ export default function Register() {
         agreedToRules: false,
     });
     const [loading, setLoading] = useState(false);
+    const [registrationsEnabled, setRegistrationsEnabled] = useState(null);
+    const [checkingStatus, setCheckingStatus] = useState(true);
+
+    // Check if registrations are enabled
+    useEffect(() => {
+        const checkRegistrationsStatus = async () => {
+            try {
+                const response = await fetch('/api/dashboard/admin/controls');
+                if (response.ok) {
+                    const data = await response.json();
+                    setRegistrationsEnabled(data.registrationsEnabled);
+                } else {
+                    // Default to enabled if we can't check
+                    setRegistrationsEnabled(true);
+                }
+            } catch (error) {
+                console.error('Error checking registration status:', error);
+                // Default to enabled if there's an error
+                setRegistrationsEnabled(true);
+            } finally {
+                setCheckingStatus(false);
+            }
+        };
+
+        checkRegistrationsStatus();
+    }, []);
 
     const router = useRouter();
 
@@ -179,7 +205,7 @@ export default function Register() {
                         duration: 5000, // Show longer for important messages
                     });
                 } else if (error.errorType === "CLUB_FULL") {
-                    toast.error(`${error.message}\n${error.suggestion}`, {
+                    toast.error(`Club Full: ${error.message}\n${error.suggestion}`, {
                         duration: 5000,
                     });
                 } else {
@@ -195,6 +221,76 @@ export default function Register() {
     };
 
     const CurrentStepComponent = steps[currentStep - 1].component;
+
+    // Show loading while checking registration status
+    if (checkingStatus) {
+        return (
+            <div className="w-full h-screen flex flex-col justify-center items-center bg-gray-50">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-800"></div>
+                <p className="mt-4 text-gray-600">Checking registration status...</p>
+            </div>
+        );
+    }
+
+    // Show message if registrations are disabled
+    if (registrationsEnabled === false) {
+        return (
+            <div className="w-full h-screen flex flex-col">
+                {/* Red Navbar */}
+                <div className="bg-red-800 text-white py-2 px-4 flex-shrink-0">
+                    <div className="max-w-7xl mx-auto">
+                        <h1 className="text-2xl font-extrabold text-center">Student Activity Center</h1>
+                    </div>
+                </div>
+
+                {/* Registration Closed Message */}
+                <div className="flex-1 flex flex-col justify-center items-center bg-gray-50 px-4">
+                    <div className="max-w-md w-full text-center">
+                        <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
+                            <div className="mb-6">
+                                <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0h-2m-6 4h16a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <h2 className="text-xl font-semibold text-gray-900 mb-2">Registrations Closed</h2>
+                                <p className="text-gray-600">
+                                    Currently registrations are closed. Please wait for further notice from the SAC Activities team.
+                                </p>
+                            </div>
+
+                            <div className="space-y-3">
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    className="w-full px-4 py-2 bg-red-800 text-white rounded-md hover:bg-red-900 transition-colors"
+                                >
+                                    Check Again
+                                </button>
+                                <button
+                                    onClick={() => router.push('/auth/login')}
+                                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                                >
+                                    Go to Login
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Red Footer */}
+                <div className="bg-red-800 text-white py-2 px-4 flex-shrink-0">
+                    <div className="max-w-7xl mx-auto text-center text-sm">
+                        <div className="flex flex-col sm:flex-row justify-between items-center">
+                            <span>© 2025 KL University SAC Activities. All Rights Reserved.</span>
+                            <span className="mt-1 sm:mt-0">
+                                Designed and Developed by Pavan Karthik Garaga | ZeroOne CodeClub
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full h-screen flex flex-col">

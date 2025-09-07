@@ -87,6 +87,19 @@ CREATE INDEX idx_projects_domain ON projects(domain);
 
 
 
+-- Controls table for system-wide settings
+CREATE TABLE IF NOT EXISTS controls (
+    id INT PRIMARY KEY DEFAULT 1,
+    registrations_enabled TINYINT(1) NOT NULL DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert default controls
+INSERT INTO controls (id, registrations_enabled)
+VALUES (1, 1)
+ON DUPLICATE KEY UPDATE registrations_enabled = 1;
+
 INSERT INTO users (username, name, email, password, role)
 VALUES (
     '2300032048',

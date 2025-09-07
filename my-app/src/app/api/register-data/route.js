@@ -58,6 +58,40 @@ export async function GET(request) {
         
         // Fetch clubs
         const [clubs] = await pool.execute('SELECT * FROM clubs ORDER BY id');
+
+        // Get member counts for all clubs
+        const clubIds = clubs.map(c => c.id);
+        let clubMemberCounts = {};
+
+        if (clubIds.length > 0) {
+            const placeholders = clubIds.map(() => '?').join(',');
+            const [memberCounts] = await pool.execute(
+                `SELECT clubId, COUNT(*) as memberCount
+                 FROM students
+                 WHERE clubId IN (${placeholders})
+                 GROUP BY clubId`,
+                clubIds
+            );
+
+            // Convert to object for easy lookup
+            clubMemberCounts = memberCounts.reduce((acc, count) => {
+                acc[count.clubId] = count.memberCount;
+                return acc;
+            }, {});
+        }
+
+        // Return clubs with member counts and availability status
+        const enhancedClubs = clubs.map(club => {
+            const memberCount = clubMemberCounts[club.id] || 0;
+            const isFull = memberCount >= club.memberLimit;
+
+            return {
+                ...club,
+                memberCount: memberCount,
+                isFull: isFull,
+                availableSpots: Math.max(0, club.memberLimit - memberCount)
+            };
+        });
         
         // Fetch projects with club information
         const [projects] = await pool.execute(`
@@ -116,11 +150,11 @@ export async function GET(request) {
         ];
         
         const registrationData = {
-            clubs: clubs,
+            clubs: enhancedClubs,
             projects: enhancedProjects,
             domains: domains,
             metadata: {
-                clubsCount: clubs.length,
+                clubsCount: enhancedClubs.length,
                 projectsCount: enhancedProjects.length,
                 timestamp: new Date().toISOString()
             }

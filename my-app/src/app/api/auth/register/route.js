@@ -218,6 +218,7 @@ export async function POST(req) {
                         clubId: selectedClub,
                         currentMembers: currentMembers,
                         maxMembers: memberLimit,
+                        availableSpots: 0,
                         suggestion: "Please select a different club."
                     },
                     { status: 400 }
@@ -246,6 +247,7 @@ export async function POST(req) {
                         clubId: selectedClub,
                         currentMembers: currentMembers,
                         maxMembers: memberLimit,
+                        availableSpots: 0,
                         suggestion: "Please select a different club."
                     },
                     { status: 400 }
@@ -341,6 +343,7 @@ export async function POST(req) {
                 selectedDomain: selectedDomain,
                 projectDetails: projectDetails,
                 clubDetails: clubDetails,
+                selectedCategory: selectedCategory,
                 isY24Student: isY24Student,
                 isY25Student: isY25Student
             });

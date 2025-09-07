@@ -15,7 +15,140 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-export const sendRegistrationEmail = async (email, name, username, password, year, selectedDomain, projectDetails, clubDetails, isY24Student, isY25Student) => {
+export const sendPasswordResetEmail = async (email, name, resetLink) => {
+    const htmlTemplate = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Password Reset - SAC Activities</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f4f4f4;
+            }
+            .container {
+                background-color: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            .header {
+                text-align: center;
+                border-bottom: 2px solid #007bff;
+                padding-bottom: 20px;
+                margin-bottom: 30px;
+            }
+            .logo {
+                font-size: 24px;
+                font-weight: bold;
+                color: #007bff;
+                margin-bottom: 10px;
+            }
+            .title {
+                color: #dc3545;
+                font-size: 20px;
+                margin: 0;
+            }
+            .content {
+                margin-bottom: 30px;
+            }
+            .reset-button {
+                display: inline-block;
+                background-color: #dc3545;
+                color: white;
+                padding: 12px 24px;
+                text-decoration: none;
+                border-radius: 5px;
+                font-weight: bold;
+                margin: 20px 0;
+            }
+            .reset-button:hover {
+                background-color: #c82333;
+            }
+            .warning {
+                background-color: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 5px;
+                padding: 15px;
+                margin: 20px 0;
+                color: #856404;
+            }
+            .footer {
+                text-align: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid #dee2e6;
+                color: #6c757d;
+                font-size: 14px;
+            }
+            .important {
+                color: #dc3545;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">SAC Activities</div>
+                <h1 class="title">Password Reset Request</h1>
+            </div>
+
+            <div class="content">
+                <p>Hello <strong>${name}</strong>,</p>
+
+                <p>We received a request to reset your password for your SAC Activities account. If you didn't make this request, you can safely ignore this email.</p>
+
+                <p>To reset your password, click the button below:</p>
+
+                <div style="text-align: center;">
+                    <a href="${resetLink}" class="reset-button">Reset My Password</a>
+                </div>
+
+                <p><strong>This link will expire in 1 hour</strong> for security reasons.</p>
+
+                <div class="warning">
+                    <strong>Security Notice:</strong> If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
+                </div>
+
+
+                <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
+            </div>
+
+            <div class="footer">
+                <p><strong>SAC Activities Team</strong></p>
+                // <p>For support, contact us at sacactivities@kluniversity.in</p>
+                <p>For support, contact us at sac@kluniversity.in</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+
+    const mailOptions = {
+        from: `"SAC Activities" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: 'Password Reset Request - SAC Activities',
+        html: htmlTemplate,
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        return { success: true, messageId: info.messageId };
+    } catch (error) {
+        console.error('Error sending password reset email:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+export const sendRegistrationEmail = async (email, name, username, password, year, selectedDomain, projectDetails, clubDetails, isY24Student, isY25Student, selectedCategory = null) => {
     const htmlTemplate = `
     <!DOCTYPE html>
     <html lang="en">
@@ -137,6 +270,12 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                 padding: 15px;
                 margin: 20px 0;
             }
+            .auto-generated-note {
+                color: #6c757d;
+                font-size: 14px;
+                margin-top: 8px;
+                font-style: italic;
+            }
         </style>
     </head>
     <body>
@@ -165,29 +304,43 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                     </div>
                 </div>
 
+                ${clubDetails ? `
+                <div class="selection-details">
+                    <h3>Your Club Selection${isY24Student ? ' (Y24)' : isY25Student ? ' (Y25)' : ''}</h3>
+                    <p><strong>Club:</strong> ${clubDetails.name}</p>
+                    <p><strong>Description:</strong> ${clubDetails.description}</p>
+                    <p><strong>Domain:</strong> ${selectedDomain}</p>
+                    ${selectedCategory ? `<p><strong>Category:</strong> ${selectedCategory}</p>` : ''}
+                </div>
+                ` : ''}
+
                 ${isY24Student && projectDetails ? `
                 <div class="selection-details">
                     <h3>Your Project Selection (Y24)</h3>
                     <p><strong>Project:</strong> ${projectDetails.name}</p>
                     <p><strong>Description:</strong> ${projectDetails.description}</p>
                     <p><strong>Domain:</strong> ${selectedDomain}</p>
+                    ${selectedCategory ? `<p><strong>Category:</strong> ${selectedCategory}</p>` : ''}
+                    ${projectDetails.name && projectDetails.name.includes('Auto-generated') ? `<p class="auto-generated-note"><em>Note: This is an auto-generated project for your selected category.</em></p>` : ''}
                 </div>
                 ` : ''}
 
-                ${clubDetails ? `
+                ${isY25Student && selectedDomain === 'TEC' && !projectDetails ? `
                 <div class="selection-details">
-                    <h3>Your Club Selection${isY25Student ? ' (Y25)' : ''}</h3>
-                    <p><strong>Club:</strong> ${clubDetails.name}</p>
-                    <p><strong>Description:</strong> ${clubDetails.description}</p>
+                    <h3>Your TEC Club Selection (Y25)</h3>
+                    <p><strong>Note:</strong> As a Y25 student, you can only select TEC clubs, not individual projects.</p>
+                    <p><strong>Club:</strong> ${clubDetails?.name || 'N/A'}</p>
+                    ${selectedCategory ? `<p><strong>Category:</strong> ${selectedCategory}</p>` : ''}
                 </div>
                 ` : ''}
 
                 
                 <h3>What's Next?</h3>
                 <ul>
-                    <li><strong>Updates:</strong> Keep an eye on your email for important announcements</li>
+                    <li><strong>Updates:</strong> Keep an eye on your email for important announcements about your ${selectedCategory ? 'category' : 'club'} activities</li>
                     <li><strong>Preparation:</strong> Start familiarizing yourself with your selected ${isY24Student ? 'project and domain' : 'club activities'}</li>
-                    <li><strong>Community:</strong> Get ready to collaborate with fellow students and mentors</li>
+                    <li><strong>Community:</strong> Get ready to collaborate with fellow students and mentors in your ${selectedDomain} domain</li>
+                    ${selectedCategory ? `<li><strong>Category Focus:</strong> Your activities will be focused on the ${selectedCategory} category</li>` : ''}
                 </ul>
                 
                 <p><span class="important">Important:</span> Please keep your login credentials safe. You will need them to access the student portal once it's available.</p>

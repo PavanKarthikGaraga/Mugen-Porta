@@ -1,0 +1,212 @@
+"use client";
+import { useState, useEffect } from "react";
+import { FiUser, FiMail, FiPhone, FiMapPin, FiCalendar, FiBook, FiUsers } from "react-icons/fi";
+
+export default function StudentOverviewPage() {
+    const [studentData, setStudentData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStudentData = async () => {
+            try {
+                // Fetch student profile data
+                const response = await fetch('/api/auth/me');
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Fetch additional student details from database
+                    const studentResponse = await fetch(`/api/dashboard/student/profile/${data.username}`);
+                    if (studentResponse.ok) {
+                        const studentDetails = await studentResponse.json();
+                        setStudentData({
+                            ...data,
+                            ...studentDetails
+                        });
+                    } else {
+                        // Fallback to basic data if student details not found
+                        setStudentData(data);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch student data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStudentData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
+    if (!studentData) {
+        return (
+            <div className="text-center py-12">
+                <p className="text-gray-600">Failed to load student data</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="p-6">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold text-gray-900">Student Dashboard</h1>
+                <p className="mt-2 text-gray-600">Welcome back, {studentData.name}!</p>
+            </div>
+
+            {/* Overview Section */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <FiUser className="mr-2" />
+                    Personal Details
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Basic Information */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="font-medium text-gray-900 mb-3">Basic Information</h3>
+                        <div className="space-y-2">
+                            <div className="flex items-center text-sm">
+                                <FiUser className="mr-2 text-gray-500" size={16} />
+                                <span className="text-gray-600">Name:</span>
+                                <span className="ml-2 font-medium">{studentData.name}</span>
+                            </div>
+                            <div className="flex items-center text-sm">
+                                <FiMail className="mr-2 text-gray-500" size={16} />
+                                <span className="text-gray-600">Email:</span>
+                                <span className="ml-2 font-medium">{studentData.email}</span>
+                            </div>
+                            <div className="flex items-center text-sm">
+                                <FiUsers className="mr-2 text-gray-500" size={16} />
+                                <span className="text-gray-600">Username:</span>
+                                <span className="ml-2 font-medium">{studentData.username}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Academic Information */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="font-medium text-gray-900 mb-3">Academic Information</h3>
+                        <div className="space-y-2">
+                            <div className="flex items-center text-sm">
+                                <FiBook className="mr-2 text-gray-500" size={16} />
+                                <span className="text-gray-600">Branch:</span>
+                                <span className="ml-2 font-medium">{studentData.branch || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center text-sm">
+                                <FiCalendar className="mr-2 text-gray-500" size={16} />
+                                <span className="text-gray-600">Year:</span>
+                                <span className="ml-2 font-medium">{studentData.year || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center text-sm">
+                                <FiUsers className="mr-2 text-gray-500" size={16} />
+                                <span className="text-gray-600">Cluster:</span>
+                                <span className="ml-2 font-medium">{studentData.cluster || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Contact Information */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="font-medium text-gray-900 mb-3">Contact Information</h3>
+                        <div className="space-y-2">
+                            <div className="flex items-center text-sm">
+                                <FiPhone className="mr-2 text-gray-500" size={16} />
+                                <span className="text-gray-600">Phone:</span>
+                                <span className="ml-2 font-medium">{studentData.phoneNumber || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center text-sm">
+                                <FiMapPin className="mr-2 text-gray-500" size={16} />
+                                <span className="text-gray-600">Residence:</span>
+                                <span className="ml-2 font-medium">{studentData.residenceType || 'N/A'}</span>
+                            </div>
+                            {studentData.hostelName && studentData.hostelName !== 'N/A' && (
+                                <div className="flex items-center text-sm">
+                                    <FiMapPin className="mr-2 text-gray-500" size={16} />
+                                    <span className="text-gray-600">Hostel:</span>
+                                    <span className="ml-2 font-medium">{studentData.hostelName}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Address Information */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <FiMapPin className="mr-2" />
+                    Address Details
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <div className="flex items-center text-sm">
+                            <span className="text-gray-600 w-20">Country:</span>
+                            <span className="font-medium">{studentData.country || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center text-sm">
+                            <span className="text-gray-600 w-20">State:</span>
+                            <span className="font-medium">{studentData.state || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center text-sm">
+                            <span className="text-gray-600 w-20">District:</span>
+                            <span className="font-medium">{studentData.district || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <div className="flex items-center text-sm">
+                            <span className="text-gray-600 w-20">Pincode:</span>
+                            <span className="font-medium">{studentData.pincode || 'N/A'}</span>
+                        </div>
+                        {studentData.busRoute && (
+                            <div className="flex items-center text-sm">
+                                <span className="text-gray-600 w-20">Bus Route:</span>
+                                <span className="font-medium">{studentData.busRoute}</span>
+                            </div>
+                        )}
+                        <div className="flex items-center text-sm">
+                            <span className="text-gray-600 w-20">Registered:</span>
+                            <span className="font-medium">
+                                {studentData.created_at ? new Date(studentData.created_at).toLocaleDateString() : 'N/A'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button
+                        onClick={() => window.location.href = '/dashboard/student/club'}
+                        className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                    >
+                        <h3 className="font-medium text-gray-900">View Club Details</h3>
+                        <p className="text-sm text-gray-600">Check your club and project information</p>
+                    </button>
+                    <button
+                        onClick={() => window.location.href = '/auth/login'}
+                        className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                    >
+                        <h3 className="font-medium text-gray-900">Change Password</h3>
+                        <p className="text-sm text-gray-600">Update your account password</p>
+                    </button>
+                    <button
+                        className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                    >
+                        <h3 className="font-medium text-gray-900">Contact Support</h3>
+                        <p className="text-sm text-gray-600">Get help with your account</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}

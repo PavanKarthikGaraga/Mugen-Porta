@@ -1,14 +1,21 @@
 "use client"
 import { useState, useEffect } from "react";
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiFilter } from "react-icons/fi";
 import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 
 export default function ProjectsPage() {
     const [projects, setProjects] = useState([]);
+    const [filteredProjects, setFilteredProjects] = useState([]);
     const [clubs, setClubs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingProject, setEditingProject] = useState(null);
+    const [filters, setFilters] = useState({
+        domain: '',
+        clubId: '',
+        category: '',
+        search: ''
+    });
     const [formData, setFormData] = useState({
         id: '',
         domain: '',
@@ -75,6 +82,34 @@ export default function ProjectsPage() {
         fetchProjects();
         fetchClubs();
     }, []);
+
+    // Filter projects based on filters
+    useEffect(() => {
+        let filtered = projects;
+
+        if (filters.domain) {
+            filtered = filtered.filter(project => project.domain === filters.domain);
+        }
+
+        if (filters.clubId) {
+            filtered = filtered.filter(project => project.clubId === filters.clubId);
+        }
+
+        if (filters.category) {
+            filtered = filtered.filter(project => project.category === filters.category);
+        }
+
+        if (filters.search) {
+            const searchTerm = filters.search.toLowerCase();
+            filtered = filtered.filter(project =>
+                project.name.toLowerCase().includes(searchTerm) ||
+                project.id.toLowerCase().includes(searchTerm) ||
+                project.description.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        setFilteredProjects(filtered);
+    }, [projects, filters]);
 
     const fetchProjects = async () => {
         try {
@@ -264,6 +299,78 @@ export default function ProjectsPage() {
                 </button>
             </div>
 
+            {/* Filters */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FiFilter className="mr-2" />
+                    Filters
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Domain</label>
+                        <select
+                            value={filters.domain}
+                            onChange={(e) => setFilters({ ...filters, domain: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        >
+                            <option value="">All Domains</option>
+                            <option value="TEC">Technical (TEC)</option>
+                            <option value="LCH">Leadership & Community (LCH)</option>
+                            <option value="ESO">Entrepreneurship & Startup (ESO)</option>
+                            <option value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</option>
+                            <option value="HWB">Health & Well-being (HWB)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Club</label>
+                        <select
+                            value={filters.clubId}
+                            onChange={(e) => setFilters({ ...filters, clubId: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        >
+                            <option value="">All Clubs</option>
+                            {clubs.map((club) => (
+                                <option key={club.id} value={club.id}>
+                                    {club.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <input
+                            type="text"
+                            value={filters.category}
+                            onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                            placeholder="Filter by category"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <input
+                            type="text"
+                            value={filters.search}
+                            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                            placeholder="Search by name, ID, or description"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        />
+                    </div>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                    <button
+                        onClick={() => setFilters({ domain: '', clubId: '', category: '', search: '' })}
+                        className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                        Clear Filters
+                    </button>
+                </div>
+            </div>
+
             {/* Projects List */}
             <div className="bg-white rounded-lg shadow-lg border border-gray-200">
                 {loading && (
@@ -273,13 +380,19 @@ export default function ProjectsPage() {
                     </div>
                 )}
                 
-                {!loading && projects.length === 0 && (
+                {!loading && filteredProjects.length === 0 && projects.length === 0 && (
                     <div className="p-8 text-center">
                         <p className="text-gray-500">No projects found. Create your first project!</p>
                     </div>
                 )}
-                
-                {!loading && projects.length > 0 && (
+
+                {!loading && filteredProjects.length === 0 && projects.length > 0 && (
+                    <div className="p-8 text-center">
+                        <p className="text-gray-500">No projects match your filters. Try adjusting your search criteria.</p>
+                    </div>
+                )}
+
+                {!loading && filteredProjects.length > 0 && (
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
@@ -311,7 +424,7 @@ export default function ProjectsPage() {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {projects.map((project) => (
+                                {filteredProjects.map((project) => (
                                     <tr key={project.id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {project.id}

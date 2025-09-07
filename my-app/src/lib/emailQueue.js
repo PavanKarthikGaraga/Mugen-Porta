@@ -36,16 +36,17 @@ class EmailQueue {
                 try {
                     const { sendRegistrationEmail } = await import('@/lib/email');
                     const result = await sendRegistrationEmail(
-                        emailData.email, 
-                        emailData.name, 
-                        emailData.username, 
+                        emailData.email,
+                        emailData.name,
+                        emailData.username,
                         emailData.password,
                         emailData.year,
                         emailData.selectedDomain,
                         emailData.projectDetails,
                         emailData.clubDetails,
                         emailData.isY24Student,
-                        emailData.isY25Student
+                        emailData.isY25Student,
+                        emailData.selectedCategory
                     );
                     
                     if (result.success) {

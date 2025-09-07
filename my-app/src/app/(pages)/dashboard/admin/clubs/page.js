@@ -1,13 +1,18 @@
 "use client"
 import { useState, useEffect } from "react";
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag, FiFilter } from "react-icons/fi";
 import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 
 export default function ClubsPage() {
     const [clubs, setClubs] = useState([]);
+    const [filteredClubs, setFilteredClubs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingClub, setEditingClub] = useState(null);
+    const [filters, setFilters] = useState({
+        domain: '',
+        search: ''
+    });
     const [formData, setFormData] = useState({
         id: '',
         name: '',
@@ -21,6 +26,26 @@ export default function ClubsPage() {
     useEffect(() => {
         fetchClubs();
     }, []);
+
+    // Filter clubs based on filters
+    useEffect(() => {
+        let filtered = clubs;
+
+        if (filters.domain) {
+            filtered = filtered.filter(club => club.domain === filters.domain);
+        }
+
+        if (filters.search) {
+            const searchTerm = filters.search.toLowerCase();
+            filtered = filtered.filter(club =>
+                club.name.toLowerCase().includes(searchTerm) ||
+                club.id.toLowerCase().includes(searchTerm) ||
+                club.description.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        setFilteredClubs(filtered);
+    }, [clubs, filters]);
 
     const fetchClubs = async () => {
         try {
@@ -150,6 +175,51 @@ export default function ClubsPage() {
                 </button>
             </div>
 
+            {/* Filters */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FiFilter className="mr-2" />
+                    Filters
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Domain</label>
+                        <select
+                            value={filters.domain}
+                            onChange={(e) => setFilters({ ...filters, domain: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        >
+                            <option value="">All Domains</option>
+                            <option value="TEC">Technical (TEC)</option>
+                            <option value="LCH">Leadership & Community (LCH)</option>
+                            <option value="ESO">Entrepreneurship & Startup (ESO)</option>
+                            <option value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</option>
+                            <option value="HWB">Health & Well-being (HWB)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <input
+                            type="text"
+                            value={filters.search}
+                            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                            placeholder="Search by name, ID, or description"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        />
+                    </div>
+
+                    <div className="flex items-end">
+                        <button
+                            onClick={() => setFilters({ domain: '', search: '' })}
+                            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                        >
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* Clubs List */}
             <div className="bg-white rounded-lg shadow-lg border border-gray-200">
                 {loading && (
@@ -159,13 +229,19 @@ export default function ClubsPage() {
                     </div>
                 )}
                 
-                {!loading && clubs.length === 0 && (
+                {!loading && filteredClubs.length === 0 && clubs.length === 0 && (
                     <div className="p-8 text-center">
                         <p className="text-gray-500">No clubs found. Create your first club!</p>
                     </div>
                 )}
-                
-                {!loading && clubs.length > 0 && (
+
+                {!loading && filteredClubs.length === 0 && clubs.length > 0 && (
+                    <div className="p-8 text-center">
+                        <p className="text-gray-500">No clubs match your filters. Try adjusting your search criteria.</p>
+                    </div>
+                )}
+
+                {!loading && filteredClubs.length > 0 && (
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
@@ -191,7 +267,7 @@ export default function ClubsPage() {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {clubs.map((club) => (
+                                {filteredClubs.map((club) => (
                                     <tr key={club.id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {club.id}

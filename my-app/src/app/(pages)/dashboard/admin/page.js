@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
-import { FiUsers, FiFolder, FiMail, FiBarChart, FiTrendingUp, FiCalendar } from "react-icons/fi";
+import { useState, useEffect, useCallback } from "react";
+import { FiUsers, FiFolder, FiBarChart, FiTrendingUp, FiCalendar, FiFilter } from "react-icons/fi";
 import { handleApiError } from '@/lib/apiErrorHandler';
 
 export default function AdminOverviewPage() {
@@ -8,33 +8,49 @@ export default function AdminOverviewPage() {
         totalStudents: 0,
         totalProjects: 0,
         totalClubs: 0,
-        pendingEmails: 0,
-        recentRegistrations: 0
+        recentRegistrations: 0,
+        activeProjects: 0,
+        totalRegistrations: 0
     });
     const [loading, setLoading] = useState(true);
+    const [filters, setFilters] = useState({
+        domain: '',
+        year: '',
+        branch: '',
+        dateRange: '30'
+    });
+
+    const fetchStats = useCallback(async () => {
+        try {
+            setLoading(true);
+
+            // Build query parameters from filters
+            const queryParams = new URLSearchParams();
+            if (filters.domain) queryParams.append('domain', filters.domain);
+            if (filters.year) queryParams.append('year', filters.year);
+            if (filters.branch) queryParams.append('branch', filters.branch);
+            if (filters.dateRange) queryParams.append('dateRange', filters.dateRange);
+
+            const response = await fetch(`/api/dashboard/admin/stats?${queryParams}`);
+
+            if (await handleApiError(response)) {
+                return; // Error was handled
+            }
+
+            if (response.ok) {
+                const data = await response.json();
+                setStats(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch dashboard stats:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [filters]);
 
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const response = await fetch('/api/admin/dashboard-stats');
-                
-                if (await handleApiError(response)) {
-                    return; // Error was handled
-                }
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setStats(data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch dashboard stats:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchStats();
-    }, []);
+    }, [filters, fetchStats]);
 
     const statCards = [
         {
@@ -46,7 +62,7 @@ export default function AdminOverviewPage() {
         },
         {
             title: 'Active Projects',
-            value: stats.totalProjects,
+            value: stats.activeProjects,
             icon: FiFolder,
             color: 'green',
             href: '/dashboard/admin/projects'
@@ -59,17 +75,17 @@ export default function AdminOverviewPage() {
             href: '/dashboard/admin/clubs'
         },
         {
-            title: 'Pending Emails',
-            value: stats.pendingEmails,
-            icon: FiMail,
-            color: 'red',
-            href: '/dashboard/admin/dev/email-queue'
-        },
-        {
             title: 'Recent Registrations',
             value: stats.recentRegistrations,
             icon: FiTrendingUp,
             color: 'yellow',
+            href: '/dashboard/admin/students'
+        },
+        {
+            title: 'Total Registrations',
+            value: stats.totalRegistrations,
+            icon: FiCalendar,
+            color: 'red',
             href: '/dashboard/admin/students'
         }
     ];
@@ -128,54 +144,82 @@ export default function AdminOverviewPage() {
                 })}
             </div>
 
-            {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            {/* Filters */}
+            <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <FiCalendar className="mr-2" />
-                    Quick Actions
+                    <FiFilter className="mr-2" />
+                    Filters
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-                        <h3 className="font-medium text-gray-900">View Students</h3>
-                        <p className="text-sm text-gray-600">Manage student registrations</p>
-                    </button>
-                    <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-                        <h3 className="font-medium text-gray-900">Email Queue</h3>
-                        <p className="text-sm text-gray-600">Monitor email delivery</p>
-                    </button>
-                    <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-                        <h3 className="font-medium text-gray-900">Database Query</h3>
-                        <p className="text-sm text-gray-600">Execute custom queries</p>
-                    </button>
-                    <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-                        <h3 className="font-medium text-gray-900">Generate Reports</h3>
-                        <p className="text-sm text-gray-600">Export data and analytics</p>
-                    </button>
-                </div>
-            </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Domain</label>
+                        <select
+                            value={filters.domain}
+                            onChange={(e) => setFilters({ ...filters, domain: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        >
+                            <option value="">All Domains</option>
+                            <option value="TEC">Technical (TEC)</option>
+                            <option value="LCH">Leadership & Community (LCH)</option>
+                            <option value="ESO">Entrepreneurship & Startup (ESO)</option>
+                            <option value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</option>
+                            <option value="HWB">Health & Well-being (HWB)</option>
+                        </select>
+                    </div>
 
-            {/* System Information */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">System Information</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <h3 className="font-medium text-gray-900 mb-2">Server Status</h3>
-                        <div className="flex items-center">
-                            <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                            <span className="text-sm text-gray-600">Online</span>
-                        </div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                        <select
+                            value={filters.year}
+                            onChange={(e) => setFilters({ ...filters, year: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        >
+                            <option value="">All Years</option>
+                            <option value="24">Y24</option>
+                            <option value="25">Y25</option>
+                        </select>
                     </div>
+
                     <div>
-                        <h3 className="font-medium text-gray-900 mb-2">Database</h3>
-                        <div className="flex items-center">
-                            <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                            <span className="text-sm text-gray-600">Connected</span>
-                        </div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Branch</label>
+                        <input
+                            type="text"
+                            value={filters.branch}
+                            onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
+                            placeholder="Enter branch"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        />
                     </div>
+
                     <div>
-                        <h3 className="font-medium text-gray-900 mb-2">Last Updated</h3>
-                        <p className="text-sm text-gray-600">{new Date().toLocaleString()}</p>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                        <select
+                            value={filters.dateRange}
+                            onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        >
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="365">Last year</option>
+                            <option value="">All time</option>
+                        </select>
                     </div>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                    <button
+                        onClick={() => setFilters({ domain: '', year: '', branch: '', dateRange: '30' })}
+                        className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                        Clear Filters
+                    </button>
+                    <button
+                        onClick={fetchStats}
+                        className="px-4 py-2 bg-red-800 text-white rounded-md hover:bg-red-900 transition-colors"
+                    >
+                        Apply Filters
+                    </button>
                 </div>
             </div>
         </div>

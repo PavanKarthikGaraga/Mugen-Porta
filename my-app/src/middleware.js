@@ -25,7 +25,25 @@ export async function middleware(request) {
             if (pathname.startsWith('/dashboard/admin')) {
                 if (payload.role !== 'admin') {
                     // Redirect to regular dashboard if not admin
-                    return NextResponse.redirect(new URL('/register', request.url));
+                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
+                }
+            }
+
+            if (pathname.startsWith('/dashboard/lead')) {
+                if (payload.role !== 'lead') {
+                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
+                }
+            }
+
+            if (pathname.startsWith('/dashboard/faculty')) {
+                if (payload.role !== 'faculty') {
+                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
+                }
+            }
+
+            if (pathname.startsWith('/dashboard/student')) {
+                if (payload.role !== 'student') {
+                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
                 }
             }
 
