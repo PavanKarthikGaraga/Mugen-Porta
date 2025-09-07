@@ -52,12 +52,14 @@ CREATE TABLE students (
     district VARCHAR(50) NOT NULL,
     pincode VARCHAR(10) NOT NULL,
     selectedDomain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
+    selectedCategory VARCHAR(100) DEFAULT NULL,
     ruralCategory VARCHAR(50) DEFAULT NULL,
     subCategory VARCHAR(100) DEFAULT NULL,
     socialInternshipId VARCHAR(50) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username),
-    FOREIGN KEY (clubId) REFERENCES clubs(id)
+    FOREIGN KEY (clubId) REFERENCES clubs(id),
+    -- FOREIGN KEY (projectId) REFERENCES projects(id)
 );
 
 CREATE TABLE email_queue (
@@ -74,8 +76,14 @@ CREATE TABLE email_queue (
 );
 
 
--- Create index for faster lookups
+-- Create indexes for faster lookups
 CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_students_clubId ON students(clubId);
+CREATE INDEX idx_students_projectId ON students(projectId);
+CREATE INDEX idx_students_selectedDomain ON students(selectedDomain);
+CREATE INDEX idx_students_selectedCategory ON students(selectedCategory);
+CREATE INDEX idx_projects_clubId ON projects(clubId);
+CREATE INDEX idx_projects_domain ON projects(domain);
 
 
 

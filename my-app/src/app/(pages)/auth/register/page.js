@@ -14,6 +14,7 @@ import Confirmation from "./steps/Confirmation";
 
 export default function Register() {
     const [currentStep, setCurrentStep] = useState(1);
+    const [projectSelectionValid, setProjectSelectionValid] = useState(false);
     const [formData, setFormData] = useState({
         // Personal Details
         username: "",
@@ -92,25 +93,13 @@ export default function Register() {
                 const isY25Student = formData.username && formData.username.startsWith('25');
                 const isY24Student = formData.username && formData.username.startsWith('24');
 
-                // For Y25 students: ONLY club selection required, no projects
-                if (isY25Student) {
-                    // Y25 students can proceed with just club selection
-                    break;
-                }
-
-                // For Y24 students: enforce project selection if club has projects
-                if (isY24Student) {
-                    // Check if selected club belongs to domains that typically have projects
-                    const domainsWithProjects = ['TEC', 'LCH'];
-                    const clubHasProjects = formData.selectedDomain && domainsWithProjects.includes(formData.selectedDomain);
-
-                    // If club is likely to have projects but no project selected, prevent proceeding
-                    if (clubHasProjects && !formData.selectedProject) {
-                        toast.error("Please select a project from your chosen club");
+                // For Y24 and Y25 students: use component validation status
+                if (isY24Student || isY25Student) {
+                    // Check if project selection step is valid
+                    if (!projectSelectionValid) {
+                        toast.error("Please complete all required selections before proceeding");
                         return false;
                     }
-
-                    // If club doesn't typically have projects or project is selected, allow proceeding
                     break;
                 }
                 break;
@@ -208,9 +197,10 @@ export default function Register() {
             {/* Scrollable Step Content */}
             <div className="flex-1 overflow-y-auto">
                 <div className="w-full max-w-7xl mx-auto px-0 py-1">
-                    <CurrentStepComponent 
-                        formData={formData} 
+                    <CurrentStepComponent
+                        formData={formData}
                         updateFormData={updateFormData}
+                        onValidationChange={currentStep === 5 ? setProjectSelectionValid : undefined}
                     />
                 </div>
             </div>

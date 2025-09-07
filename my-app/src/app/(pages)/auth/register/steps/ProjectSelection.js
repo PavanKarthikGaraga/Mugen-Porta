@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { allCategories, getCategoriesByDomain } from "../../../../Data/allCategories";
 
-export default function ProjectSelection({ formData, updateFormData }) {
-    const [isY24Student, setIsY24Student] = useState(null);
-
+export default function ProjectSelection({ formData, updateFormData, onValidationChange }) {
     const [selectedDomain, setSelectedDomain] = useState("");
     const [selectedClub, setSelectedClub] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("");
@@ -12,24 +9,23 @@ export default function ProjectSelection({ formData, updateFormData }) {
     const [availableClubs, setAvailableClubs] = useState([]);
     const [availableCategories, setAvailableCategories] = useState([]);
     const [availableProjects, setAvailableProjects] = useState([]);
-    const [availableRuralCategories, setAvailableRuralCategories] = useState([]);
     const [allClubs, setAllClubs] = useState([]);
     const [allProjects, setAllProjects] = useState([]);
-    const [projectMemberCounts, setProjectMemberCounts] = useState({});
-    const [clubMemberCounts, setClubMemberCounts] = useState({});
-    const [clubMemberLimits, setClubMemberLimits] = useState({});
     const [loading, setLoading] = useState(true);
+
     // Determine student year from form data
-    let studentYear = null;
+    const studentYear = React.useMemo(() => {
     if (formData.username) {
         if (formData.username.startsWith('24')) {
-            studentYear = 'Y24';
+                return 'Y24';
         } else if (formData.username.startsWith('25')) {
-            studentYear = 'Y25';
+                return 'Y25';
+            }
         }
-    }
+        return null;
+    }, [formData.username]);
 
-    // Domain categories (Rural only for Y24 students)
+    // Domain categories
     const allDomains = [
         { id: "TEC", name: "Technical", description: "Technology and Engineering projects" },
         { id: "LCH", name: "Literary, Cultural & Heritage", description: "Arts, Literature and Cultural preservation" },
@@ -40,11 +36,14 @@ export default function ProjectSelection({ formData, updateFormData }) {
     ];
 
     // Filter domains based on student year
-    const domains = studentYear === 'Y25' 
-        ? allDomains.filter(domain => domain.id !== 'RURAL')
-        : allDomains;
+    let domains = allDomains;
 
-    // Rural categories for Y24 students (matching database ruralCategory field)
+    if (studentYear === 'Y25') {
+        // Y25 students cannot access RURAL domain, but can access TEC clubs (without projects)
+        domains = allDomains.filter(domain => domain.id !== 'RURAL');
+    }
+
+    // Rural categories for Y24 students
     const ruralCategories = [
         { id: 'agriculture', name: 'Agriculture & Farming' },
         { id: 'livestock', name: 'Livestock & Animal Husbandry' },
@@ -64,20 +63,8 @@ export default function ProjectSelection({ formData, updateFormData }) {
                 const response = await fetch('/api/register-data');
                 if (response.ok) {
                     const data = await response.json();
-                    setAllClubs(data.clubs);
-                    setAllProjects(data.projects);
-                    
-                    // Fetch member counts for TEC projects
-                    await fetchProjectMemberCounts(data.projects);
-                    
-                    // Fetch member counts for clubs (for Y25 students)
-                    await fetchClubMemberCounts(data.clubs);
-                    
-                    // console.log('Registration data loaded:', {
-                    //     clubs: data.clubs.length,
-                    //     projects: data.projects.length,
-                    //     domains: data.domains.length
-                    // });
+                    setAllClubs(data.clubs || []);
+                    setAllProjects(data.projects || []);
                 } else {
                     console.error('Failed to fetch registration data:', response.status);
                 }
@@ -91,164 +78,26 @@ export default function ProjectSelection({ formData, updateFormData }) {
         fetchRegistrationData();
     }, []);
 
-    const fetchProjectMemberCounts = async (projects) => {
-        try {
-            // Only fetch counts for TEC projects
-            const tecProjects = projects.filter(project => project.domain === 'TEC');
-            const memberCounts = {};
-            
-            for (const project of tecProjects) {
-                try {
-                    const response = await fetch(`/api/register-data?projectId=${project.id}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        memberCounts[project.id] = data.memberCount || 0;
-                    } else {
-                        memberCounts[project.id] = 0;
-                    }
-                } catch (error) {
-                    console.error(`Error fetching member count for project ${project.id}:`, error);
-                    memberCounts[project.id] = 0;
-                }
-            }
-            
-            setProjectMemberCounts(memberCounts);
-        } catch (error) {
-            console.error('Error fetching project member counts:', error);
-        }
-    };
 
-    const fetchClubMemberCounts = async (clubs) => {
-        try {
-            const memberCounts = {};
-            const memberLimits = {};
-            
-            for (const club of clubs) {
-                try {
-                    const response = await fetch(`/api/register-data?clubId=${club.id}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        memberCounts[club.id] = data.currentMembers || 0;
-                        memberLimits[club.id] = data.memberLimit || 50;
-                    } else {
-                        memberCounts[club.id] = 0;
-                        memberLimits[club.id] = 50;
-                    }
-                } catch (error) {
-                    console.error(`Error fetching member count for club ${club.id}:`, error);
-                    memberCounts[club.id] = 0;
-                    memberLimits[club.id] = 50;
-                }
-            }
-            
-            setClubMemberCounts(memberCounts);
-            setClubMemberLimits(memberLimits);
-        } catch (error) {
-            console.error('Error fetching club member counts:', error);
-        }
-    };
-
-
-    const handleDomainSelection = (domain) => {
-        // Reset all selection-related state when domain changes
-        setSelectedDomain(domain);
+    const handleDomainChange = (domainId) => {
+        setSelectedDomain(domainId);
         setSelectedClub("");
         setSelectedCategory("");
         setSelectedRuralCategory("");
-        setAvailableCategories([]);
-        setAvailableProjects([]);
-        setAvailableClubs([]);
-        setAvailableRuralCategories([]);
 
-        if (domain === "RURAL" && studentYear === 'Y24') {
-            // For Y24 Rural domain, show rural categories that have actual projects
-            const categoriesWithProjects = ruralCategories.filter(category => {
-                return allProjects.some(project =>
-                    (project.rural === 1 || project.rural === true || project.rural === "1") &&
-                    project.ruralCategory === category.id
-                );
-            });
-            setAvailableRuralCategories(categoriesWithProjects);
-        } else if (domain === "RURAL") {
-            // For non-Y24 students, show clubs with rural projects
-            const clubsWithRuralProjects = allClubs.filter(club => {
-                return allProjects.some(project =>
-                    (project.clubId === club.id || project.clubId === String(club.id)) &&
-                    project.rural === 1
-                );
-            });
-            setAvailableClubs(clubsWithRuralProjects);
+        // Get available clubs for this domain
+        let clubsForDomain = [];
+        if (domainId === "RURAL") {
+            // For rural, show all clubs (they can have rural projects)
+            clubsForDomain = allClubs;
         } else {
-            // For normal domains, show clubs from that domain only
-            const domainClubs = allClubs.filter(club => club.domain === domain);
-            setAvailableClubs(domainClubs);
+            clubsForDomain = allClubs.filter(club => club.domain === domainId);
         }
+        setAvailableClubs(clubsForDomain);
 
-        // Reset formData related to selections
         updateFormData({
-            selectedDomain: domain,
+            selectedDomain: domainId,
             selectedClub: "",
-            selectedCategory: "",
-            selectedRuralCategory: "",
-            selectedProject: null,
-            projectName: null,
-            projectDescription: null,
-            ruralCategory: null
-        });
-    };    const handleClubSelection = (club) => {
-        // Reset category and project related state when club changes
-        setSelectedClub(club.id);
-        setSelectedCategory("");
-        setAvailableProjects([]);
-        setAvailableCategories([]);
-
-        // Extract categories from the club's own categories data for all domains
-        let categoryList = [];
-        try {
-            let rawCategories = typeof club.categories === 'string'
-                ? JSON.parse(club.categories)
-                : club.categories || [];
-
-            // Normalize category structure to ensure consistent format
-            categoryList = rawCategories.map((cat, index) => {
-                if (typeof cat === 'string') {
-                    // If category is just a string, convert to object format
-                    return {
-                        id: `cat_${index}`,
-                        name: cat,
-                        description: `${cat} category`
-                    };
-                } else if (cat && typeof cat === 'object') {
-                    // If category is already an object, ensure it has required fields
-                    return {
-                        id: cat.id || cat.name || `cat_${index}`,
-                        name: cat.name || cat,
-                        description: cat.description || `${cat.name || cat} category`
-                    };
-                }
-                return null;
-            }).filter(Boolean); // Remove any null entries
-
-        } catch (e) {
-            console.error('Error parsing categories for club', club.id, ':', e);
-            categoryList = [];
-        }
-
-        // Fallback to predefined categories for ESO, IIE, and HWB if no categories found
-        if (categoryList.length === 0) {
-            const domainCategories = getCategoriesByDomain(selectedDomain);
-            categoryList = domainCategories.map(cat => ({
-                id: cat.id,
-                name: cat.name,
-                description: cat.description
-            }));
-        }
-
-        setAvailableCategories(categoryList);
-
-        // Reset formData related to club selection
-        updateFormData({
-            selectedClub: club.id,
             selectedCategory: "",
             selectedProject: null,
             projectName: null,
@@ -256,181 +105,307 @@ export default function ProjectSelection({ formData, updateFormData }) {
         });
     };
 
-        const handleCategorySelection = (categoryName) => {
-        setSelectedCategory(categoryName);
+    const handleClubChange = (clubId) => {
+        setSelectedClub(clubId);
+        setSelectedCategory(""); // Reset category selection
+        setSelectedRuralCategory("");
+
+        const selectedClubData = allClubs.find(club => club.id === clubId);
+        if (!selectedClubData) return;
+        // For TEC domain: Y25 can select club but cannot select categories/projects
+        if (selectedDomain === 'TEC' && studentYear === 'Y25') {
+            // Y25 can join TEC clubs but cannot select categories or projects
+        setSelectedCategory("");
+            setAvailableCategories([]);
         setAvailableProjects([]);
-
-        // Filter projects by category, then by rural status based on domain
-        let categoryProjects;
-
-        if (selectedDomain === "RURAL" && selectedRuralCategory) {
-            // For rural domain with rural category selected, filter by rural category and project category
-            categoryProjects = allProjects.filter(project =>
-                (project.rural === 1 || project.rural === true || project.rural === "1") &&
-                project.ruralCategory === selectedRuralCategory &&
-                project.category === categoryName
-            );
-            console.log('Rural category filter:', {
-                selectedRuralCategory,
-                category: categoryName,
-                totalProjects: allProjects.length,
-                ruralProjects: allProjects.filter(p => p.rural === 1 || p.rural === true || p.rural === "1").length,
-                matchingRuralCategory: allProjects.filter(p => (p.rural === 1 || p.rural === true || p.rural === "1") && p.ruralCategory === selectedRuralCategory).length,
-                finalFilteredProjects: categoryProjects.length,
-                categoryProjects
+            updateFormData({
+                selectedClub: clubId,
+                selectedCategory: "",
+                selectedProject: null,
+                projectName: null,
+                projectDescription: null
             });
-        } else if (selectedDomain === "RURAL") {
-            // For rural domain without rural category (fallback)
-            categoryProjects = allProjects.filter(project =>
-                (project.rural === 1 || project.rural === true || project.rural === "1") && project.category === categoryName
-            );
-        } else {
-            // For normal domains, filter by club and category, exclude rural projects
-            categoryProjects = allProjects.filter(project =>
-                project.clubId === selectedClub &&
-                project.category === categoryName &&
-                project.rural !== 1
-            );
+            return;
         }
 
-        setAvailableProjects(categoryProjects);
+        // Get available categories for this club
+        let categoriesForClub = [];
+        try {
+            if (selectedClubData.categories) {
+                categoriesForClub = typeof selectedClubData.categories === 'string'
+                    ? JSON.parse(selectedClubData.categories)
+                    : selectedClubData.categories;
+            }
+        } catch (e) {
+            categoriesForClub = [];
+        }
 
-        // Generate project ID if no projects exist for this category
-        let projectId = null;
-        let projectName = null;
-        let projectDescription = null;
-
-        if (categoryProjects.length === 0) {
-            // Find the position of this category in the available categories list
-            const categoryIndex = availableCategories.findIndex(cat =>
-                (cat.name || cat) === categoryName
+        // If no categories, check if there are projects directly
+        if (categoriesForClub.length === 0) {
+            const clubProjects = allProjects.filter(project =>
+                project.clubId === clubId && project.domain === selectedDomain
             );
 
-            if (categoryIndex !== -1) {
-                // Generate project ID: ClubID + CategoryPosition (zero-padded to 2 digits)
-                const position = (categoryIndex + 1).toString().padStart(2, '0');
-
-                // For rural domain, we need to use a different club ID or handle it differently
-                let baseClubId = selectedClub;
-                if (selectedDomain === "RURAL") {
-                    // For rural domain, we might want to use a different identifier
-                    // Since rural projects don't belong to a specific club, use "RUR" prefix
-                    baseClubId = "RUR";
-                }
-
-                projectId = `${baseClubId}${position}`;
-                projectName = `${categoryName} Project`;
-                projectDescription = `Auto-generated project for ${categoryName} category${selectedDomain === "RURAL" ? " in rural domain" : ` in ${selectedClub} club`}`;
-
-
+            if (clubProjects.length > 0) {
+                // If projects exist without categories, create a default category
+                categoriesForClub = [{ id: 'default', name: 'General Projects' }];
             }
         }
 
-        // Update formData with category selection and generated project (if any)
+        setAvailableCategories(categoriesForClub);
+
         updateFormData({
-            selectedCategory: categoryName,
+            selectedClub: clubId,
+            selectedCategory: "",
+            selectedProject: null,
+            projectName: null,
+            projectDescription: null
+        });
+    };
+
+    const handleCategoryChange = (categoryId) => {
+        setSelectedCategory(categoryId);
+
+        const selectedClubData = allClubs.find(club => club.id === selectedClub);
+        if (!selectedClubData) return;
+
+        // Get projects for this category
+        const categoryProjects = allProjects.filter(project =>
+                project.clubId === selectedClub &&
+            project.category === categoryId &&
+            project.domain === selectedDomain
+            );
+
+        setAvailableProjects(categoryProjects);
+
+        // If no projects exist for this category, create auto-generated project
+        if (categoryProjects.length === 0) {
+            const projectId = `${selectedClub}_${categoryId}`;
+            const projectName = `${categoryId} Project`;
+            const projectDescription = `Auto-generated project for ${categoryId} category in ${allClubs.find(c => c.id === selectedClub)?.name}`;
+
+        updateFormData({
+                selectedCategory: categoryId,
             selectedProject: projectId,
             projectName: projectName,
             projectDescription: projectDescription
         });
-    };
-
-    const handleRuralCategorySelection = (ruralCategoryId) => {
-        // Reset category and project related state when rural category changes
-        setSelectedRuralCategory(ruralCategoryId);
-        setSelectedCategory("");
-        setAvailableClubs([]);
-        setAvailableProjects([]);
-        setAvailableCategories([]);
-
-        // Get all projects for this rural category
-        const ruralProjects = allProjects.filter(project =>
-            (project.rural === 1 || project.rural === true || project.rural === "1") &&
-            project.ruralCategory === ruralCategoryId
-        );
-
-        console.log('Rural category selection:', {
-            ruralCategoryId,
-            totalProjects: allProjects.length,
-            ruralProjects: ruralProjects.length,
-            ruralProjectsData: ruralProjects
-        });
-
-        // Get unique project categories (the 'category' field from projects table)
-        const projectCategories = [...new Set(ruralProjects.map(project => project.category).filter(Boolean))];
-        setAvailableCategories(projectCategories);
-
-        console.log('Available project categories:', projectCategories);
-
-        // For rural domain, we don't generate project IDs here since categories are selected separately
-        // The actual project ID generation happens in handleCategorySelection
+        } else {
+            // Projects exist, user will need to select one
         updateFormData({
-            selectedRuralCategory: ruralCategoryId,
-            selectedCategory: "",
+                selectedCategory: categoryId,
             selectedProject: null,
             projectName: null,
             projectDescription: null
         });
+        }
     };
 
-    const handleClubSelectionForY25 = (club) => {
-        // Check club member limits dynamically from database
-        const memberCount = clubMemberCounts[club.id] || 0;
-        const memberLimit = clubMemberLimits[club.id] || 50;
-
-        if (memberCount >= memberLimit) {
-            alert(`This club is full. Maximum ${memberLimit} members allowed per club.`);
-            return;
-        }
-
-        // Reset category and project related state
-        setSelectedCategory("");
-        setAvailableCategories([]);
-        setAvailableProjects([]);
-
-        setSelectedClub(club.id);
-
-        // Check if this club has projects (for TEC, LCH domains)
-        const clubHasProjects = !['ESO', 'HWB', 'IIE'].includes(club.domain);
+    const handleProjectChange = (projectId) => {
+        const selectedProject = allProjects.find(project => project.id === projectId);
+        if (!selectedProject) return;
 
         updateFormData({
-            selectedClub: club.id,
-            selectedDomain: club.domain,
-            selectedCategory: "",
-            selectedProject: clubHasProjects ? null : null, // Will be set when project is selected
-            projectName: null,
-            projectDescription: null
+            selectedProject: projectId,
+            projectName: selectedProject.name,
+            projectDescription: selectedProject.description
         });
     };
 
-    const handleProjectSelection = (project) => {
-        // Check one more time if TEC project is full before allowing selection
-        if (project.domain === 'TEC') {
-            const memberCount = projectMemberCounts[project.id] || 0;
-            if (memberCount >= 2) {
-                alert('This TEC project is full. Please select a different project.');
-                return;
+    // Use useMemo to avoid recalculating on every render
+    const availableOptions = React.useMemo(() => {
+        // Determine what selections are required based on availability
+        const getAvailableOptions = () => {
+            console.log('getAvailableOptions called with selectedDomain:', selectedDomain);
+            // Check if there are clubs available for the selected domain
+            let clubsForDomain = [];
+            if (selectedDomain === "RURAL") {
+                // For rural, show all clubs (they can have rural projects)
+                clubsForDomain = allClubs;
+                console.log('RURAL: using all clubs:', clubsForDomain.length);
+            } else if (selectedDomain) {
+                clubsForDomain = allClubs.filter(club => club.domain === selectedDomain);
+                console.log('Filtering clubs by domain', selectedDomain, ':', clubsForDomain.length, 'clubs found');
+            } else {
+                clubsForDomain = availableClubs; // fallback to state
+                console.log('No domain selected, using availableClubs:', clubsForDomain.length);
             }
-        }
-        
-        // For rural projects, we need to set the selectedDomain to the project's actual domain
-        // and track the rural category separately
-        const formDataUpdate = {
-            selectedProject: project.id,
-            projectName: project.name,
-            projectDescription: project.description,
-            selectedClub: project.clubId,
-            selectedCategory: selectedCategory
+
+            // If no club is selected yet, check if clubs exist for the domain
+            if (!selectedClub) {
+                const result = {
+                    hasClubs: clubsForDomain.length > 0,
+                    hasCategories: false,
+                    hasProjects: false
+                };
+
+                return result;
+            }
+
+            // If club is selected, check for categories and projects
+            const clubData = allClubs.find(club => club.id === selectedClub);
+
+            if (!clubData) {
+                return { hasClubs: false, hasCategories: false, hasProjects: false };
+            }
+
+            // Check for categories
+            let categories = [];
+            try {
+                categories = clubData.categories ? (typeof clubData.categories === 'string'
+                    ? JSON.parse(clubData.categories)
+                    : clubData.categories) : [];
+            } catch (e) {
+                categories = [];
+            }
+
+            // Check for projects
+            const projects = allProjects.filter(project =>
+                project.clubId === selectedClub && project.domain === selectedDomain
+            );
+
+            // Special case: Y25 students cannot select categories from TEC domain
+            const hasCategories = (selectedDomain === 'TEC' && studentYear === 'Y25')
+                ? false
+                : categories.length > 0;
+
+            // Special case: Y25 students cannot select projects from TEC domain
+            const hasProjects = (selectedDomain === 'TEC' && studentYear === 'Y25')
+                ? false
+                : projects.length > 0;
+
+
+            return {
+                hasClubs: clubsForDomain.length > 0,
+                hasCategories: hasCategories,
+                hasProjects: hasProjects
+            };
         };
 
-        // If this is a rural project selection, update the domain to the project's actual domain
-        if (selectedDomain === "RURAL") {
-            formDataUpdate.selectedDomain = project.domain;
-            formDataUpdate.ruralCategory = selectedRuralCategory;
+        return getAvailableOptions();
+    }, [selectedDomain, selectedClub, availableClubs, allClubs, allProjects, studentYear]);
+    const { hasClubs, hasCategories, hasProjects } = availableOptions;
+
+    // Check if current selection meets constraints for proceeding
+    const canProceed = React.useMemo(() => {
+        if (!selectedClub) {
+            return false;
         }
-        
-        updateFormData(formDataUpdate);
+
+        const clubData = allClubs.find(club => club.id === selectedClub);
+        if (!clubData) {
+            return false;
+        }
+
+        // Check for categories
+        let categories = [];
+        try {
+            categories = clubData.categories ? (typeof clubData.categories === 'string'
+                ? JSON.parse(clubData.categories)
+                : clubData.categories) : [];
+        } catch (e) {
+            categories = [];
+        }
+
+        // UNIFIED LOGIC FOR BOTH Y24 AND Y25
+        // Special case: Y25 + TEC can proceed with just club selection
+
+        // Rule 1: Must have club selected
+        if (!selectedClub) {
+            return false;
+        }
+
+        // Special case: Y25 students can proceed with just club selection for TEC domain
+        if (selectedDomain === 'TEC' && studentYear === 'Y25') {
+            return true;
+        }
+
+        // Rule 2: For all other cases, if club has categories, must select a category
+        if (categories.length > 0 && !selectedCategory) {
+            return false;
+        }
+
+        // Rule 3: If category is selected, check if it has projects
+        if (selectedCategory) {
+            const categoryProjects = allProjects.filter(project =>
+                project.clubId === selectedClub &&
+                project.category === selectedCategory &&
+                project.domain === selectedDomain
+            );
+
+            // If category has projects AND it's not (Y25 + TEC), must select a project
+            if (categoryProjects.length > 0 && !(selectedDomain === 'TEC' && studentYear === 'Y25')) {
+                if (!formData.selectedProject) {
+                    return false;
+                }
+            }
+        }
+
+        // Rule 4: Y25 cannot have projects selected from TEC domain
+        if (selectedDomain === 'TEC' && studentYear === 'Y25' && formData.selectedProject) {
+            return false;
+        }
+        return true;
+    }, [selectedClub, selectedCategory, formData.selectedProject, selectedDomain, studentYear, allClubs, allProjects]);
+
+    // Show warning message if user cannot proceed
+    const getConstraintMessage = () => {
+        if (!selectedClub) return "Please select a club first.";
+
+        const clubData = allClubs.find(club => club.id === selectedClub);
+        if (!clubData) return "";
+
+        let categories = [];
+        try {
+            categories = clubData.categories ? (typeof clubData.categories === 'string'
+                ? JSON.parse(clubData.categories)
+                : clubData.categories) : [];
+        } catch (e) {
+            categories = [];
+        }
+
+        // Special case: Y25 students can proceed with just club selection for TEC domain
+        if (selectedDomain === 'TEC' && studentYear === 'Y25') {
+            return ""; // No constraint message needed
+        }
+
+        // Rule 2: For all other cases, if club has categories, must select a category
+        if (categories.length > 0 && !selectedCategory) {
+            return "⚠️ This club has categories. Please select a category to proceed.";
+        }
+
+        // Rule 3: If category is selected, check if it has projects
+        if (selectedCategory) {
+            const categoryProjects = allProjects.filter(project =>
+                project.clubId === selectedClub &&
+                project.category === selectedCategory &&
+                project.domain === selectedDomain
+            );
+
+            // If category has projects AND it's not (Y25 + TEC), must select a project
+            if (categoryProjects.length > 0 && !(selectedDomain === 'TEC' && studentYear === 'Y25')) {
+                if (!formData.selectedProject) {
+                    return "⚠️ This category has projects. Please select a project to proceed.";
+                }
+            }
+        }
+
+        // Rule 4: Y25 cannot have projects selected from TEC domain
+        if (selectedDomain === 'TEC' && studentYear === 'Y25' && formData.selectedProject) {
+            return "⚠️ Y25 students cannot select projects from TEC domain.";
+        }
+
+        return "";
     };
+
+    const constraintMessage = getConstraintMessage();
+
+    // Communicate validation status to parent component
+    React.useEffect(() => {
+        if (onValidationChange) {
+            onValidationChange(canProceed);
+        }
+    }, [canProceed, onValidationChange]);
 
     return (
         <div className="bg-white p-6 md:p-8 max-w-none">
@@ -438,587 +413,145 @@ export default function ProjectSelection({ formData, updateFormData }) {
                 {studentYear === 'Y25' ? 'Club Selection' : 'Project Selection'}
             </h2>
             
-            {/* Student Year Info */}
-            {/* {studentYear && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span className="text-blue-600 font-bold text-sm">ℹ️</span>
-                            </div>
-                        </div>
-                        <div className="ml-3">
-                            <h4 className="text-sm font-medium text-blue-800">
-                                {studentYear} Student Registration
-                            </h4>
-                            <p className="text-sm text-blue-700">
-                                {studentYear === 'Y25' 
-                                    ? "As a Y25 student, you can only register for clubs. Project selection is available for Y24 students only."
-                                    : "As a Y24 student, you can select specific projects within clubs."
-                                }
-                            </p>
-                        </div>
-                    </div>
+            {loading ? (
+                <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
-            )} */}
+            ) : (
+                <div className="space-y-6">
 
-            {/* Y25 Student - Club Selection Only */}
-            {studentYear === 'Y25' && (
-                <>
-                    {/* Domain Selection for Y25 */}
-                    <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-4">Select Domain</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {domains.map((domain) => (
-                                <button
-                                    key={domain.id}
-                                    onClick={() => handleDomainSelection(domain.id)}
-                                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                        selectedDomain === domain.id
-                                            ? "border-blue-500 bg-blue-50"
-                                            : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
-                                    }`}
-                                    type="button"
-                                >
-                                    <h4 className="font-semibold text-gray-800 mb-2">{domain.name}</h4>
-                                    <p className="text-sm text-gray-600">{domain.description}</p>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Club Selection for Y25 */}
-                    {selectedDomain && (
-                        <div className="mb-6">
-                            <h3 className="text-lg font-semibold mb-4">Select Club</h3>
-                            {loading ? (
-                                <div className="flex justify-center py-8">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                </div>
-                            ) : availableClubs.length === 0 ? (
-                                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                    <p className="text-yellow-800">No clubs found for domain: {selectedDomain}</p>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {availableClubs.map((club) => {
-                                        const memberCount = clubMemberCounts[club.id] || 0;
-                                        const memberLimit = clubMemberLimits[club.id] || 50;
-                                        const isFull = memberCount >= memberLimit;
-                                        const spotsRemaining = Math.max(0, memberLimit - memberCount);
-
-                                        return (
-                                            <button
-                                                key={club.id}
-                                                onClick={() => !isFull && handleClubSelectionForY25(club)}
-                                                disabled={isFull}
-                                                className={`p-4 rounded-lg border-2 transition-all text-left ${
-                                                    isFull
-                                                        ? "border-red-300 bg-red-50 cursor-not-allowed opacity-60"
-                                                        : selectedClub === club.id
-                                                        ? "border-blue-500 bg-blue-50 cursor-pointer"
-                                                        : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
-                                                }`}
-                                                type="button"
-                                            >
-                                                {/* Club Member Count Badge */}
-                                                <div className="mb-2">
-                                                    {isFull ? (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                            ❌ Full ({memberCount}/{memberLimit} members)
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                            ✅ {spotsRemaining} spots available ({memberCount}/{memberLimit} members)
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                
-                                                <h4 className={`font-semibold mb-2 ${
-                                                    isFull ? 'text-gray-500' : 'text-gray-800'
-                                                }`}>{club.name}</h4>
-                                                <p className={`text-sm ${
-                                                    isFull ? 'text-gray-400' : 'text-gray-600'
-                                                }`}>{club.description}</p>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-
-                    {/* Selected Club Summary for Y25 */}
-                    {formData.selectedClub && studentYear === 'Y25' && (
-                        <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                            <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Club</h3>
-                            <div className="space-y-2 text-sm">
-                                <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
-                                <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
-                                <div className="text-green-700 mt-2">
-                                    ✅ You can proceed with this club registration
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Club Description Display for Y25 */}
-                    {formData.selectedClub && studentYear === 'Y25' && (
-                        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <h4 className="text-md font-semibold mb-2 text-blue-800">Club Description</h4>
-                            <p className="text-sm text-blue-700">
-                                {allClubs.find(c => c.id === formData.selectedClub)?.description}
-                            </p>
-                        </div>
-                    )}
-                </>
-            )}
-
-            {/* Y24 Student - Existing Project Selection Logic */}
-            {studentYear === 'Y24' && (
-                <>
-                    {/* Y24 Student - Social Internship Credentials */}
-               
-            {/* Domain Selection */}
-            <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">Select Domain</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {domains.map((domain) => {
-                        const className = `p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                            selectedDomain === domain.id
-                                ? "border-blue-500 bg-blue-50"
-                                : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
-                        }`;
-                        return (
-                            <button
-                                key={domain.id}
-                                onClick={() => handleDomainSelection(domain.id)}
-                                className={className}
-                                type="button"
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-semibold text-gray-800">{domain.name}</h4>
-                                </div>
-                                <p className="text-sm text-gray-600">{domain.description}</p>
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Rural Category Selection for Y24 Students */}
-            {selectedDomain === "RURAL" && studentYear === 'Y24' && (
-                <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-4">Select Rural Category</h3>
-                    <div className="text-sm text-gray-600 mb-4">
-                        Choose a rural category to see available project categories
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {availableRuralCategories.map((category) => (
-                            <button
-                                key={category.id}
-                                onClick={() => handleRuralCategorySelection(category.id)}
-                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
-                                    selectedRuralCategory === category.id
-                                        ? "border-green-500 bg-green-50"
-                                        : "border-gray-200 hover:border-green-300 hover:bg-green-50"
-                                }`}
-                                type="button"
-                            >
-                                <h4 className="font-semibold text-gray-800 text-sm">{category.name}</h4>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Rural Mission Option */}
-            {selectedDomain && selectedDomain !== "RURAL" && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center justify-between">
+                    {/* Domain and Club Selection - Side by Side */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Domain Selection */}
                         <div>
-                            <h3 className="text-lg font-semibold text-green-800">Rural Mission Projects</h3>
-                            <p className="text-sm text-green-600 mt-1">
-                                Want to contribute to rural development? Explore rural projects within your selected domain.
-                            </p>
+                            <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                Select Domain
+                            </label>
+                            <select
+                                value={selectedDomain}
+                                onChange={(e) => handleDomainChange(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                            >
+                                <option value="">Choose a domain...</option>
+                                {domains.map((domain) => (
+                                    <option key={domain.id} value={domain.id}>
+                                        {domain.name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        <button
-                            onClick={() => {
-                                // Select the Rural domain directly
-                                handleDomainSelection("RURAL");
-                            }}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                        >
-                            Select Rural Domain
-                        </button>
-                    </div>
-                </div>
-            )}
 
-            {/* Club Selection */}
-            {selectedDomain && 
-             ((selectedDomain !== "RURAL") || 
-              (selectedDomain === "RURAL" && studentYear !== 'Y24')) && (
-                <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-4">Select Club</h3>
-                    {loading ? (
-                        <div className="flex justify-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        </div>
-                    ) : availableClubs.length === 0 ? (
-                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p className="text-yellow-800">No clubs found for domain: {selectedDomain}</p>
-                            <p className="text-sm text-yellow-600 mt-2">Total clubs in database: {allClubs.length}</p>
-                            <p className="text-sm text-yellow-600">Available domains: {[...new Set(allClubs.map(c => c.domain))].join(', ')}</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {availableClubs.map((club) => {
-                                // Parse categories from JSON if it's a string
-                                let categories = [];
-                                try {
-                                    categories = typeof club.categories === 'string' 
-                                        ? JSON.parse(club.categories) 
-                                        : club.categories || [];
-                                } catch (e) {
-                                    categories = [];
-                                }
-
-                                // Check if club has any projects
-                                const clubProjects = allProjects.filter(project => 
-                                    project.clubId === club.id || project.clubId === String(club.id)
-                                );
-                                const hasProjects = clubProjects.length > 0;
-
-                                return (
-                                    <button
-                                        key={club.id}
-                                        onClick={() => handleClubSelection(club)}
-                                        disabled={false}
-                                        className={`p-4 rounded-lg border-2 transition-all text-left ${
-                                            selectedClub === club.id
-                                                ? "border-blue-500 bg-blue-50 cursor-pointer"
-                                                : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
-                                        }`}
-                                        type="button"
-                                    >
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h4 className="font-semibold text-gray-800">{club.name}</h4>
-                                            {/* {!hasProjects && (
-                                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                                                    No Projects
-                                                </span>
-                                            )} */}
-                                        </div>
-                                        <p className="text-sm text-gray-600 mb-2">{club.description}</p>
-                                        {categories.length > 0 && (
-                                            <div className="flex flex-wrap gap-1 mt-2">
-                                                {categories.slice(0, 3).map((category, index) => (
-                                                    <span key={category.id || category.name || index} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                                        {category.name || category || 'Unnamed'}
-                                                    </span>
-                                                ))}
-                                                {categories.length > 3 && (
-                                                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                                        +{categories.length - 3} more
-                                                    </span>
-                                                )}
-                                            </div>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Club Description Display for Y24 (non-ESO/HWB/IIE domains) */}
-            {/* {formData.selectedClub && studentYear === 'Y24' && !['ESO', 'HWB', 'IIE'].includes(selectedDomain) && (
-                <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="text-md font-semibold mb-2 text-blue-800">Club Description</h4>
-                    <p className="text-sm text-blue-700">
-                        {allClubs.find(c => c.id === formData.selectedClub)?.description}
-                    </p>
-                </div>
-            )} */}
-
-            {/* Category Selection */}
-            {selectedClub && availableCategories.length > 0 && (
-                <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-4">Select Category</h3>
-                    <div className="text-sm text-gray-600 mb-4">
-                        {selectedDomain === "RURAL" 
-                            ? `Found ${availableCategories.length} categories for rural category: ${ruralCategories.find(c => c.id === selectedRuralCategory)?.name}`
-                            : `Found ${availableCategories.length} categories for selected club`
-                        }
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {availableCategories.map((category) => {
-                            // Check if category has any projects using same logic as handleCategorySelection
-                            let categoryProjects;
-                            
-                            if (selectedDomain === "RURAL" && selectedRuralCategory) {
-                                // For rural domain with rural category selected
-                                categoryProjects = allProjects.filter(project => 
-                                    (project.rural === 1 || project.rural === true || project.rural === "1") && 
-                                    project.ruralCategory === selectedRuralCategory && 
-                                    project.category === category
-                                );
-                            } else if (selectedDomain === "RURAL") {
-                                // For rural domain without rural category (fallback)
-                                categoryProjects = allProjects.filter(project => 
-                                    (project.rural === 1 || project.rural === true || project.rural === "1") && project.category === category
-                                );
-                            } else {
-                                // For normal domains, filter by club and category, exclude rural projects
-                                categoryProjects = allProjects.filter(project => 
-                                    project.clubId === selectedClub && 
-                                    project.category === category && 
-                                    project.rural !== 1
-                                );
-                            }
-                            
-                            const hasProjects = categoryProjects.length > 0;
-
-                            return (
-                                <button
-                                    key={category.id || category.name || category}
-                                    onClick={() => handleCategorySelection(category.name || category)}
-                                    disabled={false}
-                                    className={`p-3 rounded-lg border-2 text-left transition-all ${
-                                        selectedCategory === (category.name || category)
-                                            ? "border-blue-500 bg-blue-50 text-blue-800 cursor-pointer"
-                                            : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
-                                    }`}
+                        {/* Club Selection */}
+                        {selectedDomain && hasClubs && (
+                            <div>
+                                <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                    Select Club
+                                </label>
+                                <select
+                                    value={selectedClub}
+                                    onChange={(e) => handleClubChange(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <span>{category.name || category || 'Unnamed Category'}</span>
-                                        {/* {!hasProjects && (
-                                            <span className="text-xs bg-yellow-100 text-yellow-600 px-1 py-0.5 rounded ml-2">
-                                                No Projects
-                                            </span>
-                                        )} */}
-                                        {hasProjects && (
-                                            <span className="text-xs bg-blue-100 text-blue-600 px-1 py-0.5 rounded ml-2">
-                                                {categoryProjects.length} project{categoryProjects.length !== 1 ? 's' : ''}
-                                            </span>
-                                        )}
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
-            {/* Project Selection */}
-            {availableProjects.length > 0 && (
-                <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-4">Select Project</h3>
-                    
-                    {/* TEC Project Info Banner */}
-                    {selectedDomain === 'TEC' && (
-                        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <span className="text-blue-600 font-bold text-sm">⚠️</span>
-                                    </div>
-                                </div>
-                                <div className="ml-3">
-                                    <h4 className="text-sm font-medium text-blue-800">TEC Project Registration Limit</h4>
-                                    <p className="text-sm text-blue-700">
-                                        TEC (Technical) projects are limited to a maximum of <strong>2 members</strong> per project. 
-                                        Projects marked as &quot;Full&quot; cannot accept new registrations.
-                                    </p>
-                                </div>
+                                    <option value="">Choose a club...</option>
+                                    {availableClubs.map((club) => (
+                                        <option key={club.id} value={club.id}>
+                                            {club.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
+                        )}
+                    </div>
+
+                    {/* Category Selection - Only show if categories exist */}
+                    {selectedClub && hasCategories && (
+                        <div>
+                            <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                Select Category
+                            </label>
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => handleCategoryChange(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                            >
+                                <option value="">Choose a category...</option>
+                                {availableCategories.map((category) => (
+                                    <option key={category.id || category.name || category} value={category.id || category.name || category}>
+                                        {category.name || category}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     )}
+
+                    {/* Project Selection - Only show if projects exist and not TEC+Y25 */}
+                    {selectedCategory && availableProjects.length > 0 && !(selectedDomain === 'TEC' && studentYear === 'Y25') && (
+                        <div>
+                            <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                Select Project
+                            </label>
+                            <select
+                                value={formData.selectedProject || ""}
+                                onChange={(e) => handleProjectChange(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                            >
+                                <option value="">Choose a project...</option>
+                                {availableProjects.map((project) => (
+                                    <option key={project.id} value={project.id}>
+                                        {project.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {/* Constraint Warning */}
+                    {/* {constraintMessage && (
+                        <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                            <div className="text-yellow-800 font-medium">
+                                {constraintMessage}
+                            </div>
+                        </div>
+                    )} */}
                     
-                    {loading ? (
-                        <div className="flex justify-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        </div>
-                    ) : availableProjects.length === 0 ? (
-                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            {/* <p className="text-yellow-800">No projects found</p> */}
-                            <p className="text-sm text-yellow-600 mt-2">
-                                Selected Domain: {selectedDomain}, 
-                                Selected Club: {selectedClub}, 
-                                Selected Category: {selectedCategory}
-                            </p>
-                            <p className="text-sm text-yellow-600">Total projects in database: {allProjects.length}</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            {availableProjects.map((project) => {
-                                // Check if this is a TEC project and if it's full
-                                const isTecProject = project.domain === 'TEC';
-                                const memberCount = projectMemberCounts[project.id] || 0;
-                                const isFull = isTecProject && memberCount >= 2;
-                                const spotsRemaining = isTecProject ? Math.max(0, 2 - memberCount) : null;
-                                
-                                return (
-                                    <button
-                                        key={project.id}
-                                        onClick={() => !isFull && handleProjectSelection(project)}
-                                        disabled={isFull}
-                                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all text-left w-full hover:shadow-md ${
-                                            isFull
-                                                ? "border-red-300 bg-red-50 cursor-not-allowed opacity-60"
-                                                : formData.selectedProject === project.id
-                                                ? "border-blue-500 bg-blue-50 shadow-md"
-                                                : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
-                                        }`}
-                                        type="button"
-                                    >
-                                        {/* TEC Project Member Count Badge */}
-                                        {isTecProject && (
-                                            <div className="mb-2">
-                                                {isFull ? (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                        ❌ Full (2/2 members)
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                        ✅ {spotsRemaining} spot{spotsRemaining !== 1 ? 's' : ''} available ({memberCount}/2 members)
-                                                    </span>
-                                                )}
+                    {/* Selection Summary */}
+                    {(formData.selectedClub || formData.selectedProject) && (
+                        <div className={`mt-6 p-4 rounded-lg border ${
+                            canProceed
+                                ? 'bg-green-50 border-green-200'
+                                : 'bg-red-50 border-red-200'
+                        }`}>
+                            <h3 className={`text-lg font-semibold mb-2 ${
+                                canProceed ? 'text-green-800' : 'text-red-800'
+                            }`}>
+                                Selection Summary
+                            </h3>
+                            <div className="space-y-2 text-sm">
+                                {selectedDomain && (
+                                    <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
+                                )}
+                                {formData.selectedClub && (
+                                    <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
+                                )}
+                                {selectedCategory && (
+                                    <div><span className="font-medium">Category:</span> {selectedCategory}</div>
+                                )}
+                                {formData.selectedProject && (
+                                    <div><span className="font-medium">Project:</span> {formData.projectName}</div>
+                                )}
+                                <div className={`mt-2 font-medium ${
+                                    canProceed ? 'text-green-700' : 'text-red-700'
+                                }`}>
+                                    {canProceed
+                                        ? '✅ You can proceed with this selection'
+                                        : '❌ Please complete the required selections above'
+                                    }
                                             </div>
-                                        )}
-                                        
-                                        {/* Project Details */}
-                                        <div>
-                                            <h4 className={`font-semibold mb-2 text-base ${
-                                                isFull ? 'text-gray-500' : 'text-gray-800'
-                                            }`}>{project.name}</h4>
-                                            <p className={`text-sm mb-3 overflow-hidden ${
-                                                isFull ? 'text-gray-400' : 'text-gray-600'
-                                            }`} style={{
-                                                display: '-webkit-box',
-                                                WebkitLineClamp: 3,
-                                                WebkitBoxOrient: 'vertical',
-                                                textOverflow: 'ellipsis'
-                                            }}>{project.description}</p>
                                         </div>
-                                    </button>
-                                );
-                            })}
                         </div>
                     )}
                 </div>
             )}
-
-            {/* Category Description Display for categories without projects */}
-            {selectedCategory && availableProjects.length === 0 && studentYear === 'Y24' && (
-                <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="text-md font-semibold mb-2 text-blue-800">Category Description</h4>
-                    {selectedDomain === 'ESO' || selectedDomain === 'IIE' || selectedDomain === 'HWB' ? (
-                        (() => {
-                            const categoryData = allCategories[selectedDomain]?.find(cat => cat.name === selectedCategory);
-                            return categoryData ? (
-                                <div>
-                                    <h5 className="font-semibold text-blue-900 mb-2">{categoryData.name}</h5>
-                                    <p className="text-sm text-blue-700 mb-3">{categoryData.description}</p>
-                                    <div className="space-y-2">
-                                        <h6 className="font-medium text-blue-800">Available Activities:</h6>
-                                        {categoryData.subcategories.map((subcat, index) => (
-                                            <div key={index} className="ml-4 p-2 bg-blue-100 rounded text-sm">
-                                                <div className="font-medium text-blue-900">{subcat.name}</div>
-                                                <div className="text-blue-700">{subcat.info}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-sm text-blue-700">
-                                    {selectedCategory} - This category is currently available for registration but has no active projects at this time.
-                                </p>
-                            );
-                        })()
-                    ) : (
-                        <p className="text-sm text-blue-700">
-                            {selectedCategory} - This category is currently available for registration but has no active projects at this time.
-                        </p>
-                    )}
-                </div>
-            )}
-
-            {/* Selected Club Summary for Y24 - Only show when club has NO projects */}
-            {formData.selectedClub && studentYear === 'Y24' && !formData.selectedProject && (() => {
-                // Check if selected club has any projects
-                const clubProjects = allProjects.filter(project =>
-                    project.clubId === formData.selectedClub &&
-                    project.domain === selectedDomain &&
-                    project.rural !== 1
-                );
-                const hasProjects = clubProjects.length > 0;
-
-                // Only show summary if club has NO projects
-                return !hasProjects ? (
-                    <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                        <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Club</h3>
-                        <div className="space-y-2 text-sm">
-                            <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
-                            <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
-                            <div className="text-green-700 mt-2">
-                                ✅ You can proceed with this club registration (no projects available)
-                            </div>
-                        </div>
-                    </div>
-                ) : null;
-            })()}
-
-            {/* Project Selection Required Warning for Y24 */}
-            {formData.selectedClub && studentYear === 'Y24' && !formData.selectedProject && (() => {
-                // Check if selected club has any projects
-                const clubProjects = allProjects.filter(project =>
-                    project.clubId === formData.selectedClub &&
-                    project.domain === selectedDomain &&
-                    project.rural !== 1
-                );
-                const hasProjects = clubProjects.length > 0;
-
-                // Show warning if club has projects but none selected
-                return hasProjects ? (
-                    <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <h3 className="text-lg font-semibold mb-2 text-yellow-800">⚠️ Project Selection Required</h3>
-                        <div className="space-y-2 text-sm">
-                            <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
-                            <div className="text-yellow-700 mt-2">
-                                This club has {clubProjects.length} project{clubProjects.length !== 1 ? 's' : ''} available.
-                                You must select a project to proceed with registration.
-                            </div>
-                        </div>
-                    </div>
-                ) : null;
-            })()}
-
-            {/* Selected Project Summary */}
-            {formData.selectedProject && studentYear === 'Y24' && (
-                <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                    <h3 className="text-lg font-semibold mb-2 text-green-800">Selected Project</h3>
-                    <div className="space-y-2 text-sm">
-                        <div><span className="font-medium">Domain:</span> {domains.find(d => d.id === selectedDomain)?.name}</div>
-                        <div><span className="font-medium">Category:</span> {selectedCategory}</div>
-                        <div><span className="font-medium">Project:</span> {formData.projectName}</div>
-                        <div><span className="font-medium">Description:</span> {formData.projectDescription}</div>
-                    </div>
-                </div>
-            )}
-                </>
-            )}
-
-            {/* Registration Note */}
-            {/* <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-800">
-                    <strong>Note:</strong> Your {studentYear === 'Y25' ? 'club' : 'project'} selection will determine your learning path. 
-                    Choose carefully as changes may not be allowed after registration.
-                </p>
-            </div> */}
         </div>
     );
 }
@@ -1033,5 +566,6 @@ ProjectSelection.propTypes = {
         projectDescription: PropTypes.string,
         selectedCategory: PropTypes.string
     }).isRequired,
-    updateFormData: PropTypes.func.isRequired
+    updateFormData: PropTypes.func.isRequired,
+    onValidationChange: PropTypes.func
 };
