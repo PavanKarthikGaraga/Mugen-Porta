@@ -61,18 +61,49 @@ export async function GET(request) {
         
         // Fetch projects with club information
         const [projects] = await pool.execute(`
-            SELECT p.*, c.name as clubName 
-            FROM projects p 
-            LEFT JOIN clubs c ON p.clubId = c.id 
+            SELECT p.*, c.name as clubName
+            FROM projects p
+            LEFT JOIN clubs c ON p.clubId = c.id
             ORDER BY p.id
         `);
-        
-        // Return projects without image enhancement
-        const enhancedProjects = projects.map(project => ({
-            ...project,
-            images: [],
-            hasImages: false
-        }));
+
+        // Get member counts for all projects
+        const projectIds = projects.map(p => p.id);
+        let projectMemberCounts = {};
+
+        if (projectIds.length > 0) {
+            const placeholders = projectIds.map(() => '?').join(',');
+            const [memberCounts] = await pool.execute(
+                `SELECT projectId, COUNT(*) as memberCount
+                 FROM students
+                 WHERE projectId IN (${placeholders})
+                 GROUP BY projectId`,
+                projectIds
+            );
+
+            // Convert to object for easy lookup
+            projectMemberCounts = memberCounts.reduce((acc, count) => {
+                acc[count.projectId] = count.memberCount;
+                return acc;
+            }, {});
+        }
+
+        // Return projects with member counts and availability status
+        const enhancedProjects = projects.map(project => {
+            const memberCount = projectMemberCounts[project.id] || 0;
+            const isTecProject = project.domain === 'TEC';
+            const isFull = isTecProject && memberCount >= 2;
+
+            return {
+                ...project,
+                images: [],
+                hasImages: false,
+                memberCount: memberCount,
+                isFull: isFull,
+                maxMembers: isTecProject ? 2 : null,
+                availableSpots: isTecProject ? Math.max(0, 2 - memberCount) : null
+            };
+        });
         
         // Domain categories for reference
         const domains = [

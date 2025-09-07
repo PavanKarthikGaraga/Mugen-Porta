@@ -79,6 +79,7 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
     }, []);
 
 
+
     const handleDomainChange = (domainId) => {
         setSelectedDomain(domainId);
         setSelectedClub("");
@@ -180,9 +181,29 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
 
         // If no projects exist for this category, create auto-generated project
         if (categoryProjects.length === 0) {
-            const projectId = `${selectedClub}_${categoryId}`;
+            // Get categories for this club to find the index
+            let categoriesForClub = [];
+            try {
+                if (selectedClubData.categories) {
+                    categoriesForClub = typeof selectedClubData.categories === 'string'
+                        ? JSON.parse(selectedClubData.categories)
+                        : selectedClubData.categories;
+                }
+            } catch (e) {
+                categoriesForClub = [];
+            }
+
+            // Find the index of the selected category and format as 2-digit number
+            const categoryIndex = categoriesForClub.findIndex(cat =>
+                (cat.id || cat.name || cat) === categoryId
+            );
+            const categoryNumber = (categoryIndex + 1).toString().padStart(2, '0');
+
+            // Generate project ID as ClubID + {02}
+            const projectId = `${selectedClub}${categoryNumber}`;
+
             const projectName = `${categoryId} Project`;
-            const projectDescription = `Auto-generated project for ${categoryId} category in ${allClubs.find(c => c.id === selectedClub)?.name}`;
+            const projectDescription = `Auto-generated project for ${categoryId} category in ${selectedClubData.name}`;
 
         updateFormData({
                 selectedCategory: categoryId,
@@ -204,6 +225,9 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
     const handleProjectChange = (projectId) => {
         const selectedProject = allProjects.find(project => project.id === projectId);
         if (!selectedProject) return;
+
+        // Note: Full TEC projects are now disabled in the UI, so this check is no longer needed
+        // The backend will still validate during final registration
 
         updateFormData({
             selectedProject: projectId,
@@ -395,6 +419,11 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
             return "⚠️ Y25 students cannot select projects from TEC domain.";
         }
 
+        // Additional info about TEC project limits
+        if (selectedDomain === 'TEC' && selectedCategory && !formData.selectedProject) {
+            return "ℹ️ TEC projects have a limit of 2 members. Make sure to select an available project.";
+        }
+
         return "";
     };
 
@@ -413,10 +442,10 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
                 {studentYear === 'Y25' ? 'Club Selection' : 'Project Selection'}
             </h2>
             
-            {loading ? (
-                <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
+                            {loading ? (
+                                <div className="flex justify-center py-8">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                </div>
             ) : (
                 <div className="space-y-6">
 
@@ -481,8 +510,8 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
                                     </option>
                                 ))}
                             </select>
-                        </div>
-                    )}
+                </div>
+            )}
 
                     {/* Project Selection - Only show if projects exist and not TEC+Y25 */}
                     {selectedCategory && availableProjects.length > 0 && !(selectedDomain === 'TEC' && studentYear === 'Y25') && (
@@ -496,23 +525,44 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
                                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                             >
                                 <option value="">Choose a project...</option>
-                                {availableProjects.map((project) => (
-                                    <option key={project.id} value={project.id}>
-                                        {project.name}
-                                    </option>
-                                ))}
+                                {availableProjects.map((project) => {
+                                    const isTecProject = selectedDomain === 'TEC';
+                                    const isFull = isTecProject && project.isFull;
+
+                                    return (
+                                        <option
+                                            key={project.id}
+                                            value={project.id}
+                                            disabled={isFull}
+                                            className={isFull ? 'text-gray-400' : ''}
+                                        >
+                                            {project.name}
+                                            {isTecProject && (
+                                                <span className="ml-2 text-xs">
+                                                    ({project.memberCount}/2 members)
+                                                    {isFull && ' - FULL'}
+                                                </span>
+                                            )}
+                                        </option>
+                                    );
+                                })}
                             </select>
+                            {selectedDomain === 'TEC' && (
+                                <p className="mt-2 text-sm text-gray-600">
+                                    TEC projects have a 2-member limit. Full projects are disabled.
+                                </p>
+                            )}
                         </div>
                     )}
 
                     {/* Constraint Warning */}
-                    {/* {constraintMessage && (
-                        <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                            <div className="text-yellow-800 font-medium">
+                    {constraintMessage && (
+                        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="text-blue-800 font-medium">
                                 {constraintMessage}
                             </div>
                         </div>
-                    )} */}
+                    )}
                     
                     {/* Selection Summary */}
                     {(formData.selectedClub || formData.selectedProject) && (

@@ -168,11 +168,23 @@ export default function Register() {
             });
 
             if (response.ok) {
-                toast.success("Registration Successful! Please login.");
-                router.push("/auth/register");
+                toast.success("Registration Successful! Please check your email for login credentials.");
+                router.push("/auth/login");
             } else {
                 const error = await response.json();
-                toast.error(error.message || "Registration failed");
+
+                // Handle structured error responses
+                if (error.errorType === "PROJECT_FULL") {
+                    toast.error(`${error.message}\n${error.suggestion}`, {
+                        duration: 5000, // Show longer for important messages
+                    });
+                } else if (error.errorType === "CLUB_FULL") {
+                    toast.error(`${error.message}\n${error.suggestion}`, {
+                        duration: 5000,
+                    });
+                } else {
+                    toast.error(error.message || "Registration failed");
+                }
             }
         } catch (error) {
             console.error("Registration error:", error);

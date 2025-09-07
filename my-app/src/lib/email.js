@@ -22,7 +22,7 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Registration Successful - SAC Program</title>
+        <title>Club Registration Successful - SAC Activities</title>
         <style>
             body {
                 font-family: Arial, sans-serif;
@@ -142,14 +142,14 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
     <body>
         <div class="container">
             <div class="header">
-                <div class="logo">SAC Program</div>
+                <div class="logo">SAC Activities</div>
                 <h1 class="title">Registration Successful!</h1>
             </div>
             
             <div class="content">
                 <p>Dear <strong>${name}</strong>,</p>
                 
-                <p class="success">Congratulations! You have successfully registered for the SAC Program.</p>
+                <p class="success">Congratulations! You have successfully registered for the SAC Activities.</p>
                 
                 <p>We are excited to have you join our community of dedicated students working on meaningful projects that make a real impact.</p>
                 
@@ -163,13 +163,6 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                         <span class="credential-label">Password Pattern:</span>
                         <span class="credential-value">Username + Last 4 digits of phone number</span>
                     </div>
-                </div>
-                
-                <div class="password-info">
-                    <div class="password-title">Password Information</div>
-                    <p>Your password follows this pattern:</p>
-                    <p class="password-pattern">Username + Last 4 digits of phone number</p>
-                    <p><small>Example: If username is "2400123456" and phone ends with "7890", password would be "24001234567890"</small></p>
                 </div>
 
                 ${isY24Student && projectDetails ? `
@@ -189,15 +182,9 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                 </div>
                 ` : ''}
 
-                <div class="development-notice">
-                    <h3>Dashboard Access</h3>
-                    <p><strong>Important Notice:</strong> The student dashboard is currently under development and will be accessible within the next <strong>10 days</strong>.</p>
-                    <p>You will receive another email notification once the dashboard becomes available with detailed access instructions.</p>
-                </div>
                 
                 <h3>What's Next?</h3>
                 <ul>
-                    <li><strong>Dashboard Access:</strong> Wait for the dashboard launch notification (within 10 days)</li>
                     <li><strong>Updates:</strong> Keep an eye on your email for important announcements</li>
                     <li><strong>Preparation:</strong> Start familiarizing yourself with your selected ${isY24Student ? 'project and domain' : 'club activities'}</li>
                     <li><strong>Community:</strong> Get ready to collaborate with fellow students and mentors</li>
@@ -207,11 +194,12 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                 
                 <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
                 
-                <p>Thank you for your interest in the SAC Program. We look forward to working with you!</p>
+                <p>Thank you for your interest in the SAC Activities. We look forward to working with you!</p>
             </div>
             
             <div class="footer">
                 <p><strong>SAC Activities Team</strong></p>
+                <p>For support, contact us at sacactivities@kluniversity.in</p>
                 <p>For support, contact us at sac@kluniversity.in</p>
             </div>
         </div>
@@ -220,9 +208,9 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
     `;
 
     const mailOptions = {
-        from: `"SAC Program" <${process.env.SMTP_USER}>`,
+        from: `"SAC Activities" <${process.env.SMTP_USER}>`,
         to: email,
-        subject: 'Welcome to SAC Program - Registration Successful!',
+        subject: 'Welcome to SAC Activities - Registration Successful!',
         html: htmlTemplate,
     };
 

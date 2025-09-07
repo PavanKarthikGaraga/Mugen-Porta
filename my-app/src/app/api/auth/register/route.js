@@ -172,8 +172,8 @@ export async function POST(req) {
         }
 
         // Check member limits based on student year and domain
-        if (isY24Student && selectedDomain === 'TEC') {
-            // TEC projects limited to 2 members for Y24 students
+        if (selectedDomain === 'TEC' && selectedProject) {
+            // TEC projects limited to 2 members for both Y24 and Y25 students
             const [projectMembers] = await pool.execute(
                 "SELECT COUNT(*) as currentMembers FROM students WHERE projectId = ?",
                 [selectedProject]
@@ -182,11 +182,20 @@ export async function POST(req) {
             const currentMembers = projectMembers[0].currentMembers;
             if (currentMembers >= 2) {
                 return NextResponse.json(
-                    { message: "This TEC project is full. TEC projects can only have a maximum of 2 members. Please select a different project." },
+                    {
+                        message: "This TEC project is full. TEC projects can only have a maximum of 2 members.",
+                        errorType: "PROJECT_FULL",
+                        projectId: selectedProject,
+                        currentMembers: currentMembers,
+                        maxMembers: 2,
+                        suggestion: "Please select a different TEC project or choose a different domain."
+                    },
                     { status: 400 }
                 );
             }
-        } else if (isY24Student) {
+        }
+
+        if (isY24Student) {
             // Check club member limits for all Y24 students
             const [clubInfo] = await pool.execute(
                 "SELECT memberLimit FROM clubs WHERE id = ?",
@@ -203,7 +212,14 @@ export async function POST(req) {
 
             if (currentMembers >= memberLimit) {
                 return NextResponse.json(
-                    { message: `This club is full. Maximum ${memberLimit} members allowed per club. Please select a different club.` },
+                    {
+                        message: `This club is full. Maximum ${memberLimit} members allowed per club.`,
+                        errorType: "CLUB_FULL",
+                        clubId: selectedClub,
+                        currentMembers: currentMembers,
+                        maxMembers: memberLimit,
+                        suggestion: "Please select a different club."
+                    },
                     { status: 400 }
                 );
             }
@@ -224,7 +240,14 @@ export async function POST(req) {
 
             if (currentMembers >= memberLimit) {
                 return NextResponse.json(
-                    { message: `This club is full. Maximum ${memberLimit} members allowed per club. Please select a different club.` },
+                    {
+                        message: `This club is full. Maximum ${memberLimit} members allowed per club.`,
+                        errorType: "CLUB_FULL",
+                        clubId: selectedClub,
+                        currentMembers: currentMembers,
+                        maxMembers: memberLimit,
+                        suggestion: "Please select a different club."
+                    },
                     { status: 400 }
                 );
             }
