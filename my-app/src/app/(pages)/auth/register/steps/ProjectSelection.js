@@ -6,6 +6,7 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
     const [selectedClub, setSelectedClub] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedRuralCategory, setSelectedRuralCategory] = useState("");
+    const [customCategory, setCustomCategory] = useState("");
     const [availableClubs, setAvailableClubs] = useState([]);
     const [availableCategories, setAvailableCategories] = useState([]);
     const [availableProjects, setAvailableProjects] = useState([]);
@@ -148,6 +149,11 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
             categoriesForClub = [];
         }
 
+        // Add "Other" category for Music club in LCH domain
+        if (selectedClubData.name && selectedClubData.name.toLowerCase().includes('music') && selectedDomain === 'LCH') {
+            categoriesForClub = [...categoriesForClub, { id: 'other', name: 'Other' }];
+        }
+
         // If no categories, check if there are projects directly
         if (categoriesForClub.length === 0) {
             const clubProjects = allProjects.filter(project =>
@@ -174,8 +180,25 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
     const handleCategoryChange = (categoryId) => {
         setSelectedCategory(categoryId);
 
+        // Reset custom category when changing category selection
+        if (categoryId !== 'other') {
+            setCustomCategory("");
+        }
+
         const selectedClubData = allClubs.find(club => club.id === selectedClub);
         if (!selectedClubData) return;
+
+        // If "Other" category is selected for Music club, don't look for projects yet
+        if (categoryId === 'other' && selectedClubData.name && selectedClubData.name.toLowerCase().includes('music') && selectedDomain === 'LCH') {
+            setAvailableProjects([]);
+            updateFormData({
+                selectedCategory: categoryId,
+                selectedProject: null,
+                projectName: null,
+                projectDescription: null
+            });
+            return;
+        }
 
         // Get projects for this category
         const categoryProjects = allProjects.filter(project =>
@@ -226,6 +249,33 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
             projectName: null,
             projectDescription: null
         });
+        }
+    };
+
+    const handleCustomCategoryChange = (value) => {
+        setCustomCategory(value);
+
+        // Update form data with the custom category
+        const selectedClubData = allClubs.find(club => club.id === selectedClub);
+        if (selectedClubData && value.trim()) {
+            // Generate project ID as ClubID + custom category
+            const projectId = `${selectedClub}CUSTOM`;
+
+            updateFormData({
+                selectedCategory: value.trim(), // Use the custom category name as selectedCategory for backend
+                customCategory: value.trim(), // Also store in customCategory for UI consistency
+                selectedProject: projectId,
+                projectName: `${value.trim()} Project`,
+                projectDescription: `Custom project for ${value.trim()} category in ${selectedClubData.name}`
+            });
+        } else {
+            updateFormData({
+                selectedCategory: "",
+                customCategory: "", // Clear custom category
+                selectedProject: null,
+                projectName: null,
+                projectDescription: null
+            });
         }
     };
 
@@ -356,6 +406,15 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
             return false;
         }
 
+        // Special case: If "Other" is selected for Music club, must enter custom category
+        const selectedClubData = allClubs.find(club => club.id === selectedClub);
+        if (selectedCategory === 'other' && selectedClubData && selectedClubData.name &&
+            selectedClubData.name.toLowerCase().includes('music') && selectedDomain === 'LCH') {
+            if (!formData.selectedCategory || formData.selectedCategory === 'other') {
+                return false;
+            }
+        }
+
         // Rule 3: If category is selected, check if it has projects
         if (selectedCategory) {
             const categoryProjects = allProjects.filter(project =>
@@ -377,7 +436,7 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
             return false;
         }
         return true;
-    }, [selectedClub, selectedCategory, formData.selectedProject, selectedDomain, studentYear, allClubs, allProjects]);
+    }, [selectedClub, selectedCategory, formData.selectedProject, formData.selectedCategory, selectedDomain, studentYear, allClubs, allProjects]);
 
     // Show warning message if user cannot proceed
     const getConstraintMessage = () => {
@@ -403,6 +462,15 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
         // Rule 2: For all other cases, if club has categories, must select a category
         if (categories.length > 0 && !selectedCategory) {
             return "⚠️ This club has categories. Please select a category to proceed.";
+        }
+
+        // Special case: If "Other" is selected for Music club, must enter custom category
+        const selectedClubData = allClubs.find(club => club.id === selectedClub);
+        if (selectedCategory === 'other' && selectedClubData && selectedClubData.name &&
+            selectedClubData.name.toLowerCase().includes('music') && selectedDomain === 'LCH') {
+            if (!formData.selectedCategory || formData.selectedCategory === 'other') {
+                return "⚠️ Please specify your custom category name to proceed.";
+            }
         }
 
         // Rule 3: If category is selected, check if it has projects
@@ -499,11 +567,7 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
                                                 disabled={isFull}
                                                 className={isFull ? 'text-gray-400' : ''}
                                             >
-                                                {club.name}
-                                                <span className="ml-2 text-xs">
-                                                    ({club.memberCount}/{club.memberLimit} members)
-                                                    {isFull && ' - FULL'}
-                                                </span>
+                                                {club.name} ({club.memberCount}/{club.memberLimit} members){isFull && ' - FULL'}
                                             </option>
                                         );
                                     })}
@@ -517,23 +581,48 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
 
                     {/* Category Selection - Only show if categories exist */}
                     {selectedClub && hasCategories && (
-                        <div>
-                            <label className="block text-lg font-semibold text-gray-800 mb-3">
-                                Select Category
-                            </label>
-                            <select
-                                value={selectedCategory}
-                                onChange={(e) => handleCategoryChange(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                            >
-                                <option value="">Choose a category...</option>
-                                {availableCategories.map((category) => (
-                                    <option key={category.id || category.name || category} value={category.id || category.name || category}>
-                                        {category.name || category}
-                                    </option>
-                                ))}
-                            </select>
-                </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                    Select Category
+                                </label>
+                                <select
+                                    value={selectedCategory}
+                                    onChange={(e) => handleCategoryChange(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                >
+                                    <option value="">Choose a category...</option>
+                                    {availableCategories.map((category) => (
+                                        <option key={category.id || category.name || category} value={category.id || category.name || category}>
+                                            {category.name || category}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Custom Category Input - Only show for Music club "Other" category */}
+                            {selectedCategory === 'other' && selectedClub && (() => {
+                                const selectedClubData = allClubs.find(club => club.id === selectedClub);
+                                return selectedClubData && selectedClubData.name && selectedClubData.name.toLowerCase().includes('music') && selectedDomain === 'LCH';
+                            })() && (
+                                <div>
+                                    <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                        Specify Your Category
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={customCategory}
+                                        onChange={(e) => handleCustomCategoryChange(e.target.value)}
+                                        placeholder="Enter your custom category name..."
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                        maxLength={50}
+                                    />
+                                    <p className="mt-2 text-sm text-gray-600">
+                                        Enter a custom category name for your music project.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
             )}
 
                     {/* Project Selection - Only show if projects exist and not TEC+Y25 */}
@@ -559,13 +648,7 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
                                             disabled={isFull}
                                             className={isFull ? 'text-gray-400' : ''}
                                         >
-                                            {project.name}
-                                            {isTecProject && (
-                                                <span className="ml-2 text-xs">
-                                                    ({project.memberCount}/2 members)
-                                                    {isFull && ' - FULL'}
-                                                </span>
-                                            )}
+                                            {project.name}{isTecProject && ` (${project.memberCount}/2 members)${isFull ? ' - FULL' : ''}`}
                                         </option>
                                     );
                                 })}
@@ -607,7 +690,7 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
                                     <div><span className="font-medium">Club:</span> {allClubs.find(c => c.id === formData.selectedClub)?.name}</div>
                                 )}
                                 {selectedCategory && (
-                                    <div><span className="font-medium">Category:</span> {selectedCategory}</div>
+                                    <div><span className="font-medium">Category:</span> {formData.selectedCategory && formData.selectedCategory !== 'other' ? formData.selectedCategory : selectedCategory}</div>
                                 )}
                                 {formData.selectedProject && (
                                     <div><span className="font-medium">Project:</span> {formData.projectName}</div>
@@ -637,7 +720,8 @@ ProjectSelection.propTypes = {
         selectedProject: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         projectName: PropTypes.string,
         projectDescription: PropTypes.string,
-        selectedCategory: PropTypes.string
+        selectedCategory: PropTypes.string,
+        customCategory: PropTypes.string
     }).isRequired,
     updateFormData: PropTypes.func.isRequired,
     onValidationChange: PropTypes.func
