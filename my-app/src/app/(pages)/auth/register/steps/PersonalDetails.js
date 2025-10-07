@@ -7,7 +7,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
         if (!username) return false; // Don't allow empty
         if (username.length !== 10) return false; // Must be exactly 10 characters
         if (!/^\d{10}$/.test(username)) return false; // Must be all digits
-        if (!username.startsWith('24') && !username.startsWith('25')) return false; // Must start with 24 or 25
+        if (!username.startsWith('22') && !username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25')) return false; // Must start with 22, 23, 24, or 25
         return true;
     };
 
@@ -18,7 +18,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
         
         // If user has typed at least 2 characters, check the prefix
         if (username.length >= 2) {
-            if (!username.startsWith('24') && !username.startsWith('25')) return false;
+            if (!username.startsWith('22') && !username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25')) return false;
         }
         
         return true;
@@ -55,14 +55,24 @@ export default function PersonalDetails({ formData, updateFormData }) {
             let currentUsername = formData.username || "";
             if (value === "1st" && !currentUsername.startsWith("25")) {
                 // Replace first 2 digits with 25 for 1st year
-                currentUsername = currentUsername.length >= 2 ? 
-                    "25" + currentUsername.substring(2) : 
+                currentUsername = currentUsername.length >= 2 ?
+                    "25" + currentUsername.substring(2) :
                     "25" + currentUsername;
             } else if (value === "2nd" && !currentUsername.startsWith("24")) {
                 // Replace first 2 digits with 24 for 2nd year
-                currentUsername = currentUsername.length >= 2 ? 
-                    "24" + currentUsername.substring(2) : 
+                currentUsername = currentUsername.length >= 2 ?
+                    "24" + currentUsername.substring(2) :
                     "24" + currentUsername;
+            } else if (value === "3rd" && !currentUsername.startsWith("23")) {
+                // Replace first 2 digits with 23 for 3rd year
+                currentUsername = currentUsername.length >= 2 ?
+                    "23" + currentUsername.substring(2) :
+                    "23" + currentUsername;
+            } else if (value === "4th" && !currentUsername.startsWith("22")) {
+                // Replace first 2 digits with 22 for 4th year
+                currentUsername = currentUsername.length >= 2 ?
+                    "22" + currentUsername.substring(2) :
+                    "22" + currentUsername;
             }
             
             const email = currentUsername ? `${currentUsername}@kluniversity.in` : "";
@@ -91,7 +101,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         type="text"
                         id="username"
                         name="username"
-                        placeholder="Enter username (must start with 24 or 25)"
+                        placeholder="Enter username (must start with 22, 23, 24, or 25)"
                         className={`w-full h-12 px-4 border rounded-lg focus:ring-2 focus:border-blue-500 outline-none ${
                             formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username) 
                                 ? 'border-red-500 focus:ring-red-500' 
@@ -99,23 +109,23 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         }`}
                         value={formData.username || ""}
                         onChange={handleInputChange}
-                        pattern="^(24|25)\d{8}$"
+                        pattern="^(22|23|24|25)\d{8}$"
                         maxLength={10}
                         minLength={10}
-                        title="Username must start with 24 or 25 and be exactly 10 characters long"
+                        title="Username must start with 22, 23, 24, or 25 and be exactly 10 characters long"
                         required
                     />
                     {formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username) ? (
                         <p className="text-xs text-red-500 mt-1">
-                            {!formData.username.startsWith('24') && !formData.username.startsWith('25') 
-                                ? 'Username must start with 24 or 25' 
+                            {!formData.username.startsWith('22') && !formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25')
+                                ? 'Username must start with 22, 23, 24, or 25' 
                                 : formData.username.length !== 10 
                                 ? `Username must be exactly 10 digits (currently ${formData.username.length})` 
                                 : 'Username must contain only digits'}
                         </p>
                     ) : (
                         <p className="text-xs text-gray-500 mt-1">
-                            Must start with 24 or 25 and be exactly 10 digits long
+                            Must start with 22, 23, 24, or 25 and be exactly 10 digits long
                         </p>
                     )}
                 </div>
@@ -224,6 +234,8 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         <option value="">Select Year</option>
                         <option value="1st">1st Year</option>
                         <option value="2nd">2nd Year</option>
+                        <option value="3rd">3rd Year</option>
+                        <option value="4th">4th Year</option>
                     </select>
                 </div>
 

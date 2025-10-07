@@ -104,8 +104,8 @@ export default function Register() {
                     return false;
                 }
                 // Validate username format
-                if (!formData.username || formData.username.length !== 10 || !/^\d{10}$/.test(formData.username) || (!formData.username.startsWith('24') && !formData.username.startsWith('25'))) {
-                    toast.error("Username must be exactly 10 digits and start with 24 or 25");
+                if (!formData.username || formData.username.length !== 10 || !/^\d{10}$/.test(formData.username) || (!formData.username.startsWith('22') && !formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25'))) {
+                    toast.error("Username must be exactly 10 digits and start with 22, 23, 24, or 25");
                     return false;
                 }
                 break;
@@ -118,9 +118,11 @@ export default function Register() {
                 // Determine student year from username
                 const isY25Student = formData.username && formData.username.startsWith('25');
                 const isY24Student = formData.username && formData.username.startsWith('24');
+                const isY23Student = formData.username && formData.username.startsWith('23');
+                const isY22Student = formData.username && formData.username.startsWith('22');
 
-                // For Y24 and Y25 students: use component validation status
-                if (isY24Student || isY25Student) {
+                // For all students: use component validation status
+                if (isY22Student || isY23Student || isY24Student || isY25Student) {
                     // Check if project selection step is valid
                     if (!projectSelectionValid) {
                         toast.error("Please complete all required selections before proceeding");

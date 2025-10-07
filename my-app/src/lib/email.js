@@ -148,7 +148,7 @@ export const sendPasswordResetEmail = async (email, name, resetLink) => {
     }
 };
 
-export const sendRegistrationEmail = async (email, name, username, password, year, selectedDomain, projectDetails, clubDetails, isY24Student, isY25Student, selectedCategory = null) => {
+export const sendRegistrationEmail = async (email, name, username, password, year, selectedDomain, projectDetails, clubDetails, isY22Student, isY23Student, isY24Student, isY25Student, selectedCategory = null) => {
     const htmlTemplate = `
     <!DOCTYPE html>
     <html lang="en">
@@ -306,7 +306,7 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
 
                 ${clubDetails ? `
                 <div class="selection-details">
-                    <h3>Your Club Selection${isY24Student ? ' (Y24)' : isY25Student ? ' (Y25)' : ''}</h3>
+                    <h3>Your Club Selection${isY24Student ? ' (Y24)' : isY23Student ? ' (Y23)' : isY22Student ? ' (Y22)' : isY25Student ? ' (Y25)' : ''}</h3>
                     <p><strong>Club:</strong> ${clubDetails.name}</p>
                     <p><strong>Description:</strong> ${clubDetails.description}</p>
                     <p><strong>Domain:</strong> ${selectedDomain}</p>
@@ -314,9 +314,9 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                 </div>
                 ` : ''}
 
-                ${isY24Student && projectDetails ? `
+                ${(isY22Student || isY23Student || isY24Student) && projectDetails ? `
                 <div class="selection-details">
-                    <h3>Your Project Selection (Y24)</h3>
+                    <h3>Your Project Selection${isY24Student ? ' (Y24)' : isY23Student ? ' (Y23)' : isY22Student ? ' (Y22)' : ''}</h3>
                     <p><strong>Project:</strong> ${projectDetails.name}</p>
                     <p><strong>Description:</strong> ${projectDetails.description}</p>
                     <p><strong>Domain:</strong> ${selectedDomain}</p>
@@ -338,7 +338,7 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                 <h3>What's Next?</h3>
                 <ul>
                     <li><strong>Updates:</strong> Keep an eye on your email for important announcements about your ${selectedCategory ? 'category' : 'club'} activities</li>
-                    <li><strong>Preparation:</strong> Start familiarizing yourself with your selected ${isY24Student ? 'project and domain' : 'club activities'}</li>
+                    <li><strong>Preparation:</strong> Start familiarizing yourself with your selected ${(isY22Student || isY23Student || isY24Student) ? 'project and domain' : 'club activities'}</li>
                     <li><strong>Community:</strong> Get ready to collaborate with fellow students and mentors in your ${selectedDomain} domain</li>
                     ${selectedCategory ? `<li><strong>Category Focus:</strong> Your activities will be focused on the ${selectedCategory} category</li>` : ''}
                 </ul>

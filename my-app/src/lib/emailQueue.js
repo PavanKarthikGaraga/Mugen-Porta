@@ -44,6 +44,8 @@ class EmailQueue {
                         emailData.selectedDomain,
                         emailData.projectDetails,
                         emailData.clubDetails,
+                        emailData.isY22Student,
+                        emailData.isY23Student,
                         emailData.isY24Student,
                         emailData.isY25Student,
                         emailData.selectedCategory

@@ -20,9 +20,12 @@ export default function Overview({ formData, updateFormData }) {
                     <div className="border-l-4 border-gray-400 pl-6">
                         <h3 className="text-xl font-semibold mb-4 text-gray-800">Mission Timeline</h3>
                         <div className="space-y-3 text-gray-700">
-                            {/* <div>
-                                <span className="font-medium">Y23 – Panchatantra:</span> Storytelling of Skills – discovering and expressing hidden talents.
-                            </div> */}
+                            <div>
+                                <span className="font-medium">Y22 – Legacy:</span> Building Foundations – establishing lasting contributions and leadership in SAC activities.
+                            </div>
+                            <div>
+                                <span className="font-medium">Y23 – Mastery:</span> Excellence in Action – honing skills and achieving mastery in chosen domains.
+                            </div>
                             <div>
                                 <span className="font-medium">Y24 – Abhiyan:</span> Action for Impact – applying skills to deliver real-world outcomes.
                             </div>

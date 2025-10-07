@@ -17,8 +17,8 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
     // Determine student year from form data
     const studentYear = React.useMemo(() => {
     if (formData.username) {
-        if (formData.username.startsWith('24')) {
-                return 'Y24';
+        if (formData.username.startsWith('22') || formData.username.startsWith('23') || formData.username.startsWith('24')) {
+                return 'Y24'; // Y22, Y23, and Y24 students follow the same rules
         } else if (formData.username.startsWith('25')) {
                 return 'Y25';
             }

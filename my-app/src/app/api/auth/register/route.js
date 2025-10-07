@@ -59,20 +59,22 @@ export async function POST(req) {
             );
         }
 
-        // Check if it's Y24 or Y25 student based on username
+        // Check if it's Y22, Y23, Y24 or Y25 student based on username
         const isY24Student = username.startsWith('24');
         const isY25Student = username.startsWith('25');
+        const isY23Student = username.startsWith('23');
+        const isY22Student = username.startsWith('22');
 
         // Validation based on student year - unified logic matching frontend
 
-        if (!isY24Student && !isY25Student) {
+        if (!isY22Student && !isY23Student && !isY24Student && !isY25Student) {
             return NextResponse.json(
-                { message: "Invalid username format. Must start with 24 or 25" },
+                { message: "Invalid username format. Must start with 22, 23, 24, or 25" },
                 { status: 400 }
             );
         }
 
-        // Both Y24 and Y25 must select club and domain
+        // All students must select club and domain
         if (!selectedClub || !selectedDomain) {
             return NextResponse.json(
                 { message: "Club and domain selection is required" },
@@ -106,6 +108,7 @@ export async function POST(req) {
         // }
 
         // Y25 students only need club selection - clear project fields
+        // Y22, Y23, and Y24 students can have projects
         if (isY25Student) {
             selectedProject = null;
             selectedCategory = null;
@@ -195,8 +198,8 @@ export async function POST(req) {
             }
         }
 
-        if (isY24Student) {
-            // Check club member limits for all Y24 students
+        if (isY22Student || isY23Student || isY24Student) {
+            // Check club member limits for Y22, Y23, and Y24 students
             const [clubInfo] = await pool.execute(
                 "SELECT memberLimit FROM clubs WHERE id = ?",
                 [selectedClub]
@@ -274,13 +277,15 @@ export async function POST(req) {
             );
 
             // Debug: log what we're inserting into the database
-            const projectIdToInsert = isY24Student ? selectedProject : null;
-            const categoryToInsert = isY24Student ? selectedCategory : null;
+            const projectIdToInsert = (isY22Student || isY23Student || isY24Student) ? selectedProject : null;
+            const categoryToInsert = (isY22Student || isY23Student || isY24Student) ? selectedCategory : null;
             console.log('Database insertion data:', {
                 username,
                 projectIdToInsert,
                 categoryToInsert,
                 selectedClub,
+                isY22Student,
+                isY23Student,
                 isY24Student,
                 isY25Student,
                 selectedDomain,
@@ -297,13 +302,13 @@ export async function POST(req) {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
-                    projectIdToInsert, // Y24 can have projects, Y25 null
-                    selectedClub,                          // Both Y24 and Y25 can have clubs
+                    projectIdToInsert, // Y22, Y23, Y24 can have projects, Y25 null
+                    selectedClub,                          // All students can have clubs
                     name, email, branch, gender,
                     cluster, year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
                     countryName || country, state, district, pincode, selectedDomain,
-                    isY24Student ? selectedCategory : null, // Y24 can have category, Y25 null
+                    (isY22Student || isY23Student || isY24Student) ? selectedCategory : null, // Y22, Y23, Y24 can have category, Y25 null
                     ruralCategory || null, socialInternshipId || null
                 ]
             );
@@ -316,7 +321,7 @@ export async function POST(req) {
             let projectDetails = null;
             let clubDetails = null;
 
-            if (isY24Student && selectedProject) {
+            if ((isY22Student || isY23Student || isY24Student) && selectedProject) {
                 // Try to fetch project details - will be null for auto-generated projects
                 const [projectInfo] = await pool.execute(
                     "SELECT name, description FROM projects WHERE id = ?",
@@ -344,6 +349,8 @@ export async function POST(req) {
                 projectDetails: projectDetails,
                 clubDetails: clubDetails,
                 selectedCategory: selectedCategory,
+                isY22Student: isY22Student,
+                isY23Student: isY23Student,
                 isY24Student: isY24Student,
                 isY25Student: isY25Student
             });

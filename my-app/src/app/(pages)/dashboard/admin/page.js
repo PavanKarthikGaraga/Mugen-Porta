@@ -175,6 +175,8 @@ export default function AdminOverviewPage() {
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                         >
                             <option value="">All Years</option>
+                            <option value="22">Y22</option>
+                            <option value="23">Y23</option>
                             <option value="24">Y24</option>
                             <option value="25">Y25</option>
                         </select>
