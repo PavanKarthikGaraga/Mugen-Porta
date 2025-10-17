@@ -7,6 +7,33 @@ CREATE TABLE users (
     role ENUM('student', 'lead', 'faculty', 'admin') NOT NULL DEFAULT 'student'
 );
 
+CREATE TABLE leads (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(10) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phoneNumber VARCHAR(15) NOT NULL,
+    year ENUM('1st', '2nd', '3rd', '4th') NOT NULL,
+    branch VARCHAR(50) NOT NULL,
+    clubId VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (username) REFERENCES users(username),
+    FOREIGN KEY (clubId) REFERENCES clubs(id)
+);
+
+CREATE TABLE faculty (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(10) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phoneNumber VARCHAR(15) NOT NULL,
+    year ENUM('1st', '2nd', '3rd', '4th') NOT NULL,
+    branch VARCHAR(50) NOT NULL,
+    assignedClubs JSON NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (username) REFERENCES users(username)
+);
+
 CREATE TABLE clubs (
     id VARCHAR(20) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -78,6 +105,10 @@ CREATE TABLE email_queue (
 
 -- Create indexes for faster lookups
 CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_leads_username ON leads(username);
+CREATE INDEX idx_leads_clubId ON leads(clubId);
+CREATE INDEX idx_faculty_username ON faculty(username);
 CREATE INDEX idx_students_clubId ON students(clubId);
 CREATE INDEX idx_students_projectId ON students(projectId);
 CREATE INDEX idx_students_selectedDomain ON students(selectedDomain);

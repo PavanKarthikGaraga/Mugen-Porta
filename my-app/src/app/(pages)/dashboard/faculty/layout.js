@@ -3,17 +3,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-    FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
-    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers
+    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp
 } from "react-icons/fi";
-import ChangePassword from "@/app/components/ChangePassword";
 
-export default function AdminDashboardLayout({ children }) {
+export default function FacultyDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [devDropdownOpen, setDevDropdownOpen] = useState(false);
-    const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-    const [userData, setUserData] = useState({ username: '', name: '' });
-    const [hasDevAccess, setHasDevAccess] = useState(false);
+    const [userData, setUserData] = useState({ username: '', name: '', assignedClubs: [] });
     const pathname = usePathname();
     const router = useRouter();
 
@@ -24,13 +19,11 @@ export default function AdminDashboardLayout({ children }) {
                 const response = await fetch('/api/auth/me');
                 if (response.ok) {
                     const data = await response.json();
-                    const username = data.username || '2300032048';
                     setUserData({
-                        username,
-                        name: data.name || 'G Pavan Karthik'
+                        username: data.username || '',
+                        name: data.name || '',
+                        assignedClubs: data.assignedClubs || []
                     });
-                    // Check if user has dev access (specific username)
-                    setHasDevAccess(username === '2300032048');
                 }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
@@ -40,21 +33,12 @@ export default function AdminDashboardLayout({ children }) {
     }, []);
 
     const navigation = [
-        { name: 'Overview', href: '/dashboard/admin', icon: FiHome },
-        { name: 'Users', href: '/dashboard/admin/users', icon: FiUsers },
-        { name: 'Clubs', href: '/dashboard/admin/clubs', icon: FiFolder },
-        { name: 'Projects', href: '/dashboard/admin/projects', icon: FiFolder },
-        { name: 'Students', href: '/dashboard/admin/students', icon: FiFolder },
-        { name: 'Controls', href: '/dashboard/admin/controls', icon: FiSettings }
-    ];
-
-    const devNavigation = [
-        { name: 'Email Queue', href: '/dashboard/admin/dev/email-queue', icon: FiMail },
-        { name: 'Database Query', href: '/dashboard/admin/dev/db-query', icon: FiDatabase },
+        { name: 'Overview', href: '/dashboard/faculty', icon: FiHome },
+        { name: 'Profile', href: '/dashboard/faculty/profile', icon: FiUser },
+        { name: 'Students', href: '/dashboard/faculty/students', icon: FiUsers }
     ];
 
     const handleLogout = () => {
-        // Add logout logic here
         router.push('/auth/login');
     };
 
@@ -74,15 +58,20 @@ export default function AdminDashboardLayout({ children }) {
                             >
                                 {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
                             </button>
-                            <h1 className="text-xl font-bold ml-4 lg:ml-0">Admin Dashboard</h1>
+                            <h1 className="text-xl font-bold ml-4 lg:ml-0">Faculty Dashboard</h1>
                         </div>
 
                         {/* Right side */}
                         <div className="flex items-center space-x-4">
-                            <span className="hidden sm:block text-sm">
-                                ID: {userData.username}
-                            </span>
-                            {/* <span className="hidden sm:block text-sm font-medium">{userData.name}</span> */}
+                            <div className="hidden sm:block text-right">
+                                <span className="block text-sm">
+                                    ID: {userData.username}
+                                </span>
+                                {/* <span className="block text-sm font-medium">{userData.name}</span> */}
+                                {/* {userData.assignedClubs.length > 0 && (
+                                    <span className="block text-xs text-gray-300">{userData.assignedClubs.length} club{userData.assignedClubs.length !== 1 ? 's' : ''} assigned</span>
+                                )} */}
+                            </div>
                             <button
                                 onClick={handleLogout}
                                 className="flex items-center space-x-2 px-3 py-2 rounded-md transition-colors text-sm"
@@ -100,7 +89,7 @@ export default function AdminDashboardLayout({ children }) {
 
             <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar - Fixed */}
-                <div 
+                <div
                     className={`
                         fixed lg:static inset-y-0 left-0 z-20 mt-16 lg:mt-0
                         w-64 text-white transform transition-transform duration-300 ease-in-out flex-shrink-0
@@ -118,8 +107,8 @@ export default function AdminDashboardLayout({ children }) {
                                             key={item.name}
                                             href={item.href}
                                             className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
-                                                isActive 
-                                                    ? 'bg-red-700 text-white shadow-lg' 
+                                                isActive
+                                                    ? 'bg-red-700 text-white shadow-lg'
                                                     : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                                             }`}
                                             onClick={() => setSidebarOpen(false)}
@@ -131,63 +120,7 @@ export default function AdminDashboardLayout({ children }) {
                                         </Link>
                                     );
                                 })}
-                                
-                                {/* Dev Dropdown - Only show for authorized users */}
-                                {hasDevAccess && (
-                                    <div className="pt-4">
-                                        <button
-                                            onClick={() => setDevDropdownOpen(!devDropdownOpen)}
-                                            className="flex items-center justify-between w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:text-white group"
-                                        >
-                                            <div className="flex items-center">
-                                                <FiTool className="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" />
-                                                Dev
-                                            </div>
-                                            {devDropdownOpen ? (
-                                                <FiChevronUp className="h-4 w-4" />
-                                            ) : (
-                                                <FiChevronDown className="h-4 w-4" />
-                                            )}
-                                        </button>
-                                        
-                                        {devDropdownOpen && (
-                                            <div className="mt-2 ml-6 space-y-1">
-                                            {devNavigation.map((item) => {
-                                                const isActive = pathname === item.href;
-                                                return (
-                                                    <Link
-                                                        key={item.name}
-                                                        href={item.href}
-                                                        className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
-                                                            isActive 
-                                                                ? 'bg-red-700 text-white shadow-lg' 
-                                                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                                                        }`}
-                                                        onClick={() => setSidebarOpen(false)}
-                                                    >
-                                                        <item.icon className={`mr-3 h-4 w-4 ${
-                                                            isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'
-                                                        }`} />
-                                                        {item.name}
-                                                    </Link>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                                )}
                             </nav>
-                        </div>
-                        
-                        {/* Change Password Button at Bottom of Sidebar */}
-                        <div className="px-4 py-4 border-t border-gray-700">
-                            <button
-                                onClick={() => setChangePasswordOpen(true)}
-                                className="flex items-center w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:text-white group"
-                            >
-                                <FiLock className="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" />
-                                Change Password
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -214,18 +147,12 @@ export default function AdminDashboardLayout({ children }) {
 
             {/* Mobile sidebar overlay */}
             {sidebarOpen && (
-                <button 
+                <button
                     className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                     aria-label="Close sidebar"
                 ></button>
             )}
-
-            {/* Change Password Modal */}
-            <ChangePassword 
-                isOpen={changePasswordOpen}
-                onClose={() => setChangePasswordOpen(false)}
-            />
         </div>
     );
 }
