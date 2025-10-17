@@ -12,21 +12,14 @@ jobs:
     permissions:
       contents: read
       actions: none
-      checks: none
-      deployments: none
-      issues: none
-      packages: none
-      pull-requests: none
-      repository-projects: none
-      security-events: none
-      statuses: none
 
     steps:
       - name: Pull latest code from main
         run: |
           cd /home/sac/Mugen-Porta
-          git reset --hard
-          git pull origin main
+          git fetch origin main
+          git reset --hard origin/main
+          git clean -fd
 
       - name: Install dependencies
         run: |
