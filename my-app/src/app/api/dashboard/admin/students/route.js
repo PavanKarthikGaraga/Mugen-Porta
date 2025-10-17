@@ -46,7 +46,7 @@ export async function GET(request) {
         }
 
         if (clubId && clubId.length > 0) {
-            whereConditions.push('c.name = ?');
+            whereConditions.push('s.clubId = ?');
             queryParams.push(clubId);
         }
 
@@ -113,7 +113,8 @@ export async function GET(request) {
 
         // Get club statistics
         const clubStatsQuery = `
-            SELECT 
+            SELECT
+                c.id as clubId,
                 c.name as clubName,
                 COUNT(s.id) as memberCount
             FROM clubs c

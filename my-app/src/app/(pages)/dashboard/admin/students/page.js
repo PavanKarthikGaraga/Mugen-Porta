@@ -309,7 +309,7 @@ export default function AdminStudents() {
                         >
                             <option value="">All Clubs</option>
                             {clubStats.map((club) => (
-                                <option key={club.clubName} value={club.clubName}>
+                                <option key={club.clubId} value={club.clubId}>
                                     {club.clubName} ({club.memberCount})
                                 </option>
                             ))}
