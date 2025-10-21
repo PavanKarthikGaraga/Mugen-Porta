@@ -21,7 +21,7 @@ export default function LeadOverviewPage() {
         if (userData.clubId) {
             fetchStats();
         }
-    }, [userData.clubId, fetchStats]);
+    }, [userData.clubId]);
 
     const fetchUserData = async () => {
         try {

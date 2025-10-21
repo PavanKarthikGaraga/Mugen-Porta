@@ -26,7 +26,7 @@ export default function LeadStudents() {
         if (userData.clubId) {
             fetchStudents(1);
         }
-    }, [userData.clubId, fetchStudents]);
+    }, [userData.clubId]);
 
     const fetchUserData = async () => {
         try {

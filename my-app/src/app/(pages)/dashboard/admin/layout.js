@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
-    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers
+    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText
 } from "react-icons/fi";
 import ChangePassword from "@/app/components/ChangePassword";
 
@@ -45,6 +45,8 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Clubs', href: '/dashboard/admin/clubs', icon: FiFolder },
         { name: 'Projects', href: '/dashboard/admin/projects', icon: FiFolder },
         { name: 'Students', href: '/dashboard/admin/students', icon: FiFolder },
+        { name: 'Reports', href: '/dashboard/admin/reports', icon: FiFileText },
+        { name: 'Final Reports', href: '/dashboard/admin/final-reports', icon: FiFileText },
         { name: 'Controls', href: '/dashboard/admin/controls', icon: FiSettings }
     ];
 

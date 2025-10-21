@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp
+    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText
 } from "react-icons/fi";
 
 export default function FacultyDashboardLayout({ children }) {
@@ -35,7 +35,9 @@ export default function FacultyDashboardLayout({ children }) {
     const navigation = [
         { name: 'Overview', href: '/dashboard/faculty', icon: FiHome },
         { name: 'Profile', href: '/dashboard/faculty/profile', icon: FiUser },
-        { name: 'Students', href: '/dashboard/faculty/students', icon: FiUsers }
+        { name: 'Students', href: '/dashboard/faculty/students', icon: FiUsers },
+        { name: 'Reports', href: '/dashboard/faculty/reports', icon: FiFileText },
+        { name: 'Final Reports', href: '/dashboard/faculty/final-reports', icon: FiFileText }
     ];
 
     const handleLogout = () => {

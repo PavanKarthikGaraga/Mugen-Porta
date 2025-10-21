@@ -89,7 +89,7 @@ export default function UsersPage() {
         e.preventDefault();
         try {
             const url = editingUser ? `/api/dashboard/admin/users/${editingUser.username}` : '/api/dashboard/admin/users';
-            const method = editingUser ? 'PUT' : 'POST';
+            const method = 'POST';
 
             const response = await fetch(url, {
                 method,

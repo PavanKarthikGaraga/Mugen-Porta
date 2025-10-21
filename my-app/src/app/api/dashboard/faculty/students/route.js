@@ -1,149 +1,105 @@
-import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/jwt';
+import jwt from 'jsonwebtoken';
+import { getConnection } from '@/lib/db';
+import { handleApiError } from '@/lib/handleApiError';
 
 export async function GET(request) {
+    let connection;
+
     try {
-        // Verify token and get user info
-        const token = request.cookies.get('tck')?.value;
-        if (!token) {
+        connection = await getConnection();
+
+        // Verify JWT token
+        const authHeader = request.headers.get('authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return NextResponse.json(
-                { error: 'No token provided' },
+                { message: 'Authorization token required' },
                 { status: 401 }
             );
         }
 
-        const payload = await verifyToken(token);
-        if (!payload || payload.role !== 'faculty') {
+        const token = authHeader.split(' ')[1];
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (error) {
             return NextResponse.json(
-                { error: 'Unauthorized' },
+                { message: 'Invalid or expired token' },
+                { status: 401 }
+            );
+        }
+
+        // Check if user is faculty
+        if (decoded.role !== 'faculty') {
+            return NextResponse.json(
+                { message: 'Access denied. Faculty role required.' },
                 { status: 403 }
             );
         }
 
+        const facultyUsername = decoded.username;
+
         // Get faculty's assigned clubs
-        const [facultyResult] = await pool.execute(
-            'SELECT assignedClubs FROM faculty WHERE username = ?',
-            [payload.username]
+        const [facultyResult] = await connection.execute(
+            'SELECT assigned_clubs FROM faculty WHERE username = ?',
+            [facultyUsername]
         );
 
         if (facultyResult.length === 0) {
             return NextResponse.json(
-                { error: 'Faculty profile not found' },
+                { message: 'Faculty not found' },
                 { status: 404 }
             );
         }
 
-        const assignedClubsData = facultyResult[0].assignedClubs;
-        const assignedClubs = assignedClubsData ? (Array.isArray(assignedClubsData) ? assignedClubsData : JSON.parse(assignedClubsData)) : [];
-
-        if (assignedClubs.length === 0) {
+        const assignedClubs = facultyResult[0].assigned_clubs;
+        if (!assignedClubs) {
             return NextResponse.json({
                 success: true,
                 data: {
                     students: [],
-                    pagination: {
-                        page: 1,
-                        limit: 50,
-                        total: 0,
-                        pages: 0
-                    }
+                    pagination: { page: 1, limit: 50, total: 0, pages: 0 }
                 }
             });
         }
 
-        const { searchParams } = new URL(request.url);
-        const page = parseInt(searchParams.get('page')) || 1;
-        const limit = parseInt(searchParams.get('limit')) || 50;
-        const search = searchParams.get('search')?.trim() || '';
-        const year = searchParams.get('year')?.trim() || '';
-        const category = searchParams.get('category')?.trim() || '';
-        const clubId = searchParams.get('clubId')?.trim() || '';
+        // Parse assigned clubs (assuming it's a comma-separated string)
+        const clubIds = assignedClubs.split(',').map(id => id.trim());
 
-        const offset = (page - 1) * limit;
+        // Build WHERE clause for clubs
+        const placeholders = clubIds.map(() => '?').join(',');
+        const whereClause = `WHERE s.clubId IN (${placeholders})`;
 
-        try {
-            let whereConditions = [`s.clubId IN (${assignedClubs.map(() => '?').join(',')})`];
-            let queryParams = [...assignedClubs];
+        // Get students from assigned clubs who have internal submissions
+        const [studentsResult] = await connection.execute(
+            `SELECT DISTINCT s.id, s.username, s.name, s.year, s.branch, s.clubId, c.name as club_name
+             FROM students s
+             INNER JOIN student_internal_submissions sis ON s.username = sis.username
+             INNER JOIN clubs c ON s.clubId = c.id
+             ${whereClause}
+             ORDER BY s.name ASC`,
+            clubIds
+        );
 
-            // Add specific club filter if provided
-            if (clubId && assignedClubs.includes(clubId)) {
-                whereConditions = ['s.clubId = ?'];
-                queryParams = [clubId];
-            }
-
-            // Build search conditions
-            if (search && search.length > 0) {
-                whereConditions.push('(s.name LIKE ? OR s.email LIKE ? OR s.username LIKE ?)');
-                queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
-            }
-
-            if (year && year.length > 0) {
-                whereConditions.push('s.year = ?');
-                queryParams.push(year);
-            }
-
-            if (category && category.length > 0) {
-                whereConditions.push('s.selectedDomain = ?');
-                queryParams.push(category);
-            }
-
-            const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
-
-            // Get total count
-            const countQuery = `SELECT COUNT(*) as total FROM students s ${whereClause}`;
-
-            const [countResult] = await pool.execute(countQuery, queryParams);
-            const total = countResult[0].total;
-
-            // Get students data
-            const studentsQuery = `
-                SELECT
-                    s.id,
-                    s.username,
-                    s.name,
-                    s.year,
-                    s.branch,
-                    s.phoneNumber,
-                    s.selectedDomain,
-                    s.clubId,
-                    c.name as clubName,
-                    s.created_at
-                FROM students s
-                LEFT JOIN clubs c ON s.clubId = c.id
-                ${whereClause}
-                ORDER BY s.created_at DESC
-                LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}
-            `;
-
-            const [students] = await pool.execute(studentsQuery, queryParams);
-
-            return NextResponse.json({
-                success: true,
-                data: {
-                    students,
-                    pagination: {
-                        page,
-                        limit,
-                        total,
-                        pages: Math.ceil(total / limit)
-                    }
+        return NextResponse.json({
+            success: true,
+            data: {
+                students: studentsResult,
+                pagination: {
+                    page: 1,
+                    limit: studentsResult.length,
+                    total: studentsResult.length,
+                    pages: 1
                 }
-            });
-
-        } catch (error) {
-            console.error('Error fetching students:', error);
-            return NextResponse.json(
-                { error: 'Failed to fetch students' },
-                { status: 500 }
-            );
-        }
+            }
+        });
 
     } catch (error) {
-        console.error('Database error:', error);
-        return NextResponse.json({
-            error: 'Failed to fetch faculty students',
-            details: error.message
-        }, { status: 500 });
+        console.error('Error fetching faculty students:', error);
+        return handleApiError(error);
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 }
