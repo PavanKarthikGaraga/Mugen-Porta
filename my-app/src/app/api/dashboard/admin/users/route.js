@@ -107,6 +107,20 @@ export async function POST(request) {
                     { status: 400 }
                 );
             }
+
+            // Check if user already exists as a student when creating lead
+            if (role === 'lead') {
+                const [existingStudent] = await pool.execute(
+                    'SELECT username FROM students WHERE username = ?',
+                    [username]
+                );
+                if (existingStudent.length > 0) {
+                    return NextResponse.json(
+                        { error: 'existing' },
+                        { status: 409 }
+                    );
+                }
+            }
         }
 
         // Generate default password: username + last 4 digits of phone number

@@ -74,7 +74,7 @@ export default function EmailQueuePage() {
         if (hasAccess === true) {
             fetchEmailQueue();
             // Refresh every 30 seconds
-            const interval = setInterval(fetchEmailQueue, 30000);
+            const interval = setInterval(fetchEmailQueue, 45000);
             return () => clearInterval(interval);
         }
     }, [hasAccess, fetchEmailQueue]);
