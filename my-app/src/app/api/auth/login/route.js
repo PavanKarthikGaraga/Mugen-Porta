@@ -29,7 +29,7 @@ export async function POST(req){
         cookiesStore.set("tck", tck, { 
             httpOnly : true,
             samesite:'lax',
-            maxage:30*60
+            maxage:45*60
         });
 
         return new Response(JSON.stringify({

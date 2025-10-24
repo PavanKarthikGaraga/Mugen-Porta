@@ -42,29 +42,58 @@ export async function POST(request) {
         }
 
         // Check if marks record exists for the student
-        const [existingMarks] = await pool.execute(
+        const [existingRecordCheck] = await pool.execute(
             'SELECT id FROM student_internal_marks WHERE username = ?',
             [studentUsername]
         );
 
-        const marksData = {
-            m1: parseInt(evaluationData.m1) || 0,
-            m2: parseInt(evaluationData.m2) || 0,
-            m3: parseInt(evaluationData.m3) || 0,
-            m4: parseInt(evaluationData.m4) || 0,
-            m5: parseInt(evaluationData.m5) || 0,
-            m6: parseInt(evaluationData.m6) || 0,
-            m7: parseInt(evaluationData.m7) || 0,
-            yt_m: parseFloat(evaluationData.yt_m) || 0,
-            lk_m: parseFloat(evaluationData.lk_m) || 0
+        // Get existing marks to preserve them during partial updates
+        let existingMarksData = {
+            m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0,
+            yt_m: 0, lk_m: 0, total: 0
         };
+
+        if (existingRecordCheck.length > 0) {
+            const [currentMarks] = await pool.execute(
+                'SELECT m1, m2, m3, m4, m5, m6, m7, yt_m, lk_m, total FROM student_internal_marks WHERE username = ?',
+                [studentUsername]
+            );
+                if (currentMarks.length > 0) {
+                    // Ensure all values are numbers, not strings from database
+                    existingMarksData = {
+                        m1: parseInt(currentMarks[0].m1) || 0,
+                        m2: parseInt(currentMarks[0].m2) || 0,
+                        m3: parseInt(currentMarks[0].m3) || 0,
+                        m4: parseInt(currentMarks[0].m4) || 0,
+                        m5: parseInt(currentMarks[0].m5) || 0,
+                        m6: parseInt(currentMarks[0].m6) || 0,
+                        m7: parseInt(currentMarks[0].m7) || 0,
+                        yt_m: parseFloat(currentMarks[0].yt_m) || 0,
+                        lk_m: parseFloat(currentMarks[0].lk_m) || 0,
+                        total: parseFloat(currentMarks[0].total) || 0
+                    };
+                }
+        }
+
+            // Merge existing marks with new evaluation data (only update provided fields)
+            const marksData = {
+                m1: evaluationData.hasOwnProperty('m1') && evaluationData.m1 !== '' ? parseInt(evaluationData.m1) : existingMarksData.m1,
+                m2: evaluationData.hasOwnProperty('m2') && evaluationData.m2 !== '' ? parseInt(evaluationData.m2) : existingMarksData.m2,
+                m3: evaluationData.hasOwnProperty('m3') && evaluationData.m3 !== '' ? parseInt(evaluationData.m3) : existingMarksData.m3,
+                m4: evaluationData.hasOwnProperty('m4') && evaluationData.m4 !== '' ? parseInt(evaluationData.m4) : existingMarksData.m4,
+                m5: evaluationData.hasOwnProperty('m5') && evaluationData.m5 !== '' ? parseInt(evaluationData.m5) : existingMarksData.m5,
+                m6: evaluationData.hasOwnProperty('m6') && evaluationData.m6 !== '' ? parseInt(evaluationData.m6) : existingMarksData.m6,
+                m7: evaluationData.hasOwnProperty('m7') && evaluationData.m7 !== '' ? parseInt(evaluationData.m7) : existingMarksData.m7,
+                yt_m: evaluationData.hasOwnProperty('yt_m') && evaluationData.yt_m !== '' ? parseFloat(evaluationData.yt_m) : existingMarksData.yt_m,
+                lk_m: evaluationData.hasOwnProperty('lk_m') && evaluationData.lk_m !== '' ? parseFloat(evaluationData.lk_m) : existingMarksData.lk_m
+            };
 
         // Calculate total
         const total = marksData.m1 + marksData.m2 + marksData.m3 + marksData.m4 +
                      marksData.m5 + marksData.m6 + marksData.m7 +
                      marksData.yt_m + marksData.lk_m;
 
-        if (existingMarks.length > 0) {
+        if (existingRecordCheck.length > 0) {
             // Update existing marks
             await pool.execute(
                 `UPDATE student_internal_marks SET

@@ -255,15 +255,50 @@ const ReportsEvaluation = ({
         setSelectedItem(itemType);
         setShowEvaluationModal(true);
 
-        // Initialize evaluation data based on report type
+        // Initialize evaluation data based on report type and pre-populate with existing marks
         if (reportType === 'internal') {
-            setEvaluationData({
-                m1: '', m2: '', m3: '', m4: '', m5: '', m6: '', m7: '',
-                yt_m: '', lk_m: ''
-            });
+            // Find existing marks for the selected item
+            let existingMarks = {};
+
+            if (selectedStudent?.submissions) {
+                if (typeof itemType === 'number' && itemType >= 1 && itemType <= 7) {
+                    // Evaluating a specific report
+                    const reportSubmission = selectedStudent.submissions.find(
+                        s => s.submission_type === 'report' && s.report_number === itemType
+                    );
+                    existingMarks[`m${itemType}`] = reportSubmission?.marks || '';
+                } else if (itemType === 'youtube_link') {
+                    // Evaluating YouTube link
+                    const youtubeSubmission = selectedStudent.submissions.find(
+                        s => s.submission_type === 'youtube_link'
+                    );
+                    existingMarks.yt_m = youtubeSubmission?.marks || '';
+                } else if (itemType === 'linkedin_link') {
+                    // Evaluating LinkedIn link
+                    const linkedinSubmission = selectedStudent.submissions.find(
+                        s => s.submission_type === 'linkedin_link'
+                    );
+                    existingMarks.lk_m = linkedinSubmission?.marks || '';
+                }
+            }
+
+            // Only pre-populate the field being evaluated, leave others undefined
+            let evaluationDataObj = {};
+            if (typeof itemType === 'number' && itemType >= 1 && itemType <= 7) {
+                evaluationDataObj[`m${itemType}`] = existingMarks[`m${itemType}`] || '';
+            } else if (itemType === 'youtube_link') {
+                evaluationDataObj.yt_m = existingMarks.yt_m || '';
+            } else if (itemType === 'linkedin_link') {
+                evaluationDataObj.lk_m = existingMarks.lk_m || '';
+            }
+            setEvaluationData(evaluationDataObj);
         } else {
+            // For final reports, pre-populate with existing marks
+            const submission = selectedStudent?.finalSubmission;
             setEvaluationData({
-                frm: '', fyt_m: '', flk_m: ''
+                frm: submission?.frm || '',
+                fyt_m: submission?.fyt_m || '',
+                flk_m: submission?.flk_m || ''
             });
         }
     };
@@ -273,22 +308,63 @@ const ReportsEvaluation = ({
 
         setSubmitting(true);
         try {
+            // Prepare evaluation data based on selected item type
+            let submissionData = {};
+
+            if (reportType === 'internal') {
+                if (typeof selectedItem === 'number' && selectedItem >= 1 && selectedItem <= 7) {
+                    // Evaluating a specific report - only send that report's marks
+                    submissionData[`m${selectedItem}`] = evaluationData[`m${selectedItem}`];
+                } else if (selectedItem === 'youtube_link') {
+                    // Evaluating YouTube link
+                    submissionData.yt_m = evaluationData.yt_m;
+                } else if (selectedItem === 'linkedin_link') {
+                    // Evaluating LinkedIn link
+                    submissionData.lk_m = evaluationData.lk_m;
+                }
+            } else {
+                // Final reports - send all data
+                submissionData = evaluationData;
+            }
+
             const response = await fetch(apis.evaluate, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     studentUsername: selectedStudent.username,
-                    evaluationData
+                    evaluationData: submissionData
                 })
             });
 
             if (response.ok) {
                 // Update the selected student data immediately to reflect the evaluation
-                setSelectedStudent(prev => prev ? {
-                    ...prev,
-                    isEvaluated: reportType === 'final' ? true : prev.isEvaluated,
-                    reportsStatus: reportType === 'internal' ? '7/7' : prev.reportsStatus
-                } : null);
+                setSelectedStudent(prev => {
+                    if (!prev) return null;
+
+                    if (reportType === 'internal') {
+                        // Update submissions array with new evaluation status
+                        const updatedSubmissions = prev.submissions?.map(sub => {
+                            if (typeof selectedItem === 'number' && sub.submission_type === 'report' && sub.report_number === selectedItem) {
+                                return { ...sub, evaluated: true, marks: parseInt(submissionData[`m${selectedItem}`]) || 0 };
+                            } else if (selectedItem === 'youtube_link' && sub.submission_type === 'youtube_link') {
+                                return { ...sub, evaluated: true, marks: parseFloat(submissionData.yt_m) || 0 };
+                            } else if (selectedItem === 'linkedin_link' && sub.submission_type === 'linkedin_link') {
+                                return { ...sub, evaluated: true, marks: parseFloat(submissionData.lk_m) || 0 };
+                            }
+                            return sub;
+                        }) || [];
+
+                        return {
+                            ...prev,
+                            submissions: updatedSubmissions
+                        };
+                    } else {
+                        return {
+                            ...prev,
+                            isEvaluated: true
+                        };
+                    }
+                });
 
                 setShowEvaluationModal(false);
                 // Don't close the main modal immediately, let user see the updated status

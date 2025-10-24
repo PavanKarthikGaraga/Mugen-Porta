@@ -213,12 +213,7 @@ export async function POST(request) {
             }
         }
 
-        // Check if student has a record in internal_submissions, if not create one
-        const [existing] = await pool.execute(
-            'SELECT id FROM student_internal_submissions WHERE username = ?',
-            [payload.username]
-        );
-
+        // Check if this specific submission already exists
         let columnName;
         if (submissionType === 'report') {
             columnName = `r${reportNumber}`;
@@ -227,6 +222,25 @@ export async function POST(request) {
         } else if (submissionType === 'linkedin_link') {
             columnName = 'lk_l';
         }
+
+        // Check if this specific column already has a value
+        const [existingSubmission] = await pool.execute(
+            `SELECT ${columnName} FROM student_internal_submissions WHERE username = ? AND ${columnName} IS NOT NULL`,
+            [payload.username]
+        );
+
+        if (existingSubmission.length > 0 && existingSubmission[0][columnName]) {
+            return NextResponse.json(
+                { error: 'This submission has already been made. You cannot edit or resubmit.' },
+                { status: 400 }
+            );
+        }
+
+        // Check if student has a record in internal_submissions, if not create one
+        const [existing] = await pool.execute(
+            'SELECT id FROM student_internal_submissions WHERE username = ?',
+            [payload.username]
+        );
 
         if (existing.length > 0) {
             // Update existing record
@@ -249,6 +263,29 @@ export async function POST(request) {
 
     } catch (error) {
         console.error('Error saving internal submission:', error);
+
+        // Handle specific MySQL errors
+        if (error.code === 'ER_DATA_TOO_LONG') {
+            return NextResponse.json(
+                { error: 'The URL you entered is too long. Please use a shorter URL or a URL shortener service.' },
+                { status: 400 }
+            );
+        }
+
+        if (error.code === 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD') {
+            return NextResponse.json(
+                { error: 'Invalid data format. Please check your input.' },
+                { status: 400 }
+            );
+        }
+
+        if (error.code === 'ER_DUP_ENTRY') {
+            return NextResponse.json(
+                { error: 'This submission already exists.' },
+                { status: 400 }
+            );
+        }
+
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

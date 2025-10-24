@@ -1,4 +1,4 @@
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export const handleApiError = async (response) => {
     if (response.status === 401) {

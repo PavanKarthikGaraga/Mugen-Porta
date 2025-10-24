@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function StudentReports() {
     const [submissions, setSubmissions] = useState({
@@ -23,7 +24,6 @@ export default function StudentReports() {
     const [linksExpanded, setLinksExpanded] = useState(false);
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
-    const [message, setMessage] = useState({ type: '', text: '' });
 
     // Fetch existing submissions
     const fetchSubmissions = useCallback(async () => {
@@ -53,7 +53,7 @@ export default function StudentReports() {
                             newSubmissions.reports[reportIndex] = {
                                 reportNumber: submission.report_number,
                                 url: submission.submission_url || '',
-                                status: submission.evaluated ? 'evaluated' : 'pending',
+                                status: submission.evaluated ? 'evaluated' : (submission.submission_url ? 'submitted' : 'pending'),
                                 marks: submission.marks || 0,
                                 evaluated: submission.evaluated || false
                             };
@@ -61,14 +61,14 @@ export default function StudentReports() {
                     } else if (submission.submission_type === 'youtube_link') {
                         newSubmissions.youtube = {
                             url: submission.submission_url || '',
-                            status: submission.evaluated ? 'evaluated' : 'pending',
+                            status: submission.evaluated ? 'evaluated' : (submission.submission_url ? 'submitted' : 'pending'),
                             marks: submission.marks || 0,
                             evaluated: submission.evaluated || false
                         };
                     } else if (submission.submission_type === 'linkedin_link') {
                         newSubmissions.linkedin = {
                             url: submission.submission_url || '',
-                            status: submission.evaluated ? 'evaluated' : 'pending',
+                            status: submission.evaluated ? 'evaluated' : (submission.submission_url ? 'submitted' : 'pending'),
                             marks: submission.marks || 0,
                             evaluated: submission.evaluated || false
                         };
@@ -90,7 +90,7 @@ export default function StudentReports() {
 
     const handleReportSubmit = async (reportNumber, url) => {
         if (!url.trim()) {
-            setMessage({ type: 'error', text: 'Please enter a valid URL' });
+            toast.error('Please enter a valid URL');
             return;
         }
 
@@ -107,14 +107,14 @@ export default function StudentReports() {
             });
 
             if (response.ok) {
-                setMessage({ type: 'success', text: `Report ${reportNumber} submitted successfully!` });
+                toast.success(`Report ${reportNumber} submitted successfully!`);
                 fetchSubmissions();
             } else {
                 const error = await response.json();
-                setMessage({ type: 'error', text: error.message || 'Failed to submit report' });
+                toast.error(error.message || 'Failed to submit report');
             }
         } catch (error) {
-            setMessage({ type: 'error', text: 'Network error occurred' });
+            toast.error('Network error occurred');
         } finally {
             setLoading(false);
         }
@@ -122,7 +122,7 @@ export default function StudentReports() {
 
     const handleLinkSubmit = async (linkType, url) => {
         if (!url.trim()) {
-            setMessage({ type: 'error', text: 'Please enter a valid URL' });
+            toast.error('Please enter a valid URL');
             return;
         }
 
@@ -138,14 +138,14 @@ export default function StudentReports() {
             });
 
             if (response.ok) {
-                setMessage({ type: 'success', text: `${linkType === 'youtube' ? 'YouTube' : 'LinkedIn'} link submitted successfully!` });
+                toast.success(`${linkType === 'youtube' ? 'YouTube' : 'LinkedIn'} link submitted successfully!`);
                 fetchSubmissions();
             } else {
                 const error = await response.json();
-                setMessage({ type: 'error', text: error.message || 'Failed to submit link' });
+                toast.error(error.message || 'Failed to submit link');
             }
         } catch (error) {
-            setMessage({ type: 'error', text: 'Network error occurred' });
+            toast.error('Network error occurred');
         } finally {
             setLoading(false);
         }
@@ -154,6 +154,7 @@ export default function StudentReports() {
     const getStatusColor = (status) => {
         switch (status) {
             case 'evaluated': return 'text-green-600 bg-green-50 border-green-200';
+            case 'submitted': return 'text-blue-600 bg-blue-50 border-blue-200';
             case 'rejected': return 'text-red-600 bg-red-50 border-red-200';
             default: return 'text-yellow-600 bg-yellow-50 border-yellow-200';
         }
@@ -162,6 +163,7 @@ export default function StudentReports() {
     const getStatusIcon = (status) => {
         switch (status) {
             case 'evaluated': return <FiCheck className="w-4 h-4" />;
+            case 'submitted': return <FiUpload className="w-4 h-4" />;
             case 'rejected': return <FiX className="w-4 h-4" />;
             default: return <FiUpload className="w-4 h-4" />;
         }
@@ -238,23 +240,6 @@ export default function StudentReports() {
                 </CardContent>
             </Card>
 
-            {/* Message Display */}
-            {message.text && (
-                <div className={`p-4 rounded-lg border ${
-                    message.type === 'success'
-                        ? 'bg-green-50 border-green-200 text-green-800'
-                        : 'bg-red-50 border-red-200 text-red-800'
-                }`}>
-                    {message.text}
-                    <Button
-                        onClick={() => setMessage({ type: '', text: '' })}
-                        variant="ghost"
-                        className="float-right ml-4 font-bold h-auto p-1"
-                    >
-                        ×
-                    </Button>
-                </div>
-            )}
 
             {/* Main Layout */}
             <div className="flex gap-6">
@@ -455,7 +440,7 @@ export default function StudentReports() {
                                                 ? "Enter YouTube video URL"
                                                 : "Enter LinkedIn post URL"
                                         }
-                                        disabled={selectedData.evaluated}
+                                        disabled={selectedData.url && selectedData.url.trim() !== ''}
                                     />
                                 </div>
 
@@ -470,7 +455,7 @@ export default function StudentReports() {
                                             handleLinkSubmit('linkedin', selectedData.url || '');
                                         }
                                     }}
-                                    disabled={loading || !(selectedData.url || '').trim() || selectedData.evaluated}
+                                    disabled={loading || !(selectedData.url || '').trim() || (selectedData.url && selectedData.url.trim() !== '')}
                                     className="bg-red-800 hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? (
@@ -478,7 +463,7 @@ export default function StudentReports() {
                                     ) : (
                                         <>
                                             <FiUpload className="mr-2 h-5 w-5" />
-                                            {selectedData.evaluated ? 'Evaluated' : 'Submit'}
+                                            {(selectedData.url && selectedData.url.trim() !== '') ? 'Submitted' : 'Submit'}
                                         </>
                                     )}
                                 </Button>
