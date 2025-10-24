@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FiSearch, FiRefreshCw, FiDownload, FiEye, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
+import { toast } from "sonner";
 
 export default function AdminStudents() {
     const [students, setStudents] = useState([]);
@@ -105,15 +106,35 @@ export default function AdminStudents() {
 
     const downloadExcel = async () => {
         try {
+            // Build query parameters with current filters
+            const params = new URLSearchParams({
+                limit: '10000', // High limit to get all matching students
+                search: searchTerm,
+                domain: filters.domain,
+                year: filters.year,
+                residenceType: filters.residenceType,
+                clubId: filters.clubId
+            });
+
+            // Fetch all students with current filters applied
+            const response = await fetch(`/api/dashboard/admin/students?${params}`);
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to fetch students data');
+            }
+
+            const allStudents = data.data.students;
+
             // Create CSV content
             const headers = [
-                'ID', 'Username', 'Name', 'Gender', 'Year', 'Phone', 
+                'ID', 'Username', 'Name', 'Gender', 'Year', 'Phone',
                 'Residence Type', 'Hostel Name', 'Domain', 'Project ID', 'Club', 'State', 'District'
             ];
 
             const csvContent = [
                 headers.join(','),
-                ...students.map(student => [
+                ...allStudents.map(student => [
                     student.id,
                     student.username,
                     `"${student.name}"`,
@@ -139,9 +160,11 @@ export default function AdminStudents() {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
+
+            toast.success(`Downloaded ${allStudents.length} students successfully!`);
         } catch (error) {
             console.error('Error downloading Excel:', error);
-            alert('Error downloading file');
+            toast.error('Error downloading file');
         }
     };
 
