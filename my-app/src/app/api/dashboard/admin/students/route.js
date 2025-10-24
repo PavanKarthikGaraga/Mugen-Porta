@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
+import { verifyToken } from '@/lib/jwt';
 import { getConnection } from '@/lib/db';
-import { handleApiError } from '@/lib/handleApiError';
+import { handleApiError } from '@/lib/apiErrorHandler';
 
 export async function GET(request) {
     let connection;
@@ -9,20 +10,19 @@ export async function GET(request) {
     try {
         connection = await getConnection();
 
-        // Verify JWT token
-        const authHeader = request.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        // Verify JWT token from cookie
+        const cookieStore = await cookies();
+        const token = cookieStore.get('tck')?.value;
+
+        if (!token) {
             return NextResponse.json(
-                { message: 'Authorization token required' },
+                { message: 'Authentication required' },
                 { status: 401 }
             );
         }
 
-        const token = authHeader.split(' ')[1];
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET);
-        } catch (error) {
+        const decoded = await verifyToken(token);
+        if (!decoded) {
             return NextResponse.json(
                 { message: 'Invalid or expired token' },
                 { status: 401 }
@@ -38,26 +38,119 @@ export async function GET(request) {
         }
 
         const { searchParams } = new URL(request.url);
-        const role = searchParams.get('role') || 'student';
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limit = parseInt(searchParams.get('limit')) || 50;
+        const search = searchParams.get('search')?.trim() || '';
+        const domain = searchParams.get('domain')?.trim() || '';
+        const year = searchParams.get('year')?.trim() || '';
+        const residenceType = searchParams.get('residenceType')?.trim() || '';
+        const clubId = searchParams.get('clubId')?.trim() || '';
 
-        // Get all students who have internal submissions (for reports evaluation)
-        const [studentsResult] = await connection.execute(
-            `SELECT DISTINCT s.id, s.username, s.name, s.year, s.branch, s.clubId, c.name as club_name
-             FROM students s
-             INNER JOIN student_internal_submissions sis ON s.username = sis.username
-             INNER JOIN clubs c ON s.clubId = c.id
-             ORDER BY s.name ASC`
-        );
+        const offset = (page - 1) * limit;
+
+        // Build WHERE conditions
+        let whereConditions = [];
+        let queryParams = [];
+
+        if (search && search.length > 0) {
+            whereConditions.push('(s.name LIKE ? OR s.username LIKE ? OR s.email LIKE ?)');
+            queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+        }
+
+        if (domain && domain.length > 0) {
+            whereConditions.push('s.selectedDomain = ?');
+            queryParams.push(domain);
+        }
+
+        if (year && year.length > 0) {
+            whereConditions.push('s.year = ?');
+            queryParams.push(year);
+        }
+
+        if (residenceType && residenceType.length > 0) {
+            whereConditions.push('s.residenceType = ?');
+            queryParams.push(residenceType);
+        }
+
+        if (clubId && clubId.length > 0) {
+            whereConditions.push('s.clubId = ?');
+            queryParams.push(clubId);
+        }
+
+        const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+
+        // Get total count
+        const countQuery = `SELECT COUNT(*) as total FROM students s ${whereClause}`;
+        const [countResult] = await connection.execute(countQuery, queryParams);
+        const total = countResult[0].total;
+        const pages = Math.ceil(total / limit);
+
+        // Get students data with proper field mapping
+        const studentsQuery = `
+            SELECT
+                s.id,
+                s.username,
+                s.name,
+                s.gender,
+                s.year,
+                s.phoneNumber,
+                s.residenceType,
+                s.hostelName,
+                s.selectedDomain,
+                s.projectId,
+                c.name as clubName,
+                s.state,
+                s.district
+            FROM students s
+            LEFT JOIN clubs c ON s.clubId = c.id
+            ${whereClause}
+            ORDER BY s.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+        `;
+
+        const [studentsResult] = await connection.execute(studentsQuery, queryParams);
+
+        // Get stats by domain
+        const statsQuery = `
+            SELECT
+                COUNT(*) as total,
+                SUM(CASE WHEN selectedDomain = 'TEC' THEN 1 ELSE 0 END) as tec,
+                SUM(CASE WHEN selectedDomain = 'LCH' THEN 1 ELSE 0 END) as lch,
+                SUM(CASE WHEN selectedDomain = 'ESO' THEN 1 ELSE 0 END) as eso,
+                SUM(CASE WHEN selectedDomain = 'IIE' THEN 1 ELSE 0 END) as iie,
+                SUM(CASE WHEN selectedDomain = 'HWB' THEN 1 ELSE 0 END) as hwb,
+                SUM(CASE WHEN selectedDomain = 'Rural' OR ruralCategory IS NOT NULL THEN 1 ELSE 0 END) as rural
+            FROM students
+        `;
+
+        const [statsResult] = await connection.execute(statsQuery);
+        const stats = statsResult[0];
+
+        // Get club stats
+        const clubStatsQuery = `
+            SELECT
+                c.name as clubName,
+                c.id as clubId,
+                COUNT(s.username) as memberCount
+            FROM clubs c
+            LEFT JOIN students s ON c.id = s.clubId
+            GROUP BY c.id, c.name
+            ORDER BY memberCount DESC
+        `;
+
+        const [clubStatsResult] = await connection.execute(clubStatsQuery);
 
         return NextResponse.json({
             success: true,
             data: {
                 students: studentsResult,
+                stats,
+                clubStats: clubStatsResult,
                 pagination: {
-                    page: 1,
-                    limit: studentsResult.length,
-                    total: studentsResult.length,
-                    pages: 1
+                    page,
+                    limit,
+                    total,
+                    pages
                 }
             }
         });

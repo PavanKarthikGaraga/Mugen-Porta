@@ -113,7 +113,10 @@ export async function POST(request) {
 
             if (externalMarks.length > 0) {
                 const external = externalMarks[0];
-                const externalTotal = total + (external.frm || 0) + (external.fyt_m || 0) + (external.flk_m || 0);
+                const frm = parseFloat(external.frm) || 0;
+                const fyt_m = parseFloat(external.fyt_m) || 0;
+                const flk_m = parseFloat(external.flk_m) || 0;
+                const externalTotal = total + frm + fyt_m + flk_m;
                 await pool.execute(
                     'UPDATE student_external_marks SET total = ? WHERE username = ?',
                     [externalTotal, studentUsername]

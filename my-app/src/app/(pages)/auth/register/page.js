@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Link from 'next/link'
+import { Button } from "@/components/ui/button";
+
 
 // Import step components
 import Overview from "./steps/Overview";
@@ -297,10 +300,11 @@ export default function Register() {
     return (
         <div className="w-full h-screen flex flex-col">
             {/* Red Navbar */}
-            <div className="bg-red-800 text-white py-2 px-4 flex-shrink-0">
+            <div className="bg-red-800 flex items-center display-center text-white py-2 px-4 flex-shrink-0">
                 <div className="max-w-7xl mx-auto">
                     <h1 className="text-2xl font-extrabold text-center">Student Activity Center</h1>
                 </div>
+                <Link href='/auth/login'> <Button variant="link" className="text-white"> Login </Button> </Link>
             </div>
 
 

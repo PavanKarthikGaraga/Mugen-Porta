@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
+import { verifyToken } from '@/lib/jwt';
 import { getConnection } from '@/lib/db';
-import { handleApiError } from '@/lib/handleApiError';
+import { handleApiError } from '@/lib/apiErrorHandler';
 
 export async function POST(request) {
     let connection;
@@ -9,20 +10,19 @@ export async function POST(request) {
     try {
         connection = await getConnection();
 
-        // Verify JWT token
-        const authHeader = request.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        // Verify JWT token from cookie
+        const cookieStore = await cookies();
+        const token = cookieStore.get('tck')?.value;
+
+        if (!token) {
             return NextResponse.json(
-                { message: 'Authorization token required' },
+                { message: 'Authentication required' },
                 { status: 401 }
             );
         }
 
-        const token = authHeader.split(' ')[1];
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET);
-        } catch (error) {
+        const decoded = await verifyToken(token);
+        if (!decoded) {
             return NextResponse.json(
                 { message: 'Invalid or expired token' },
                 { status: 401 }

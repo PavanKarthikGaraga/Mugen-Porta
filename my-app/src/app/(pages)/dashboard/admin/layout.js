@@ -4,8 +4,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
-    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText
+    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText,NotebookTabs
 } from "react-icons/fi";
+import { BsPeopleFill } from "react-icons/bs";
+
 import ChangePassword from "@/app/components/ChangePassword";
 
 export default function AdminDashboardLayout({ children }) {

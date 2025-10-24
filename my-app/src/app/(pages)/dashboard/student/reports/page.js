@@ -1,6 +1,10 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { FiUpload, FiCheck, FiX, FiEye, FiLink, FiYoutube, FiLinkedin, FiFileText, FiBarChart, FiChevronDown, FiChevronRight } from "react-icons/fi";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function StudentReports() {
     const [submissions, setSubmissions] = useState({
@@ -197,34 +201,42 @@ export default function StudentReports() {
             </div>
 
             {/* Stats at Top */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+            <Card className="mb-6">
+                <CardHeader>
+                    <CardTitle className="flex items-center">
                         <FiBarChart className="mr-2" />
                         Submission Overview
-                    </h2>
-                </div>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-gray-900">
-                            {submissions.reports.filter(r => r.evaluated).length}/7
-                        </div>
-                        <div className="text-sm text-gray-600">Reports Evaluated</div>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-gray-900">
-                            {submissions.youtube.evaluated ? 1 : 0}/1
-                        </div>
-                        <div className="text-sm text-gray-600">YouTube Links Evaluated</div>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-gray-900">
-                            {submissions.linkedin.evaluated ? 1 : 0}/1
-                        </div>
-                        <div className="text-sm text-gray-600">LinkedIn Links Evaluated</div>
-                    </div>
+                    <Card className="text-center p-4">
+                        <CardContent className="pt-6">
+                            <div className="text-2xl font-bold text-gray-900">
+                                {submissions.reports.filter(r => r.evaluated).length}/7
+                            </div>
+                            <div className="text-sm text-gray-600">Reports Evaluated</div>
+                        </CardContent>
+                    </Card>
+                    <Card className="text-center p-4">
+                        <CardContent className="pt-6">
+                            <div className="text-2xl font-bold text-gray-900">
+                                {submissions.youtube.evaluated ? 1 : 0}/1
+                            </div>
+                            <div className="text-sm text-gray-600">YouTube Links Evaluated</div>
+                        </CardContent>
+                    </Card>
+                    <Card className="text-center p-4">
+                        <CardContent className="pt-6">
+                            <div className="text-2xl font-bold text-gray-900">
+                                {submissions.linkedin.evaluated ? 1 : 0}/1
+                            </div>
+                            <div className="text-sm text-gray-600">LinkedIn Links Evaluated</div>
+                        </CardContent>
+                    </Card>
                 </div>
-            </div>
+                </CardContent>
+            </Card>
 
             {/* Message Display */}
             {message.text && (
@@ -234,28 +246,33 @@ export default function StudentReports() {
                         : 'bg-red-50 border-red-200 text-red-800'
                 }`}>
                     {message.text}
-                    <button
+                    <Button
                         onClick={() => setMessage({ type: '', text: '' })}
-                        className="float-right ml-4 font-bold"
+                        variant="ghost"
+                        className="float-right ml-4 font-bold h-auto p-1"
                     >
                         ×
-                    </button>
+                    </Button>
                 </div>
             )}
 
             {/* Main Layout */}
             <div className="flex gap-6">
                 {/* Sidebar - Left */}
-                <div className="w-80 bg-white rounded-lg shadow-md p-6 flex-shrink-0">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">All Submissions</h3>
+                <Card className="w-80 flex-shrink-0">
+                    <CardHeader>
+                        <CardTitle>All Submissions</CardTitle>
+                    </CardHeader>
+                    <CardContent>
 
                     {/* Reports Section with Dropdown */}
                     <div className="mb-6">
-                        <button
+                        <Button
                             onClick={() => {
                                 setReportsExpanded(!reportsExpanded);
                                 if (!reportsExpanded) setLinksExpanded(false);
                             }}
+                            variant="ghost"
                             className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 rounded-md transition-colors"
                         >
                             <h4 className="text-sm font-medium text-gray-700 flex items-center">
@@ -267,14 +284,15 @@ export default function StudentReports() {
                             ) : (
                                 <FiChevronRight className="w-4 h-4 text-gray-500" />
                             )}
-                        </button>
+                        </Button>
 
                         {reportsExpanded && (
                             <div className="mt-2 space-y-2">
                                 {submissions.reports.map((report) => (
-                                    <button
+                                    <Button
                                         key={report.reportNumber}
                                         onClick={() => setSelectedItem(`report-${report.reportNumber}`)}
+                                        variant={selectedItem === `report-${report.reportNumber}` ? "secondary" : "ghost"}
                                         className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center justify-between ${
                                             selectedItem === `report-${report.reportNumber}`
                                                 ? 'bg-red-100 text-red-800 border border-red-200'
@@ -285,7 +303,7 @@ export default function StudentReports() {
                                         <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(report.status)}`}>
                                             {getStatusIcon(report.status)}
                                         </div>
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
                         )}
@@ -293,11 +311,12 @@ export default function StudentReports() {
 
                     {/* Media Links Section with Dropdown */}
                     <div>
-                        <button
+                        <Button
                             onClick={() => {
                                 setLinksExpanded(!linksExpanded);
                                 if (!linksExpanded) setReportsExpanded(false);
                             }}
+                            variant="ghost"
                             className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 rounded-md transition-colors"
                         >
                             <h4 className="text-sm font-medium text-gray-700 flex items-center">
@@ -309,12 +328,13 @@ export default function StudentReports() {
                             ) : (
                                 <FiChevronRight className="w-4 h-4 text-gray-500" />
                             )}
-                        </button>
+                        </Button>
 
                         {linksExpanded && (
                             <div className="mt-2 space-y-2">
-                                <button
+                                <Button
                                     onClick={() => setSelectedItem('youtube')}
+                                    variant={selectedItem === 'youtube' ? 'secondary' : 'ghost'}
                                     className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center justify-between ${
                                         selectedItem === 'youtube'
                                             ? 'bg-red-100 text-red-800 border border-red-200'
@@ -328,10 +348,11 @@ export default function StudentReports() {
                                     <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(submissions.youtube.status)}`}>
                                         {getStatusIcon(submissions.youtube.status)}
                                     </div>
-                                </button>
+                                </Button>
 
-                                <button
+                                <Button
                                     onClick={() => setSelectedItem('linkedin')}
+                                    variant={selectedItem === 'linkedin' ? 'secondary' : 'ghost'}
                                     className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center justify-between ${
                                         selectedItem === 'linkedin'
                                             ? 'bg-red-100 text-red-800 border border-red-200'
@@ -345,14 +366,16 @@ export default function StudentReports() {
                                     <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(submissions.linkedin.status)}`}>
                                         {getStatusIcon(submissions.linkedin.status)}
                                     </div>
-                                </button>
+                                </Button>
                             </div>
                         )}
                     </div>
-                </div>
+                    </CardContent>
+                </Card>
 
                 {/* Main Content - Right */}
-                <div className="flex-1 bg-white rounded-lg shadow-md p-6">
+                <Card className="flex-1">
+                    <CardContent className="p-6">
                     {selectedData && (
                         <div>
                             <div className="flex items-center justify-between mb-6">
@@ -397,11 +420,11 @@ export default function StudentReports() {
                             {/* URL Input and Submit */}
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <Label className="block text-sm font-medium mb-2">
                                         {selectedItem.startsWith('report-') ? 'Report URL' :
                                          selectedItem === 'youtube' ? 'YouTube Video URL' : 'LinkedIn Post URL'}
-                                    </label>
-                                    <input
+                                    </Label>
+                                    <Input
                                         type="url"
                                         value={selectedData.url || ''}
                                         onChange={(e) => {
@@ -432,12 +455,11 @@ export default function StudentReports() {
                                                 ? "Enter YouTube video URL"
                                                 : "Enter LinkedIn post URL"
                                         }
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                         disabled={selectedData.evaluated}
                                     />
                                 </div>
 
-                                <button
+                                <Button
                                     onClick={() => {
                                         if (selectedItem.startsWith('report-')) {
                                             const reportNumber = parseInt(selectedItem.split('-')[1]);
@@ -449,7 +471,7 @@ export default function StudentReports() {
                                         }
                                     }}
                                     disabled={loading || !(selectedData.url || '').trim() || selectedData.evaluated}
-                                    className="flex items-center justify-center px-6 py-3 bg-red-800 text-white rounded-md hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="bg-red-800 hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? (
                                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -459,12 +481,13 @@ export default function StudentReports() {
                                             {selectedData.evaluated ? 'Evaluated' : 'Submit'}
                                         </>
                                     )}
-                                </button>
+                                </Button>
                             </div>
                         </div>
-                    )}
-                </div>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
-        </div>
+            </div>
     );
 }

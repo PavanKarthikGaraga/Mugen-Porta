@@ -2,6 +2,13 @@
 import { useState, useEffect } from "react";
 import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiUser, FiUsers, FiFilter, FiCopy } from "react-icons/fi";
 import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function UsersPage() {
     const [users, setUsers] = useState([]);
@@ -229,57 +236,64 @@ export default function UsersPage() {
                     <h1 className="text-2xl font-bold text-gray-900">Users Management</h1>
                     <p className="text-gray-600 mt-1">Manage administrators, leads, and faculty</p>
                 </div>
-                <button
+                <Button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors"
+                    className="bg-red-800 hover:bg-red-900"
                 >
-                    <FiPlus className="h-4 w-4" />
+                    <FiPlus className="h-4 w-4 mr-2" />
                     <span>Add User</span>
-                </button>
+                </Button>
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FiFilter className="mr-2" />
-                    Filters
-                </h2>
+            <Card className="mb-6">
+                <CardHeader>
+                    <CardTitle className="flex items-center">
+                        <FiFilter className="mr-2" />
+                        Filters
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                        <select
+                        <Label className="block text-sm font-medium mb-2">Role</Label>
+                        <Select
                             value={filters.role}
-                            onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                            onValueChange={(value) => setFilters({ ...filters, role: value })}
                         >
-                            <option value="all">All Roles</option>
-                            <option value="admin">Admin</option>
-                            <option value="lead">Lead</option>
-                            <option value="faculty">Faculty</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="All Roles" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Roles</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="lead">Lead</SelectItem>
+                                <SelectItem value="faculty">Faculty</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                        <input
+                        <Label className="block text-sm font-medium mb-2">Search</Label>
+                        <Input
                             type="text"
                             value={filters.search}
                             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                             placeholder="Search by name, username, or email"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                         />
                     </div>
 
                     <div className="flex items-end">
-                        <button
+                        <Button
                             onClick={() => setFilters({ role: 'all', search: '' })}
-                            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                            variant="outline"
                         >
                             Clear Filters
-                        </button>
+                        </Button>
                     </div>
                 </div>
-            </div>
+                </CardContent>
+            </Card>
 
             {/* Users List */}
             <div className="bg-white rounded-lg shadow-lg border border-gray-200">

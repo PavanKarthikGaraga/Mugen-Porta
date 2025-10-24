@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
+import { verifyToken } from '@/lib/jwt';
 import { getConnection } from '@/lib/db';
-import { handleApiError } from '@/lib/handleApiError';
+import { handleApiError } from '@/lib/apiErrorHandler';
 
 export async function POST(request) {
     let connection;
@@ -9,20 +10,19 @@ export async function POST(request) {
     try {
         connection = await getConnection();
 
-        // Verify JWT token
-        const authHeader = request.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        // Verify JWT token from cookie
+        const cookieStore = await cookies();
+        const token = cookieStore.get('tck')?.value;
+
+        if (!token) {
             return NextResponse.json(
-                { message: 'Authorization token required' },
+                { message: 'Authentication required' },
                 { status: 401 }
             );
         }
 
-        const token = authHeader.split(' ')[1];
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET);
-        } catch (error) {
+        const decoded = await verifyToken(token);
+        if (!decoded) {
             return NextResponse.json(
                 { message: 'Invalid or expired token' },
                 { status: 401 }
@@ -60,8 +60,26 @@ export async function POST(request) {
             );
         }
 
-        const assignedClubs = facultyResult[0].assigned_clubs;
-        if (!assignedClubs) {
+        const assignedClubsJson = facultyResult[0].assigned_clubs;
+        if (!assignedClubsJson) {
+            return NextResponse.json(
+                { message: 'No assigned clubs found for faculty' },
+                { status: 403 }
+            );
+        }
+
+        // Parse assigned clubs JSON
+        let assignedClubs;
+        try {
+            assignedClubs = JSON.parse(assignedClubsJson);
+        } catch (error) {
+            return NextResponse.json(
+                { message: 'Invalid assigned clubs format' },
+                { status: 500 }
+            );
+        }
+
+        if (!Array.isArray(assignedClubs) || assignedClubs.length === 0) {
             return NextResponse.json(
                 { message: 'No assigned clubs found for faculty' },
                 { status: 403 }
@@ -82,9 +100,8 @@ export async function POST(request) {
         }
 
         const studentClubId = studentResult[0].clubId;
-        const assignedClubIds = assignedClubs.split(',').map(id => id.trim());
 
-        if (!assignedClubIds.includes(studentClubId.toString())) {
+        if (!assignedClubs.includes(studentClubId.toString())) {
             return NextResponse.json(
                 { message: 'Access denied. Student not in assigned clubs.' },
                 { status: 403 }

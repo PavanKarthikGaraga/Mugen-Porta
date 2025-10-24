@@ -19,15 +19,6 @@ export default function AdminStudents() {
         total: 0,
         pages: 0
     });
-    const [stats, setStats] = useState({
-        total: 0,
-        tec: 0,
-        lch: 0,
-        eso: 0,
-        iie: 0,
-        hwb: 0,
-        rural: 0
-    });
     const [clubStats, setClubStats] = useState([]);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [studentToDelete, setStudentToDelete] = useState(null);
@@ -55,7 +46,6 @@ export default function AdminStudents() {
             if (data.success) {
                 setStudents(data.data.students);
                 setPagination(data.data.pagination);
-                setStats(data.data.stats);
                 setClubStats(data.data.clubStats || []);
             } else {
                 console.error('Error fetching students:', data.error);
@@ -173,7 +163,7 @@ export default function AdminStudents() {
                 <div className="flex items-center space-x-4">
                     <h1 className="text-2xl font-bold text-gray-900">Students</h1>
                     <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                        Total Students: {stats.total}
+                        Total Students: {pagination.total}
                     </span>
                 </div>
                 <div className="flex space-x-3">
@@ -195,48 +185,6 @@ export default function AdminStudents() {
                 </div>
             </div>
 
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <div className="text-sm text-green-600">TEC</div>
-                    <div className="text-2xl font-bold text-green-800">{stats.tec}</div>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <div className="text-sm text-purple-600">LCH</div>
-                    <div className="text-2xl font-bold text-purple-800">{stats.lch}</div>
-                </div>
-                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                    <div className="text-sm text-yellow-600">ESO</div>
-                    <div className="text-2xl font-bold text-yellow-800">{stats.eso}</div>
-                </div>
-                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                    <div className="text-sm text-orange-600">IIE</div>
-                    <div className="text-2xl font-bold text-orange-800">{stats.iie}</div>
-                </div>
-                <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
-                    <div className="text-sm text-pink-600">HWB</div>
-                    <div className="text-2xl font-bold text-pink-800">{stats.hwb}</div>
-                </div>
-                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                    <div className="text-sm text-indigo-600">Rural</div>
-                    <div className="text-2xl font-bold text-indigo-800">{stats.rural}</div>
-                </div>
-            </div>
-
-            {/* Club Statistics */}
-            {clubStats.length > 0 && (
-                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Club Membership</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {clubStats.slice(0, 8).map((club) => (
-                            <div key={club.clubName || 'no-club'} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                <div className="text-xs text-gray-600 truncate">{club.clubName || 'No Club'}</div>
-                                <div className="text-lg font-bold text-gray-800">{club.memberCount}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
 
             {/* Search and Filters */}
             <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">

@@ -1,6 +1,25 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { FiExternalLink, FiCheck, FiX, FiAlertTriangle, FiFileText } from "react-icons/fi";
+import { FiExternalLink, FiCheck, FiX, FiAlertTriangle, FiFileText, FiSearch } from "react-icons/fi";
+import { toast } from "sonner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const ReportsEvaluation = ({
     userRole,
@@ -9,6 +28,7 @@ const ReportsEvaluation = ({
     maxMarks,
     marksBreakdown = []
 }) => {
+    const [allStudents, setAllStudents] = useState([]);
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedStudent, setSelectedStudent] = useState(null);
@@ -18,6 +38,14 @@ const ReportsEvaluation = ({
     const [evaluationData, setEvaluationData] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [modalViewType, setModalViewType] = useState('all'); // 'reports', 'links', or 'all'
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filters, setFilters] = useState({
+        domain: '',
+        year: '',
+        clubId: '',
+        evaluationStatus: '' // 'done', 'pending', or ''
+    });
+    const [clubStats, setClubStats] = useState([]);
 
     // Get API endpoints based on user role and report type
     const apis = useMemo(() => {
@@ -41,16 +69,16 @@ const ReportsEvaluation = ({
         // Determine evaluation API based on role
         switch (userRole) {
             case 'lead':
-                evaluateApi = reportType === 'internal' ? '/api/lead/evaluate/internal' : '/api/lead/evaluate/external';
+                evaluateApi = reportType === 'internal' ? '/api/dashboard/lead/evaluate/internal' : '/api/dashboard/lead/evaluate/external';
                 break;
             case 'faculty':
-                evaluateApi = reportType === 'internal' ? '/api/faculty/evaluate/internal' : '/api/faculty/evaluate/external';
+                evaluateApi = reportType === 'internal' ? '/api/dashboard/faculty/evaluate/internal' : '/api/dashboard/faculty/evaluate/external';
                 break;
             case 'admin':
-                evaluateApi = reportType === 'internal' ? '/api/admin/evaluate/internal' : '/api/admin/evaluate/external';
+                evaluateApi = reportType === 'internal' ? '/api/dashboard/admin/evaluate/internal' : '/api/dashboard/admin/evaluate/external';
                 break;
             default:
-                evaluateApi = reportType === 'internal' ? '/api/lead/evaluate/internal' : '/api/lead/evaluate/external';
+                evaluateApi = reportType === 'internal' ? '/api/dashboard/lead/evaluate/internal' : '/api/dashboard/lead/evaluate/external';
         }
 
         return {
@@ -60,7 +88,7 @@ const ReportsEvaluation = ({
         };
     }, [userRole, reportType]);
 
-    // Fetch students only (user data should be passed as props or fetched once)
+    // Fetch students and club stats
     const fetchStudents = useCallback(async () => {
         try {
             setLoading(true);
@@ -69,9 +97,14 @@ const ReportsEvaluation = ({
             const studentsResponse = await fetch(apis.students);
             if (studentsResponse.ok) {
                 const studentsData = await studentsResponse.json();
-                const studentsList = userRole === 'admin' ?
-                    studentsData.data || studentsData :
-                    studentsData.data.students;
+                const studentsList = studentsData.success ?
+                    studentsData.data.students :
+                    (studentsData.data || studentsData);
+
+                // Fetch club stats for filtering (only for admin role)
+                if (userRole === 'admin' && studentsData.success && studentsData.data.clubStats) {
+                    setClubStats(studentsData.data.clubStats);
+                }
 
                 // Fetch submissions and marks for each student
                 const studentsWithSubmissions = await Promise.all(
@@ -83,20 +116,21 @@ const ReportsEvaluation = ({
 
                             if (reportType === 'internal') {
                                 // Internal reports logic
-                                const reportsEvaluated = submissionsData.submissions.filter(s => s.submission_type === 'report' && s.evaluated).length;
-                                const youtubeEvaluated = submissionsData.submissions.some(s => s.submission_type === 'youtube_link' && s.evaluated);
-                                const linkedinEvaluated = submissionsData.submissions.some(s => s.submission_type === 'linkedin_link' && s.evaluated);
+                                const submissions = submissionsData.submissions || [];
+                                const reportsEvaluated = submissions.filter(s => s.submission_type === 'report' && s.evaluated).length;
+                                const youtubeEvaluated = submissions.some(s => s.submission_type === 'youtube_link' && s.evaluated);
+                                const linkedinEvaluated = submissions.some(s => s.submission_type === 'linkedin_link' && s.evaluated);
 
-                                const hasUnevaluatedReports = submissionsData.submissions.some(s => s.submission_type === 'report' && s.submission_url && !s.evaluated);
-                                const hasUnevaluatedYoutube = submissionsData.submissions.some(s => s.submission_type === 'youtube_link' && s.submission_url && !s.evaluated);
-                                const hasUnevaluatedLinkedin = submissionsData.submissions.some(s => s.submission_type === 'linkedin_link' && s.submission_url && !s.evaluated);
+                                const hasUnevaluatedReports = submissions.some(s => s.submission_type === 'report' && s.submission_url && !s.evaluated);
+                                const hasUnevaluatedYoutube = submissions.some(s => s.submission_type === 'youtube_link' && s.submission_url && !s.evaluated);
+                                const hasUnevaluatedLinkedin = submissions.some(s => s.submission_type === 'linkedin_link' && s.submission_url && !s.evaluated);
 
                                 const needsReview = hasUnevaluatedReports || hasUnevaluatedYoutube || hasUnevaluatedLinkedin;
-                                const hasSubmissions = submissionsData.submissions.length > 0;
+                                const hasSubmissions = submissions.length > 0;
 
                                 return {
                                     ...student,
-                                    submissions: submissionsData.submissions,
+                                    submissions,
                                     hasSubmissions,
                                     needsReview,
                                     reportsStatus: `${reportsEvaluated}/7`,
@@ -108,7 +142,7 @@ const ReportsEvaluation = ({
                                 const hasFinalReport = submissionsData.submission?.final_report_url;
                                 const hasYoutube = submissionsData.submission?.presentation_youtube_url;
                                 const hasLinkedin = submissionsData.submission?.presentation_linkedin_url;
-                                const isEvaluated = submissionsData.submission?.total > 0;
+                                const isEvaluated = submissionsData.submission?.evaluated || false;
 
                                 const needsReview = (hasFinalReport || hasYoutube || hasLinkedin) && !isEvaluated;
                                 const hasSubmissions = hasFinalReport || hasYoutube || hasLinkedin;
@@ -137,16 +171,8 @@ const ReportsEvaluation = ({
                     })
                 );
 
-                // Filter students based on report type and role
-                let filteredStudents = studentsWithSubmissions;
-                if (reportType === 'final') {
-                    filteredStudents = studentsWithSubmissions.filter(student => student.hasSubmissions);
-                } else if (reportType === 'internal') {
-                    // For internal reports, show all students but they might not have submissions yet
-                    filteredStudents = studentsWithSubmissions;
-                }
-
-                setStudents(filteredStudents);
+                setAllStudents(studentsWithSubmissions);
+                applyFilters(studentsWithSubmissions);
             }
         } catch (error) {
             console.error('Error fetching students:', error);
@@ -155,9 +181,57 @@ const ReportsEvaluation = ({
         }
     }, [userRole, reportType, apis]);
 
+    // Apply filters to students
+    const applyFilters = useCallback((studentsList = allStudents) => {
+        let filteredStudents = [...studentsList];
+
+        // Apply report type filters
+        if (reportType === 'final') {
+            filteredStudents = filteredStudents.filter(student => student.hasSubmissions);
+        }
+
+        // Apply user search and filters
+        if (searchTerm.trim()) {
+            const search = searchTerm.toLowerCase();
+            filteredStudents = filteredStudents.filter(student =>
+                student.name?.toLowerCase().includes(search) ||
+                student.username?.toLowerCase().includes(search)
+            );
+        }
+
+        if (filters.domain) {
+            filteredStudents = filteredStudents.filter(student => student.selectedDomain === filters.domain);
+        }
+
+        if (filters.year) {
+            filteredStudents = filteredStudents.filter(student => student.year === filters.year);
+        }
+
+        if (filters.clubId) {
+            filteredStudents = filteredStudents.filter(student => student.clubId === filters.clubId);
+        }
+
+        if (filters.evaluationStatus) {
+            if (filters.evaluationStatus === 'done') {
+                filteredStudents = filteredStudents.filter(student => student.isEvaluated || student.reportsStatus === '7/7');
+            } else if (filters.evaluationStatus === 'pending') {
+                filteredStudents = filteredStudents.filter(student => !student.isEvaluated && student.reportsStatus !== '7/7');
+            }
+        }
+
+        setStudents(filteredStudents);
+    }, [allStudents, searchTerm, filters, reportType]);
+
     useEffect(() => {
         fetchStudents();
     }, [fetchStudents]);
+
+    // Apply filters when search or filters change
+    useEffect(() => {
+        if (allStudents.length > 0) {
+            applyFilters();
+        }
+    }, [applyFilters]);
 
     const handleViewReports = (student) => {
         setSelectedStudent(student);
@@ -209,17 +283,30 @@ const ReportsEvaluation = ({
             });
 
             if (response.ok) {
+                // Update the selected student data immediately to reflect the evaluation
+                setSelectedStudent(prev => prev ? {
+                    ...prev,
+                    isEvaluated: reportType === 'final' ? true : prev.isEvaluated,
+                    reportsStatus: reportType === 'internal' ? '7/7' : prev.reportsStatus
+                } : null);
+
                 setShowEvaluationModal(false);
-                setShowModal(false);
-                fetchStudents(); // Refresh data
-                alert('Evaluation submitted successfully!');
+                // Don't close the main modal immediately, let user see the updated status
+                fetchStudents(); // Refresh data in background
+                toast.success('Evaluation submitted successfully!');
+
+                // Close modal after a short delay to let user see the updated status
+                setTimeout(() => {
+                    setShowModal(false);
+                    setSelectedStudent(null);
+                }, 1500);
             } else {
                 const error = await response.json();
-                alert(error.message || 'Failed to submit evaluation');
+                toast.error(error.message || 'Failed to submit evaluation');
             }
         } catch (error) {
             console.error('Error submitting evaluation:', error);
-            alert('Network error occurred');
+            toast.error('Network error occurred');
         } finally {
             setSubmitting(false);
         }
@@ -237,225 +324,231 @@ const ReportsEvaluation = ({
     const renderStudentTable = () => {
         if (reportType === 'internal') {
             return (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Username
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Reports
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    YouTube Link
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    LinkedIn Link
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {students.map((student) => (
-                                <tr key={student.username} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {student.username}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <button
-                                            onClick={() => handleViewReports(student)}
-                                            className={`flex items-center space-x-2 hover:text-red-600 transition-colors ${
-                                                student.needsReview ? 'font-semibold' : ''
-                                            }`}
-                                        >
-                                            <span>{student.reportsStatus}</span>
-                                            {student.needsReview && (
-                                                <FiAlertTriangle className="w-4 h-4 text-orange-500" />
-                                            )}
-                                        </button>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        {student.youtubeStatus !== 'NULL' ? (
-                                            <button
-                                                onClick={() => handleViewLinks(student)}
-                                                className={`hover:text-red-600 transition-colors ${getStatusColor(student.youtubeStatus)}`}
-                                            >
-                                                {student.youtubeStatus}
-                                                {student.youtubeStatus === 'review' && (
-                                                    <FiAlertTriangle className="inline w-4 h-4 ml-1 text-orange-500" />
-                                                )}
-                                            </button>
-                                        ) : (
-                                            <span className={getStatusColor(student.youtubeStatus)}>
-                                                {student.youtubeStatus}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        {student.linkedinStatus !== 'NULL' ? (
-                                            <button
-                                                onClick={() => handleViewLinks(student)}
-                                                className={`hover:text-red-600 transition-colors ${getStatusColor(student.linkedinStatus)}`}
-                                            >
-                                                {student.linkedinStatus}
-                                                {student.linkedinStatus === 'review' && (
-                                                    <FiAlertTriangle className="inline w-4 h-4 ml-1 text-orange-500" />
-                                                )}
-                                            </button>
-                                        ) : (
-                                            <span className={getStatusColor(student.linkedinStatus)}>
-                                                {student.linkedinStatus}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button
-                                            onClick={() => handleViewClick(student)}
-                                            className="text-blue-600 hover:text-blue-900"
-                                        >
-                                            View Details
-                                        </button>
-                                    </td>
+                <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reports</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">YouTube</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LinkedIn</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {students.map((student, index) => (
+                                    <tr key={student.username} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {index + 1}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {student.username}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {student.name}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <Button
+                                                variant="link"
+                                                onClick={() => handleViewReports(student)}
+                                                className={`h-auto p-0 text-red-800 hover:text-red-600 ${
+                                                    student.needsReview ? 'font-semibold' : ''
+                                                }`}
+                                            >
+                                                <span>{student.reportsStatus}</span>
+                                                {student.needsReview && (
+                                                    <FiAlertTriangle className="w-4 h-4 ml-1 text-orange-500" />
+                                                )}
+                                            </Button>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {student.youtubeStatus !== 'NULL' ? (
+                                                <Button
+                                                    variant="link"
+                                                    onClick={() => handleViewLinks(student)}
+                                                    className={`h-auto p-0 ${getStatusColor(student.youtubeStatus)} hover:text-red-600`}
+                                                >
+                                                    {student.youtubeStatus}
+                                                    {student.youtubeStatus === 'review' && (
+                                                        <FiAlertTriangle className="w-4 h-4 ml-1 text-orange-500" />
+                                                    )}
+                                                </Button>
+                                            ) : (
+                                                <span className={getStatusColor(student.youtubeStatus)}>
+                                                    {student.youtubeStatus}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {student.linkedinStatus !== 'NULL' ? (
+                                                <Button
+                                                    variant="link"
+                                                    onClick={() => handleViewLinks(student)}
+                                                    className={`h-auto p-0 ${getStatusColor(student.linkedinStatus)} hover:text-red-600`}
+                                                >
+                                                    {student.linkedinStatus}
+                                                    {student.linkedinStatus === 'review' && (
+                                                        <FiAlertTriangle className="w-4 h-4 ml-1 text-orange-500" />
+                                                    )}
+                                                </Button>
+                                            ) : (
+                                                <span className={getStatusColor(student.linkedinStatus)}>
+                                                    {student.linkedinStatus}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <Button
+                                                variant="link"
+                                                onClick={() => handleViewClick(student)}
+                                                className="h-auto p-0 text-blue-600 hover:text-blue-900"
+                                            >
+                                                View Details
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             );
         } else {
             // Final reports table
             return (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Username
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Name
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Final Submission
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Total Marks
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {students.map((student) => (
-                                <tr key={student.username} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {student.username}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {student.name}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <button
-                                            onClick={() => handleViewClick(student)}
-                                            className={`flex items-center space-x-2 hover:text-red-600 transition-colors ${
-                                                student.needsReview ? 'font-semibold' : ''
-                                            }`}
-                                        >
-                                            <FiFileText className="w-4 h-4" />
-                                            <span>View Final Submission</span>
-                                            {student.needsReview && (
-                                                <FiAlertTriangle className="w-4 h-4 text-orange-500" />
-                                            )}
-                                        </button>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                            student.isEvaluated ? 'bg-green-100 text-green-800' :
-                                            student.needsReview ? 'bg-orange-100 text-orange-800' :
-                                            'bg-gray-100 text-gray-800'
-                                        }`}>
-                                            {student.isEvaluated ? (
-                                                <><FiCheck className="w-3 h-3 mr-1" />Evaluated</>
-                                            ) : student.needsReview ? (
-                                                <><FiAlertTriangle className="w-3 h-3 mr-1" />Needs Review</>
-                                            ) : (
-                                                'Not Submitted'
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {student.finalSubmission?.total_marks ? `${student.finalSubmission.total_marks}/100` : '-'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button
-                                            onClick={() => handleViewClick(student)}
-                                            className="text-blue-600 hover:text-blue-900"
-                                        >
-                                            View Details
-                                        </button>
-                                    </td>
+                <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Final Submission</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Marks</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {students.map((student, index) => (
+                                    <tr key={student.username} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {index + 1}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {student.username}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {student.name}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <Button
+                                                variant="link"
+                                                onClick={() => handleViewClick(student)}
+                                                className={`h-auto p-0 text-red-800 hover:text-red-600 ${
+                                                    student.needsReview ? 'font-semibold' : ''
+                                                }`}
+                                            >
+                                                <FiFileText className="w-4 h-4 mr-2" />
+                                                <span>View Final Submission</span>
+                                                {student.needsReview && (
+                                                    <FiAlertTriangle className="w-4 h-4 ml-1 text-orange-500" />
+                                                )}
+                                            </Button>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <Badge
+                                                variant={
+                                                    student.isEvaluated ? "default" :
+                                                    student.needsReview ? "secondary" :
+                                                    "outline"
+                                                }
+                                                className={
+                                                    student.isEvaluated ? "bg-green-100 text-green-800 hover:bg-green-100" :
+                                                    student.needsReview ? "bg-orange-100 text-orange-800 hover:bg-orange-100" :
+                                                    "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                                                }
+                                            >
+                                                {student.isEvaluated ? (
+                                                    <><FiCheck className="w-3 h-3 mr-1" />Evaluated</>
+                                                ) : student.needsReview ? (
+                                                    <><FiAlertTriangle className="w-3 h-3 mr-1" />Needs Review</>
+                                                ) : (
+                                                    'Not Submitted'
+                                                )}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {student.finalSubmission?.marks ? `${student.finalSubmission.marks}/100` : '-'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <Button
+                                                variant="link"
+                                                onClick={() => handleViewClick(student)}
+                                                className="h-auto p-0 text-blue-600 hover:text-blue-900"
+                                            >
+                                                View Details
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             );
         }
     };
 
     const renderModalContent = () => {
+        if (!selectedStudent) return null;
+
         if (reportType === 'internal') {
             const showReports = modalViewType === 'reports' || modalViewType === 'all';
             const showLinks = modalViewType === 'links' || modalViewType === 'all';
 
             return (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Submission Type
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Marks
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Link
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Submission Type</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Marks</TableHead>
+                                <TableHead>Link</TableHead>
+                                <TableHead>Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             {/* Report Rows - Only show if modalViewType includes reports */}
                             {showReports && Array.from({ length: 7 }, (_, i) => {
                                 const reportNumber = i + 1;
-                                const submission = selectedStudent.submissions.find(
+                                const submission = selectedStudent.submissions?.find(
                                     s => s.submission_type === 'report' && s.report_number === reportNumber
                                 );
 
                                 return (
-                                    <tr key={reportNumber} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <TableRow key={reportNumber}>
+                                        <TableCell className="font-medium">
                                             Report {reportNumber}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                submission?.evaluated ? 'bg-green-100 text-green-800' :
-                                                submission?.submission_url ? 'bg-orange-100 text-orange-800' :
-                                                'bg-gray-100 text-gray-800'
-                                            }`}>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                variant={
+                                                    submission?.evaluated ? "default" :
+                                                    submission?.submission_url ? "secondary" :
+                                                    "outline"
+                                                }
+                                                className={
+                                                    submission?.evaluated ? "bg-green-100 text-green-800 hover:bg-green-100" :
+                                                    submission?.submission_url ? "bg-orange-100 text-orange-800 hover:bg-orange-100" :
+                                                    "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                                                }
+                                            >
                                                 {submission?.evaluated ? (
                                                     <><FiCheck className="w-3 h-3 mr-1" />Evaluated</>
                                                 ) : submission?.submission_url ? (
@@ -463,54 +556,68 @@ const ReportsEvaluation = ({
                                                 ) : (
                                                     'Not Submitted'
                                                 )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
                                             {submission?.marks ? `${submission.marks}/7` : '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">
+                                        </TableCell>
+                                        <TableCell>
                                             {submission?.submission_url ? (
-                                                <a
-                                                    href={submission.submission_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                                                <Button
+                                                    variant="link"
+                                                    asChild
+                                                    className="h-auto p-0 text-blue-600 hover:text-blue-800"
                                                 >
-                                                    <FiExternalLink className="w-4 h-4 mr-1" />
-                                                    View Report
-                                                </a>
+                                                    <a
+                                                        href={submission.submission_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <FiExternalLink className="w-4 h-4 mr-1" />
+                                                        View Report
+                                                    </a>
+                                                </Button>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        </TableCell>
+                                        <TableCell>
                                             {submission?.submission_url && !submission?.evaluated && (
-                                                <button
+                                                <Button
                                                     onClick={() => handleEvaluate(reportNumber)}
-                                                    className="text-red-600 hover:text-red-900 px-3 py-1 border border-red-600 rounded hover:bg-red-50 transition-colors"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-900"
                                                 >
                                                     Evaluate
-                                                </button>
+                                                </Button>
                                             )}
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                    </TableRow>
                                 );
                             })}
 
                             {/* YouTube Link Row - Only show if modalViewType includes links */}
                             {showLinks && (() => {
-                                const submission = selectedStudent.submissions.find(s => s.submission_type === 'youtube_link');
+                                const submission = selectedStudent.submissions?.find(s => s.submission_type === 'youtube_link');
                                 return (
-                                    <tr className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <TableRow key="youtube">
+                                        <TableCell className="font-medium">
                                             YouTube Link
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                submission?.evaluated ? 'bg-green-100 text-green-800' :
-                                                submission?.submission_url ? 'bg-orange-100 text-orange-800' :
-                                                'bg-gray-100 text-gray-800'
-                                            }`}>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                variant={
+                                                    submission?.evaluated ? "default" :
+                                                    submission?.submission_url ? "secondary" :
+                                                    "outline"
+                                                }
+                                                className={
+                                                    submission?.evaluated ? "bg-green-100 text-green-800 hover:bg-green-100" :
+                                                    submission?.submission_url ? "bg-orange-100 text-orange-800 hover:bg-orange-100" :
+                                                    "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                                                }
+                                            >
                                                 {submission?.evaluated ? (
                                                     <><FiCheck className="w-3 h-3 mr-1" />Evaluated</>
                                                 ) : submission?.submission_url ? (
@@ -518,54 +625,68 @@ const ReportsEvaluation = ({
                                                 ) : (
                                                     'Not Submitted'
                                                 )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
                                             {submission?.marks ? `${submission.marks}/5.5` : '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">
+                                        </TableCell>
+                                        <TableCell>
                                             {submission?.submission_url ? (
-                                                <a
-                                                    href={submission.submission_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                                                <Button
+                                                    variant="link"
+                                                    asChild
+                                                    className="h-auto p-0 text-blue-600 hover:text-blue-800"
                                                 >
-                                                    <FiExternalLink className="w-4 h-4 mr-1" />
-                                                    View Link
-                                                </a>
+                                                    <a
+                                                        href={submission.submission_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <FiExternalLink className="w-4 h-4 mr-1" />
+                                                        View Link
+                                                    </a>
+                                                </Button>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        </TableCell>
+                                        <TableCell>
                                             {submission?.submission_url && !submission?.evaluated && (
-                                                <button
+                                                <Button
                                                     onClick={() => handleEvaluate('youtube_link')}
-                                                    className="text-red-600 hover:text-red-900 px-3 py-1 border border-red-600 rounded hover:bg-red-50 transition-colors"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-900"
                                                 >
                                                     Evaluate
-                                                </button>
+                                                </Button>
                                             )}
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                    </TableRow>
                                 );
                             })()}
 
                             {/* LinkedIn Link Row - Only show if modalViewType includes links */}
                             {showLinks && (() => {
-                                const submission = selectedStudent.submissions.find(s => s.submission_type === 'linkedin_link');
+                                const submission = selectedStudent.submissions?.find(s => s.submission_type === 'linkedin_link');
                                 return (
-                                    <tr className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <TableRow key="linkedin">
+                                        <TableCell className="font-medium">
                                             LinkedIn Link
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                submission?.evaluated ? 'bg-green-100 text-green-800' :
-                                                submission?.submission_url ? 'bg-orange-100 text-orange-800' :
-                                                'bg-gray-100 text-gray-800'
-                                            }`}>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                variant={
+                                                    submission?.evaluated ? "default" :
+                                                    submission?.submission_url ? "secondary" :
+                                                    "outline"
+                                                }
+                                                className={
+                                                    submission?.evaluated ? "bg-green-100 text-green-800 hover:bg-green-100" :
+                                                    submission?.submission_url ? "bg-orange-100 text-orange-800 hover:bg-orange-100" :
+                                                    "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                                                }
+                                            >
                                                 {submission?.evaluated ? (
                                                     <><FiCheck className="w-3 h-3 mr-1" />Evaluated</>
                                                 ) : submission?.submission_url ? (
@@ -573,85 +694,89 @@ const ReportsEvaluation = ({
                                                 ) : (
                                                     'Not Submitted'
                                                 )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
                                             {submission?.marks ? `${submission.marks}/5.5` : '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">
+                                        </TableCell>
+                                        <TableCell>
                                             {submission?.submission_url ? (
-                                                <a
-                                                    href={submission.submission_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                                                <Button
+                                                    variant="link"
+                                                    asChild
+                                                    className="h-auto p-0 text-blue-600 hover:text-blue-800"
                                                 >
-                                                    <FiExternalLink className="w-4 h-4 mr-1" />
-                                                    View Link
-                                                </a>
+                                                    <a
+                                                        href={submission.submission_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <FiExternalLink className="w-4 h-4 mr-1" />
+                                                        View Link
+                                                    </a>
+                                                </Button>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        </TableCell>
+                                        <TableCell>
                                             {submission?.submission_url && !submission?.evaluated && (
-                                                <button
+                                                <Button
                                                     onClick={() => handleEvaluate('linkedin_link')}
-                                                    className="text-red-600 hover:text-red-900 px-3 py-1 border border-red-600 rounded hover:bg-red-50 transition-colors"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-900"
                                                 >
                                                     Evaluate
-                                                </button>
+                                                </Button>
                                             )}
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                    </TableRow>
                                 );
                             })()}
-                        </tbody>
-                    </table>
+                        </TableBody>
+                    </Table>
                 </div>
             );
         } else {
             // Final reports modal content
             return (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Submission Type
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Marks
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Link
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Submission Type</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Marks</TableHead>
+                                <TableHead>Link</TableHead>
+                                <TableHead>Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             {/* Final Report Row */}
                             {(() => {
                                 const submission = selectedStudent.finalSubmission;
                                 const hasReport = submission?.final_report_url;
-                                const isReportEvaluated = submission?.frm > 0;
+                                const isReportEvaluated = selectedStudent.isEvaluated;
 
                                 return (
-                                    <tr className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <TableRow key="final-report">
+                                        <TableCell className="font-medium">
                                             Final Report
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                isReportEvaluated ? 'bg-green-100 text-green-800' :
-                                                hasReport ? 'bg-orange-100 text-orange-800' :
-                                                'bg-gray-100 text-gray-800'
-                                            }`}>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                variant={
+                                                    isReportEvaluated ? "default" :
+                                                    hasReport ? "secondary" :
+                                                    "outline"
+                                                }
+                                                className={
+                                                    isReportEvaluated ? "bg-green-100 text-green-800 hover:bg-green-100" :
+                                                    hasReport ? "bg-orange-100 text-orange-800 hover:bg-orange-100" :
+                                                    "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                                                }
+                                            >
                                                 {isReportEvaluated ? (
                                                     <><FiCheck className="w-3 h-3 mr-1" />Evaluated</>
                                                 ) : hasReport ? (
@@ -659,37 +784,44 @@ const ReportsEvaluation = ({
                                                 ) : (
                                                     'Not Submitted'
                                                 )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
                                             {isReportEvaluated ? `${submission.frm}/25` : '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">
+                                        </TableCell>
+                                        <TableCell>
                                             {hasReport ? (
-                                                <a
-                                                    href={submission.final_report_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                                                <Button
+                                                    variant="link"
+                                                    asChild
+                                                    className="h-auto p-0 text-blue-600 hover:text-blue-800"
                                                 >
-                                                    <FiExternalLink className="w-4 h-4 mr-1" />
-                                                    View Report
-                                                </a>
+                                                    <a
+                                                        href={submission.final_report_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <FiExternalLink className="w-4 h-4 mr-1" />
+                                                        View Report
+                                                    </a>
+                                                </Button>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        </TableCell>
+                                        <TableCell>
                                             {hasReport && !isReportEvaluated && (
-                                                <button
+                                                <Button
                                                     onClick={() => handleEvaluate('final')}
-                                                    className="text-red-600 hover:text-red-900 px-3 py-1 border border-red-600 rounded hover:bg-red-50 transition-colors"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-900"
                                                 >
                                                     Evaluate
-                                                </button>
+                                                </Button>
                                             )}
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                    </TableRow>
                                 );
                             })()}
 
@@ -699,43 +831,52 @@ const ReportsEvaluation = ({
                                 const hasYoutube = submission?.presentation_youtube_url;
 
                                 return (
-                                    <tr className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <TableRow key="youtube-presentation">
+                                        <TableCell className="font-medium">
                                             YouTube Presentation
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                hasYoutube ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                            }`}>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                variant={hasYoutube ? "default" : "outline"}
+                                                className={
+                                                    hasYoutube ? "bg-green-100 text-green-800 hover:bg-green-100" :
+                                                    "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                                                }
+                                            >
                                                 {hasYoutube ? (
                                                     <><FiCheck className="w-3 h-3 mr-1" />Submitted</>
                                                 ) : (
                                                     'Not Submitted'
                                                 )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
                                             -
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">
+                                        </TableCell>
+                                        <TableCell>
                                             {hasYoutube ? (
-                                                <a
-                                                    href={submission.presentation_youtube_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                                                <Button
+                                                    variant="link"
+                                                    asChild
+                                                    className="h-auto p-0 text-blue-600 hover:text-blue-800"
                                                 >
-                                                    <FiExternalLink className="w-4 h-4 mr-1" />
-                                                    View Presentation
-                                                </a>
+                                                    <a
+                                                        href={submission.presentation_youtube_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <FiExternalLink className="w-4 h-4 mr-1" />
+                                                        View Presentation
+                                                    </a>
+                                                </Button>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        </TableCell>
+                                        <TableCell>
                                             -
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                    </TableRow>
                                 );
                             })()}
 
@@ -745,47 +886,56 @@ const ReportsEvaluation = ({
                                 const hasLinkedin = submission?.presentation_linkedin_url;
 
                                 return (
-                                    <tr className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <TableRow key="linkedin-presentation">
+                                        <TableCell className="font-medium">
                                             LinkedIn Presentation
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                hasLinkedin ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                            }`}>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                variant={hasLinkedin ? "default" : "outline"}
+                                                className={
+                                                    hasLinkedin ? "bg-green-100 text-green-800 hover:bg-green-100" :
+                                                    "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                                                }
+                                            >
                                                 {hasLinkedin ? (
                                                     <><FiCheck className="w-3 h-3 mr-1" />Submitted</>
                                                 ) : (
                                                     'Not Submitted'
                                                 )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
                                             -
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">
+                                        </TableCell>
+                                        <TableCell>
                                             {hasLinkedin ? (
-                                                <a
-                                                    href={submission.presentation_linkedin_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                                                <Button
+                                                    variant="link"
+                                                    asChild
+                                                    className="h-auto p-0 text-blue-600 hover:text-blue-800"
                                                 >
-                                                    <FiExternalLink className="w-4 h-4 mr-1" />
-                                                    View Post
-                                                </a>
+                                                    <a
+                                                        href={submission.presentation_linkedin_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <FiExternalLink className="w-4 h-4 mr-1" />
+                                                        View Post
+                                                    </a>
+                                                </Button>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        </TableCell>
+                                        <TableCell>
                                             -
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                    </TableRow>
                                 );
                             })()}
-                        </tbody>
-                    </table>
+                        </TableBody>
+                    </Table>
                 </div>
             );
         }
@@ -795,11 +945,12 @@ const ReportsEvaluation = ({
         if (reportType === 'internal') {
             return (
                 <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="space-y-2">
+                        <Label htmlFor="report-marks">
                             Report {selectedItem} Marks (0-7)
-                        </label>
-                        <input
+                        </Label>
+                        <Input
+                            id="report-marks"
                             type="number"
                             step="1"
                             min="0"
@@ -809,17 +960,17 @@ const ReportsEvaluation = ({
                                 ...prev,
                                 [`m${selectedItem}`]: e.target.value
                             }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                             placeholder="Enter marks"
                         />
                     </div>
 
                     {selectedItem === 'youtube_link' && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="youtube-marks">
                                 YouTube Link Marks (0-5.5)
-                            </label>
-                            <input
+                            </Label>
+                            <Input
+                                id="youtube-marks"
                                 type="number"
                                 step="0.1"
                                 min="0"
@@ -829,18 +980,18 @@ const ReportsEvaluation = ({
                                     ...prev,
                                     yt_m: e.target.value
                                 }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                 placeholder="Enter marks for YouTube link"
                             />
                         </div>
                     )}
 
                     {selectedItem === 'linkedin_link' && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="linkedin-marks">
                                 LinkedIn Link Marks (0-5.5)
-                            </label>
-                            <input
+                            </Label>
+                            <Input
+                                id="linkedin-marks"
                                 type="number"
                                 step="0.1"
                                 min="0"
@@ -850,7 +1001,6 @@ const ReportsEvaluation = ({
                                     ...prev,
                                     lk_m: e.target.value
                                 }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                 placeholder="Enter marks for LinkedIn link"
                             />
                         </div>
@@ -860,11 +1010,12 @@ const ReportsEvaluation = ({
         } else {
             return (
                 <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="space-y-2">
+                        <Label htmlFor="final-report-marks">
                             Final Report Marks (0-25)
-                        </label>
-                        <input
+                        </Label>
+                        <Input
+                            id="final-report-marks"
                             type="number"
                             step="1"
                             min="0"
@@ -874,16 +1025,16 @@ const ReportsEvaluation = ({
                                 ...prev,
                                 frm: e.target.value
                             }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                             placeholder="Enter marks for final report"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="space-y-2">
+                        <Label htmlFor="final-youtube-marks">
                             YouTube Presentation Marks (0-7.5)
-                        </label>
-                        <input
+                        </Label>
+                        <Input
+                            id="final-youtube-marks"
                             type="number"
                             step="0.1"
                             min="0"
@@ -893,16 +1044,16 @@ const ReportsEvaluation = ({
                                 ...prev,
                                 fyt_m: e.target.value
                             }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                             placeholder="Enter marks for YouTube presentation"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="space-y-2">
+                        <Label htmlFor="final-linkedin-marks">
                             LinkedIn Presentation Marks (0-7.5)
-                        </label>
-                        <input
+                        </Label>
+                        <Input
+                            id="final-linkedin-marks"
                             type="number"
                             step="0.1"
                             min="0"
@@ -912,7 +1063,6 @@ const ReportsEvaluation = ({
                                 ...prev,
                                 flk_m: e.target.value
                             }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                             placeholder="Enter marks for LinkedIn presentation"
                         />
                     </div>
@@ -944,78 +1094,134 @@ const ReportsEvaluation = ({
                 </p>
             </div>
 
-            {/* Students Table */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                {renderStudentTable()}
-
-                {students.length === 0 && (
-                    <div className="text-center py-8">
-                        <p className="text-gray-500">No students found.</p>
+            {/* Search and Filters */}
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    {/* Search */}
+                    <div className="lg:col-span-1">
+                        <div className="relative">
+                            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <input
+                                type="text"
+                                placeholder="Search by name or username..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            />
+                        </div>
                     </div>
-                )}
+
+                    {/* Domain Filter */}
+                    <div>
+                        <select
+                            value={filters.domain}
+                            onChange={(e) => setFilters({...filters, domain: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                            <option value="">All Domains</option>
+                            <option value="TEC">Technology</option>
+                            <option value="LCH">Literature & Culture</option>
+                            <option value="ESO">Environment & Social</option>
+                            <option value="IIE">Innovation & Entrepreneurship</option>
+                            <option value="HWB">Health & Wellbeing</option>
+                            <option value="Rural">Rural Development</option>
+                        </select>
+                    </div>
+
+                    {/* Year Filter */}
+                    <div>
+                        <select
+                            value={filters.year}
+                            onChange={(e) => setFilters({...filters, year: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                            <option value="">All Years</option>
+                            <option value="1st">1st Year</option>
+                            <option value="2nd">2nd Year</option>
+                            <option value="3rd">3rd Year</option>
+                            <option value="4th">4th Year</option>
+                        </select>
+                    </div>
+
+                    {/* Club Filter */}
+                    <div>
+                        <select
+                            value={filters.clubId}
+                            onChange={(e) => setFilters({...filters, clubId: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                            <option value="">All Clubs</option>
+                            {clubStats.map((club) => (
+                                <option key={club.clubId} value={club.clubId}>
+                                    {club.clubName} ({club.memberCount})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Evaluation Status Filter */}
+                    <div>
+                        <select
+                            value={filters.evaluationStatus}
+                            onChange={(e) => setFilters({...filters, evaluationStatus: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                            <option value="">All Status</option>
+                            <option value="done">Evaluation Done</option>
+                            <option value="pending">Evaluation Pending</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
-            {/* Modal */}
-            {showModal && selectedStudent && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-gray-900">
-                                    {selectedStudent.name} ({selectedStudent.username}) - {modalViewType === 'reports' ? 'Reports' : modalViewType === 'links' ? 'Links' : (reportType === 'internal' ? 'Internal' : 'Final') + ' Submissions'}
-                                </h2>
-                                <button
-                                    onClick={() => setShowModal(false)}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    <FiX className="w-6 h-6" />
-                                </button>
-                            </div>
+            {/* Students Table */}
+            {renderStudentTable()}
 
-                            {renderModalContent()}
-                        </div>
-                    </div>
+            {students.length === 0 && !loading && (
+                <div className="text-center py-8">
+                    <p className="text-gray-500">No students found matching your criteria.</p>
                 </div>
             )}
+
+            {/* Modal */}
+            <Dialog open={showModal && !!selectedStudent} onOpenChange={setShowModal}>
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {selectedStudent?.name} ({selectedStudent?.username}) - {modalViewType === 'reports' ? 'Reports' : modalViewType === 'links' ? 'Links' : (reportType === 'internal' ? 'Internal' : 'Final') + ' Submissions'}
+                        </DialogTitle>
+                    </DialogHeader>
+                    {renderModalContent()}
+                </DialogContent>
+            </Dialog>
 
             {/* Evaluation Modal */}
-            {showEvaluationModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-md w-full mx-4">
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-gray-900">
-                                    Submit Marks
-                                </h2>
-                                <button
-                                    onClick={() => setShowEvaluationModal(false)}
-                                    className="text-gray-400 hover:text-gray-600 p-1 rounded"
-                                >
-                                    <FiX className="w-6 h-6" />
-                                </button>
-                            </div>
+            <Dialog open={showEvaluationModal} onOpenChange={setShowEvaluationModal}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Submit Marks</DialogTitle>
+                    </DialogHeader>
 
-                            {renderEvaluationModal()}
+                    {renderEvaluationModal()}
 
-                            <div className="flex space-x-3 pt-4">
-                                <button
-                                    onClick={() => setShowEvaluationModal(false)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleMarksSubmit}
-                                    disabled={submitting}
-                                    className="flex-1 px-4 py-2 bg-red-800 text-white rounded-md hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {submitting ? 'Submitting...' : 'Submit Marks'}
-                                </button>
-                            </div>
-                        </div>
+                    <div className="flex space-x-3 pt-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowEvaluationModal(false)}
+                            className="flex-1"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleMarksSubmit}
+                            disabled={submitting}
+                            className="flex-1 bg-red-800 hover:bg-red-900"
+                        >
+                            {submitting ? 'Submitting...' : 'Submit Marks'}
+                        </Button>
                     </div>
-                </div>
-            )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

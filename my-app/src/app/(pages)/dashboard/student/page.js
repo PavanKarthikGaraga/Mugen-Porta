@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FiUser, FiMail, FiPhone, FiMapPin, FiCalendar, FiBook, FiUsers } from "react-icons/fi";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function StudentOverviewPage() {
     const [studentData, setStudentData] = useState(null);
@@ -61,89 +63,101 @@ export default function StudentOverviewPage() {
             </div>
 
             {/* Overview Section */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <FiUser className="mr-2" />
-                    Personal Details
-                </h2>
+            <Card className="mb-8">
+                <CardHeader>
+                    <CardTitle className="flex items-center">
+                        <FiUser className="mr-2" />
+                        Personal Details
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Basic Information */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-lg">Basic Information</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <div className="flex items-center text-sm">
+                                    <FiUser className="mr-2 text-gray-500" size={16} />
+                                    <span className="text-gray-600">Name:</span>
+                                    <span className="ml-2 font-medium">{studentData.name}</span>
+                                </div>
+                                <div className="flex items-center text-sm">
+                                    <FiMail className="mr-2 text-gray-500" size={16} />
+                                    <span className="text-gray-600">Email:</span>
+                                    <span className="ml-2 font-medium">{studentData.email}</span>
+                                </div>
+                                <div className="flex items-center text-sm">
+                                    <FiUsers className="mr-2 text-gray-500" size={16} />
+                                    <span className="text-gray-600">Username:</span>
+                                    <span className="ml-2 font-medium">{studentData.username}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Basic Information */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                        <h3 className="font-medium text-gray-900 mb-3">Basic Information</h3>
-                        <div className="space-y-2">
-                            <div className="flex items-center text-sm">
-                                <FiUser className="mr-2 text-gray-500" size={16} />
-                                <span className="text-gray-600">Name:</span>
-                                <span className="ml-2 font-medium">{studentData.name}</span>
-                            </div>
-                            <div className="flex items-center text-sm">
-                                <FiMail className="mr-2 text-gray-500" size={16} />
-                                <span className="text-gray-600">Email:</span>
-                                <span className="ml-2 font-medium">{studentData.email}</span>
-                            </div>
-                            <div className="flex items-center text-sm">
-                                <FiUsers className="mr-2 text-gray-500" size={16} />
-                                <span className="text-gray-600">Username:</span>
-                                <span className="ml-2 font-medium">{studentData.username}</span>
-                            </div>
-                        </div>
-                    </div>
+                        {/* Academic Information */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-lg">Academic Information</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <div className="flex items-center text-sm">
+                                    <FiBook className="mr-2 text-gray-500" size={16} />
+                                    <span className="text-gray-600">Branch:</span>
+                                    <span className="ml-2 font-medium">{studentData.branch || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center text-sm">
+                                    <FiCalendar className="mr-2 text-gray-500" size={16} />
+                                    <span className="text-gray-600">Year:</span>
+                                    <span className="ml-2 font-medium">{studentData.year || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center text-sm">
+                                    <FiUsers className="mr-2 text-gray-500" size={16} />
+                                    <span className="text-gray-600">Cluster:</span>
+                                    <span className="ml-2 font-medium">{studentData.cluster || 'N/A'}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                    {/* Academic Information */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                        <h3 className="font-medium text-gray-900 mb-3">Academic Information</h3>
-                        <div className="space-y-2">
-                            <div className="flex items-center text-sm">
-                                <FiBook className="mr-2 text-gray-500" size={16} />
-                                <span className="text-gray-600">Branch:</span>
-                                <span className="ml-2 font-medium">{studentData.branch || 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center text-sm">
-                                <FiCalendar className="mr-2 text-gray-500" size={16} />
-                                <span className="text-gray-600">Year:</span>
-                                <span className="ml-2 font-medium">{studentData.year || 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center text-sm">
-                                <FiUsers className="mr-2 text-gray-500" size={16} />
-                                <span className="text-gray-600">Cluster:</span>
-                                <span className="ml-2 font-medium">{studentData.cluster || 'N/A'}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Contact Information */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                        <h3 className="font-medium text-gray-900 mb-3">Contact Information</h3>
-                        <div className="space-y-2">
-                            <div className="flex items-center text-sm">
-                                <FiPhone className="mr-2 text-gray-500" size={16} />
-                                <span className="text-gray-600">Phone:</span>
-                                <span className="ml-2 font-medium">{studentData.phoneNumber || 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center text-sm">
-                                <FiMapPin className="mr-2 text-gray-500" size={16} />
-                                <span className="text-gray-600">Residence:</span>
-                                <span className="ml-2 font-medium">{studentData.residenceType || 'N/A'}</span>
-                            </div>
-                            {studentData.hostelName && studentData.hostelName !== 'N/A' && (
+                        {/* Contact Information */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-lg">Contact Information</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <div className="flex items-center text-sm">
+                                    <FiPhone className="mr-2 text-gray-500" size={16} />
+                                    <span className="text-gray-600">Phone:</span>
+                                    <span className="ml-2 font-medium">{studentData.phoneNumber || 'N/A'}</span>
+                                </div>
                                 <div className="flex items-center text-sm">
                                     <FiMapPin className="mr-2 text-gray-500" size={16} />
-                                    <span className="text-gray-600">Hostel:</span>
-                                    <span className="ml-2 font-medium">{studentData.hostelName}</span>
+                                    <span className="text-gray-600">Residence:</span>
+                                    <span className="ml-2 font-medium">{studentData.residenceType || 'N/A'}</span>
                                 </div>
-                            )}
-                        </div>
+                                {studentData.hostelName && studentData.hostelName !== 'N/A' && (
+                                    <div className="flex items-center text-sm">
+                                        <FiMapPin className="mr-2 text-gray-500" size={16} />
+                                        <span className="text-gray-600">Hostel:</span>
+                                        <span className="ml-2 font-medium">{studentData.hostelName}</span>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     </div>
-                </div>
-            </div>
+                </CardContent>
+            </Card>
 
             {/* Address Information */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <FiMapPin className="mr-2" />
-                    Address Details
-                </h2>
+            <Card className="mb-8">
+                <CardHeader>
+                    <CardTitle className="flex items-center">
+                        <FiMapPin className="mr-2" />
+                        Address Details
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
@@ -179,34 +193,46 @@ export default function StudentOverviewPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+                </CardContent>
+            </Card>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button
+                    <Button
                         onClick={() => window.location.href = '/dashboard/student/club'}
-                        className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                        variant="outline"
+                        className="p-4 h-auto text-left justify-start"
                     >
-                        <h3 className="font-medium text-gray-900">View Club Details</h3>
-                        <p className="text-sm text-gray-600">Check your club and project information</p>
-                    </button>
-                    <button
+                        <div>
+                            <h3 className="font-medium text-gray-900">View Club Details</h3>
+                            <p className="text-sm text-gray-600">Check your club and project information</p>
+                        </div>
+                    </Button>
+                    <Button
                         onClick={() => window.location.href = '/auth/login'}
-                        className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                        variant="outline"
+                        className="p-4 h-auto text-left justify-start"
                     >
                         <h3 className="font-medium text-gray-900">Change Password</h3>
                         <p className="text-sm text-gray-600">Update your account password</p>
-                    </button>
-                    <button
-                        className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="p-4 h-auto text-left justify-start"
                     >
-                        <h3 className="font-medium text-gray-900">Contact Support</h3>
-                        <p className="text-sm text-gray-600">Get help with your account</p>
-                    </button>
+                        <div>
+                            <h3 className="font-medium text-gray-900">Contact Support</h3>
+                            <p className="text-sm text-gray-600">Get help with your account</p>
+                        </div>
+                    </Button>
                 </div>
-            </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }
