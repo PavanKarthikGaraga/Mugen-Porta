@@ -13,16 +13,6 @@ export default function LeadOverviewPage() {
     const [loading, setLoading] = useState(true);
     const [userData, setUserData] = useState({ clubId: null, clubName: '' });
 
-    useEffect(() => {
-        fetchUserData();
-    }, []);
-
-    useEffect(() => {
-        if (userData.clubId) {
-            fetchStats();
-        }
-    }, [userData.clubId, fetchStats]);
-
     const fetchUserData = async () => {
         try {
             const response = await fetch('/api/auth/me');
@@ -57,6 +47,16 @@ export default function LeadOverviewPage() {
             setLoading(false);
         }
     }, [userData.clubId]);
+
+    useEffect(() => {
+        fetchUserData();
+    }, []);
+
+    useEffect(() => {
+        if (userData.clubId) {
+            fetchStats();
+        }
+    }, [userData.clubId, fetchStats]);
 
     const statCards = [
         {

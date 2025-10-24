@@ -2,6 +2,10 @@
 import { useState, useEffect } from "react";
 import { FiToggleLeft, FiToggleRight } from "react-icons/fi";
 import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function ControlsPage() {
     const [registrationsEnabled, setRegistrationsEnabled] = useState(true);
@@ -64,11 +68,12 @@ export default function ControlsPage() {
 
     return (
         <div className="max-w-md mx-auto">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-                <div className="text-center mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Registration Control</h1>
-                    <p className="text-gray-600 mt-2">Enable or disable student registrations</p>
-                </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-center">Registration Control</CardTitle>
+                    <p className="text-center text-gray-600 mt-2">Enable or disable student registrations</p>
+                </CardHeader>
+                <CardContent>
 
                 {loading ? (
                     <div className="text-center py-8">
@@ -91,36 +96,25 @@ export default function ControlsPage() {
                             </div>
                         </div>
 
-                        {/* Toggle Button */}
-                        <div className="flex justify-center">
-                            <button
-                                onClick={toggleRegistration}
+                        {/* Toggle Switch */}
+                        <div className="flex items-center justify-center space-x-3">
+                            <Label htmlFor="registration-toggle" className="text-sm font-medium">
+                                {registrationsEnabled ? 'Disable' : 'Enable'} Student Registrations
+                            </Label>
+                            <Switch
+                                id="registration-toggle"
+                                checked={registrationsEnabled}
+                                onCheckedChange={toggleRegistration}
                                 disabled={saving}
-                                className={`flex items-center space-x-3 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                                    registrationsEnabled
-                                        ? 'bg-red-500 hover:bg-red-600 text-white'
-                                        : 'bg-green-500 hover:bg-green-600 text-white'
-                                } disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl`}
-                            >
-                                {saving ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                        <span>Saving...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        {registrationsEnabled ? (
-                                            <FiToggleRight className="h-5 w-5" />
-                                        ) : (
-                                            <FiToggleLeft className="h-5 w-5" />
-                                        )}
-                                        <span>
-                                            {registrationsEnabled ? 'Disable Registrations' : 'Enable Registrations'}
-                                        </span>
-                                    </>
-                                )}
-                            </button>
+                            />
                         </div>
+
+                        {saving && (
+                            <div className="flex justify-center mt-2">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-800"></div>
+                                <span className="ml-2 text-sm text-gray-600">Saving...</span>
+                            </div>
+                        )}
 
                         {/* Info */}
                         <div className="text-center text-sm text-gray-600">
@@ -128,7 +122,8 @@ export default function ControlsPage() {
                         </div>
                     </div>
                 )}
-            </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

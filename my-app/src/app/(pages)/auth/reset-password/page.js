@@ -1,9 +1,13 @@
 "use client"
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { FiLock, FiEye, FiEyeOff, FiArrowLeft, FiCheck } from "react-icons/fi";
 import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function ResetPasswordContent() {
     const [password, setPassword] = useState("");
@@ -209,100 +213,102 @@ function ResetPasswordContent() {
                 </div>
 
                 {/* Reset Password Form */}
-                <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md border border-gray-200">
-                    <div className="space-y-6">
-                        {/* New Password Input */}
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                                New Password
-                            </label>
-                            <div className="relative">
-                                {/* <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <FiLock className="text-gray-400" size={18} />
-                                </div> */}
-                                <input
-                                    id="password"
-                                    type={showPassword ? "text" : "password"}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-center">Set New Password</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* New Password Input */}
+                            <div>
+                                <Label htmlFor="password" className="block text-sm font-medium mb-2">
+                                    New Password
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="pr-10"
                                     placeholder="Enter new password"
                                     required
                                     disabled={loading}
                                     minLength={8}
                                 />
-                                <button
+                                <Button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute inset-y-0 right-0 h-full px-3"
                                 >
                                     {showPassword ? (
                                         <FiEyeOff className="text-gray-400 hover:text-gray-600" size={18} />
                                     ) : (
                                         <FiEye className="text-gray-400 hover:text-gray-600" size={18} />
                                     )}
-                                </button>
+                                </Button>
                             </div>
                             <p className="text-xs text-gray-500 mt-1">
                                 Must be at least 8 characters with uppercase, lowercase, and number
                             </p>
                         </div>
 
-                        {/* Confirm Password Input */}
-                        <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                                Confirm New Password
-                            </label>
-                            <div className="relative">
-                                {/* <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <FiLock className="text-gray-400" size={18} />
-                                </div> */}
-                                <input
-                                    id="confirmPassword"
-                                    type={showConfirmPassword ? "text" : "password"}
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                    placeholder="Confirm new password"
-                                    required
-                                    disabled={loading}
-                                    minLength={8}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                >
-                                    {showConfirmPassword ? (
-                                        <FiEyeOff className="text-gray-400 hover:text-gray-600" size={18} />
-                                    ) : (
-                                        <FiEye className="text-gray-400 hover:text-gray-600" size={18} />
-                                    )}
-                                </button>
+                            {/* Confirm Password Input */}
+                            <div>
+                                <Label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
+                                    Confirm New Password
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        className="pr-10"
+                                        placeholder="Confirm new password"
+                                        required
+                                        disabled={loading}
+                                        minLength={8}
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="absolute inset-y-0 right-0 h-full px-3"
+                                    >
+                                        {showConfirmPassword ? (
+                                            <FiEyeOff className="text-gray-400 hover:text-gray-600" size={18} />
+                                        ) : (
+                                            <FiEye className="text-gray-400 hover:text-gray-600" size={18} />
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-
-                            black text-white py-3 px-4 rounded-md hover:bg-black-900 focus:outline-none focus:ring-2 focus:ring-black-800 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                        >
-                            {loading ? (
-                                <>
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Resetting...
-                                </>
-                            ) : (
-                                "Reset Password"
-                            )}
-                        </button>
-                    </div>
-                </form>
+                            {/* Submit Button */}
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-black hover:bg-gray-900"
+                            >
+                                {loading ? (
+                                    <>
+                                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Resetting...
+                                    </>
+                                ) : (
+                                    "Reset Password"
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
 
                 {/* Footer */}
                 <div className="text-center mt-8 text-sm text-gray-500">

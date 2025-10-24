@@ -1,6 +1,11 @@
 "use client"
 import { useState, useEffect, useCallback } from "react";
 import { FiSearch, FiRefreshCw, FiEye, FiChevronLeft, FiChevronRight, FiFilter } from "react-icons/fi";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function FacultyStudents() {
     const [students, setStudents] = useState([]);
@@ -55,15 +60,15 @@ export default function FacultyStudents() {
 
         setLoading(true);
         try {
-            const params = new URLSearchParams({
-                page: page.toString(),
-                limit: pagination.limit.toString(),
-                search: searchTerm,
-                year: filters.year,
-                category: filters.category,
-                assignedClubs: JSON.stringify(userData.assignedClubs),
-                clubId: filters.clubId || ''
-            });
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: pagination.limit.toString(),
+            search: searchTerm
+        });
+
+            if (filters.year && filters.year !== 'all') params.append('year', filters.year);
+            if (filters.category && filters.category !== 'all') params.append('category', filters.category);
+            if (filters.clubId && filters.clubId !== 'all') params.append('clubId', filters.clubId);
 
             const response = await fetch(`/api/dashboard/faculty/students?${params}`);
             const data = await response.json();
@@ -79,7 +84,7 @@ export default function FacultyStudents() {
         } finally {
             setLoading(false);
         }
-    }, [searchTerm, filters, pagination.limit, userData.assignedClubs]);
+    }, [searchTerm, filters, pagination.limit, userData.assignedClubs.length]);
 
     useEffect(() => {
         fetchUserData();
@@ -136,96 +141,112 @@ export default function FacultyStudents() {
                     <h1 className="text-2xl font-bold text-gray-900">Students Management</h1>
                     <p className="text-gray-600 mt-1">View students across your assigned clubs</p>
                 </div>
-                <button
+                <Button
                     onClick={refreshData}
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors"
+                    className="bg-red-800 hover:bg-red-900"
                 >
-                    <FiRefreshCw className="h-4 w-4" />
+                    <FiRefreshCw className="h-4 w-4 mr-2" />
                     <span>Refresh</span>
-                </button>
+                </Button>
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FiFilter className="mr-2" />
-                    Filters
-                </h2>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center">
+                        <FiFilter className="mr-2" />
+                        Filters
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <Label className="block text-sm font-medium mb-2">Search</Label>
                         <div className="relative">
                             <FiSearch className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                            <input
+                            <Input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search by name, username, or email"
-                                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                className="pl-10"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Club</label>
-                        <select
+                        <Label className="block text-sm font-medium mb-2">Club</Label>
+                        <Select
                             value={filters.clubId}
-                            onChange={(e) => setFilters({ ...filters, clubId: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                            onValueChange={(value) => setFilters({ ...filters, clubId: value })}
                         >
-                            <option value="">All Assigned Clubs</option>
-                            {clubs.map((club) => (
-                                <option key={club.id} value={club.id}>
-                                    {club.name}
-                                </option>
-                            ))}
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="All Assigned Clubs" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Assigned Clubs</SelectItem>
+                                {clubs.map((club) => (
+                                    <SelectItem key={club.id} value={club.id}>
+                                        {club.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
-                        <select
+                        <Label className="block text-sm font-medium mb-2">Year</Label>
+                        <Select
                             value={filters.year}
-                            onChange={(e) => setFilters({ ...filters, year: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                            onValueChange={(value) => setFilters({ ...filters, year: value })}
                         >
-                            <option value="">All Years</option>
-                            <option value="1st">1st Year</option>
-                            <option value="2nd">2nd Year</option>
-                            <option value="3rd">3rd Year</option>
-                            <option value="4th">4th Year</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="All Years" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Years</SelectItem>
+                                <SelectItem value="1st">1st Year</SelectItem>
+                                <SelectItem value="2nd">2nd Year</SelectItem>
+                                <SelectItem value="3rd">3rd Year</SelectItem>
+                                <SelectItem value="4th">4th Year</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                        <select
+                        <Label className="block text-sm font-medium mb-2">Category</Label>
+                        <Select
                             value={filters.category}
-                            onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                            onValueChange={(value) => setFilters({ ...filters, category: value })}
                         >
-                            <option value="">All Categories</option>
-                            <option value="TEC">Technical (TEC)</option>
-                            <option value="LCH">Leadership & Community (LCH)</option>
-                            <option value="ESO">Entrepreneurship & Startup (ESO)</option>
-                            <option value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</option>
-                            <option value="HWB">Health & Well-being (HWB)</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="All Categories" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Categories</SelectItem>
+                                <SelectItem value="TEC">Technical (TEC)</SelectItem>
+                                <SelectItem value="LCH">Leadership & Community (LCH)</SelectItem>
+                                <SelectItem value="ESO">Entrepreneurship & Startup (ESO)</SelectItem>
+                                <SelectItem value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</SelectItem>
+                                <SelectItem value="HWB">Health & Well-being (HWB)</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
 
                 <div className="mt-4 flex gap-2">
-                    <button
+                    <Button
                         onClick={() => {
-                            setFilters({ year: '', category: '', clubId: '' });
+                            setFilters({ year: 'all', category: 'all', clubId: 'all' });
                             setSearchTerm('');
                         }}
-                        className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                        variant="outline"
                     >
                         Clear Filters
-                    </button>
+                    </Button>
                 </div>
-            </div>
+                </CardContent>
+            </Card>
 
             {/* Students Table */}
             <div className="bg-white rounded-lg shadow-lg border border-gray-200">

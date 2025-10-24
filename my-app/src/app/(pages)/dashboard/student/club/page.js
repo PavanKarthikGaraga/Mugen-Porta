@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FiFolder, FiTag, FiTarget, FiUsers, FiCalendar, FiInfo } from "react-icons/fi";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function StudentClubDetailsPage() {
     const [clubData, setClubData] = useState(null);
@@ -80,11 +81,14 @@ export default function StudentClubDetailsPage() {
 
             {/* Club Information */}
             {clubData ? (
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                        <FiFolder className="mr-2" />
-                        Club Information
-                    </h2>
+                <Card className="mb-8">
+                    <CardHeader>
+                        <CardTitle className="flex items-center">
+                            <FiFolder className="mr-2" />
+                            Club Information
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
@@ -135,24 +139,30 @@ export default function StudentClubDetailsPage() {
                             {clubData.description || 'No description available.'}
                         </p>
                     </div>
-                </div>
+                    </CardContent>
+                </Card>
             ) : (
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <div className="text-center py-8">
-                        <FiFolder className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Club Information</h3>
-                        <p className="text-gray-600">You haven&apos;t been assigned to a club yet.</p>
-                    </div>
-                </div>
+                <Card className="mb-8">
+                    <CardContent>
+                        <div className="text-center py-8">
+                            <FiFolder className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Club Information</h3>
+                            <p className="text-gray-600">You haven&apos;t been assigned to a club yet.</p>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
 
             {/* Project Information */}
             {projectData ? (
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                        <FiTarget className="mr-2" />
-                        Project Information
-                    </h2>
+                <Card className="mb-8">
+                    <CardHeader>
+                        <CardTitle className="flex items-center">
+                            <FiTarget className="mr-2" />
+                            Project Information
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
@@ -207,15 +217,18 @@ export default function StudentClubDetailsPage() {
                             {projectData.description || 'No description available.'}
                         </p>
                     </div>
-                </div>
+                    </CardContent>
+                </Card>
             ) : (
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <div className="text-center py-8">
-                        <FiTarget className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Project Information</h3>
-                        <p className="text-gray-600">You haven&apos;t been assigned to a project yet.</p>
-                    </div>
-                </div>
+                <Card className="mb-8">
+                    <CardContent>
+                        <div className="text-center py-8">
+                            <FiTarget className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Project Information</h3>
+                            <p className="text-gray-600">You haven&apos;t been assigned to a project yet.</p>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
 
             {/* Summary Card */}

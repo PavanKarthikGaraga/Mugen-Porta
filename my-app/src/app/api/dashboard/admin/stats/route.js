@@ -1,8 +1,37 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { verifyToken } from '@/lib/jwt';
 
 export async function GET(request) {
     try {
+        // Verify JWT token from cookie
+        const cookieStore = await cookies();
+        const token = cookieStore.get('tck')?.value;
+
+        if (!token) {
+            return NextResponse.json(
+                { message: 'Authentication required' },
+                { status: 401 }
+            );
+        }
+
+        const decoded = await verifyToken(token);
+        if (!decoded) {
+            return NextResponse.json(
+                { message: 'Invalid or expired token' },
+                { status: 401 }
+            );
+        }
+
+        // Check if user is admin
+        if (decoded.role !== 'admin') {
+            return NextResponse.json(
+                { message: 'Access denied. Admin role required.' },
+                { status: 403 }
+            );
+        }
+
         const { searchParams } = new URL(request.url);
         const domain = searchParams.get('domain');
         const year = searchParams.get('year');

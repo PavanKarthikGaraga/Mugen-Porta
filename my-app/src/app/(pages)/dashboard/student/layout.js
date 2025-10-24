@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiUser, FiInfo,
-    FiLock
+    FiLock, FiFileText, FiSend
 } from "react-icons/fi";
 import ChangePassword from "@/app/components/ChangePassword";
 
@@ -37,6 +37,8 @@ export default function StudentDashboardLayout({ children }) {
     const navigation = [
         { name: 'Overview', href: '/dashboard/student', icon: FiHome },
         { name: 'Club Details', href: '/dashboard/student/club', icon: FiFolder },
+        { name: 'Reports', href: '/dashboard/student/reports', icon: FiFileText },
+        { name: 'Final Submission', href: '/dashboard/student/final-submission', icon: FiSend },
     ];
 
     const handleLogout = () => {

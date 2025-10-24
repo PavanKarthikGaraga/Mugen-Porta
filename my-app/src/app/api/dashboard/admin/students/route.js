@@ -1,32 +1,59 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
-import { verifyAdminToken } from '../auth-helper';
+import { cookies } from 'next/headers';
+import { verifyToken } from '@/lib/jwt';
+import { getConnection } from '@/lib/db';
+import { handleApiError } from '@/lib/apiErrorHandler';
 
 export async function GET(request) {
-    // Verify admin token
-    const authResult = await verifyAdminToken(request);
-    if (!authResult.success) {
-        return authResult.response;
-    }
-
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 50;
-    const search = searchParams.get('search')?.trim() || '';
-    const domain = searchParams.get('domain')?.trim() || '';
-    const year = searchParams.get('year')?.trim() || '';
-    const residenceType = searchParams.get('residenceType')?.trim() || '';
-    const clubId = searchParams.get('clubId')?.trim() || '';
-
-    const offset = (page - 1) * limit;
+    let connection;
 
     try {
+        connection = await getConnection();
+
+        // Verify JWT token from cookie
+        const cookieStore = await cookies();
+        const token = cookieStore.get('tck')?.value;
+
+        if (!token) {
+            return NextResponse.json(
+                { message: 'Authentication required' },
+                { status: 401 }
+            );
+        }
+
+        const decoded = await verifyToken(token);
+        if (!decoded) {
+            return NextResponse.json(
+                { message: 'Invalid or expired token' },
+                { status: 401 }
+            );
+        }
+
+        // Check if user is admin
+        if (decoded.role !== 'admin') {
+            return NextResponse.json(
+                { message: 'Access denied. Admin role required.' },
+                { status: 403 }
+            );
+        }
+
+        const { searchParams } = new URL(request.url);
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limit = parseInt(searchParams.get('limit')) || 50;
+        const search = searchParams.get('search')?.trim() || '';
+        const domain = searchParams.get('domain')?.trim() || '';
+        const year = searchParams.get('year')?.trim() || '';
+        const residenceType = searchParams.get('residenceType')?.trim() || '';
+        const clubId = searchParams.get('clubId')?.trim() || '';
+
+        const offset = (page - 1) * limit;
+
+        // Build WHERE conditions
         let whereConditions = [];
         let queryParams = [];
 
-        // Build search conditions - only add if values are not empty
         if (search && search.length > 0) {
-            whereConditions.push('(s.name LIKE ? OR s.email LIKE ? OR s.username LIKE ?)');
+            whereConditions.push('(s.name LIKE ? OR s.username LIKE ? OR s.email LIKE ?)');
             queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
 
@@ -53,146 +80,87 @@ export async function GET(request) {
         const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
 
         // Get total count
-        const countQuery = `
-            SELECT COUNT(*) as total 
-            FROM students s 
-            ${whereClause}
-        `;
-        
-        const [countResult] = await pool.execute(countQuery, queryParams);
+        const countQuery = `SELECT COUNT(*) as total FROM students s ${whereClause}`;
+        const [countResult] = await connection.execute(countQuery, queryParams);
         const total = countResult[0].total;
+        const pages = Math.ceil(total / limit);
 
-        // Get students data with joins
+        // Get students data with proper field mapping
         const studentsQuery = `
-            SELECT 
+            SELECT
                 s.id,
                 s.username,
                 s.name,
                 s.gender,
-                s.cluster,
                 s.year,
                 s.phoneNumber,
                 s.residenceType,
                 s.hostelName,
-                s.busRoute,
-                s.country,
-                s.state,
-                s.district,
-                s.pincode,
                 s.selectedDomain,
-                s.socialInternshipId,
-                s.created_at,
                 s.projectId,
-                s.clubId,
-                p.name as projectName,
-                c.name as clubName
+                c.name as clubName,
+                s.state,
+                s.district
             FROM students s
-            LEFT JOIN projects p ON s.projectId = p.id
             LEFT JOIN clubs c ON s.clubId = c.id
             ${whereClause}
             ORDER BY s.created_at DESC
-            LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}
+            LIMIT ${limit} OFFSET ${offset}
         `;
 
-        const [students] = await pool.execute(studentsQuery, queryParams);
+        const [studentsResult] = await connection.execute(studentsQuery, queryParams);
 
-        // Get statistics
+        // Get stats by domain
         const statsQuery = `
-            SELECT 
+            SELECT
                 COUNT(*) as total,
-                COUNT(CASE WHEN selectedDomain = 'TEC' THEN 1 END) as tec,
-                COUNT(CASE WHEN selectedDomain = 'LCH' THEN 1 END) as lch,
-                COUNT(CASE WHEN selectedDomain = 'ESO' THEN 1 END) as eso,
-                COUNT(CASE WHEN selectedDomain = 'IIE' THEN 1 END) as iie,
-                COUNT(CASE WHEN selectedDomain = 'HWB' THEN 1 END) as hwb,
-                COUNT(CASE WHEN selectedDomain = 'Rural' THEN 1 END) as rural
+                SUM(CASE WHEN selectedDomain = 'TEC' THEN 1 ELSE 0 END) as tec,
+                SUM(CASE WHEN selectedDomain = 'LCH' THEN 1 ELSE 0 END) as lch,
+                SUM(CASE WHEN selectedDomain = 'ESO' THEN 1 ELSE 0 END) as eso,
+                SUM(CASE WHEN selectedDomain = 'IIE' THEN 1 ELSE 0 END) as iie,
+                SUM(CASE WHEN selectedDomain = 'HWB' THEN 1 ELSE 0 END) as hwb,
+                SUM(CASE WHEN selectedDomain = 'Rural' OR ruralCategory IS NOT NULL THEN 1 ELSE 0 END) as rural
             FROM students
         `;
 
-        const [stats] = await pool.execute(statsQuery);
+        const [statsResult] = await connection.execute(statsQuery);
+        const stats = statsResult[0];
 
-        // Get club statistics
+        // Get club stats
         const clubStatsQuery = `
             SELECT
-                c.id as clubId,
                 c.name as clubName,
-                COUNT(s.id) as memberCount
+                c.id as clubId,
+                COUNT(s.username) as memberCount
             FROM clubs c
             LEFT JOIN students s ON c.id = s.clubId
             GROUP BY c.id, c.name
             ORDER BY memberCount DESC
         `;
 
-        const [clubStats] = await pool.execute(clubStatsQuery);
+        const [clubStatsResult] = await connection.execute(clubStatsQuery);
 
         return NextResponse.json({
             success: true,
             data: {
-                students,
+                students: studentsResult,
+                stats,
+                clubStats: clubStatsResult,
                 pagination: {
                     page,
                     limit,
                     total,
-                    pages: Math.ceil(total / limit)
-                },
-                stats: stats[0],
-                clubStats
+                    pages
+                }
             }
         });
 
     } catch (error) {
-        console.error('Error fetching students:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch students' },
-            { status: 500 }
-        );
-    }
-}
-
-export async function DELETE(request) {
-    // Verify admin token
-    const authResult = await verifyAdminToken(request);
-    if (!authResult.success) {
-        return authResult.response;
-    }
-
-    try {
-        const { searchParams } = new URL(request.url);
-        const studentId = searchParams.get('id');
-
-        if (!studentId) {
-            return NextResponse.json(
-                { error: 'Student ID is required' },
-                { status: 400 }
-            );
+        console.error('Error fetching admin students:', error);
+        return handleApiError(error);
+    } finally {
+        if (connection) {
+            connection.release();
         }
-
-        // First check if student exists
-        const [existingStudent] = await pool.execute(
-            'SELECT id FROM students WHERE id = ?',
-            [studentId]
-        );
-
-        if (existingStudent.length === 0) {
-            return NextResponse.json(
-                { error: 'Student not found' },
-                { status: 404 }
-            );
-        }
-
-        // Delete student (this will also delete from users table due to foreign key)
-        await pool.execute('DELETE FROM students WHERE id = ?', [studentId]);
-
-        return NextResponse.json({
-            success: true,
-            message: 'Student deleted successfully'
-        });
-
-    } catch (error) {
-        console.error('Error deleting student:', error);
-        return NextResponse.json(
-            { error: 'Failed to delete student' },
-            { status: 500 }
-        );
     }
 }

@@ -1,11 +1,13 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 
 export async function GET(request) {
     try {
-        // Verify token and get user info
-        const token = request.cookies.get('tck')?.value;
+        // Verify JWT token from cookie
+        const cookieStore = await cookies();
+        const token = cookieStore.get('tck')?.value;
         if (!token) {
             return NextResponse.json(
                 { error: 'No token provided' },

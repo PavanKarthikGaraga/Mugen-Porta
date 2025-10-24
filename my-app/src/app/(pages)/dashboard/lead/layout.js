@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp
+    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText
 } from "react-icons/fi";
 
 export default function LeadDashboardLayout({ children }) {
@@ -35,7 +35,9 @@ export default function LeadDashboardLayout({ children }) {
     const navigation = [
         { name: 'Overview', href: '/dashboard/lead', icon: FiHome },
         { name: 'Profile', href: '/dashboard/lead/profile', icon: FiUser },
-        { name: 'Students', href: '/dashboard/lead/students', icon: FiUsers }
+        { name: 'Students', href: '/dashboard/lead/students', icon: FiUsers },
+        { name: 'Reports', href: '/dashboard/lead/reports', icon: FiFileText },
+        { name: 'Final Reports', href: '/dashboard/lead/final-reports', icon: FiFileText }
     ];
 
     const handleLogout = () => {

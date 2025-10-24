@@ -1,8 +1,18 @@
 "use client"
 import { useState } from 'react';
 import { FiEye, FiEyeOff, FiLock, FiSave, FiX } from 'react-icons/fi';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { handleApiError, handleApiSuccess } from '@/lib/apiErrorHandler';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function ChangePassword({ isOpen, onClose }) {
     const [formData, setFormData] = useState({
@@ -122,142 +132,137 @@ export default function ChangePassword({ isOpen, onClose }) {
         }));
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 border border-gray-300">
-                <div className="flex justify-between items-center p-6 border-b border-gray-200">
+        <Dialog open={isOpen} onOpenChange={handleClose}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
                     <div className="flex items-center space-x-2">
                         <FiLock className="h-5 w-5 text-gray-600" />
-                        <h3 className="text-lg font-medium text-gray-900">
-                            Change Password
-                        </h3>
+                        <DialogTitle>Change Password</DialogTitle>
                     </div>
-                    <button
-                        onClick={handleClose}
-                        className="text-gray-400 hover:text-gray-600 p-1 rounded"
-                        disabled={loading}
-                    >
-                        <FiX className="h-6 w-6" />
-                    </button>
-                </div>
+                </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Current Password */}
-                    <div>
-                        <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="space-y-2">
+                        <Label htmlFor="currentPassword">
                             Current Password
-                        </label>
+                        </Label>
                         <div className="relative">
-                            <input
+                            <Input
                                 id="currentPassword"
                                 type={showPasswords.current ? "text" : "password"}
                                 value={formData.currentPassword}
                                 onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent pr-10"
+                                className="pr-10"
                                 required
                                 disabled={loading}
                             />
-                            <button
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => togglePasswordVisibility('current')}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 text-gray-400 hover:text-gray-600"
                                 disabled={loading}
                             >
                                 {showPasswords.current ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
                     {/* New Password */}
-                    <div>
-                        <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="space-y-2">
+                        <Label htmlFor="newPassword">
                             New Password
-                        </label>
+                        </Label>
                         <div className="relative">
-                            <input
+                            <Input
                                 id="newPassword"
                                 type={showPasswords.new ? "text" : "password"}
                                 value={formData.newPassword}
                                 onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent pr-10"
+                                className="pr-10"
                                 required
                                 disabled={loading}
                             />
-                            <button
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => togglePasswordVisibility('new')}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 text-gray-400 hover:text-gray-600"
                                 disabled={loading}
                             >
                                 {showPasswords.new ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                            </button>
+                            </Button>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500">
                             Must be at least 8 characters with uppercase, lowercase, number, and special character
                         </p>
                     </div>
 
                     {/* Confirm New Password */}
-                    <div>
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">
                             Confirm New Password
-                        </label>
+                        </Label>
                         <div className="relative">
-                            <input
+                            <Input
                                 id="confirmPassword"
                                 type={showPasswords.confirm ? "text" : "password"}
                                 value={formData.confirmPassword}
                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent pr-10"
+                                className="pr-10"
                                 required
                                 disabled={loading}
                             />
-                            <button
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => togglePasswordVisibility('confirm')}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 text-gray-400 hover:text-gray-600"
                                 disabled={loading}
                             >
                                 {showPasswords.confirm ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex justify-end space-x-3 pt-4">
-                        <button
+                        <Button
                             type="button"
+                            variant="outline"
                             onClick={handleClose}
-                            className="px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
                             disabled={loading}
                         >
                             Cancel
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
-                            className="flex items-center space-x-2 px-4 py-2 bg-red-800 text-white rounded-md hover:bg-red-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-red-800 hover:bg-red-900"
                             disabled={loading}
                         >
                             {loading ? (
                                 <>
-                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin h-4 w-4 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    <span>Changing...</span>
+                                    Changing...
                                 </>
                             ) : (
                                 <>
-                                    <FiSave className="h-4 w-4" />
-                                    <span>Change Password</span>
+                                    <FiSave className="h-4 w-4 mr-2" />
+                                    Change Password
                                 </>
                             )}
-                        </button>
+                        </Button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }

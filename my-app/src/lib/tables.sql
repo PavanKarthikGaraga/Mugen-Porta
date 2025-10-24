@@ -126,6 +126,71 @@ CREATE TABLE IF NOT EXISTS controls (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Student Internal Submissions (7 reports + 2 links)
+CREATE TABLE student_internal_submissions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(10) NOT NULL UNIQUE,
+    r1 VARCHAR(500) NULL, -- Report 1 URL
+    r2 VARCHAR(500) NULL, -- Report 2 URL
+    r3 VARCHAR(500) NULL, -- Report 3 URL
+    r4 VARCHAR(500) NULL, -- Report 4 URL
+    r5 VARCHAR(500) NULL, -- Report 5 URL
+    r6 VARCHAR(500) NULL, -- Report 6 URL
+    r7 VARCHAR(500) NULL, -- Report 7 URL
+    yt_l VARCHAR(500) NULL, -- YouTube Link
+    lk_l VARCHAR(500) NULL, -- LinkedIn Link
+    FOREIGN KEY (username) REFERENCES users(username)
+);
+
+-- Student Internal Marks (7 reports + 2 links = 60 marks total)
+CREATE TABLE student_internal_marks (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(10) NOT NULL UNIQUE,
+    m1 INT DEFAULT 0, -- Report 1 marks (0-7)
+    m2 INT DEFAULT 0, -- Report 2 marks (0-7)
+    m3 INT DEFAULT 0, -- Report 3 marks (0-7)
+    m4 INT DEFAULT 0, -- Report 4 marks (0-7)
+    m5 INT DEFAULT 0, -- Report 5 marks (0-7)
+    m6 INT DEFAULT 0, -- Report 6 marks (0-7)
+    m7 INT DEFAULT 0, -- Report 7 marks (0-7)
+    yt_m DECIMAL(3,1) DEFAULT 0.0, -- YouTube marks (0-5.5)
+    lk_m DECIMAL(3,1) DEFAULT 0.0, -- LinkedIn marks (0-5.5)
+    total DECIMAL(5,1) DEFAULT 0.0, -- Total internal marks (calculated)
+    evaluated_by VARCHAR(10) NULL, -- Username of lead/faculty who evaluated
+    FOREIGN KEY (username) REFERENCES users(username),
+    FOREIGN KEY (evaluated_by) REFERENCES users(username)
+);
+
+-- Student External Submissions (final report + 2 presentation links)
+CREATE TABLE student_external_submissions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(10) NOT NULL UNIQUE,
+    fr VARCHAR(500) NULL, -- Final Report URL
+    fyt_l VARCHAR(500) NULL, -- Final YouTube Link
+    flk_l VARCHAR(500) NULL, -- Final LinkedIn Link
+    FOREIGN KEY (username) REFERENCES users(username)
+);
+
+-- Student External Marks (internal total + final components = 100 marks total)
+CREATE TABLE student_external_marks (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(10) NOT NULL UNIQUE,
+    internal DECIMAL(5,1) DEFAULT 0.0, -- Total from internal_marks table
+    frm INT DEFAULT 0, -- Final Report marks (0-25)
+    fyt_m DECIMAL(3,1) DEFAULT 0.0, -- Final YouTube marks (0-7.5)
+    flk_m DECIMAL(3,1) DEFAULT 0.0, -- Final LinkedIn marks (0-7.5)
+    total DECIMAL(5,1) DEFAULT 0.0, -- Total marks (calculated)
+    evaluated_by VARCHAR(10) NULL, -- Username of lead/faculty who evaluated
+    FOREIGN KEY (username) REFERENCES users(username),
+    FOREIGN KEY (evaluated_by) REFERENCES users(username)
+);
+
+-- Create indexes for faster lookups
+CREATE INDEX idx_internal_submissions_username ON student_internal_submissions(username);
+CREATE INDEX idx_internal_marks_username ON student_internal_marks(username);
+CREATE INDEX idx_external_submissions_username ON student_external_submissions(username);
+CREATE INDEX idx_external_marks_username ON student_external_marks(username);
+
 -- Insert default controls
 INSERT INTO controls (id, registrations_enabled)
 VALUES (1, 1)
