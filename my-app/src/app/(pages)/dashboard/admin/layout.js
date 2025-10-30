@@ -7,6 +7,7 @@ import {
     FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText,NotebookTabs
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
+import { toast } from "sonner";
 
 import ChangePassword from "@/app/components/ChangePassword";
 
@@ -16,6 +17,8 @@ export default function AdminDashboardLayout({ children }) {
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
     const [userData, setUserData] = useState({ username: '', name: '' });
     const [hasDevAccess, setHasDevAccess] = useState(false);
+    const [isProxySession, setIsProxySession] = useState(false);
+    const [proxyAdminInfo, setProxyAdminInfo] = useState(null);
     const pathname = usePathname();
     const router = useRouter();
 
@@ -26,11 +29,25 @@ export default function AdminDashboardLayout({ children }) {
                 const response = await fetch('/api/auth/me');
                 if (response.ok) {
                     const data = await response.json();
-                    const username = data.username || '2300032048';
+                    const user = data.user;
+                    const username = user.username || '2300032048';
+
                     setUserData({
                         username,
-                        name: data.name || 'G Pavan Karthik'
+                        name: user.name || 'G Pavan Karthik'
                     });
+
+                    // Check if this is a proxy session
+                    setIsProxySession(user.isProxy || false);
+                    if (user.isProxy) {
+                        setProxyAdminInfo({
+                            username: user.proxyAdminUsername,
+                            name: user.proxyAdminName
+                        });
+                    } else {
+                        setProxyAdminInfo(null);
+                    }
+
                     // Check if user has dev access (specific username)
                     setHasDevAccess(username === '2300032048');
                 }
@@ -57,9 +74,40 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Database Query', href: '/dashboard/admin/dev/db-query', icon: FiDatabase },
     ];
 
-    const handleLogout = () => {
-        // Add logout logic here
-        router.push('/auth/login');
+    const handleLogout = async () => {
+        if (isProxySession) {
+            // If in proxy session, logout from proxy first
+            try {
+                const response = await fetch('/api/auth/proxy-logout', {
+                    method: 'POST',
+                });
+                if (response.ok) {
+                    toast.success('Exited proxy session successfully');
+                    // Refresh the page to return to admin session
+                    window.location.reload();
+                    return;
+                } else {
+                    const error = await response.json();
+                    toast.error(`Proxy logout failed: ${error.error}`);
+                }
+            } catch (error) {
+                toast.error('Proxy logout failed. Please try again.');
+            }
+        }
+
+        // Regular logout - clear token and redirect to login
+        try {
+            // Clear cookie and call logout API
+            document.cookie = 'tck=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (error) {
+            // Continue with logout even if API fails
+        }
+
+        // Clear local storage and redirect
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/auth/login';
     };
 
     return (
@@ -78,14 +126,28 @@ export default function AdminDashboardLayout({ children }) {
                             >
                                 {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
                             </button>
-                            <h1 className="text-xl font-bold ml-4 lg:ml-0">Admin Dashboard</h1>
+                            <h1 className="text-xl font-bold ml-4 lg:ml-0">
+                                Admin Dashboard
+                                {isProxySession && (
+                                    <span className="ml-2 text-sm font-normal text-orange-300">
+                                        (Proxy Mode)
+                                    </span>
+                                )}
+                            </h1>
                         </div>
 
                         {/* Right side */}
                         <div className="flex items-center space-x-4">
-                            <span className="hidden sm:block text-sm">
-                                ID: {userData.username}
-                            </span>
+                            <div className="hidden sm:block text-sm">
+                                {isProxySession ? (
+                                    <div className="flex flex-col">
+                                        <span className="text-orange-300">Proxy: {userData.name}</span>
+                                        <span className="text-xs text-gray-300">Admin ID: {proxyAdminInfo?.username}</span>
+                                    </div>
+                                ) : (
+                                    <span>ID: {userData.username}</span>
+                                )}
+                            </div>
                             {/* <span className="hidden sm:block text-sm font-medium">{userData.name}</span> */}
                             <button
                                 onClick={handleLogout}
@@ -95,7 +157,7 @@ export default function AdminDashboardLayout({ children }) {
                                 onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
                             >
                                 <FiLogOut size={16} />
-                                <span>Logout</span>
+                                <span>{isProxySession ? 'Exit Proxy' : 'Logout'}</span>
                             </button>
                         </div>
                     </div>

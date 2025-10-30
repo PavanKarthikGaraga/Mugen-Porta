@@ -40,14 +40,22 @@ export async function POST(req) {
             agreedToTerms
         } = await req.json();
 
+        // Check if it's Y22, Y23, Y24 or Y25 student based on username
+        const isY24Student = username.startsWith('24');
+        const isY25Student = username.startsWith('25');
+        const isY23Student = username.startsWith('23');
+        const isY22Student = username.startsWith('22');
+
         // Create mutable variables for project-related fields that might be cleared for Y25 students
         let selectedProject = originalSelectedProject;
         let selectedCategory = originalSelectedCategory;
 
         // Validate required fields
-        if (!username || !name || !email || !phoneNumber || !branch || !gender || !cluster || !year) {
+        // Cluster is optional for 1st year (Y25) students
+        const clusterRequired = !isY25Student;
+        if (!username || !name || !email || !phoneNumber || !branch || !gender || !year || (clusterRequired && !cluster)) {
             return NextResponse.json(
-                { message: "All personal details are required" },
+                { message: clusterRequired && !cluster ? "Cluster is required for your year" : "All required personal details are required" },
                 { status: 400 }
             );
         }
@@ -58,12 +66,6 @@ export async function POST(req) {
                 { status: 400 }
             );
         }
-
-        // Check if it's Y22, Y23, Y24 or Y25 student based on username
-        const isY24Student = username.startsWith('24');
-        const isY25Student = username.startsWith('25');
-        const isY23Student = username.startsWith('23');
-        const isY22Student = username.startsWith('22');
 
         // Validation based on student year - unified logic matching frontend
 
@@ -305,7 +307,8 @@ export async function POST(req) {
                     projectIdToInsert, // Y22, Y23, Y24 can have projects, Y25 null
                     selectedClub,                          // All students can have clubs
                     name, email, branch, gender,
-                    cluster, year, phoneNumber, residenceType,
+                    isY25Student ? null : cluster, // Cluster is null for Y25 (1st year) students
+                    year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
                     countryName || country, state, district, pincode, selectedDomain,
                     (isY22Student || isY23Student || isY24Student) ? selectedCategory : null, // Y22, Y23, Y24 can have category, Y25 null

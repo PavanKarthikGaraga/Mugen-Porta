@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { toast } from "sonner";
 
 export default function ProjectSelection({ formData, updateFormData, onValidationChange }) {
     const [selectedDomain, setSelectedDomain] = useState("");
@@ -113,7 +114,7 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
         if (!selectedClubData) return;
 
         if (selectedClubData.isFull) {
-            alert(`This club is already full (${selectedClubData.memberCount}/${selectedClubData.memberLimit} members). Please select a different club.`);
+            toast.error(`This club is already full (${selectedClubData.memberCount}/${selectedClubData.memberLimit} members). Please select a different club.`);
             return; // Don't proceed with selection
         }
 

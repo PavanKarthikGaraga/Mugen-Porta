@@ -41,8 +41,19 @@ export default function StudentDashboardLayout({ children }) {
         { name: 'Final Submission', href: '/dashboard/student/final-submission', icon: FiSend },
     ];
 
-    const handleLogout = () => {
-        // Add logout logic here
+    const handleLogout = async () => {
+        // Clear token and redirect to login
+        try {
+            // Clear cookie and call logout API
+            document.cookie = 'tck=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (error) {
+            // Continue with logout even if API fails
+        }
+
+        // Clear local storage and redirect
+        localStorage.clear();
+        sessionStorage.clear();
         router.push('/auth/login');
     };
 
