@@ -57,8 +57,8 @@ export default function AdminOverviewPage() {
                 setStats(statsData);
             }
 
-            // Fetch domain and club stats from students API
-            const studentsResponse = await fetch('/api/dashboard/admin/students?limit=1');
+            // Fetch domain and club stats from students API (with filters)
+            const studentsResponse = await fetch(`/api/dashboard/admin/students?limit=1&${queryParams}`);
             if (await handleApiError(studentsResponse)) {
                 return; // Error was handled
             }
@@ -142,6 +142,103 @@ export default function AdminOverviewPage() {
                 <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
                 <p className="mt-2 text-gray-600">Welcome to the administrative control panel</p>
             </div>
+
+            {/* Filters */}
+            <Card className="mb-8">
+                <CardHeader>
+                    <CardTitle className="flex items-center">
+                        <FiFilter className="mr-2" />
+                        Filters
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="domain">Domain</Label>
+                            <Select
+                                value={filters.domain}
+                                onValueChange={(value) => setFilters({ ...filters, domain: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="All Domains" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Domains</SelectItem>
+                                    <SelectItem value="TEC">Technical (TEC)</SelectItem>
+                                    <SelectItem value="LCH">Leadership & Community (LCH)</SelectItem>
+                                    <SelectItem value="ESO">Entrepreneurship & Startup (ESO)</SelectItem>
+                                    <SelectItem value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</SelectItem>
+                                    <SelectItem value="HWB">Health & Well-being (HWB)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="year">Year</Label>
+                            <Select
+                                value={filters.year}
+                                onValueChange={(value) => setFilters({ ...filters, year: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="All Years" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Years</SelectItem>
+                                    <SelectItem value="22">Y22</SelectItem>
+                                    <SelectItem value="23">Y23</SelectItem>
+                                    <SelectItem value="24">Y24</SelectItem>
+                                    <SelectItem value="25">Y25</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="branch">Branch</Label>
+                            <Input
+                                id="branch"
+                                type="text"
+                                value={filters.branch}
+                                onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
+                                placeholder="Enter branch"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="dateRange">Date Range</Label>
+                            <Select
+                                value={filters.dateRange}
+                                onValueChange={(value) => setFilters({ ...filters, dateRange: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="7">Last 7 days</SelectItem>
+                                    <SelectItem value="30">Last 30 days</SelectItem>
+                                    <SelectItem value="90">Last 90 days</SelectItem>
+                                    <SelectItem value="365">Last year</SelectItem>
+                                    <SelectItem value="all">All time</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 flex gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setFilters({ domain: '', year: '', branch: '', dateRange: '30' })}
+                        >
+                            Clear Filters
+                        </Button>
+                        <Button
+                            onClick={fetchStats}
+                            className="bg-red-800 hover:bg-red-900"
+                        >
+                            Apply Filters
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
@@ -265,102 +362,6 @@ export default function AdminOverviewPage() {
                 </div>
             )}
 
-            {/* Filters */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center">
-                        <FiFilter className="mr-2" />
-                        Filters
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="domain">Domain</Label>
-                            <Select
-                                value={filters.domain}
-                                onValueChange={(value) => setFilters({ ...filters, domain: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All Domains" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Domains</SelectItem>
-                                    <SelectItem value="TEC">Technical (TEC)</SelectItem>
-                                    <SelectItem value="LCH">Leadership & Community (LCH)</SelectItem>
-                                    <SelectItem value="ESO">Entrepreneurship & Startup (ESO)</SelectItem>
-                                    <SelectItem value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</SelectItem>
-                                    <SelectItem value="HWB">Health & Well-being (HWB)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="year">Year</Label>
-                            <Select
-                                value={filters.year}
-                                onValueChange={(value) => setFilters({ ...filters, year: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All Years" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Years</SelectItem>
-                                    <SelectItem value="22">Y22</SelectItem>
-                                    <SelectItem value="23">Y23</SelectItem>
-                                    <SelectItem value="24">Y24</SelectItem>
-                                    <SelectItem value="25">Y25</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="branch">Branch</Label>
-                            <Input
-                                id="branch"
-                                type="text"
-                                value={filters.branch}
-                                onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
-                                placeholder="Enter branch"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="dateRange">Date Range</Label>
-                            <Select
-                                value={filters.dateRange}
-                                onValueChange={(value) => setFilters({ ...filters, dateRange: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="7">Last 7 days</SelectItem>
-                                    <SelectItem value="30">Last 30 days</SelectItem>
-                                    <SelectItem value="90">Last 90 days</SelectItem>
-                                    <SelectItem value="365">Last year</SelectItem>
-                                    <SelectItem value="all">All time</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 flex gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => setFilters({ domain: '', year: '', branch: '', dateRange: '30' })}
-                        >
-                            Clear Filters
-                        </Button>
-                        <Button
-                            onClick={fetchStats}
-                            className="bg-red-800 hover:bg-red-900"
-                        >
-                            Apply Filters
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     );
 }
