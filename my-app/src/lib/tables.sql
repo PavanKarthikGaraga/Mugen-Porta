@@ -68,7 +68,7 @@ CREATE TABLE students (
     email VARCHAR(100) UNIQUE NOT NULL,
     branch VARCHAR(50) NOT NULL,
     gender ENUM('Male', 'Female', 'Other') NOT NULL,
-    cluster INT NOT NULL,
+    cluster INT DEFAULT NULL,
     year ENUM('1st', '2nd', '3rd', '4th') NOT NULL,
     phoneNumber VARCHAR(15) UNIQUE NOT NULL,
     residenceType ENUM('Hostel', 'Day Scholar') NOT NULL,

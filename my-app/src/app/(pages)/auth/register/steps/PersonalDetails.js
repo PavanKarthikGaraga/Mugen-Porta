@@ -93,41 +93,24 @@ export default function PersonalDetails({ formData, updateFormData }) {
             <h2 className="text-2xl font-bold mb-6 text-center">Personal Details</h2>
             
             <div className="grid gap-6 lg:grid-cols-3 md:grid-cols-2">
-                <div className="lg:col-span-2">
-                    <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                        Username *
+                <div>
+                    <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-2">
+                        Academic Year *
                     </label>
-                    <input
-                        type="text"
-                        id="username"
-                        name="username"
-                        placeholder="Enter username (must start with 22, 23, 24, or 25)"
-                        className={`w-full h-12 px-4 border rounded-lg focus:ring-2 focus:border-blue-500 outline-none ${
-                            formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username) 
-                                ? 'border-red-500 focus:ring-red-500' 
-                                : 'border-gray-300 focus:ring-blue-500'
-                        }`}
-                        value={formData.username || ""}
+                    <select
+                        id="year"
+                        name="year"
+                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                        value={formData.year || ""}
                         onChange={handleInputChange}
-                        pattern="^(22|23|24|25)\d{8}$"
-                        maxLength={10}
-                        minLength={10}
-                        title="Username must start with 22, 23, 24, or 25 and be exactly 10 characters long"
                         required
-                    />
-                    {formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username) ? (
-                        <p className="text-xs text-red-500 mt-1">
-                            {!formData.username.startsWith('22') && !formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25')
-                                ? 'Username must start with 22, 23, 24, or 25' 
-                                : formData.username.length !== 10 
-                                ? `Username must be exactly 10 digits (currently ${formData.username.length})` 
-                                : 'Username must contain only digits'}
-                        </p>
-                    ) : (
-                        <p className="text-xs text-gray-500 mt-1">
-                            Must start with 22, 23, 24, or 25 and be exactly 10 digits long
-                        </p>
-                    )}
+                    >
+                        <option value="">Select Year</option>
+                        <option value="1st">1st Year</option>
+                        <option value="2nd">2nd Year</option>
+                        <option value="3rd">3rd Year</option>
+                        <option value="4th">4th Year</option>
+                    </select>
                 </div>
 
                 <div>
@@ -150,6 +133,43 @@ export default function PersonalDetails({ formData, updateFormData }) {
                 </div>
 
                 <div className="lg:col-span-2">
+                    <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                        Username *
+                    </label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Enter username (must start with 22, 23, 24, or 25)"
+                        className={`w-full h-12 px-4 border rounded-lg focus:ring-2 focus:border-blue-500 outline-none ${
+                            formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username)
+                                ? 'border-red-500 focus:ring-red-500'
+                                : 'border-gray-300 focus:ring-blue-500'
+                        }`}
+                        value={formData.username || ""}
+                        onChange={handleInputChange}
+                        pattern="^(22|23|24|25)\d{8}$"
+                        maxLength={10}
+                        minLength={10}
+                        title="Username must start with 22, 23, 24, or 25 and be exactly 10 characters long"
+                        required
+                    />
+                    {formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username) ? (
+                        <p className="text-xs text-red-500 mt-1">
+                            {!formData.username.startsWith('22') && !formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25')
+                                ? 'Username must start with 22, 23, 24, or 25'
+                                : formData.username.length !== 10
+                                ? `Username must be exactly 10 digits (currently ${formData.username.length})`
+                                : 'Username must contain only digits'}
+                        </p>
+                    ) : (
+                        <p className="text-xs text-gray-500 mt-1">
+                            Must start with 22, 23, 24, or 25 and be exactly 10 digits long
+                        </p>
+                    )}
+                </div>
+
+                <div className="lg:col-span-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                         Full Name *
                     </label>
@@ -163,41 +183,6 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         onChange={handleInputChange}
                         required
                     />
-                </div>
-
-                <div>
-                    <label htmlFor="cluster" className="block text-sm font-medium text-gray-700 mb-2">
-                        Cluster *
-                    </label>
-                    <select
-                        id="cluster"
-                        name="cluster"
-                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
-                        value={formData.cluster || ""}
-                        onChange={handleInputChange}
-                        required
-                    >
-                        <option value="">Select Cluster</option>
-                        <option value="1">Cluster 1</option>
-                        <option value="2">Cluster 2</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address *
-                    </label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="Auto-generated based on username"
-                        className="w-full h-12 px-4 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                        value={formData.email || ""}
-                        readOnly
-                        required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Email is auto-generated based on username</p>
                 </div>
 
                 <div>
@@ -219,24 +204,43 @@ export default function PersonalDetails({ formData, updateFormData }) {
                     </select>
                 </div>
 
-                <div>
-                    <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-2">
-                        Academic Year *
+                {/* Cluster field - always rendered to prevent layout shifts */}
+                <div className={formData.year === "1st" ? "opacity-50 pointer-events-none" : ""}>
+                    <label htmlFor="cluster" className="block text-sm font-medium text-gray-700 mb-2">
+                        Cluster {formData.year !== "1st" ? "*" : ""}
                     </label>
                     <select
-                        id="year"
-                        name="year"
+                        id="cluster"
+                        name="cluster"
                         className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
-                        value={formData.year || ""}
+                        value={formData.cluster || ""}
                         onChange={handleInputChange}
-                        required
+                        disabled={formData.year === "1st"}
+                        required={formData.year !== "1st"}
                     >
-                        <option value="">Select Year</option>
-                        <option value="1st">1st Year</option>
-                        <option value="2nd">2nd Year</option>
-                        <option value="3rd">3rd Year</option>
-                        <option value="4th">4th Year</option>
+                        <option value="">
+                            {formData.year === "1st" ? "Not required for 1st year" : "Select Cluster"}
+                        </option>
+                        <option value="1">Cluster 1</option>
+                        <option value="2">Cluster 2</option>
                     </select>
+                </div>
+
+                <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address *
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Auto-generated based on username"
+                        className="w-full h-12 px-4 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                        value={formData.email || ""}
+                        readOnly
+                        required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Email is auto-generated based on username</p>
                 </div>
 
                 <div className="lg:col-span-2">

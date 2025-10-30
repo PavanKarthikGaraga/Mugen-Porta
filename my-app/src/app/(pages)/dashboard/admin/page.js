@@ -285,7 +285,7 @@ export default function AdminOverviewPage() {
             {/* Domain Statistics */}
             <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Domain Distribution</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <Card className="border border-green-200 bg-green-50">
                         <CardContent className="p-4 text-center">
                             <div className="text-sm font-medium text-green-700 mb-1">TEC</div>
@@ -331,14 +331,6 @@ export default function AdminOverviewPage() {
                             <div className="text-sm font-medium text-indigo-700 mb-1">Rural</div>
                             <div className="text-2xl font-bold text-indigo-800">
                                 {loading ? '...' : domainStats.rural || 0}
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border border-gray-200 bg-gray-50">
-                        <CardContent className="p-4 text-center">
-                            <div className="text-sm font-medium text-gray-700 mb-1">Total</div>
-                            <div className="text-2xl font-bold text-gray-800">
-                                {loading ? '...' : domainStats.total || 0}
                             </div>
                         </CardContent>
                     </Card>
