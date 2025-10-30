@@ -43,6 +43,8 @@ export async function GET(request) {
         const search = searchParams.get('search')?.trim() || '';
         const domain = searchParams.get('domain')?.trim() || '';
         const year = searchParams.get('year')?.trim() || '';
+        const branch = searchParams.get('branch')?.trim() || '';
+        const dateRange = searchParams.get('dateRange')?.trim() || '';
         const residenceType = searchParams.get('residenceType')?.trim() || '';
         const clubId = searchParams.get('clubId')?.trim() || '';
 
@@ -57,14 +59,26 @@ export async function GET(request) {
             queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
 
-        if (domain && domain.length > 0) {
+        if (domain && domain.length > 0 && domain !== 'all') {
             whereConditions.push('s.selectedDomain = ?');
             queryParams.push(domain);
         }
 
-        if (year && year.length > 0) {
+        if (year && year.length > 0 && year !== 'all') {
             whereConditions.push('s.year = ?');
             queryParams.push(year);
+        }
+
+        if (branch && branch.length > 0) {
+            whereConditions.push('s.branch LIKE ?');
+            queryParams.push(`%${branch}%`);
+        }
+
+        if (dateRange && dateRange.length > 0 && dateRange !== 'all') {
+            const daysAgo = new Date();
+            daysAgo.setDate(daysAgo.getDate() - parseInt(dateRange));
+            whereConditions.push('s.created_at >= ?');
+            queryParams.push(daysAgo.toISOString().slice(0, 19).replace('T', ' '));
         }
 
         if (residenceType && residenceType.length > 0) {
@@ -110,7 +124,7 @@ export async function GET(request) {
 
         const [studentsResult] = await connection.execute(studentsQuery, queryParams);
 
-        // Get stats by domain
+        // Get stats by domain (with filters applied)
         const statsQuery = `
             SELECT
                 COUNT(*) as total,
@@ -120,13 +134,14 @@ export async function GET(request) {
                 SUM(CASE WHEN selectedDomain = 'IIE' THEN 1 ELSE 0 END) as iie,
                 SUM(CASE WHEN selectedDomain = 'HWB' THEN 1 ELSE 0 END) as hwb,
                 SUM(CASE WHEN selectedDomain = 'Rural' OR ruralCategory IS NOT NULL THEN 1 ELSE 0 END) as rural
-            FROM students
+            FROM students s
+            ${whereClause}
         `;
 
-        const [statsResult] = await connection.execute(statsQuery);
+        const [statsResult] = await connection.execute(statsQuery, queryParams);
         const stats = statsResult[0];
 
-        // Get club stats
+        // Get club stats (with filters applied)
         const clubStatsQuery = `
             SELECT
                 c.name as clubName,
@@ -134,11 +149,12 @@ export async function GET(request) {
                 COUNT(s.username) as memberCount
             FROM clubs c
             LEFT JOIN students s ON c.id = s.clubId
+            ${whereClause.replace('s.', 's.')}
             GROUP BY c.id, c.name
             ORDER BY memberCount DESC
         `;
 
-        const [clubStatsResult] = await connection.execute(clubStatsQuery);
+        const [clubStatsResult] = await connection.execute(clubStatsQuery, queryParams);
 
         return NextResponse.json({
             success: true,
