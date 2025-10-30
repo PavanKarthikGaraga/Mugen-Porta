@@ -59,11 +59,23 @@ export async function GET(request) {
             }
         }
 
+        // Check if this is a proxy session
+        const isProxy = payload.isProxy || false;
+        const proxyInfo = isProxy ? {
+            isProxy: true,
+            proxyAdminUsername: payload.proxyAdminUsername,
+            proxyAdminName: payload.proxyAdminName
+        } : {};
+
         return NextResponse.json({
-            username: payload.username,
-            name: payload.name,
-            role: payload.role,
-            ...additionalData
+            user: {
+                username: payload.username,
+                name: payload.name,
+                role: payload.role,
+                isProxy: isProxy,
+                ...proxyInfo,
+                ...additionalData
+            }
         });
         
     } catch (error) {
