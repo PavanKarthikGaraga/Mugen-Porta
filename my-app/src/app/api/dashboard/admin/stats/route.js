@@ -52,7 +52,7 @@ export async function GET(request) {
             params.push(year);
         }
 
-        if (branch) {
+        if (branch && branch !== 'all') {
             whereConditions.push('s.branch = ?');
             params.push(branch);
         }

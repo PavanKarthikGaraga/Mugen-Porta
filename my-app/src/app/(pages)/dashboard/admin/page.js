@@ -30,9 +30,9 @@ export default function AdminOverviewPage() {
     const [clubStats, setClubStats] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
-        domain: '',
-        year: '',
-        branch: '',
+        domain: 'all',
+        year: 'all',
+        branch: 'all',
         dateRange: '30'
     });
     const [proxyUsername, setProxyUsername] = useState('');
@@ -48,7 +48,7 @@ export default function AdminOverviewPage() {
             const queryParams = new URLSearchParams();
             if (filters.domain && filters.domain !== 'all') queryParams.append('domain', filters.domain);
             if (filters.year && filters.year !== 'all') queryParams.append('year', filters.year);
-            if (filters.branch) queryParams.append('branch', filters.branch);
+            if (filters.branch && filters.branch !== 'all') queryParams.append('branch', filters.branch);
             if (filters.dateRange && filters.dateRange !== 'all') queryParams.append('dateRange', filters.dateRange);
 
             // Fetch main stats
@@ -344,7 +344,7 @@ export default function AdminOverviewPage() {
                                     <SelectValue placeholder="All Branches" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Branches</SelectItem>
+                                    <SelectItem value="all">All Branches</SelectItem>
                                     {branchNames.map((branch) => (
                                         <SelectItem key={branch.id} value={branch.name}>
                                             {branch.name}
@@ -377,7 +377,7 @@ export default function AdminOverviewPage() {
                     <div className="mt-4 flex gap-2">
                         <Button
                             variant="outline"
-                            onClick={() => setFilters({ domain: '', year: '', branch: '', dateRange: '30' })}
+                            onClick={() => setFilters({ domain: 'all', year: 'all', branch: 'all', dateRange: '30' })}
                         >
                             Clear Filters
                         </Button>
