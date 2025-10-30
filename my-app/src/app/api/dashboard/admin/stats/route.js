@@ -53,8 +53,8 @@ export async function GET(request) {
         }
 
         if (branch) {
-            whereConditions.push('s.branch LIKE ?');
-            params.push(`%${branch}%`);
+            whereConditions.push('s.branch = ?');
+            params.push(branch);
         }
 
         if (dateRange) {

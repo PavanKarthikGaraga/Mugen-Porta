@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { branchNames } from "@/app/Data/branches";
 
 export default function AdminOverviewPage() {
     const [stats, setStats] = useState({
@@ -184,23 +185,32 @@ export default function AdminOverviewPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Years</SelectItem>
-                                    <SelectItem value="22">Y22</SelectItem>
-                                    <SelectItem value="23">Y23</SelectItem>
-                                    <SelectItem value="24">Y24</SelectItem>
-                                    <SelectItem value="25">Y25</SelectItem>
+                                    <SelectItem value="1st">1st Year</SelectItem>
+                                    <SelectItem value="2nd">2nd Year</SelectItem>
+                                    <SelectItem value="3rd">3rd Year</SelectItem>
+                                    <SelectItem value="4th">4th Year</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="branch">Branch</Label>
-                            <Input
-                                id="branch"
-                                type="text"
+                            <Select
                                 value={filters.branch}
-                                onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
-                                placeholder="Enter branch"
-                            />
+                                onValueChange={(value) => setFilters({ ...filters, branch: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="All Branches" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="">All Branches</SelectItem>
+                                    {branchNames.map((branch) => (
+                                        <SelectItem key={branch.id} value={branch.name}>
+                                            {branch.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <div className="space-y-2">
