@@ -236,7 +236,7 @@ export default function AdminOverviewPage() {
                     <div className="mt-4 flex gap-2">
                         <Button
                             variant="outline"
-                            onClick={() => setFilters({ domain: '', year: '', branch: '', dateRange: '30' })}
+                            onClick={() => setFilters({ domain: 'all', year: 'all', branch: '', dateRange: '30' })}
                         >
                             Clear Filters
                         </Button>
