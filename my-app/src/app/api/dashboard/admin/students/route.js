@@ -70,8 +70,8 @@ export async function GET(request) {
         }
 
         if (branch && branch.length > 0) {
-            whereConditions.push('s.branch LIKE ?');
-            queryParams.push(`%${branch}%`);
+            whereConditions.push('s.branch = ?');
+            queryParams.push(branch);
         }
 
         if (dateRange && dateRange.length > 0 && dateRange !== 'all') {
