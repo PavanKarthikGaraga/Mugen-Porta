@@ -7,6 +7,7 @@ import {
     FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText,NotebookTabs
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
+import { toast } from "sonner";
 
 import ChangePassword from "@/app/components/ChangePassword";
 
@@ -81,22 +82,32 @@ export default function AdminDashboardLayout({ children }) {
                     method: 'POST',
                 });
                 if (response.ok) {
+                    toast.success('Exited proxy session successfully');
                     // Refresh the page to return to admin session
                     window.location.reload();
                     return;
+                } else {
+                    const error = await response.json();
+                    toast.error(`Proxy logout failed: ${error.error}`);
                 }
             } catch (error) {
-                console.error('Proxy logout failed:', error);
+                toast.error('Proxy logout failed. Please try again.');
             }
         }
 
         // Regular logout - clear token and redirect to login
         try {
+            // Clear cookie and call logout API
+            document.cookie = 'tck=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             await fetch('/api/auth/logout', { method: 'POST' });
         } catch (error) {
-            console.error('Logout error:', error);
+            // Continue with logout even if API fails
         }
-        router.push('/auth/login');
+
+        // Clear local storage and redirect
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/auth/login';
     };
 
     return (
@@ -131,7 +142,7 @@ export default function AdminDashboardLayout({ children }) {
                                 {isProxySession ? (
                                     <div className="flex flex-col">
                                         <span className="text-orange-300">Proxy: {userData.name}</span>
-                                        <span className="text-xs text-gray-300">Admin: {proxyAdminInfo?.name}</span>
+                                        <span className="text-xs text-gray-300">Admin ID: {proxyAdminInfo?.username}</span>
                                     </div>
                                 ) : (
                                     <span>ID: {userData.username}</span>

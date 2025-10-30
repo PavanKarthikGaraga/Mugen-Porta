@@ -40,7 +40,19 @@ export default function FacultyDashboardLayout({ children }) {
         { name: 'Final Reports', href: '/dashboard/faculty/final-reports', icon: FiFileText }
     ];
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        // Clear token and redirect to login
+        try {
+            // Clear cookie and call logout API
+            document.cookie = 'tck=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (error) {
+            // Continue with logout even if API fails
+        }
+
+        // Clear local storage and redirect
+        localStorage.clear();
+        sessionStorage.clear();
         router.push('/auth/login');
     };
 

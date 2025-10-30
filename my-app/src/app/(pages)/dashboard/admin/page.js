@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { FiUsers, FiFolder, FiBarChart, FiTrendingUp, FiCalendar, FiFilter, FiUser, FiLogOut } from "react-icons/fi";
+import { FiUsers, FiFolder, FiBarChart, FiTrendingUp, FiCalendar, FiFilter } from "react-icons/fi";
 import { handleApiError } from '@/lib/apiErrorHandler';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,10 +35,6 @@ export default function AdminOverviewPage() {
         branch: 'all',
         dateRange: '30'
     });
-    const [proxyUsername, setProxyUsername] = useState('');
-    const [proxyLoading, setProxyLoading] = useState(false);
-    const [currentUser, setCurrentUser] = useState(null);
-    const [isProxySession, setIsProxySession] = useState(false);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -82,86 +78,9 @@ export default function AdminOverviewPage() {
         }
     }, [filters]);
 
-    // Check if user is in proxy session
-    const checkUserSession = useCallback(async () => {
-        try {
-            const response = await fetch('/api/auth/me');
-            if (response.ok) {
-                const userData = await response.json();
-                setCurrentUser(userData.user);
-                setIsProxySession(userData.user?.isProxy || false);
-            }
-        } catch (error) {
-            console.error('Failed to check user session:', error);
-        }
-    }, []);
-
-    // Proxy login function
-    const handleProxyLogin = async () => {
-        if (!proxyUsername.trim()) {
-            alert('Please enter a username');
-            return;
-        }
-
-        setProxyLoading(true);
-        try {
-            const response = await fetch('/api/auth/proxy-login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ targetUsername: proxyUsername.trim() }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                alert(`Successfully logged in as ${data.user.name} (${data.user.username})`);
-                // Redirect to appropriate dashboard based on user role
-                if (data.user.role === 'student') {
-                    window.location.href = '/dashboard/student';
-                } else if (data.user.role === 'lead') {
-                    window.location.href = '/dashboard/lead';
-                } else if (data.user.role === 'faculty') {
-                    window.location.href = '/dashboard/faculty';
-                }
-            } else {
-                const error = await response.json();
-                alert(`Proxy login failed: ${error.error}`);
-            }
-        } catch (error) {
-            console.error('Proxy login error:', error);
-            alert('Proxy login failed. Please try again.');
-        } finally {
-            setProxyLoading(false);
-        }
-    };
-
-    // Proxy logout function
-    const handleProxyLogout = async () => {
-        try {
-            const response = await fetch('/api/auth/proxy-logout', {
-                method: 'POST',
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                alert(`Returned to admin session as ${data.user.name}`);
-                // Refresh the page to show admin dashboard
-                window.location.reload();
-            } else {
-                const error = await response.json();
-                alert(`Proxy logout failed: ${error.error}`);
-            }
-        } catch (error) {
-            console.error('Proxy logout error:', error);
-            alert('Proxy logout failed. Please try again.');
-        }
-    };
-
     useEffect(() => {
         fetchStats();
-        checkUserSession();
-    }, [filters, fetchStats, checkUserSession]);
+    }, [filters, fetchStats]);
 
     const statCards = [
         {
@@ -223,67 +142,12 @@ export default function AdminOverviewPage() {
             <div className="mb-8">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            Admin Dashboard
-                            {isProxySession && (
-                                <span className="ml-3 text-lg text-orange-600 font-normal">
-                                    (Proxy Session)
-                                </span>
-                            )}
-                        </h1>
-                        <p className="mt-2 text-gray-600">
-                            Welcome to the administrative control panel
-                            {currentUser && ` - Logged in as ${currentUser.name}`}
-                        </p>
+                        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                        <p className="mt-2 text-gray-600">Welcome to the administrative control panel</p>
                     </div>
-                    {isProxySession && (
-                        <Button
-                            onClick={handleProxyLogout}
-                            className="bg-red-600 hover:bg-red-700 text-white"
-                        >
-                            <FiLogOut className="mr-2" />
-                            Exit Proxy Session
-                        </Button>
-                    )}
                 </div>
             </div>
 
-            {/* Proxy Login Section */}
-            {!isProxySession && (
-                <Card className="mb-8">
-                    <CardHeader>
-                        <CardTitle className="flex items-center">
-                            <FiUser className="mr-2" />
-                            Proxy Login
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex gap-4 items-end">
-                            <div className="flex-1">
-                                <Label htmlFor="proxyUsername">Username</Label>
-                                <Input
-                                    id="proxyUsername"
-                                    type="text"
-                                    placeholder="Enter username to login as"
-                                    value={proxyUsername}
-                                    onChange={(e) => setProxyUsername(e.target.value)}
-                                    className="mt-1"
-                                />
-                            </div>
-                            <Button
-                                onClick={handleProxyLogin}
-                                disabled={proxyLoading}
-                                className="bg-blue-600 hover:bg-blue-700"
-                            >
-                                {proxyLoading ? 'Logging in...' : 'Proxy Login'}
-                            </Button>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-2">
-                            Enter a username to access their dashboard as an admin. You can logout and return to admin dashboard anytime.
-                        </p>
-                    </CardContent>
-                </Card>
-            )}
 
             {/* Filters */}
             <Card className="mb-8">

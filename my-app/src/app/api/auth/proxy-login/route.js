@@ -40,6 +40,14 @@ export async function POST(req) {
 
         const user = targetUser[0];
 
+        // Prevent proxy login to admin accounts
+        if (user.role === 'admin') {
+            return new Response(JSON.stringify({ error: "Cannot proxy login to admin accounts" }), {
+                status: 403,
+                headers: { "Content-Type": "application/json" }
+            });
+        }
+
         // Generate proxy token with both admin and target user info
         const proxyToken = await generateToken({
             username: user.username,

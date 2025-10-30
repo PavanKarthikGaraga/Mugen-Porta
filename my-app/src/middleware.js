@@ -4,6 +4,26 @@ import { verifyToken } from './lib/jwt';
 export async function middleware(request) {
     const pathname = request.nextUrl.pathname;
 
+    // Check if the request is for auth routes (login, register, etc.)
+    if (pathname.startsWith('/auth/')) {
+        const token = request.cookies.get('tck')?.value;
+
+        // If user is logged in and trying to access auth pages, redirect to dashboard
+        if (token) {
+            try {
+                const payload = await verifyToken(token);
+
+                if (payload) {
+                    // Redirect logged-in users to their respective dashboards
+                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
+                }
+            } catch (error) {
+                // Token is invalid, continue to auth page
+                console.log('Invalid token in auth route, allowing access');
+            }
+        }
+    }
+
     // Check if the request is for dashboard routes
     if (pathname.startsWith('/dashboard')) {
         const token = request.cookies.get('tck')?.value;
@@ -60,5 +80,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*']
+    matcher: ['/dashboard/:path*', '/auth/:path*']
 };
