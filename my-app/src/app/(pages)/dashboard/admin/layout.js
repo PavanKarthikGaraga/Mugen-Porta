@@ -48,8 +48,9 @@ export default function AdminDashboardLayout({ children }) {
                         setProxyAdminInfo(null);
                     }
 
-                    // Check if user has dev access (specific username)
-                    setHasDevAccess(username === '2300032048');
+                    // Check if user has dev access (specific username from env or default)
+                    const devUsername = process.env.DEV_USERNAME || '2300032048';
+                    setHasDevAccess(username === devUsername);
                 }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
