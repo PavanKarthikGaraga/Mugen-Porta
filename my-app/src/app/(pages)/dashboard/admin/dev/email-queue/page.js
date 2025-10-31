@@ -26,7 +26,8 @@ export default function EmailQueuePage() {
 
             if (response.ok) {
                 const data = await response.json();
-                const hasDevAccess = data.username === '2300032048';
+                const devUsername = process.env.DEV_USERNAME || '2300032048';
+                const hasDevAccess = data.user.username === devUsername;
                 setHasAccess(hasDevAccess);
                 
                 if (!hasDevAccess) {
