@@ -31,6 +31,21 @@ export async function POST(request) {
             );
         }
 
+        // Check if lead has access to students in their club
+        const [leadResult] = await pool.execute(
+            'SELECT clubId FROM leads WHERE username = ?',
+            [payload.username]
+        );
+
+        if (leadResult.length === 0 || !leadResult[0].clubId) {
+            return NextResponse.json(
+                { error: 'No club assigned to this lead' },
+                { status: 403 }
+            );
+        }
+
+        const leadClubId = leadResult[0].clubId;
+
         const { studentUsername, evaluationData } = await request.json();
 
         // Validate input
@@ -38,6 +53,26 @@ export async function POST(request) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
                 { status: 400 }
+            );
+        }
+
+        // Verify student is in lead's club
+        const [studentResult] = await pool.execute(
+            'SELECT clubId FROM students WHERE username = ?',
+            [studentUsername]
+        );
+
+        if (studentResult.length === 0) {
+            return NextResponse.json(
+                { error: 'Student not found' },
+                { status: 404 }
+            );
+        }
+
+        if (studentResult[0].clubId !== leadClubId) {
+            return NextResponse.json(
+                { error: 'Access denied. Student not in your club.' },
+                { status: 403 }
             );
         }
 

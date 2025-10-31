@@ -36,12 +36,12 @@ export default function FacultyProfilePage() {
             if (response.ok) {
                 const data = await response.json();
                 setProfile({
-                    ...data,
-                    assignedClubs: Array.isArray(data.assignedClubs) ? data.assignedClubs : (data.assignedClubs ? JSON.parse(data.assignedClubs) : [])
+                    ...data.user,
+                    assignedClubs: Array.isArray(data.user?.assignedClubs) ? data.user?.assignedClubs : (data.user?.assignedClubs ? JSON.parse(data.user?.assignedClubs) : [])
                 });
                 setFormData({
-                    ...data,
-                    assignedClubs: Array.isArray(data.assignedClubs) ? data.assignedClubs : (data.assignedClubs ? JSON.parse(data.assignedClubs) : [])
+                    ...data.user,
+                    assignedClubs: Array.isArray(data.user?.assignedClubs) ? data.user?.assignedClubs : (data.user?.assignedClubs ? JSON.parse(data.user?.assignedClubs) : [])
                 });
             }
         } catch (error) {
@@ -53,7 +53,7 @@ export default function FacultyProfilePage() {
 
     const fetchClubs = async () => {
         try {
-            const response = await fetch('/api/dashboard/admin/clubs');
+            const response = await fetch('/api/dashboard/faculty/clubs');
             if (response.ok) {
                 const data = await response.json();
                 setClubs(data);

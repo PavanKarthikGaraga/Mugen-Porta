@@ -18,17 +18,17 @@ export default function StudentClubDetailsPage() {
                 }
 
                 const userData = await userResponse.json();
-                const username = userData.username;
+                const username = userData.user?.username;
 
                 // Fetch student details including club and project information
-                const studentResponse = await fetch(`/api/dashboard/student/profile/${username}`);
+                const studentResponse = await fetch(`/api/dashboard/student/profile/${username}`, { credentials: 'include' });
                 if (studentResponse.ok) {
                     const studentDetails = await studentResponse.json();
 
                     // Fetch club information
                     if (studentDetails.clubId) {
                         try {
-                            const clubResponse = await fetch(`/api/dashboard/student/clubs/${studentDetails.clubId}`);
+                            const clubResponse = await fetch(`/api/dashboard/student/clubs/${studentDetails.clubId}`, { credentials: 'include' });
                             if (clubResponse.ok) {
                                 const clubInfo = await clubResponse.json();
                                 setClubData({
@@ -44,7 +44,7 @@ export default function StudentClubDetailsPage() {
                     // Fetch project information
                     if (studentDetails.projectId) {
                         try {
-                            const projectResponse = await fetch(`/api/dashboard/student/projects/${studentDetails.projectId}`);
+                            const projectResponse = await fetch(`/api/dashboard/student/projects/${studentDetails.projectId}`, { credentials: 'include' });
                             if (projectResponse.ok) {
                                 const projectInfo = await projectResponse.json();
                                 setProjectData(projectInfo);

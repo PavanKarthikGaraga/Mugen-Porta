@@ -33,7 +33,7 @@ export default function FacultyOverviewPage() {
             if (response.ok) {
                 const data = await response.json();
                 setUserData({
-                    assignedClubs: data.assignedClubs || []
+                    assignedClubs: data.user?.assignedClubs || []
                 });
                 // Don't auto-select - show all clubs by default
             }

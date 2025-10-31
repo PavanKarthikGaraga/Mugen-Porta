@@ -23,8 +23,8 @@ export default function StudentDashboardLayout({ children }) {
                 if (response.ok) {
                     const data = await response.json();
                     setUserData({
-                        username: data.username || '',
-                        name: data.name || ''
+                        username: data.user?.username || '',
+                        name: data.user?.name || ''
                     });
                 }
             } catch (error) {

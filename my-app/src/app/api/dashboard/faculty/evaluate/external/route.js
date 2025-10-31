@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { getConnection } from '@/lib/db';
-import { handleApiError } from '@/lib/apiErrorHandler';
 
 export async function POST(request) {
     let connection;
@@ -49,7 +48,7 @@ export async function POST(request) {
 
         // Check if faculty has access to this student's club
         const [facultyResult] = await connection.execute(
-            'SELECT assigned_clubs FROM faculty WHERE username = ?',
+            'SELECT assignedClubs FROM faculty WHERE username = ?',
             [facultyUsername]
         );
 
@@ -60,7 +59,7 @@ export async function POST(request) {
             );
         }
 
-        const assignedClubsJson = facultyResult[0].assigned_clubs;
+        const assignedClubsJson = facultyResult[0].assignedClubs;
         if (!assignedClubsJson) {
             return NextResponse.json(
                 { message: 'No assigned clubs found for faculty' },
@@ -68,11 +67,21 @@ export async function POST(request) {
             );
         }
 
-        // Parse assigned clubs JSON
+        // Parse assigned clubs (handle both JSON string and array formats)
         let assignedClubs;
         try {
-            assignedClubs = JSON.parse(assignedClubsJson);
+            if (Array.isArray(assignedClubsJson)) {
+                // Already an array
+                assignedClubs = assignedClubsJson;
+            } else if (typeof assignedClubsJson === 'string') {
+                // JSON string that needs parsing
+                assignedClubs = JSON.parse(assignedClubsJson);
+            } else {
+                // Default to empty array
+                assignedClubs = [];
+            }
         } catch (error) {
+            console.error('Error parsing assigned clubs for faculty:', facultyUsername, 'Raw value:', assignedClubsJson, 'Type:', typeof assignedClubsJson);
             return NextResponse.json(
                 { message: 'Invalid assigned clubs format' },
                 { status: 500 }
@@ -163,7 +172,10 @@ export async function POST(request) {
 
     } catch (error) {
         console.error('Error submitting faculty external evaluation:', error);
-        return handleApiError(error);
+        return NextResponse.json(
+            { success: false, message: 'Internal server error' },
+            { status: 500 }
+        );
     } finally {
         if (connection) {
             connection.release();

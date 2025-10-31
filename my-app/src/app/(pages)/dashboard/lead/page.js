@@ -19,8 +19,8 @@ export default function LeadOverviewPage() {
             if (response.ok) {
                 const data = await response.json();
                 setUserData({
-                    clubId: data.clubId,
-                    clubName: data.clubName || ''
+                    clubId: data.user?.clubId,
+                    clubName: data.user?.clubName || ''
                 });
             }
         } catch (error) {

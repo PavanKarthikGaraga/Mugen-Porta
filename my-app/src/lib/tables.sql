@@ -195,12 +195,3 @@ CREATE INDEX idx_external_marks_username ON student_external_marks(username);
 INSERT INTO controls (id, registrations_enabled)
 VALUES (1, 1)
 ON DUPLICATE KEY UPDATE registrations_enabled = 1;
-
-INSERT INTO users (username, name, email, password, role)
-VALUES (
-    '2300032048',
-    'Garaga Pavan Karthik',
-    '2300032048@kluniversity.in',
-    '$2b$12$Xm2xgZ7jNcUef2WbZ/uxtukaftaUM7UfjC.8M4fdNIs9N1.ti2bGK',
-    'admin'
-);

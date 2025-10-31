@@ -17,16 +17,16 @@ export default function StudentOverviewPage() {
                     const data = await response.json();
 
                     // Fetch additional student details from database
-                    const studentResponse = await fetch(`/api/dashboard/student/profile/${data.username}`);
+                    const studentResponse = await fetch(`/api/dashboard/student/profile/${data.user?.username}`);
                     if (studentResponse.ok) {
                         const studentDetails = await studentResponse.json();
                         setStudentData({
-                            ...data,
+                            ...data.user,
                             ...studentDetails
                         });
                     } else {
                         // Fallback to basic data if student details not found
-                        setStudentData(data);
+                        setStudentData(data.user);
                     }
                 }
             } catch (error) {

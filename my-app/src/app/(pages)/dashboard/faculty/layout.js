@@ -20,9 +20,9 @@ export default function FacultyDashboardLayout({ children }) {
                 if (response.ok) {
                     const data = await response.json();
                     setUserData({
-                        username: data.username || '',
-                        name: data.name || '',
-                        assignedClubs: data.assignedClubs || []
+                        username: data.user?.username || '',
+                        name: data.user?.name || '',
+                        assignedClubs: data.user?.assignedClubs || []
                     });
                 }
             } catch (error) {

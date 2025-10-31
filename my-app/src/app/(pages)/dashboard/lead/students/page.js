@@ -29,7 +29,7 @@ export default function LeadStudents() {
             if (response.ok) {
                 const data = await response.json();
                 setUserData({
-                    clubId: data.clubId
+                    clubId: data.user?.clubId
                 });
             }
         } catch (error) {
