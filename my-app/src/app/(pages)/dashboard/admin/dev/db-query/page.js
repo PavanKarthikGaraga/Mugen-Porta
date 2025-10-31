@@ -129,18 +129,32 @@ export default function DatabaseQueryPage() {
         const headers = Object.keys(results.data[0]);
         const csvContent = [
             headers.join(','),
-            ...results.data.map(row => 
+            ...results.data.map(row =>
                 headers.map(header => {
                     const value = row[header];
-                    if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-                        return `"${value.replace(/"/g, '""')}"`;
+                    let stringValue;
+
+                    // Handle different value types
+                    if (value === null) {
+                        stringValue = '';
+                    } else if (typeof value === 'object') {
+                        // Convert objects/arrays to JSON string
+                        stringValue = JSON.stringify(value);
+                    } else {
+                        stringValue = String(value);
                     }
-                    return value;
+
+                    // CSV escape: wrap in quotes if contains comma, quote, or newline
+                    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
+                        return `"${stringValue.replace(/"/g, '""')}"`;
+                    }
+
+                    return stringValue;
                 }).join(',')
             )
         ].join('\n');
 
-        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
