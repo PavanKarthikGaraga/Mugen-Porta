@@ -62,12 +62,12 @@ export async function GET(request) {
         } else if (payload.role === 'faculty') {
             // Faculty can access submissions for students in their assigned clubs
             const [facultyResult] = await pool.execute(
-                'SELECT assigned_clubs FROM faculty WHERE username = ?',
+                'SELECT assignedClubs FROM faculty WHERE username = ?',
                 [payload.username]
             );
 
-            if (facultyResult.length > 0 && facultyResult[0].assigned_clubs) {
-                const assignedClubs = facultyResult[0].assigned_clubs.split(',').map(id => id.trim());
+            if (facultyResult.length > 0 && facultyResult[0].assignedClubs) {
+                const assignedClubs = facultyResult[0].assignedClubs.split(',').map(id => id.trim());
 
                 // Check if the requested student is in one of the faculty's assigned clubs
                 const [studentResult] = await pool.execute(

@@ -28,7 +28,7 @@ export default function StudentReports() {
     // Fetch existing submissions
     const fetchSubmissions = useCallback(async () => {
         try {
-            const response = await fetch('/api/student/submissions/internal');
+            const response = await fetch('/api/student/submissions/internal', { credentials: 'include' });
             if (response.ok) {
                 const data = await response.json();
 
@@ -99,6 +99,7 @@ export default function StudentReports() {
             const response = await fetch('/api/student/submissions/internal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     submissionType: 'report',
                     reportNumber,
@@ -131,6 +132,7 @@ export default function StudentReports() {
             const response = await fetch('/api/student/submissions/internal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     submissionType: linkType === 'youtube' ? 'youtube_link' : 'linkedin_link',
                     url: url.trim()
@@ -440,7 +442,7 @@ export default function StudentReports() {
                                                 ? "Enter YouTube video URL"
                                                 : "Enter LinkedIn post URL"
                                         }
-                                        disabled={selectedData.url && selectedData.url.trim() !== ''}
+                                        disabled={selectedData.status === 'submitted' || selectedData.status === 'evaluated'}
                                     />
                                 </div>
 
@@ -455,15 +457,20 @@ export default function StudentReports() {
                                             handleLinkSubmit('linkedin', selectedData.url || '');
                                         }
                                     }}
-                                    disabled={loading || !(selectedData.url || '').trim() || (selectedData.url && selectedData.url.trim() !== '')}
+                                    disabled={loading || !(selectedData.url || '').trim() || selectedData.status === 'submitted' || selectedData.status === 'evaluated'}
                                     className="bg-red-800 hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? (
                                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                    ) : selectedData.status === 'submitted' || selectedData.status === 'evaluated' ? (
+                                        <>
+                                            <FiCheck className="mr-2 h-5 w-5" />
+                                            {selectedData.status === 'evaluated' ? 'Evaluated' : 'Submitted'}
+                                        </>
                                     ) : (
                                         <>
                                             <FiUpload className="mr-2 h-5 w-5" />
-                                            {(selectedData.url && selectedData.url.trim() !== '') ? 'Submitted' : 'Submit'}
+                                            Submit
                                         </>
                                     )}
                                 </Button>

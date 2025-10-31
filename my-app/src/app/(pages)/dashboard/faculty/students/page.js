@@ -31,7 +31,7 @@ export default function FacultyStudents() {
             if (response.ok) {
                 const data = await response.json();
                 setUserData({
-                    assignedClubs: data.assignedClubs || []
+                    assignedClubs: data.user?.assignedClubs || []
                 });
             }
         } catch (error) {
@@ -41,7 +41,7 @@ export default function FacultyStudents() {
 
     const fetchClubs = useCallback(async () => {
         try {
-            const response = await fetch('/api/dashboard/admin/clubs');
+            const response = await fetch('/api/dashboard/faculty/clubs');
             if (response.ok) {
                 const data = await response.json();
                 // Filter to only show assigned clubs

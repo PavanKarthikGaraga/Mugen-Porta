@@ -36,7 +36,9 @@ export async function GET(request) {
 
         const profile = profileResult[0];
 
-        return NextResponse.json(profile);
+        return NextResponse.json({
+            user: profile
+        });
 
     } catch (error) {
         console.error('Database error:', error);

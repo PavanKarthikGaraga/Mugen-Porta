@@ -30,11 +30,11 @@ export default function AdminDashboardLayout({ children }) {
                 if (response.ok) {
                     const data = await response.json();
                     const user = data.user;
-                    const username = user.username || '2300032048';
+                    const username = user.username;
 
                     setUserData({
                         username,
-                        name: user.name || 'G Pavan Karthik'
+                        name: user.name
                     });
 
                     // Check if this is a proxy session
@@ -140,14 +140,7 @@ export default function AdminDashboardLayout({ children }) {
                         {/* Right side */}
                         <div className="flex items-center space-x-4">
                             <div className="hidden sm:block text-sm">
-                                {isProxySession ? (
-                                    <div className="flex flex-col">
-                                        <span className="text-orange-300">Proxy: {userData.name}</span>
-                                        <span className="text-xs text-gray-300">Admin ID: {proxyAdminInfo?.username}</span>
-                                    </div>
-                                ) : (
                                     <span>ID: {userData.username}</span>
-                                )}
                             </div>
                             {/* <span className="hidden sm:block text-sm font-medium">{userData.name}</span> */}
                             <button

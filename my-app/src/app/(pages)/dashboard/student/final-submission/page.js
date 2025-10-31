@@ -22,7 +22,7 @@ export default function StudentFinalSubmission() {
     // Fetch existing final submission
     const fetchSubmission = useCallback(async () => {
         try {
-            const response = await fetch('/api/student/submissions/external');
+            const response = await fetch('/api/student/submissions/external', { credentials: 'include' });
             if (response.ok) {
                 const data = await response.json();
                 if (data.submission) {
@@ -68,6 +68,7 @@ export default function StudentFinalSubmission() {
             const response = await fetch('/api/student/submissions/external', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     finalReportUrl: submission.finalReportUrl.trim(),
                     presentationYoutubeUrl: submission.presentationYoutubeUrl.trim(),

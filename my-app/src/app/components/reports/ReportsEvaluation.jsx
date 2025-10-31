@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Pagination } from "@/components/ui/pagination";
 
 const ReportsEvaluation = ({
     userRole,
@@ -39,6 +40,7 @@ const ReportsEvaluation = ({
     const [submitting, setSubmitting] = useState(false);
     const [modalViewType, setModalViewType] = useState('all'); // 'reports', 'links', or 'all'
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeSearchTerm, setActiveSearchTerm] = useState('');
     const [filters, setFilters] = useState({
         domain: '',
         year: '',
@@ -46,6 +48,10 @@ const ReportsEvaluation = ({
         evaluationStatus: '' // 'done', 'pending', or ''
     });
     const [clubStats, setClubStats] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalStudents, setTotalStudents] = useState(0);
+    const [hasPagination, setHasPagination] = useState(false);
 
     // Get API endpoints based on user role and report type
     const apis = useMemo(() => {
@@ -54,13 +60,45 @@ const ReportsEvaluation = ({
         // Determine students API based on role
         switch (userRole) {
             case 'lead':
-                studentsApi = '/api/dashboard/lead/students';
+                const leadParams = new URLSearchParams({
+                    page: currentPage.toString(),
+                    limit: '50'
+                });
+
+                // Add filter parameters
+                if (activeSearchTerm.trim()) leadParams.append('search', activeSearchTerm.trim());
+                if (filters.domain) leadParams.append('category', filters.domain); // API uses 'category' for domain
+                if (filters.year) leadParams.append('year', filters.year);
+
+                studentsApi = `/api/dashboard/lead/students?${leadParams.toString()}`;
                 break;
             case 'faculty':
-                studentsApi = '/api/dashboard/faculty/students';
+                const facultyParams = new URLSearchParams({
+                    page: currentPage.toString(),
+                    limit: '50'
+                });
+
+                // Add filter parameters
+                if (activeSearchTerm.trim()) facultyParams.append('search', activeSearchTerm.trim());
+                if (filters.domain) facultyParams.append('category', filters.domain); // API uses 'category' for domain
+                if (filters.year) facultyParams.append('year', filters.year);
+
+                studentsApi = `/api/dashboard/faculty/students?${facultyParams.toString()}`;
                 break;
             case 'admin':
-                studentsApi = '/api/dashboard/admin/students?role=student';
+                const params = new URLSearchParams({
+                    role: 'student',
+                    page: currentPage.toString(),
+                    limit: '50'
+                });
+
+                // Add filter parameters
+                if (activeSearchTerm.trim()) params.append('search', activeSearchTerm.trim());
+                if (filters.domain) params.append('domain', filters.domain); // Admin API uses 'domain' directly
+                if (filters.year) params.append('year', filters.year);
+                if (filters.clubId) params.append('clubId', filters.clubId);
+
+                studentsApi = `/api/dashboard/admin/students?${params.toString()}`;
                 break;
             default:
                 studentsApi = '/api/dashboard/lead/students';
@@ -83,155 +121,130 @@ const ReportsEvaluation = ({
 
         return {
             students: studentsApi,
-            submissions: reportType === 'internal' ? '/api/student/submissions/internal' : '/api/student/submissions/external',
             evaluate: evaluateApi
         };
-    }, [userRole, reportType]);
+    }, [userRole, reportType, currentPage, activeSearchTerm, filters.domain, filters.year, filters.clubId]);
+
+    // Set pagination flag for admin
+    useEffect(() => {
+        setHasPagination(userRole === 'admin');
+        if (userRole !== 'admin') {
+            setCurrentPage(1); // Reset to page 1 when not admin
+            setTotalPages(1);
+        }
+    }, [userRole]);
 
     // Fetch students and club stats
     const fetchStudents = useCallback(async () => {
         try {
             setLoading(true);
 
-            // Fetch students based on role
-            const studentsResponse = await fetch(apis.students);
+            // Fetch students based on role (now includes submission data)
+            const studentsResponse = await fetch(apis.students, { credentials: 'include' });
             if (studentsResponse.ok) {
                 const studentsData = await studentsResponse.json();
                 const studentsList = studentsData.success ?
                     studentsData.data.students :
                     (studentsData.data || studentsData);
 
+                // Handle pagination for admin
+                if (userRole === 'admin' && studentsData.success && studentsData.data?.pagination) {
+                    setTotalPages(studentsData.data.pagination.pages || 1);
+                    setTotalStudents(studentsData.data.pagination.total || 0);
+                }
+
                 // Fetch club stats for filtering (only for admin role)
-                if (userRole === 'admin' && studentsData.success && studentsData.data.clubStats) {
+                if (userRole === 'admin' && studentsData.success && studentsData.data?.clubStats) {
                     setClubStats(studentsData.data.clubStats);
                 }
 
-                // Fetch submissions and marks for each student
-                const studentsWithSubmissions = await Promise.all(
-                    studentsList.map(async (student) => {
-                        try {
-                            // Fetch submissions
-                            const submissionsResponse = await fetch(`${apis.submissions}?username=${student.username}`);
-                            const submissionsData = submissionsResponse.ok ? await submissionsResponse.json() : { submissions: [], submission: null };
+                // Process students with submission data (already included in API response)
+                const studentsWithSubmissions = studentsList.map((student) => {
+                    if (reportType === 'internal') {
+                        // Internal reports logic
+                        const submissions = student.submissions || [];
+                        const reportsEvaluated = submissions.filter(s => s.submission_type === 'report' && s.evaluated).length;
+                        const youtubeEvaluated = submissions.some(s => s.submission_type === 'youtube_link' && s.evaluated);
+                        const linkedinEvaluated = submissions.some(s => s.submission_type === 'linkedin_link' && s.evaluated);
 
-                            if (reportType === 'internal') {
-                                // Internal reports logic
-                                const submissions = submissionsData.submissions || [];
-                                const reportsEvaluated = submissions.filter(s => s.submission_type === 'report' && s.evaluated).length;
-                                const youtubeEvaluated = submissions.some(s => s.submission_type === 'youtube_link' && s.evaluated);
-                                const linkedinEvaluated = submissions.some(s => s.submission_type === 'linkedin_link' && s.evaluated);
+                        const hasUnevaluatedReports = submissions.some(s => s.submission_type === 'report' && s.submission_url && !s.evaluated);
+                        const hasUnevaluatedYoutube = submissions.some(s => s.submission_type === 'youtube_link' && s.submission_url && !s.evaluated);
+                        const hasUnevaluatedLinkedin = submissions.some(s => s.submission_type === 'linkedin_link' && s.submission_url && !s.evaluated);
 
-                                const hasUnevaluatedReports = submissions.some(s => s.submission_type === 'report' && s.submission_url && !s.evaluated);
-                                const hasUnevaluatedYoutube = submissions.some(s => s.submission_type === 'youtube_link' && s.submission_url && !s.evaluated);
-                                const hasUnevaluatedLinkedin = submissions.some(s => s.submission_type === 'linkedin_link' && s.submission_url && !s.evaluated);
+                        const needsReview = hasUnevaluatedReports || hasUnevaluatedYoutube || hasUnevaluatedLinkedin;
+                        const hasSubmissions = submissions.length > 0;
 
-                                const needsReview = hasUnevaluatedReports || hasUnevaluatedYoutube || hasUnevaluatedLinkedin;
-                                const hasSubmissions = submissions.length > 0;
+                        return {
+                            ...student,
+                            hasSubmissions,
+                            needsReview,
+                            reportsStatus: `${reportsEvaluated}/7`,
+                            youtubeStatus: hasUnevaluatedYoutube ? 'review' : youtubeEvaluated ? 'completed' : 'NULL',
+                            linkedinStatus: hasUnevaluatedLinkedin ? 'review' : linkedinEvaluated ? 'completed' : 'NULL'
+                        };
+                    } else {
+                        // Final reports logic
+                        const finalSubmission = student.finalSubmission;
+                        const hasFinalReport = finalSubmission?.final_report_url;
+                        const hasYoutube = finalSubmission?.presentation_youtube_url;
+                        const hasLinkedin = finalSubmission?.presentation_linkedin_url;
+                        const isEvaluated = finalSubmission?.evaluated || false;
 
-                                return {
-                                    ...student,
-                                    submissions,
-                                    hasSubmissions,
-                                    needsReview,
-                                    reportsStatus: `${reportsEvaluated}/7`,
-                                    youtubeStatus: hasUnevaluatedYoutube ? 'review' : youtubeEvaluated ? 'completed' : 'NULL',
-                                    linkedinStatus: hasUnevaluatedLinkedin ? 'review' : linkedinEvaluated ? 'completed' : 'NULL'
-                                };
-                            } else {
-                                // Final reports logic
-                                const hasFinalReport = submissionsData.submission?.final_report_url;
-                                const hasYoutube = submissionsData.submission?.presentation_youtube_url;
-                                const hasLinkedin = submissionsData.submission?.presentation_linkedin_url;
-                                const isEvaluated = submissionsData.submission?.evaluated || false;
+                        const needsReview = (hasFinalReport || hasYoutube || hasLinkedin) && !isEvaluated;
+                        const hasSubmissions = hasFinalReport || hasYoutube || hasLinkedin;
 
-                                const needsReview = (hasFinalReport || hasYoutube || hasLinkedin) && !isEvaluated;
-                                const hasSubmissions = hasFinalReport || hasYoutube || hasLinkedin;
-
-                                return {
-                                    ...student,
-                                    finalSubmission: submissionsData.submission,
-                                    hasSubmissions,
-                                    needsReview,
-                                    isEvaluated
-                                };
-                            }
-                        } catch (error) {
-                            console.error(`Error fetching submissions for ${student.username}:`, error);
-                            return {
-                                ...student,
-                                submissions: [],
-                                finalSubmission: null,
-                                hasSubmissions: false,
-                                needsReview: false,
-                                reportsStatus: '0/7',
-                                youtubeStatus: 'NULL',
-                                linkedinStatus: 'NULL'
-                            };
-                        }
-                    })
-                );
+                        return {
+                            ...student,
+                            hasSubmissions,
+                            needsReview,
+                            isEvaluated
+                        };
+                    }
+                });
 
                 setAllStudents(studentsWithSubmissions);
-                applyFilters(studentsWithSubmissions);
+                setStudents(studentsWithSubmissions);
             }
         } catch (error) {
             console.error('Error fetching students:', error);
         } finally {
             setLoading(false);
         }
-    }, [userRole, reportType, apis]);
+    }, [userRole, reportType, apis.students]);
 
-    // Apply filters to students
-    const applyFilters = useCallback((studentsList = allStudents) => {
-        let filteredStudents = [...studentsList];
+    // Handle page changes
+    const handlePageChange = useCallback((page) => {
+        setCurrentPage(page);
+        // fetchStudents will be called via useEffect when currentPage changes
+    }, []);
 
-        // Apply report type filters
-        if (reportType === 'final') {
-            filteredStudents = filteredStudents.filter(student => student.hasSubmissions);
-        }
-
-        // Apply user search and filters
-        if (searchTerm.trim()) {
-            const search = searchTerm.toLowerCase();
-            filteredStudents = filteredStudents.filter(student =>
-                student.name?.toLowerCase().includes(search) ||
-                student.username?.toLowerCase().includes(search)
-            );
-        }
-
-        if (filters.domain) {
-            filteredStudents = filteredStudents.filter(student => student.selectedDomain === filters.domain);
-        }
-
-        if (filters.year) {
-            filteredStudents = filteredStudents.filter(student => student.year === filters.year);
-        }
-
-        if (filters.clubId) {
-            filteredStudents = filteredStudents.filter(student => student.clubId === filters.clubId);
-        }
-
-        if (filters.evaluationStatus) {
-            if (filters.evaluationStatus === 'done') {
-                filteredStudents = filteredStudents.filter(student => student.isEvaluated || student.reportsStatus === '7/7');
-            } else if (filters.evaluationStatus === 'pending') {
-                filteredStudents = filteredStudents.filter(student => !student.isEvaluated && student.reportsStatus !== '7/7');
-            }
-        }
-
-        setStudents(filteredStudents);
-    }, [allStudents, searchTerm, filters, reportType]);
+    // Reset to page 1 when filters change
+    const handleFiltersChange = useCallback((newFilters) => {
+        setFilters(newFilters);
+        setCurrentPage(1); // Reset to first page when filters change
+    }, []);
 
     useEffect(() => {
         fetchStudents();
     }, [fetchStudents]);
 
-    // Apply filters when search or filters change
-    useEffect(() => {
-        if (allStudents.length > 0) {
-            applyFilters();
+    // Handle search execution
+    const executeSearch = useCallback(() => {
+        setActiveSearchTerm(searchTerm);
+        setCurrentPage(1); // Reset to first page when searching
+    }, [searchTerm]);
+
+    // Handle search input key press
+    const handleSearchKeyPress = useCallback((e) => {
+        if (e.key === 'Enter') {
+            executeSearch();
         }
-    }, [applyFilters]);
+    }, [executeSearch]);
+
+    // Reset page to 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeSearchTerm, filters.domain, filters.year, filters.clubId, filters.evaluationStatus]);
 
     const handleViewReports = (student) => {
         setSelectedStudent(student);
@@ -330,6 +343,7 @@ const ReportsEvaluation = ({
             const response = await fetch(apis.evaluate, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     studentUsername: selectedStudent.username,
                     evaluationData: submissionData
@@ -1175,15 +1189,23 @@ const ReportsEvaluation = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     {/* Search */}
                     <div className="lg:col-span-1">
-                        <div className="relative">
-                            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <div className="relative flex">
                             <input
                                 type="text"
                                 placeholder="Search by name or username..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                onKeyDown={handleSearchKeyPress}
+                                className="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                             />
+                            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <button
+                                onClick={executeSearch}
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
+                                type="button"
+                            >
+                                <FiSearch className="h-4 w-4" />
+                            </button>
                         </div>
                     </div>
 
@@ -1191,7 +1213,7 @@ const ReportsEvaluation = ({
                     <div>
                         <select
                             value={filters.domain}
-                            onChange={(e) => setFilters({...filters, domain: e.target.value})}
+                            onChange={(e) => handleFiltersChange({...filters, domain: e.target.value})}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         >
                             <option value="">All Domains</option>
@@ -1208,7 +1230,7 @@ const ReportsEvaluation = ({
                     <div>
                         <select
                             value={filters.year}
-                            onChange={(e) => setFilters({...filters, year: e.target.value})}
+                            onChange={(e) => handleFiltersChange({...filters, year: e.target.value})}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         >
                             <option value="">All Years</option>
@@ -1223,7 +1245,7 @@ const ReportsEvaluation = ({
                     <div>
                         <select
                             value={filters.clubId}
-                            onChange={(e) => setFilters({...filters, clubId: e.target.value})}
+                            onChange={(e) => handleFiltersChange({...filters, clubId: e.target.value})}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         >
                             <option value="">All Clubs</option>
@@ -1239,7 +1261,7 @@ const ReportsEvaluation = ({
                     <div>
                         <select
                             value={filters.evaluationStatus}
-                            onChange={(e) => setFilters({...filters, evaluationStatus: e.target.value})}
+                            onChange={(e) => handleFiltersChange({...filters, evaluationStatus: e.target.value})}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         >
                             <option value="">All Status</option>
@@ -1256,6 +1278,22 @@ const ReportsEvaluation = ({
             {students.length === 0 && !loading && (
                 <div className="text-center py-8">
                     <p className="text-gray-500">No students found matching your criteria.</p>
+                </div>
+            )}
+
+            {/* Pagination Controls for Admin */}
+            {hasPagination && (
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-700">
+                            Showing page {currentPage} of {totalPages}
+                        </div>
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                        />
+                    </div>
                 </div>
             )}
 

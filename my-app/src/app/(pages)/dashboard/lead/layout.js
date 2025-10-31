@@ -20,9 +20,9 @@ export default function LeadDashboardLayout({ children }) {
                 if (response.ok) {
                     const data = await response.json();
                     setUserData({
-                        username: data.username || '',
-                        name: data.name || '',
-                        clubName: data.clubName || ''
+                        username: data.user?.username || '',
+                        name: data.user?.name || '',
+                        clubName: data.user?.clubName || ''
                     });
                 }
             } catch (error) {
