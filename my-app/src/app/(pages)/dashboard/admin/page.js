@@ -29,6 +29,7 @@ export default function AdminOverviewPage() {
     });
     const [clubStats, setClubStats] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showAllClubs, setShowAllClubs] = useState(false);
     const [filters, setFilters] = useState({
         domain: 'all',
         year: 'all',
@@ -84,10 +85,10 @@ export default function AdminOverviewPage() {
 
     const statCards = [
         {
-            title: 'Total Students',
-            value: stats.totalStudents,
-            icon: FiUsers,
-            color: 'blue',
+            title: 'Total Registrations',
+            value: stats.totalRegistrations,
+            icon: FiCalendar,
+            color: 'red',
             href: '/dashboard/admin/students'
         },
         {
@@ -105,19 +106,13 @@ export default function AdminOverviewPage() {
             href: '/dashboard/admin/clubs'
         },
         {
-            title: 'Recent Registrations',
-            value: stats.recentRegistrations,
-            icon: FiTrendingUp,
-            color: 'yellow',
+            title: 'Total Students',
+            value: stats.totalStudents,
+            icon: FiUsers,
+            color: 'blue',
             href: '/dashboard/admin/students'
         },
-        {
-            title: 'Total Registrations',
-            value: stats.totalRegistrations,
-            icon: FiCalendar,
-            color: 'red',
-            href: '/dashboard/admin/students'
-        }
+       
     ];
 
     const getColorClasses = (color) => {
@@ -256,7 +251,7 @@ export default function AdminOverviewPage() {
             </Card>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                 {statCards.map((stat, index) => {
                     const Icon = stat.icon;
                     const colorClasses = getColorClasses(stat.color);
@@ -349,7 +344,7 @@ export default function AdminOverviewPage() {
                     <Card>
                         <CardContent className="p-6">
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                                {clubStats.slice(0, 12).map((club) => (
+                                {(showAllClubs ? clubStats : clubStats.slice(0, 12)).map((club) => (
                                     <div key={club.clubId || club.clubName} className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
                                         <div className="text-sm font-medium text-gray-600 truncate mb-2">{club.clubName || 'No Club'}</div>
                                         <div className="text-2xl font-bold text-gray-800">{club.memberCount || 0}</div>
@@ -359,9 +354,33 @@ export default function AdminOverviewPage() {
                             </div>
                             {clubStats.length > 12 && (
                                 <div className="mt-4 text-center">
-                                    <p className="text-sm text-gray-500">
-                                        Showing 12 of {clubStats.length} clubs
-                                    </p>
+                                    {!showAllClubs ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <p className="text-sm text-gray-500">
+                                                Showing 12 of {clubStats.length} clubs
+                                            </p>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setShowAllClubs(true)}
+                                                className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                                            >
+                                                Show All Clubs
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <p className="text-sm text-gray-500">
+                                                Showing all {clubStats.length} clubs
+                                            </p>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setShowAllClubs(false)}
+                                                className="bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
+                                            >
+                                                Show Less
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </CardContent>
