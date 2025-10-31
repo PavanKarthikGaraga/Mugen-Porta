@@ -81,9 +81,13 @@ export async function GET(request) {
             params
         );
 
-        // Get total clubs count
+        // Get total clubs count (filtered by students matching criteria)
         const [totalClubsResult] = await pool.execute(
-            'SELECT COUNT(*) as count FROM clubs'
+            `SELECT COUNT(DISTINCT c.id) as count
+             FROM clubs c
+             INNER JOIN students s ON c.id = s.clubId
+             ${whereClause}`,
+            params
         );
 
         // Get recent registrations count

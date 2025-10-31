@@ -102,7 +102,9 @@ export default function Register() {
                 }
                 break;
             case 4: // Personal Details
-                if (!formData.username || !formData.name || !formData.email || !formData.phoneNumber || !formData.branch || !formData.gender || !formData.cluster || !formData.year) {
+                // Check all required fields, but cluster is only required for non-1st year students
+                const clusterRequired = formData.year !== "1st";
+                if (!formData.username || !formData.name || !formData.email || !formData.phoneNumber || !formData.branch || !formData.gender || !formData.year || (clusterRequired && !formData.cluster)) {
                     toast.error("Please fill all required fields");
                     return false;
                 }
