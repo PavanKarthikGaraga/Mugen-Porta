@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { emailQueue } from "@/lib/emailQueue";
 import pool from '@/lib/db';
 import { verifyDevAccess } from '../auth-helper';
 
@@ -11,23 +10,20 @@ export async function GET(request) {
     }
 
     try {
-        // Get queue status from memory
-        const queueStatus = emailQueue.getStatus();
-        
-        // Get email queue statistics from database
+        // Get email statistics from database (if any historical data exists)
         const [emailStats] = await pool.execute(`
-            SELECT 
+            SELECT
                 status,
                 COUNT(*) as count,
                 MIN(created_at) as oldest,
                 MAX(created_at) as newest
-            FROM email_queue 
+            FROM email_queue
             GROUP BY status
         `);
 
-        // Get recent email queue entries
+        // Get recent email entries (for any historical data)
         const [recentEmails] = await pool.execute(`
-            SELECT 
+            SELECT
                 id,
                 email,
                 name,
@@ -36,20 +32,20 @@ export async function GET(request) {
                 error_message,
                 created_at,
                 sent_at
-            FROM email_queue 
-            ORDER BY created_at DESC 
+            FROM email_queue
+            ORDER BY created_at DESC
             LIMIT 50
         `);
 
         // Get daily email statistics for the last 7 days
         const [dailyStats] = await pool.execute(`
-            SELECT 
+            SELECT
                 DATE(created_at) as date,
                 COUNT(*) as total,
                 COUNT(CASE WHEN status = 'sent' THEN 1 END) as sent,
                 COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed,
                 COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending
-            FROM email_queue 
+            FROM email_queue
             WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
             GROUP BY DATE(created_at)
             ORDER BY date DESC
@@ -58,10 +54,10 @@ export async function GET(request) {
         return NextResponse.json({
             success: true,
             data: {
-                queueStatus,
                 emailStats,
                 recentEmails,
                 dailyStats,
+                note: "Emails are now sent directly without queuing",
                 timestamp: new Date().toISOString()
             }
         });
@@ -74,7 +70,7 @@ export async function GET(request) {
     }
 }
 
-// POST method to manually trigger email processing or retry failed emails
+// POST method for email maintenance operations
 export async function POST(request) {
     // Verify dev access (admin + specific username)
     const authResult = await verifyDevAccess(request);
@@ -83,60 +79,29 @@ export async function POST(request) {
     }
 
     try {
-        const { action, emailIds } = await request.json();
+        const { action } = await request.json();
 
-        if (action === 'retry-failed') {
-            // Get failed emails and add them back to queue
-            const query = emailIds && emailIds.length > 0 
-                ? 'SELECT * FROM email_queue WHERE status = "failed" AND id IN (?)' 
-                : 'SELECT * FROM email_queue WHERE status = "failed"';
-            
-            const params = emailIds && emailIds.length > 0 ? [emailIds] : [];
-            const [failedEmails] = await pool.execute(query, params);
-
-            // Add failed emails back to queue
-            for (const email of failedEmails) {
-                emailQueue.add({
-                    email: email.email,
-                    name: email.name,
-                    username: email.username,
-                    password: 'temp' // You might need to handle password differently
-                });
-
-                // Update status back to pending
-                await pool.execute(
-                    'UPDATE email_queue SET status = "pending", error_message = NULL WHERE id = ?',
-                    [email.id]
-                );
-            }
-
-            return NextResponse.json({
-                success: true,
-                message: `${failedEmails.length} failed emails added back to queue`
-            });
-
-        } else if (action === 'clear-completed') {
-            // Clear sent emails older than 30 days
+        if (action === 'clear-old-logs') {
+            // Clear old email logs older than 30 days (keeping historical data)
             const [result] = await pool.execute(`
-                DELETE FROM email_queue 
-                WHERE status = 'sent' 
-                AND sent_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+                DELETE FROM email_queue
+                WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
             `);
 
             return NextResponse.json({
                 success: true,
-                message: `${result.affectedRows} completed emails cleared`
+                message: `${result.affectedRows} old email logs cleared`
             });
 
         } else {
             return NextResponse.json(
-                { error: 'Invalid action' },
+                { error: 'Invalid action. Available: clear-old-logs' },
                 { status: 400 }
             );
         }
 
     } catch (error) {
-        console.error("Error processing email queue action:", error);
+        console.error("Error processing email maintenance action:", error);
         return NextResponse.json(
             { error: "Error processing request" },
             { status: 500 }

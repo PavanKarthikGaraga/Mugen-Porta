@@ -89,15 +89,17 @@ CREATE TABLE students (
     -- FOREIGN KEY (projectId) REFERENCES projects(id)
 );
 
+-- Email logging table (for historical records and monitoring)
+-- Emails are now sent directly without queuing
 CREATE TABLE email_queue (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) NOT NULL,
     name VARCHAR(100) NOT NULL,
     username VARCHAR(10) NOT NULL,
-    status ENUM('pending', 'sent', 'failed') DEFAULT 'pending',
+    status ENUM('pending', 'sent', 'failed') DEFAULT 'sent', -- Default to 'sent' since emails are sent immediately
     error_message TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    sent_at TIMESTAMP NULL DEFAULT NULL,
+    sent_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP, -- Set to current time since emails are sent immediately
     INDEX idx_status (status),
     INDEX idx_created_at (created_at)
 );
