@@ -34,7 +34,7 @@ export default function AdminOverviewPage() {
         domain: 'all',
         year: 'all',
         branch: 'all',
-        dateRange: '30'
+        dateRange: 'all' // Changed default to 'all'
     });
 
     const fetchStats = useCallback(async () => {
@@ -166,8 +166,8 @@ export default function AdminOverviewPage() {
                                 <SelectContent>
                                     <SelectItem value="all">All Domains</SelectItem>
                                     <SelectItem value="TEC">Technical (TEC)</SelectItem>
-                                    <SelectItem value="LCH">Leadership & Community (LCH)</SelectItem>
-                                    <SelectItem value="ESO">Entrepreneurship & Startup (ESO)</SelectItem>
+                                    <SelectItem value="LCH">Liberal Arts, Creative Arts and Hobby (LCH)</SelectItem>
+                                    <SelectItem value="ESO">Extension & Society Outreach (ESO)</SelectItem>
                                     <SelectItem value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</SelectItem>
                                     <SelectItem value="HWB">Health & Well-being (HWB)</SelectItem>
                                 </SelectContent>
@@ -236,7 +236,7 @@ export default function AdminOverviewPage() {
                     <div className="mt-4 flex gap-2">
                         <Button
                             variant="outline"
-                            onClick={() => setFilters({ domain: 'all', year: 'all', branch: 'all', dateRange: '30' })}
+                            onClick={() => setFilters({ domain: 'all', year: 'all', branch: 'all', dateRange: 'all' })}
                         >
                             Clear Filters
                         </Button>

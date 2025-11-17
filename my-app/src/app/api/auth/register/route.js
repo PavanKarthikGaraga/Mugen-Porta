@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import pool from "@/lib/db";
-import { emailQueue } from "@/lib/emailQueue";
+import { sendRegistrationEmail } from "@/lib/email";
 
 export async function POST(req) {
     try {
@@ -176,29 +176,7 @@ export async function POST(req) {
             );
         }
 
-        // Check member limits based on student year and domain
-        if (selectedDomain === 'TEC' && selectedProject) {
-            // TEC projects limited to 2 members for both Y24 and Y25 students
-            const [projectMembers] = await pool.execute(
-                "SELECT COUNT(*) as currentMembers FROM students WHERE projectId = ?",
-                [selectedProject]
-            );
-
-            const currentMembers = projectMembers[0].currentMembers;
-            if (currentMembers >= 2) {
-                return NextResponse.json(
-                    {
-                        message: "This TEC project is full. TEC projects can only have a maximum of 2 members.",
-                        errorType: "PROJECT_FULL",
-                        projectId: selectedProject,
-                        currentMembers: currentMembers,
-                        maxMembers: 2,
-                        suggestion: "Please select a different TEC project or choose a different domain."
-                    },
-                    { status: 400 }
-                );
-            }
-        }
+        // No project member limits - all projects can accept unlimited members
 
         if (isY22Student || isY23Student || isY24Student) {
             // Check club member limits for Y22, Y23, and Y24 students
@@ -341,31 +319,38 @@ export async function POST(req) {
                 clubDetails = clubInfo[0] || null;
             }
 
-            // Queue email for async processing (non-blocking)
-            emailQueue.add({
-                email: email,
-                name: name,
-                username: username,
-                password: generatedPassword,
-                year: year,
-                selectedDomain: selectedDomain,
-                projectDetails: projectDetails,
-                clubDetails: clubDetails,
-                selectedCategory: selectedCategory,
-                isY22Student: isY22Student,
-                isY23Student: isY23Student,
-                isY24Student: isY24Student,
-                isY25Student: isY25Student
-            });
+            // Send email directly (blocking operation)
+            const emailResult = await sendRegistrationEmail(
+                email,
+                name,
+                username,
+                generatedPassword,
+                year,
+                selectedDomain,
+                projectDetails,
+                clubDetails,
+                isY22Student,
+                isY23Student,
+                isY24Student,
+                isY25Student,
+                selectedCategory
+            );
 
-            // Return immediate success response
+            // Log email result but don't fail registration if email fails
+            if (!emailResult.success) {
+                console.error(`Failed to send registration email to ${email}:`, emailResult.error);
+            }
+
+            // Return success response
             return NextResponse.json(
-                { 
-                    message: "Registration successful! You will receive a confirmation email shortly with your login credentials.",
+                {
+                    message: emailResult.success
+                        ? "Registration successful! Check your email for login credentials."
+                        : "Registration successful! However, there was an issue sending the confirmation email. Please contact support.",
                     userId: userResult.insertId,
                     studentId: studentResult.insertId,
                     username: username,
-                    emailQueued: true
+                    emailSent: emailResult.success
                 },
                 { status: 201 }
             );

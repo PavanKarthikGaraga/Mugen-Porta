@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { branchNames } from "../../../../Data/branches";
 
 export default function UsersPage() {
     const [users, setUsers] = useState([]);
@@ -30,16 +31,36 @@ export default function UsersPage() {
         year: '',
         branch: '',
         clubId: '',
-        assignedClubs: []
+        assignedClubs: [],
+        // Student promotion fields
+        studentDetails: null,
+        isPromotingStudent: false
     });
     const [newClubAssignment, setNewClubAssignment] = useState('');
     const [defaultPassword, setDefaultPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
+
     useEffect(() => {
         fetchUsers();
         fetchClubs();
     }, []);
+
+    // Reset promotion state when role changes
+    useEffect(() => {
+        if (!editingUser && formData.role !== 'lead' && formData.isPromotingStudent) {
+            setFormData(prev => ({
+                ...prev,
+                studentDetails: null,
+                isPromotingStudent: false,
+                name: '',
+                email: '',
+                phoneNumber: '',
+                year: '',
+                branch: ''
+            }));
+        }
+    }, [formData.role, editingUser, formData.isPromotingStudent]);
 
     // Filter users based on filters
     useEffect(() => {
@@ -95,15 +116,34 @@ export default function UsersPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const url = editingUser ? `/api/dashboard/admin/users/${editingUser.username}` : '/api/dashboard/admin/users';
-            const method = 'POST';
+            let url, method, body;
+
+            if (editingUser) {
+                // Update existing user
+                url = `/api/dashboard/admin/users/${editingUser.username}`;
+                method = 'POST';
+                body = formData;
+            } else if (formData.isPromotingStudent) {
+                // Promote existing student to lead
+                url = '/api/dashboard/admin/users/promote-student';
+                method = 'POST';
+                body = {
+                    username: formData.username,
+                    clubId: formData.clubId
+                };
+            } else {
+                // Create new user
+                url = '/api/dashboard/admin/users';
+                method = 'POST';
+                body = formData;
+            }
 
             const response = await fetch(url, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(body),
             });
 
             if (await handleApiError(response)) {
@@ -112,9 +152,15 @@ export default function UsersPage() {
 
             if (response.ok) {
                 const data = await response.json();
-                handleApiSuccess(editingUser ? 'User updated successfully' : 'User created successfully');
+                const successMessage = editingUser
+                    ? 'User updated successfully'
+                    : formData.isPromotingStudent
+                    ? 'Student promoted to lead successfully'
+                    : 'User created successfully';
 
-                if (!editingUser && data.defaultPassword) {
+                handleApiSuccess(successMessage);
+
+                if (!editingUser && !formData.isPromotingStudent && data.defaultPassword) {
                     setDefaultPassword(data.defaultPassword);
                     setShowPassword(true);
                 }
@@ -158,7 +204,9 @@ export default function UsersPage() {
             year: '',
             branch: '',
             clubId: '',
-            assignedClubs: []
+            assignedClubs: [],
+            studentDetails: null,
+            isPromotingStudent: false
         });
         setEditingUser(null);
         setShowModal(false);
@@ -218,6 +266,83 @@ export default function UsersPage() {
         navigator.clipboard.writeText(text);
         handleApiSuccess('Copied to clipboard');
     };
+
+    const fetchStudentDetailsForForm = async (username) => {
+        if (!username.trim()) {
+            setFormData(prev => ({
+                ...prev,
+                studentDetails: null,
+                isPromotingStudent: false,
+                name: '',
+                email: '',
+                phoneNumber: '',
+                year: '',
+                branch: ''
+            }));
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/dashboard/admin/students?username=${username}`);
+
+            if (await handleApiError(response)) {
+                setFormData(prev => ({
+                    ...prev,
+                    studentDetails: null,
+                    isPromotingStudent: false,
+                    name: '',
+                    email: '',
+                    phoneNumber: '',
+                    year: '',
+                    branch: ''
+                }));
+                return;
+            }
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.data.student) {
+                    const student = data.data.student;
+                    setFormData(prev => ({
+                        ...prev,
+                        studentDetails: student,
+                        isPromotingStudent: true,
+                        name: student.name || '',
+                        email: student.email || '',
+                        phoneNumber: student.phoneNumber || '',
+                        year: student.year || '',
+                        branch: student.branch || '',
+                        clubId: student.clubId || ''
+                    }));
+                } else {
+                    setFormData(prev => ({
+                        ...prev,
+                        studentDetails: null,
+                        isPromotingStudent: false,
+                        name: '',
+                        email: '',
+                        phoneNumber: '',
+                        year: '',
+                        branch: ''
+                    }));
+                    handleApiError({ status: 404, message: 'Student not found' });
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching student details:', error);
+            setFormData(prev => ({
+                ...prev,
+                studentDetails: null,
+                isPromotingStudent: false,
+                name: '',
+                email: '',
+                phoneNumber: '',
+                year: '',
+                branch: ''
+            }));
+        }
+    };
+
 
     const getRoleColor = (role) => {
         switch (role) {
@@ -294,6 +419,7 @@ export default function UsersPage() {
                 </div>
                 </CardContent>
             </Card>
+
 
             {/* Users List */}
             <div className="bg-white rounded-lg shadow-lg border border-gray-200">
@@ -428,7 +554,12 @@ export default function UsersPage() {
                     <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 border border-gray-300">
                         <div className="flex justify-between items-center p-6 border-b border-gray-200">
                             <h3 className="text-lg font-medium text-gray-900">
-                                {editingUser ? 'Edit User' : 'Add New User'}
+                                {editingUser
+                                    ? 'Edit User'
+                                    : formData.isPromotingStudent
+                                    ? 'Promote Student to Lead'
+                                    : 'Add New User'
+                                }
                             </h3>
                             <button
                                 onClick={resetForm}
@@ -466,44 +597,102 @@ export default function UsersPage() {
                                         id="username"
                                         type="text"
                                         value={formData.username}
-                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                        onChange={(e) => {
+                                            const newUsername = e.target.value;
+                                            setFormData({ ...formData, username: newUsername });
+                                            // Fetch student details only when role is lead and not editing
+                                            if (!editingUser && formData.role === 'lead') {
+                                                fetchStudentDetailsForForm(newUsername);
+                                            } else if (!editingUser && formData.role !== 'lead' && formData.isPromotingStudent) {
+                                                // Reset promotion state if role changed
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    username: newUsername,
+                                                    studentDetails: null,
+                                                    isPromotingStudent: false,
+                                                    name: '',
+                                                    email: '',
+                                                    phoneNumber: '',
+                                                    year: '',
+                                                    branch: ''
+                                                }));
+                                            }
+                                        }}
                                         className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent ${editingUser ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                         required
                                         disabled={editingUser}
                                         maxLength={10}
-                                        placeholder="e.g., 2300032048"
+                                        placeholder={formData.role === 'lead' && !editingUser ? 'Enter student username to promote' : 'e.g., 2300032048'}
                                     />
+                                    {formData.role === 'lead' && !editingUser && formData.username && !formData.isPromotingStudent && (
+                                        <p className="text-sm text-red-600 mt-1">Student not found with this username</p>
+                                    )}
                                 </div>
 
-                                <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Full Name *
-                                    </label>
-                                    <input
-                                        id="name"
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                        required
-                                    />
-                                </div>
+                                {/* Student Details Display for Promotion */}
+                                {formData.isPromotingStudent && formData.studentDetails && (
+                                    <div className="col-span-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <h4 className="font-medium text-blue-900 mb-3">Student Details</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                            <div className="flex justify-between">
+                                                <span className="font-medium text-gray-700">Name:</span>
+                                                <span>{formData.studentDetails.name}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="font-medium text-gray-700">Email:</span>
+                                                <span>{formData.studentDetails.email}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="font-medium text-gray-700">Branch:</span>
+                                                <span>{formData.studentDetails.branch}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="font-medium text-gray-700">Year:</span>
+                                                <span>{formData.studentDetails.year}</span>
+                                            </div>
+                                            <div className="flex justify-between md:col-span-2">
+                                                <span className="font-medium text-gray-700">Current Club:</span>
+                                                <span className={formData.studentDetails.clubName ? "text-blue-600" : "text-gray-500"}>
+                                                    {formData.studentDetails.clubName || "Not assigned"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Email *
-                                    </label>
-                                    <input
-                                        id="email"
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                        required
-                                    />
-                                </div>
+                                {formData.role !== 'lead' && (
+                                    <>
+                                        <div>
+                                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Full Name *
+                                            </label>
+                                            <input
+                                                id="name"
+                                                type="text"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                                required
+                                            />
+                                        </div>
 
-                                {(formData.role === 'lead' || formData.role === 'faculty') && (
+                                        <div>
+                                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Email *
+                                            </label>
+                                            <input
+                                                id="email"
+                                                type="email"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                                required
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.role === 'faculty' && (
                                     <>
                                         <div>
                                             <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
@@ -543,15 +732,20 @@ export default function UsersPage() {
                                             <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">
                                                 Branch *
                                             </label>
-                                            <input
+                                            <select
                                                 id="branch"
-                                                type="text"
                                                 value={formData.branch}
                                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                                 required
-                                                placeholder="e.g., CSE"
-                                            />
+                                            >
+                                                <option value="">Select Branch</option>
+                                                {branchNames.map((branch) => (
+                                                    <option key={branch.id} value={branch.name}>
+                                                        {branch.name}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
 
                                         {formData.role === 'lead' && (
@@ -641,7 +835,14 @@ export default function UsersPage() {
                                     className="flex items-center space-x-2 px-4 py-2 bg-red-800 text-white rounded-md hover:bg-red-900 transition-colors"
                                 >
                                     <FiSave className="h-4 w-4" />
-                                    <span>{editingUser ? 'Update' : 'Save'}</span>
+                                    <span>
+                                        {editingUser
+                                            ? 'Update'
+                                            : formData.isPromotingStudent
+                                            ? 'Promote to Lead'
+                                            : 'Create User'
+                                        }
+                                    </span>
                                 </button>
                             </div>
                         </form>
@@ -695,6 +896,7 @@ export default function UsersPage() {
                     </div>
                 </div>
             )}
+
         </div>
     );
 }

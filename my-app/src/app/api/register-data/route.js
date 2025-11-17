@@ -126,7 +126,8 @@ export async function GET(request) {
         const enhancedProjects = projects.map(project => {
             const memberCount = projectMemberCounts[project.id] || 0;
             const isTecProject = project.domain === 'TEC';
-            const isFull = isTecProject && memberCount >= 2;
+            // Remove the 2-member limit - projects are never full
+            const isFull = false;
 
             return {
                 ...project,
@@ -134,8 +135,8 @@ export async function GET(request) {
                 hasImages: false,
                 memberCount: memberCount,
                 isFull: isFull,
-                maxMembers: isTecProject ? 2 : null,
-                availableSpots: isTecProject ? Math.max(0, 2 - memberCount) : null
+                maxMembers: null, // Remove max members limit
+                availableSpots: null // Remove available spots calculation
             };
         });
         

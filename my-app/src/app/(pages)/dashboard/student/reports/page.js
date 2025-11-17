@@ -9,21 +9,20 @@ import { toast } from "sonner";
 
 export default function StudentReports() {
     const [submissions, setSubmissions] = useState({
-        reports: Array.from({ length: 7 }, (_, i) => ({
-            reportNumber: i + 1,
-            url: '',
-            status: 'pending',
-            marks: null,
-            feedback: null
-        })),
-        youtube: { url: '', status: 'pending', marks: null, feedback: null },
-        linkedin: { url: '', status: 'pending', marks: null, feedback: null }
+        days: Array.from({ length: 6 }, (_, i) => ({
+            day: i + 1,
+            report: { url: '', status: 'pending' },
+            linkedin: { url: '', status: 'pending' },
+            youtube: { url: '', status: 'pending' },
+            reason: null
+        }))
     });
     const [selectedItem, setSelectedItem] = useState('report-1');
     const [reportsExpanded, setReportsExpanded] = useState(false);
     const [linksExpanded, setLinksExpanded] = useState(false);
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
+    const [resubmitMode, setResubmitMode] = useState({}); // Track which days are in resubmit mode
 
     // Fetch existing submissions
     const fetchSubmissions = useCallback(async () => {
@@ -32,48 +31,79 @@ export default function StudentReports() {
             if (response.ok) {
                 const data = await response.json();
 
-                // Initialize submissions structure
+                // Initialize submissions structure for 6 days
                 const newSubmissions = {
-                    reports: Array.from({ length: 7 }, (_, i) => ({
-                        reportNumber: i + 1,
-                        url: '',
-                        status: 'pending',
-                        marks: 0,
-                        evaluated: false
-                    })),
-                    youtube: { url: '', status: 'pending', marks: 0, evaluated: false },
-                    linkedin: { url: '', status: 'pending', marks: 0, evaluated: false }
+                    days: Array.from({ length: 6 }, (_, i) => ({
+                        day: i + 1,
+                        report: { url: '', status: 'pending' },
+                        linkedin: { url: '', status: 'pending' },
+                        youtube: { url: '', status: 'pending' },
+                        reason: null
+                    }))
                 };
 
-                // Populate with existing data
-                data.submissions.forEach(submission => {
-                    if (submission.submission_type === 'report') {
-                        const reportIndex = submission.report_number - 1;
-                        if (reportIndex >= 0 && reportIndex < 7) {
-                            newSubmissions.reports[reportIndex] = {
-                                reportNumber: submission.report_number,
-                                url: submission.submission_url || '',
-                                status: submission.evaluated ? 'evaluated' : (submission.submission_url ? 'submitted' : 'pending'),
-                                marks: submission.marks || 0,
-                                evaluated: submission.evaluated || false
+                // Use submissionsByDay if available, otherwise parse from submissions array
+                if (data.submissionsByDay) {
+                    data.submissionsByDay.forEach(dayData => {
+                        const dayIndex = dayData.day - 1;
+                        if (dayIndex >= 0 && dayIndex < 6) {
+                            newSubmissions.days[dayIndex] = {
+                                day: dayData.day,
+                                report: {
+                                    url: dayData.report || '',
+                                    status: dayData.status === 'A' ? 'approved' :
+                                           dayData.status === 'R' ? 'rejected' :
+                                           dayData.status === 'S' ? 'submitted' :
+                                           dayData.status === 'N' ? 'new' : 'pending'
+                                },
+                                linkedin: {
+                                    url: dayData.linkedin || '',
+                                    status: dayData.status === 'A' ? 'approved' :
+                                           dayData.status === 'R' ? 'rejected' :
+                                           dayData.status === 'S' ? 'submitted' :
+                                           dayData.status === 'N' ? 'new' : 'pending'
+                                },
+                                youtube: {
+                                    url: dayData.youtube || '',
+                                    status: dayData.status === 'A' ? 'approved' :
+                                           dayData.status === 'R' ? 'rejected' :
+                                           dayData.status === 'S' ? 'submitted' :
+                                           dayData.status === 'N' ? 'new' : 'pending'
+                                },
+                                reason: dayData.reason
                             };
                         }
-                    } else if (submission.submission_type === 'youtube_link') {
-                        newSubmissions.youtube = {
-                            url: submission.submission_url || '',
-                            status: submission.evaluated ? 'evaluated' : (submission.submission_url ? 'submitted' : 'pending'),
-                            marks: submission.marks || 0,
-                            evaluated: submission.evaluated || false
-                        };
-                    } else if (submission.submission_type === 'linkedin_link') {
-                        newSubmissions.linkedin = {
-                            url: submission.submission_url || '',
-                            status: submission.evaluated ? 'evaluated' : (submission.submission_url ? 'submitted' : 'pending'),
-                            marks: submission.marks || 0,
-                            evaluated: submission.evaluated || false
-                        };
-                    }
-                });
+                    });
+                } else {
+                    // Fallback: parse from submissions array (for backward compatibility)
+                    data.submissions.forEach(submission => {
+                        if (submission.day_number && submission.day_number >= 1 && submission.day_number <= 6) {
+                            const dayIndex = submission.day_number - 1;
+                            const status = submission.status === 'A' ? 'approved' :
+                                         submission.status === 'R' ? 'rejected' :
+                                         submission.status === 'S' ? 'submitted' :
+                                         submission.status === 'N' ? 'new' : 'pending';
+
+                            if (submission.submission_type === 'report') {
+                                newSubmissions.days[dayIndex].report = {
+                                    url: submission.submission_url || '',
+                                    status: status
+                                };
+                            } else if (submission.submission_type === 'linkedin_link') {
+                                newSubmissions.days[dayIndex].linkedin = {
+                                    url: submission.submission_url || '',
+                                    status: status
+                                };
+                            } else if (submission.submission_type === 'youtube_link') {
+                                newSubmissions.days[dayIndex].youtube = {
+                                    url: submission.submission_url || '',
+                                    status: status
+                                };
+                            }
+                            newSubmissions.days[dayIndex].reason = submission.reason;
+                        }
+                    });
+                }
 
                 setSubmissions(newSubmissions);
             }
@@ -88,9 +118,9 @@ export default function StudentReports() {
         fetchSubmissions();
     }, [fetchSubmissions]);
 
-    const handleReportSubmit = async (reportNumber, url) => {
-        if (!url.trim()) {
-            toast.error('Please enter a valid URL');
+    const handleDaySubmit = async (day, reportUrl, linkedinUrl, youtubeUrl) => {
+        if (!reportUrl.trim() || !linkedinUrl.trim() || !youtubeUrl.trim()) {
+            toast.error('Please enter all three URLs (Report, LinkedIn, YouTube)');
             return;
         }
 
@@ -101,18 +131,19 @@ export default function StudentReports() {
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({
-                    submissionType: 'report',
-                    reportNumber,
-                    url: url.trim()
+                    day,
+                    reportUrl: reportUrl.trim(),
+                    linkedinUrl: linkedinUrl.trim(),
+                    youtubeUrl: youtubeUrl.trim()
                 })
             });
 
             if (response.ok) {
-                toast.success(`Report ${reportNumber} submitted successfully!`);
+                toast.success(`Day ${day} submitted successfully!`);
                 fetchSubmissions();
             } else {
                 const error = await response.json();
-                toast.error(error.message || 'Failed to submit report');
+                toast.error(error.message || 'Failed to submit day');
             }
         } catch (error) {
             toast.error('Network error occurred');
@@ -121,30 +152,44 @@ export default function StudentReports() {
         }
     };
 
-    const handleLinkSubmit = async (linkType, url) => {
-        if (!url.trim()) {
-            toast.error('Please enter a valid URL');
+    const handleResubmit = (day) => {
+        // Clear the URLs locally and enable resubmit mode
+        const newDays = [...submissions.days];
+        const index = newDays.findIndex(d => d.day === day);
+        if (index !== -1) {
+            newDays[index].report.url = '';
+            newDays[index].linkedin.url = '';
+            newDays[index].youtube.url = '';
+            setSubmissions(prev => ({ ...prev, days: newDays }));
+
+            // Set resubmit mode for this day
+            setResubmitMode(prev => ({ ...prev, [day]: true }));
+        }
+    };
+
+    const handleResubmitSubmit = async (day, reportUrl, linkedinUrl, youtubeUrl) => {
+        if (!reportUrl.trim() || !linkedinUrl.trim() || !youtubeUrl.trim()) {
+            toast.error('Please enter all three URLs (Report, LinkedIn, YouTube)');
             return;
         }
 
         setLoading(true);
         try {
             const response = await fetch('/api/student/submissions/internal', {
-                method: 'POST',
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    submissionType: linkType === 'youtube' ? 'youtube_link' : 'linkedin_link',
-                    url: url.trim()
-                })
+                body: JSON.stringify({ day, reportUrl: reportUrl.trim(), linkedinUrl: linkedinUrl.trim(), youtubeUrl: youtubeUrl.trim() })
             });
 
             if (response.ok) {
-                toast.success(`${linkType === 'youtube' ? 'YouTube' : 'LinkedIn'} link submitted successfully!`);
+                toast.success(`Day ${day} resubmitted successfully!`);
+                // Clear resubmit mode and refresh data
+                setResubmitMode(prev => ({ ...prev, [day]: false }));
                 fetchSubmissions();
             } else {
                 const error = await response.json();
-                toast.error(error.message || 'Failed to submit link');
+                toast.error(error.message || 'Failed to resubmit');
             }
         } catch (error) {
             toast.error('Network error occurred');
@@ -155,18 +200,20 @@ export default function StudentReports() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'evaluated': return 'text-green-600 bg-green-50 border-green-200';
+            case 'approved': return 'text-green-600 bg-green-50 border-green-200';
             case 'submitted': return 'text-blue-600 bg-blue-50 border-blue-200';
             case 'rejected': return 'text-red-600 bg-red-50 border-red-200';
+            case 'new': return 'text-purple-600 bg-purple-50 border-purple-200';
             default: return 'text-yellow-600 bg-yellow-50 border-yellow-200';
         }
     };
 
     const getStatusIcon = (status) => {
         switch (status) {
-            case 'evaluated': return <FiCheck className="w-4 h-4" />;
+            case 'approved': return <FiCheck className="w-4 h-4" />;
             case 'submitted': return <FiUpload className="w-4 h-4" />;
             case 'rejected': return <FiX className="w-4 h-4" />;
+            case 'new': return <FiUpload className="w-4 h-4" />;
             default: return <FiUpload className="w-4 h-4" />;
         }
     };
@@ -181,13 +228,9 @@ export default function StudentReports() {
 
     // Helper function to get selected item data
     const getSelectedItemData = () => {
-        if (selectedItem.startsWith('report-')) {
-            const reportNumber = parseInt(selectedItem.split('-')[1]);
-            return submissions.reports.find(r => r.reportNumber === reportNumber);
-        } else if (selectedItem === 'youtube') {
-            return { ...submissions.youtube, title: 'YouTube Link', icon: FiYoutube, color: 'text-red-600' };
-        } else if (selectedItem === 'linkedin') {
-            return { ...submissions.linkedin, title: 'LinkedIn Link', icon: FiLinkedin, color: 'text-blue-600' };
+        if (selectedItem.startsWith('day-')) {
+            const dayNumber = parseInt(selectedItem.split('-')[1]);
+            return submissions.days.find(d => d.day === dayNumber);
         }
         return null;
     };
@@ -198,9 +241,9 @@ export default function StudentReports() {
         <div className="space-y-6">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Reports & Links Submission</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Daily Submissions</h1>
                 <p className="mt-2 text-gray-600">
-                    Submit your 7 reports and social media links for internal evaluation (60 marks total)
+                    Submit your daily reports with LinkedIn and YouTube links for internal evaluation (60 marks total - 10 marks per day)
                 </p>
             </div>
 
@@ -213,29 +256,37 @@ export default function StudentReports() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <Card className="text-center p-4">
                         <CardContent className="pt-6">
                             <div className="text-2xl font-bold text-gray-900">
-                                {submissions.reports.filter(r => r.evaluated).length}/7
+                                {submissions.days.filter(d => d.report.status === 'approved').length}/6
                             </div>
-                            <div className="text-sm text-gray-600">Reports Evaluated</div>
+                            <div className="text-sm text-gray-600">Days Approved</div>
                         </CardContent>
                     </Card>
                     <Card className="text-center p-4">
                         <CardContent className="pt-6">
                             <div className="text-2xl font-bold text-gray-900">
-                                {submissions.youtube.evaluated ? 1 : 0}/1
+                                {submissions.days.filter(d => d.report.status === 'submitted').length}/6
                             </div>
-                            <div className="text-sm text-gray-600">YouTube Links Evaluated</div>
+                            <div className="text-sm text-gray-600">Days Submitted</div>
                         </CardContent>
                     </Card>
                     <Card className="text-center p-4">
                         <CardContent className="pt-6">
                             <div className="text-2xl font-bold text-gray-900">
-                                {submissions.linkedin.evaluated ? 1 : 0}/1
+                                {submissions.days.filter(d => d.report.status === 'rejected').length}
                             </div>
-                            <div className="text-sm text-gray-600">LinkedIn Links Evaluated</div>
+                            <div className="text-sm text-gray-600">Days Rejected</div>
+                        </CardContent>
+                    </Card>
+                    <Card className="text-center p-4">
+                        <CardContent className="pt-6">
+                            <div className="text-2xl font-bold text-gray-900">
+                                {submissions.days.filter(d => d.report.status === 'approved').length * 10}/60
+                            </div>
+                            <div className="text-sm text-gray-600">Internal Marks</div>
                         </CardContent>
                     </Card>
                 </div>
@@ -248,238 +299,210 @@ export default function StudentReports() {
                 {/* Sidebar - Left */}
                 <Card className="w-80 flex-shrink-0">
                     <CardHeader>
-                        <CardTitle>All Submissions</CardTitle>
+                        <CardTitle>All Days</CardTitle>
                     </CardHeader>
                     <CardContent>
-
-                    {/* Reports Section with Dropdown */}
-                    <div className="mb-6">
-                        <Button
-                            onClick={() => {
-                                setReportsExpanded(!reportsExpanded);
-                                if (!reportsExpanded) setLinksExpanded(false);
-                            }}
-                            variant="ghost"
-                            className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 rounded-md transition-colors"
-                        >
-                            <h4 className="text-sm font-medium text-gray-700 flex items-center">
-                                <FiFileText className="mr-2" />
-                                Reports (7 marks each)
-                            </h4>
-                            {reportsExpanded ? (
-                                <FiChevronDown className="w-4 h-4 text-gray-500" />
-                            ) : (
-                                <FiChevronRight className="w-4 h-4 text-gray-500" />
-                            )}
-                        </Button>
-
-                        {reportsExpanded && (
-                            <div className="mt-2 space-y-2">
-                                {submissions.reports.map((report) => (
+                        <div className="space-y-2">
+                            {submissions.days.map((day) => {
+                                const dayStatus = day.report.status; // All components have same status
+                                return (
                                     <Button
-                                        key={report.reportNumber}
-                                        onClick={() => setSelectedItem(`report-${report.reportNumber}`)}
-                                        variant={selectedItem === `report-${report.reportNumber}` ? "secondary" : "ghost"}
-                                        className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center justify-between ${
-                                            selectedItem === `report-${report.reportNumber}`
+                                        key={day.day}
+                                        onClick={() => setSelectedItem(`day-${day.day}`)}
+                                        variant={selectedItem === `day-${day.day}` ? "secondary" : "ghost"}
+                                        className={`w-full text-left px-3 py-3 rounded-md transition-colors flex items-center justify-between ${
+                                            selectedItem === `day-${day.day}`
                                                 ? 'bg-red-100 text-red-800 border border-red-200'
                                                 : 'hover:bg-gray-50 text-gray-700 border border-transparent'
                                         }`}
                                     >
-                                        <span className="text-sm">Report {report.reportNumber}</span>
-                                        <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(report.status)}`}>
-                                            {getStatusIcon(report.status)}
+                                        <div>
+                                            <span className="text-sm font-medium">Day {day.day}</span>
+                                            <div className="text-xs text-gray-500 mt-1">
+                                                Report, LinkedIn, YouTube
+                                            </div>
+                                        </div>
+                                        <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(dayStatus)}`}>
+                                            {getStatusIcon(dayStatus)}
                                         </div>
                                     </Button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Media Links Section with Dropdown */}
-                    <div>
-                        <Button
-                            onClick={() => {
-                                setLinksExpanded(!linksExpanded);
-                                if (!linksExpanded) setReportsExpanded(false);
-                            }}
-                            variant="ghost"
-                            className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 rounded-md transition-colors"
-                        >
-                            <h4 className="text-sm font-medium text-gray-700 flex items-center">
-                                <FiLink className="mr-2" />
-                                Media Links (5.5 marks each)
-                            </h4>
-                            {linksExpanded ? (
-                                <FiChevronDown className="w-4 h-4 text-gray-500" />
-                            ) : (
-                                <FiChevronRight className="w-4 h-4 text-gray-500" />
-                            )}
-                        </Button>
-
-                        {linksExpanded && (
-                            <div className="mt-2 space-y-2">
-                                <Button
-                                    onClick={() => setSelectedItem('youtube')}
-                                    variant={selectedItem === 'youtube' ? 'secondary' : 'ghost'}
-                                    className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center justify-between ${
-                                        selectedItem === 'youtube'
-                                            ? 'bg-red-100 text-red-800 border border-red-200'
-                                            : 'hover:bg-gray-50 text-gray-700 border border-transparent'
-                                    }`}
-                                >
-                                    <div className="flex items-center">
-                                        <FiYoutube className="mr-2 text-red-600" />
-                                        <span className="text-sm">YouTube Link</span>
-                                    </div>
-                                    <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(submissions.youtube.status)}`}>
-                                        {getStatusIcon(submissions.youtube.status)}
-                                    </div>
-                                </Button>
-
-                                <Button
-                                    onClick={() => setSelectedItem('linkedin')}
-                                    variant={selectedItem === 'linkedin' ? 'secondary' : 'ghost'}
-                                    className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center justify-between ${
-                                        selectedItem === 'linkedin'
-                                            ? 'bg-red-100 text-red-800 border border-red-200'
-                                            : 'hover:bg-gray-50 text-gray-700 border border-transparent'
-                                    }`}
-                                >
-                                    <div className="flex items-center">
-                                        <FiLinkedin className="mr-2 text-blue-600" />
-                                        <span className="text-sm">LinkedIn Link</span>
-                                    </div>
-                                    <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(submissions.linkedin.status)}`}>
-                                        {getStatusIcon(submissions.linkedin.status)}
-                                    </div>
-                                </Button>
-                            </div>
-                        )}
-                    </div>
+                                );
+                            })}
+                        </div>
                     </CardContent>
                 </Card>
 
                 {/* Main Content - Right */}
                 <Card className="flex-1">
                     <CardContent className="p-6">
-                    {selectedData && (
-                        <div>
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-                                    {selectedItem.startsWith('report-') ? (
+                        {selectedData && (
+                            <div>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-semibold text-gray-900 flex items-center">
                                         <FiFileText className="mr-2" />
-                                    ) : selectedItem === 'youtube' ? (
-                                        <FiYoutube className="mr-2 text-red-600" />
-                                    ) : (
-                                        <FiLinkedin className="mr-2 text-blue-600" />
-                                    )}
-                                    {selectedItem.startsWith('report-')
-                                        ? `Report ${selectedData.reportNumber}`
-                                        : selectedData.title
-                                    }
-                                </h2>
-                                <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm border ${getStatusColor(selectedData.status)}`}>
-                                    {getStatusIcon(selectedData.status)}
-                                    <span className="capitalize">{selectedData.status}</span>
+                                        Day {selectedData.day} Submission
+                                    </h2>
+                                <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm border ${resubmitMode[selectedData.day] ? 'text-blue-600 bg-blue-50 border-blue-200' : getStatusColor(selectedData.report.status)}`}>
+                                    {resubmitMode[selectedData.day] ? <FiUpload className="w-4 h-4" /> : getStatusIcon(selectedData.report.status)}
+                                    <span className="capitalize">{resubmitMode[selectedData.day] ? 'Resubmitting' : selectedData.report.status}</span>
                                 </div>
-                            </div>
+                                </div>
 
-                            {/* Marks Display */}
-                            {selectedData.marks !== null && selectedData.marks !== undefined && (
-                                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                                    <div className="text-sm text-gray-600">
-                                        <span className="font-medium">Marks:</span> {selectedData.marks}/
-                                        {selectedItem.startsWith('report-') ? '7' : '5.5'}
+                            {/* Rejection Reason Display */}
+                            {selectedData.reason && selectedData.report.status === 'rejected' && !resubmitMode[selectedData.day] && (
+                                    <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                                        <div className="text-sm text-red-800">
+                                            <strong className="text-red-900">Rejection Reason:</strong> {selectedData.reason}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Feedback Display */}
-                            {selectedData.feedback && (
-                                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                                    <div className="text-sm text-blue-800">
-                                        <strong className="text-blue-900">Feedback:</strong> {selectedData.feedback}
-                                    </div>
-                                </div>
-                            )}
+                                {/* URL Inputs */}
+                                <div className="space-y-6">
+                                    {/* Report URL */}
+                                    <div>
+                                                <Label className=" text-sm font-medium mb-2 flex items-center">
+                                                    <FiFileText className="mr-2" />
+                                                    Report URL (5 marks)
+                                                </Label>
+                                                <Input
+                                                    type="url"
+                                                    value={selectedData.report.url || ''}
+                                                    onChange={(e) => {
+                                                        const dayNumber = parseInt(selectedItem.split('-')[1]);
+                                                        const newDays = [...submissions.days];
+                                                        const index = newDays.findIndex(d => d.day === dayNumber);
+                                                        if (index !== -1) {
+                                                            newDays[index].report.url = e.target.value;
+                                                            setSubmissions(prev => ({ ...prev, days: newDays }));
+                                                        }
+                                                    }}
+                                                    placeholder="Enter report URL"
+                                                    disabled={selectedData.report.status === 'submitted' || selectedData.report.status === 'approved' || selectedData.report.status === 'new' || (selectedData.report.status === 'rejected' && !resubmitMode[selectedData.day])}
+                                                />
+                                            </div>
 
-                            {/* URL Input and Submit */}
-                            <div className="space-y-4">
-                                <div>
-                                    <Label className="block text-sm font-medium mb-2">
-                                        {selectedItem.startsWith('report-') ? 'Report URL' :
-                                         selectedItem === 'youtube' ? 'YouTube Video URL' : 'LinkedIn Post URL'}
-                                    </Label>
-                                    <Input
+                                    {/* LinkedIn URL */}
+                                        <div>
+                                            <Label className=" text-sm font-medium mb-2 flex items-center">
+                                                <FiLinkedin className="mr-2 text-blue-600" />
+                                                LinkedIn Post URL (2.5 marks)
+                                            </Label>
+                                            <Input
                                         type="url"
-                                        value={selectedData.url || ''}
+                                        value={selectedData.linkedin.url || ''}
                                         onChange={(e) => {
-                                            if (selectedItem.startsWith('report-')) {
-                                                const reportNumber = parseInt(selectedItem.split('-')[1]);
-                                                const newReports = [...submissions.reports];
-                                                const index = newReports.findIndex(r => r.reportNumber === reportNumber);
-                                                if (index !== -1) {
-                                                    newReports[index].url = e.target.value;
-                                                    setSubmissions(prev => ({ ...prev, reports: newReports }));
-                                                }
-                                            } else if (selectedItem === 'youtube') {
-                                                setSubmissions(prev => ({
-                                                    ...prev,
-                                                    youtube: { ...prev.youtube, url: e.target.value }
-                                                }));
-                                            } else if (selectedItem === 'linkedin') {
-                                                setSubmissions(prev => ({
-                                                    ...prev,
-                                                    linkedin: { ...prev.linkedin, url: e.target.value }
-                                                }));
+                                            const dayNumber = parseInt(selectedItem.split('-')[1]);
+                                            const newDays = [...submissions.days];
+                                            const index = newDays.findIndex(d => d.day === dayNumber);
+                                            if (index !== -1) {
+                                                newDays[index].linkedin.url = e.target.value;
+                                                setSubmissions(prev => ({ ...prev, days: newDays }));
                                             }
                                         }}
-                                        placeholder={
-                                            selectedItem.startsWith('report-')
-                                                ? "Enter report URL"
-                                                : selectedItem === 'youtube'
-                                                ? "Enter YouTube video URL"
-                                                : "Enter LinkedIn post URL"
-                                        }
-                                        disabled={selectedData.status === 'submitted' || selectedData.status === 'evaluated'}
+                                        placeholder="Enter LinkedIn post URL"
+                                        disabled={selectedData.linkedin.status === 'submitted' || selectedData.linkedin.status === 'approved' || selectedData.linkedin.status === 'new' || (selectedData.linkedin.status === 'rejected' && !resubmitMode[selectedData.day])}
                                     />
                                 </div>
 
-                                <Button
-                                    onClick={() => {
-                                        if (selectedItem.startsWith('report-')) {
-                                            const reportNumber = parseInt(selectedItem.split('-')[1]);
-                                            handleReportSubmit(reportNumber, selectedData.url || '');
-                                        } else if (selectedItem === 'youtube') {
-                                            handleLinkSubmit('youtube', selectedData.url || '');
-                                        } else if (selectedItem === 'linkedin') {
-                                            handleLinkSubmit('linkedin', selectedData.url || '');
-                                        }
-                                    }}
-                                    disabled={loading || !(selectedData.url || '').trim() || selectedData.status === 'submitted' || selectedData.status === 'evaluated'}
-                                    className="bg-red-800 hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {loading ? (
-                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                    ) : selectedData.status === 'submitted' || selectedData.status === 'evaluated' ? (
-                                        <>
-                                            <FiCheck className="mr-2 h-5 w-5" />
-                                            {selectedData.status === 'evaluated' ? 'Evaluated' : 'Submitted'}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FiUpload className="mr-2 h-5 w-5" />
-                                            Submit
-                                        </>
-                                    )}
-                                </Button>
+                                    {/* YouTube URL */}
+                                        <div>
+                                            <Label className=" text-sm font-medium mb-2 flex items-center">
+                                                <FiYoutube className="mr-2 text-red-600" />
+                                                YouTube Video URL (2.5 marks)
+                                            </Label>
+                                            <Input
+                                        type="url"
+                                        value={selectedData.youtube.url || ''}
+                                        onChange={(e) => {
+                                            const dayNumber = parseInt(selectedItem.split('-')[1]);
+                                            const newDays = [...submissions.days];
+                                            const index = newDays.findIndex(d => d.day === dayNumber);
+                                            if (index !== -1) {
+                                                newDays[index].youtube.url = e.target.value;
+                                                setSubmissions(prev => ({ ...prev, days: newDays }));
+                                            }
+                                        }}
+                                        placeholder="Enter YouTube video URL"
+                                        disabled={selectedData.youtube.status === 'submitted' || selectedData.youtube.status === 'approved' || selectedData.youtube.status === 'new' || (selectedData.youtube.status === 'rejected' && !resubmitMode[selectedData.day])}
+                                    />
+                                </div>
+
+                                    <div className="flex space-x-3">
+                                        {/* Resubmit Button - only show for rejected submissions when not in resubmit mode */}
+                                            {selectedData.report.status === 'rejected' && !resubmitMode[selectedData.day] && (
+                                                <Button
+                                                    onClick={() => {
+                                                        const dayNumber = parseInt(selectedItem.split('-')[1]);
+                                                        handleResubmit(dayNumber);
+                                                    }}
+                                                    disabled={loading}
+                                                    variant="outline"
+                                                    className="border-orange-600 text-orange-600 hover:bg-orange-50 hover:text-orange-900"
+                                                >
+                                                    <FiUpload className="mr-2 h-5 w-5" />
+                                                    Resubmit
+                                                </Button>
+                                            )}
+
+                                            {/* Submit/Resubmit Button */}
+                                                <Button
+                                                    onClick={() => {
+                                                        const dayNumber = parseInt(selectedItem.split('-')[1]);
+                                                        if (resubmitMode[selectedData.day]) {
+                                                            // In resubmit mode, call resubmit API
+                                                            handleResubmitSubmit(dayNumber, selectedData.report.url || '', selectedData.linkedin.url || '', selectedData.youtube.url || '');
+                                                        } else {
+                                                            // Normal submit
+                                                            handleDaySubmit(dayNumber, selectedData.report.url || '', selectedData.linkedin.url || '', selectedData.youtube.url || '');
+                                                        }
+                                                    }}
+                                                    disabled={loading ||
+                                                        !(selectedData.report.url || '').trim() ||
+                                                        !(selectedData.linkedin.url || '').trim() ||
+                                                        !(selectedData.youtube.url || '').trim() ||
+                                                        selectedData.report.status === 'submitted' ||
+                                                        selectedData.report.status === 'approved' ||
+                                                        selectedData.report.status === 'new'
+                                                    }
+                                                    className="bg-red-800 hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+                                                >
+                                                    {loading ? (
+                                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                                    ) : resubmitMode[selectedData.day] ? (
+                                                        <>
+                                                            <FiUpload className="mr-2 h-5 w-5" />
+                                                            Resubmit Day {selectedData.day}
+                                                        </>
+                                                    ) : selectedData.report.status === 'submitted' || selectedData.report.status === 'approved' ? (
+                                                        <>
+                                                            <FiCheck className="mr-2 h-5 w-5" />
+                                                            {selectedData.report.status === 'approved' ? 'Approved' : 'Submitted'}
+                                                        </>
+                                                    ) : selectedData.report.status === 'new' ? (
+                                                        <>
+                                                            <FiCheck className="mr-2 h-5 w-5" />
+                                                            Resubmitted
+                                                        </>
+                                                    ) : selectedData.report.status === 'rejected' ? (
+                                                        <>
+                                                            <FiX className="mr-2 h-5 w-5" />
+                                                            Rejected
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FiUpload className="mr-2 h-5 w-5" />
+                                                            Submit Day {selectedData.day}
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
                             </div>
-                        </div>
                         )}
                     </CardContent>
                 </Card>
             </div>
-            </div>
+        </div>
     );
 }

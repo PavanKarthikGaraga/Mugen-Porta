@@ -20,9 +20,10 @@ export async function GET(request) {
             // Get all non-student users
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
-                       l.phoneNumber, l.year, l.branch, l.clubId, c.name as clubName,
-                       f.assignedClubs
+                       s.phoneNumber, s.year, s.branch, l.clubId, c.name as clubName,
+                       f.phoneNumber as fPhoneNumber, f.year as fYear, f.branch as fBranch, f.assignedClubs
                 FROM users u
+                LEFT JOIN students s ON u.username = s.username AND u.role = 'lead'
                 LEFT JOIN leads l ON u.username = l.username AND u.role = 'lead'
                 LEFT JOIN faculty f ON u.username = f.username AND u.role = 'faculty'
                 LEFT JOIN clubs c ON l.clubId = c.id
@@ -34,9 +35,10 @@ export async function GET(request) {
             // Get users by specific role
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
-                       l.phoneNumber, l.year, l.branch, l.clubId, c.name as clubName,
-                       f.assignedClubs
+                       s.phoneNumber, s.year, s.branch, l.clubId, c.name as clubName,
+                       f.phoneNumber as fPhoneNumber, f.year as fYear, f.branch as fBranch, f.assignedClubs
                 FROM users u
+                LEFT JOIN students s ON u.username = s.username AND u.role = 'lead'
                 LEFT JOIN leads l ON u.username = l.username AND u.role = 'lead'
                 LEFT JOIN faculty f ON u.username = f.username AND u.role = 'faculty'
                 LEFT JOIN clubs c ON l.clubId = c.id
@@ -88,38 +90,25 @@ export async function POST(request) {
         }
 
         // Additional validation for leads and faculty
-        if (role === 'lead' || role === 'faculty') {
-            if (!phoneNumber || !year || !branch) {
-                return NextResponse.json(
-                    { error: 'Phone number, year, and branch are required for leads and faculty' },
-                    { status: 400 }
-                );
-            }
-            if (role === 'lead' && !clubId) {
+        if (role === 'lead') {
+            if (!clubId) {
                 return NextResponse.json(
                     { error: 'Club assignment is required for leads' },
                     { status: 400 }
                 );
             }
-            if (role === 'faculty' && (!assignedClubs || assignedClubs.length === 0)) {
+        } else if (role === 'faculty') {
+            if (!phoneNumber || !year || !branch) {
+                return NextResponse.json(
+                    { error: 'Phone number, year, and branch are required for faculty' },
+                    { status: 400 }
+                );
+            }
+            if (!assignedClubs || assignedClubs.length === 0) {
                 return NextResponse.json(
                     { error: 'Club assignments are required for faculty' },
                     { status: 400 }
                 );
-            }
-
-            // Check if user already exists as a student when creating lead
-            if (role === 'lead') {
-                const [existingStudent] = await pool.execute(
-                    'SELECT username FROM students WHERE username = ?',
-                    [username]
-                );
-                if (existingStudent.length > 0) {
-                    return NextResponse.json(
-                        { error: 'existing' },
-                        { status: 409 }
-                    );
-                }
             }
         }
 
@@ -137,26 +126,61 @@ export async function POST(request) {
         await connection.beginTransaction();
 
         try {
-            // Insert into users table
-            const userQuery = `
-                INSERT INTO users (username, name, email, password, role)
-                VALUES (?, ?, ?, ?, ?)
-            `;
-            await connection.execute(userQuery, [username, name, email, hashedPassword, role]);
-
-            // Insert into specific role table
             if (role === 'lead') {
+                // For leads, check if student exists and update their role
+                const [existingStudent] = await connection.execute(
+                    'SELECT name, email, phoneNumber, year, branch FROM students WHERE username = ?',
+                    [username]
+                );
+
+                if (existingStudent.length === 0) {
+                    await connection.rollback();
+                    return NextResponse.json(
+                        { error: 'Student not found. Leads must be assigned from existing students.' },
+                        { status: 404 }
+                    );
+                }
+
+                const studentData = existingStudent[0];
+
+                // Update user role to lead
+                await connection.execute(
+                    'UPDATE users SET role = ? WHERE username = ?',
+                    ['lead', username]
+                );
+
+                // Create lead record with all student details
                 const leadQuery = `
                     INSERT INTO leads (username, name, email, phoneNumber, year, branch, clubId)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 `;
-                await connection.execute(leadQuery, [username, name, email, phoneNumber, year, branch, clubId]);
-            } else if (role === 'faculty') {
-                const facultyQuery = `
-                    INSERT INTO faculty (username, name, email, phoneNumber, year, branch, assignedClubs)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                await connection.execute(leadQuery, [
+                    username,
+                    studentData.name,
+                    studentData.email,
+                    studentData.phoneNumber,
+                    studentData.year,
+                    studentData.branch,
+                    clubId
+                ]);
+
+            } else {
+                // For faculty and admin, create new user
+                // Insert into users table
+                const userQuery = `
+                    INSERT INTO users (username, name, email, password, role)
+                    VALUES (?, ?, ?, ?, ?)
                 `;
-                await connection.execute(facultyQuery, [username, name, email, phoneNumber, year, branch, JSON.stringify(assignedClubs)]);
+                await connection.execute(userQuery, [username, name, email, hashedPassword, role]);
+
+                // Insert into specific role table
+                if (role === 'faculty') {
+                    const facultyQuery = `
+                        INSERT INTO faculty (username, name, email, phoneNumber, year, branch, assignedClubs)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    `;
+                    await connection.execute(facultyQuery, [username, name, email, phoneNumber, year, branch, JSON.stringify(assignedClubs)]);
+                }
             }
 
             await connection.commit();
@@ -231,11 +255,24 @@ export async function DELETE(request) {
 
             const role = userResult[0].role;
 
-            // Delete from role-specific table first (due to foreign key constraints)
+            // Delete from all related tables first (due to foreign key constraints)
+            // Delete from submission and marks tables first (they reference users)
+            await connection.execute('DELETE FROM internal_submissions WHERE username = ?', [username]);
+            await connection.execute('DELETE FROM student_external_submissions WHERE username = ?', [username]);
+            // For marks table, we need to handle both username and evaluated_by references
+            await connection.execute('DELETE FROM student_external_marks WHERE username = ? OR evaluated_by = ?', [username, username]);
+            await connection.execute('DELETE FROM email_queue WHERE username = ?', [username]);
+
+            // Delete from role-specific tables
             if (role === 'lead') {
+                // Delete from leads table first
                 await connection.execute('DELETE FROM leads WHERE username = ?', [username]);
+                // Also delete from students table since leads were originally students
+                await connection.execute('DELETE FROM students WHERE username = ?', [username]);
             } else if (role === 'faculty') {
                 await connection.execute('DELETE FROM faculty WHERE username = ?', [username]);
+            } else if (role === 'student') {
+                await connection.execute('DELETE FROM students WHERE username = ?', [username]);
             }
 
             // Delete from users table
