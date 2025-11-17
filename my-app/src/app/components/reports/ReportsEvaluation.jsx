@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -119,6 +120,23 @@ const ReportsEvaluation = ({
                 evaluateApi = reportType === 'internal' ? '/api/dashboard/lead/evaluate/internal' : '/api/dashboard/lead/evaluate/external';
         }
 
+        // For internal reports, we need different API structure
+        if (reportType === 'internal') {
+            switch (userRole) {
+                case 'lead':
+                    evaluateApi = '/api/dashboard/lead/evaluate/internal';
+                    break;
+                case 'faculty':
+                    evaluateApi = '/api/dashboard/faculty/evaluate/internal';
+                    break;
+                case 'admin':
+                    evaluateApi = '/api/dashboard/admin/evaluate/internal';
+                    break;
+                default:
+                    evaluateApi = '/api/dashboard/lead/evaluate/internal';
+            }
+        }
+
         return {
             students: studentsApi,
             evaluate: evaluateApi
@@ -161,26 +179,57 @@ const ReportsEvaluation = ({
                 // Process students with submission data (already included in API response)
                 const studentsWithSubmissions = studentsList.map((student) => {
                     if (reportType === 'internal') {
-                        // Internal reports logic
+                        // Internal reports logic - new day-based structure
                         const submissions = student.submissions || [];
-                        const reportsEvaluated = submissions.filter(s => s.submission_type === 'report' && s.evaluated).length;
-                        const youtubeEvaluated = submissions.some(s => s.submission_type === 'youtube_link' && s.evaluated);
-                        const linkedinEvaluated = submissions.some(s => s.submission_type === 'linkedin_link' && s.evaluated);
 
-                        const hasUnevaluatedReports = submissions.some(s => s.submission_type === 'report' && s.submission_url && !s.evaluated);
-                        const hasUnevaluatedYoutube = submissions.some(s => s.submission_type === 'youtube_link' && s.submission_url && !s.evaluated);
-                        const hasUnevaluatedLinkedin = submissions.some(s => s.submission_type === 'linkedin_link' && s.submission_url && !s.evaluated);
+                        // Group submissions by day
+                        const daysByNumber = {};
+                        submissions.forEach(sub => {
+                            if (sub.day_number) {
+                                if (!daysByNumber[sub.day_number]) {
+                                    daysByNumber[sub.day_number] = {
+                                        day: sub.day_number,
+                                        report: null,
+                                        linkedin: null,
+                                        youtube: null,
+                                        status: null,
+                                        reason: null
+                                    };
+                                }
 
-                        const needsReview = hasUnevaluatedReports || hasUnevaluatedYoutube || hasUnevaluatedLinkedin;
-                        const hasSubmissions = submissions.length > 0;
+                                if (sub.submission_type === 'report') {
+                                    daysByNumber[sub.day_number].report = sub.submission_url;
+                                    daysByNumber[sub.day_number].status = sub.status;
+                                    daysByNumber[sub.day_number].reason = sub.reason;
+                                } else if (sub.submission_type === 'linkedin_link') {
+                                    daysByNumber[sub.day_number].linkedin = sub.submission_url;
+                                } else if (sub.submission_type === 'youtube_link') {
+                                    daysByNumber[sub.day_number].youtube = sub.submission_url;
+                                }
+                            }
+                        });
+
+                        const days = Object.values(daysByNumber);
+                        const approvedDays = days.filter(d => d.status === 'A').length;
+                        const submittedDays = days.filter(d => d.status === 'S').length;
+                        const rejectedDays = days.filter(d => d.status === 'R').length;
+                        const newDays = days.filter(d => d.status === 'N').length;
+                        const pendingDays = 6 - days.length;
+
+                        const hasUnevaluatedSubmissions = days.some(d => d.status === 'S' || d.status === 'N');
+                        const hasSubmissions = days.length > 0;
+                        const needsReview = hasUnevaluatedSubmissions;
 
                         return {
                             ...student,
                             hasSubmissions,
                             needsReview,
-                            reportsStatus: `${reportsEvaluated}/7`,
-                            youtubeStatus: hasUnevaluatedYoutube ? 'review' : youtubeEvaluated ? 'completed' : 'NULL',
-                            linkedinStatus: hasUnevaluatedLinkedin ? 'review' : linkedinEvaluated ? 'completed' : 'NULL'
+                            days: days,
+                            approvedDays,
+                            submittedDays,
+                            rejectedDays,
+                            pendingDays,
+                            totalDays: days.length
                         };
                     } else {
                         // Final reports logic
@@ -264,49 +313,28 @@ const ReportsEvaluation = ({
         setShowModal(true);
     };
 
-    const handleEvaluate = (itemType) => {
-        setSelectedItem(itemType);
-        setShowEvaluationModal(true);
+    const handleEvaluate = (day, action) => {
+        console.log('handleEvaluate called with:', { day, action, typeofDay: typeof day });
 
-        // Initialize evaluation data based on report type and pre-populate with existing marks
         if (reportType === 'internal') {
-            // Find existing marks for the selected item
-            let existingMarks = {};
-
-            if (selectedStudent?.submissions) {
-                if (typeof itemType === 'number' && itemType >= 1 && itemType <= 7) {
-                    // Evaluating a specific report
-                    const reportSubmission = selectedStudent.submissions.find(
-                        s => s.submission_type === 'report' && s.report_number === itemType
-                    );
-                    existingMarks[`m${itemType}`] = reportSubmission?.marks || '';
-                } else if (itemType === 'youtube_link') {
-                    // Evaluating YouTube link
-                    const youtubeSubmission = selectedStudent.submissions.find(
-                        s => s.submission_type === 'youtube_link'
-                    );
-                    existingMarks.yt_m = youtubeSubmission?.marks || '';
-                } else if (itemType === 'linkedin_link') {
-                    // Evaluating LinkedIn link
-                    const linkedinSubmission = selectedStudent.submissions.find(
-                        s => s.submission_type === 'linkedin_link'
-                    );
-                    existingMarks.lk_m = linkedinSubmission?.marks || '';
-                }
+            // For internal reports, handle day approval/rejection directly
+            // Ensure we only store plain data, not DOM elements
+            const dayValue = typeof day === 'object' && day?.target ? parseInt(day.target.value) : parseInt(day);
+            console.log('dayValue calculated as:', dayValue, 'from day:', day);
+            setSelectedItem({ day: dayValue, action });
+            if (action === 'reject') {
+                setShowEvaluationModal(true);
+                setEvaluationData({ reason: '' });
+            } else {
+                // For approve, submit directly
+                handleMarksSubmit(dayValue, action);
             }
-
-            // Only pre-populate the field being evaluated, leave others undefined
-            let evaluationDataObj = {};
-            if (typeof itemType === 'number' && itemType >= 1 && itemType <= 7) {
-                evaluationDataObj[`m${itemType}`] = existingMarks[`m${itemType}`] || '';
-            } else if (itemType === 'youtube_link') {
-                evaluationDataObj.yt_m = existingMarks.yt_m || '';
-            } else if (itemType === 'linkedin_link') {
-                evaluationDataObj.lk_m = existingMarks.lk_m || '';
-            }
-            setEvaluationData(evaluationDataObj);
         } else {
-            // For final reports, pre-populate with existing marks
+            // For final reports, use the old evaluation modal
+            // Ensure we only store plain data
+            const dayValue = typeof day === 'object' && day?.target ? day.target.value : day;
+            setSelectedItem({ day: dayValue, action: 'final' });
+            setShowEvaluationModal(true);
             const submission = selectedStudent?.finalSubmission;
             setEvaluationData({
                 frm: submission?.frm || '',
@@ -316,71 +344,71 @@ const ReportsEvaluation = ({
         }
     };
 
-    const handleMarksSubmit = async () => {
+    const handleMarksSubmit = async (dayParam, actionParam) => {
         if (!selectedStudent) return;
 
+
         setSubmitting(true);
+        let requestBody = {}; // Define outside try block so it's accessible in catch
+
         try {
-            // Prepare evaluation data based on selected item type
-            let submissionData = {};
+            // Ensure all parameters are plain values, not objects with circular references
+            const day = parseInt(dayParam || selectedItem?.day);
+            const action = actionParam || selectedItem?.action;
+
 
             if (reportType === 'internal') {
-                if (typeof selectedItem === 'number' && selectedItem >= 1 && selectedItem <= 7) {
-                    // Evaluating a specific report - only send that report's marks
-                    submissionData[`m${selectedItem}`] = evaluationData[`m${selectedItem}`];
-                } else if (selectedItem === 'youtube_link') {
-                    // Evaluating YouTube link
-                    submissionData.yt_m = evaluationData.yt_m;
-                } else if (selectedItem === 'linkedin_link') {
-                    // Evaluating LinkedIn link
-                    submissionData.lk_m = evaluationData.lk_m;
-                }
+                // For internal reports, use the new day-based evaluation
+                // Ensure all values are primitives
+                const reason = action === 'reject' ? String(evaluationData.reason || '') : null;
+
+                requestBody = {
+                    studentUsername: String(selectedStudent.username),
+                    day: parseInt(day),
+                    action: String(action),
+                    reason: reason
+                };
             } else {
-                // Final reports - send all data
-                submissionData = evaluationData;
+                // For final reports, use the old evaluation structure
+                // Ensure evaluationData contains only plain values
+                const cleanEvaluationData = {
+                    frm: String(evaluationData.frm || ''),
+                    fyt_m: String(evaluationData.fyt_m || ''),
+                    flk_m: String(evaluationData.flk_m || '')
+                };
+
+                requestBody = {
+                    studentUsername: String(selectedStudent.username),
+                    evaluationData: cleanEvaluationData
+                };
             }
+
+            // Validate request body before sending
+            if (reportType === 'internal') {
+                if (!requestBody.studentUsername || !requestBody.day || !requestBody.action) {
+                    console.error('Missing required fields in request body:', requestBody);
+                    toast.error('Missing required fields for evaluation');
+                    return;
+                }
+                if (requestBody.action === 'reject' && !requestBody.reason) {
+                    console.error('Reason required for rejection:', requestBody);
+                    toast.error('Reason is required for rejection');
+                    return;
+                }
+            }
+
 
             const response = await fetch(apis.evaluate, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    studentUsername: selectedStudent.username,
-                    evaluationData: submissionData
-                })
+                body: JSON.stringify(requestBody)
             });
 
             if (response.ok) {
-                // Update the selected student data immediately to reflect the evaluation
-                setSelectedStudent(prev => {
-                    if (!prev) return null;
-
-                    if (reportType === 'internal') {
-                        // Update submissions array with new evaluation status
-                        const updatedSubmissions = prev.submissions?.map(sub => {
-                            if (typeof selectedItem === 'number' && sub.submission_type === 'report' && sub.report_number === selectedItem) {
-                                return { ...sub, evaluated: true, marks: parseInt(submissionData[`m${selectedItem}`]) || 0 };
-                            } else if (selectedItem === 'youtube_link' && sub.submission_type === 'youtube_link') {
-                                return { ...sub, evaluated: true, marks: parseFloat(submissionData.yt_m) || 0 };
-                            } else if (selectedItem === 'linkedin_link' && sub.submission_type === 'linkedin_link') {
-                                return { ...sub, evaluated: true, marks: parseFloat(submissionData.lk_m) || 0 };
-                            }
-                            return sub;
-                        }) || [];
-
-                        return {
-                            ...prev,
-                            submissions: updatedSubmissions
-                        };
-                    } else {
-                        return {
-                            ...prev,
-                            isEvaluated: true
-                        };
-                    }
-                });
-
                 setShowEvaluationModal(false);
+                setSelectedItem(null);
+                setEvaluationData({});
                 // Don't close the main modal immediately, let user see the updated status
                 fetchStudents(); // Refresh data in background
                 toast.success('Evaluation submitted successfully!');
@@ -391,11 +419,26 @@ const ReportsEvaluation = ({
                     setSelectedStudent(null);
                 }, 1500);
             } else {
-                const error = await response.json();
-                toast.error(error.message || 'Failed to submit evaluation');
+                // Read response body only once
+                let errorMessage = 'Failed to submit evaluation';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                    console.log('Error response data:', errorData);
+                } catch (parseError) {
+                    // If JSON parsing fails, try to get text
+                    try {
+                        const errorText = await response.text();
+                        console.log('Error response text:', errorText);
+                    } catch (textError) {
+                        console.log('Could not read error response');
+                    }
+                }
+                toast.error(errorMessage);
             }
         } catch (error) {
             console.error('Error submitting evaluation:', error);
+            console.error('Request body that caused error:', requestBody);
             toast.error('Network error occurred');
         } finally {
             setSubmitting(false);
@@ -422,9 +465,10 @@ const ReportsEvaluation = ({
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reports</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">YouTube</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LinkedIn</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rejected</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
@@ -440,55 +484,20 @@ const ReportsEvaluation = ({
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {student.name}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <Button
-                                                variant="link"
-                                                onClick={() => handleViewReports(student)}
-                                                className={`h-auto p-0 text-red-800 hover:text-red-600 ${
-                                                    student.needsReview ? 'font-semibold' : ''
-                                                }`}
-                                            >
-                                                <span>{student.reportsStatus}</span>
-                                                {student.needsReview && (
-                                                    <FiAlertTriangle className="w-4 h-4 ml-1 text-orange-500" />
-                                                )}
-                                            </Button>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
+                                            {student.approvedDays}/6
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {student.youtubeStatus !== 'NULL' ? (
-                                                <Button
-                                                    variant="link"
-                                                    onClick={() => handleViewLinks(student)}
-                                                    className={`h-auto p-0 ${getStatusColor(student.youtubeStatus)} hover:text-red-600`}
-                                                >
-                                                    {student.youtubeStatus}
-                                                    {student.youtubeStatus === 'review' && (
-                                                        <FiAlertTriangle className="w-4 h-4 ml-1 text-orange-500" />
-                                                    )}
-                                                </Button>
-                                            ) : (
-                                                <span className={getStatusColor(student.youtubeStatus)}>
-                                                    {student.youtubeStatus}
-                                                </span>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                                            {student.submittedDays}/6
+                                            {student.needsReview && (
+                                                <FiAlertTriangle className="w-4 h-4 ml-1 text-orange-500 inline" />
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {student.linkedinStatus !== 'NULL' ? (
-                                                <Button
-                                                    variant="link"
-                                                    onClick={() => handleViewLinks(student)}
-                                                    className={`h-auto p-0 ${getStatusColor(student.linkedinStatus)} hover:text-red-600`}
-                                                >
-                                                    {student.linkedinStatus}
-                                                    {student.linkedinStatus === 'review' && (
-                                                        <FiAlertTriangle className="w-4 h-4 ml-1 text-orange-500" />
-                                                    )}
-                                                </Button>
-                                            ) : (
-                                                <span className={getStatusColor(student.linkedinStatus)}>
-                                                    {student.linkedinStatus}
-                                                </span>
-                                            )}
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
+                                            {student.rejectedDays}/6
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {student.pendingDays}/6
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <Button
@@ -496,7 +505,7 @@ const ReportsEvaluation = ({
                                                 onClick={() => handleViewClick(student)}
                                                 className="h-auto p-0 text-blue-600 hover:text-blue-900"
                                             >
-                                                View Details
+                                                View Days
                                             </Button>
                                         </td>
                                     </tr>
@@ -598,73 +607,68 @@ const ReportsEvaluation = ({
         if (!selectedStudent) return null;
 
         if (reportType === 'internal') {
-            const showReports = modalViewType === 'reports' || modalViewType === 'all';
-            const showLinks = modalViewType === 'links' || modalViewType === 'all';
+            // Show days for internal reports
+            const days = selectedStudent.days || [];
 
             return (
                 <div className="rounded-md border">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Submission Type</TableHead>
+                                <TableHead>Day</TableHead>
+                                <TableHead>Report</TableHead>
+                                <TableHead>LinkedIn</TableHead>
+                                <TableHead>YouTube</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Marks</TableHead>
-                                <TableHead>Link</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {/* Report Rows - Only show if modalViewType includes reports */}
-                            {showReports && Array.from({ length: 7 }, (_, i) => {
-                                const reportNumber = i + 1;
-                                const submission = selectedStudent.submissions?.find(
-                                    s => s.submission_type === 'report' && s.report_number === reportNumber
-                                );
+                            {Array.from({ length: 6 }, (_, i) => {
+                                const dayNumber = i + 1;
+                                const dayData = days.find(d => d.day === dayNumber) || {
+                                    day: dayNumber,
+                                    report: null,
+                                    linkedin: null,
+                                    youtube: null,
+                                    status: null,
+                                    reason: null
+                                };
+
+                                const getStatusBadge = (status) => {
+                                    switch (status) {
+                                        case 'A':
+                                            return <Badge className="bg-green-100 text-green-800"><FiCheck className="w-3 h-3 mr-1" />Approved</Badge>;
+                                        case 'R':
+                                            return <Badge className="bg-red-100 text-red-800"><FiX className="w-3 h-3 mr-1" />Rejected</Badge>;
+                                        case 'S':
+                                            return <Badge className="bg-orange-100 text-orange-800"><FiAlertTriangle className="w-3 h-3 mr-1" />Submitted</Badge>;
+                                        case 'N':
+                                            return <Badge className="bg-purple-100 text-purple-800"><FiAlertTriangle className="w-3 h-3 mr-1" />New</Badge>;
+                                        default:
+                                            return <Badge variant="outline">Not Submitted</Badge>;
+                                    }
+                                };
 
                                 return (
-                                    <TableRow key={reportNumber}>
+                                    <TableRow key={dayNumber}>
                                         <TableCell className="font-medium">
-                                            Report {reportNumber}
+                                            Day {dayNumber}
                                         </TableCell>
                                         <TableCell>
-                                            <Badge
-                                                variant={
-                                                    submission?.evaluated ? "default" :
-                                                    submission?.submission_url ? "secondary" :
-                                                    "outline"
-                                                }
-                                                className={
-                                                    submission?.evaluated ? "bg-green-100 text-green-800 hover:bg-green-100" :
-                                                    submission?.submission_url ? "bg-orange-100 text-orange-800 hover:bg-orange-100" :
-                                                    "bg-gray-100 text-gray-800 hover:bg-gray-100"
-                                                }
-                                            >
-                                                {submission?.evaluated ? (
-                                                    <><FiCheck className="w-3 h-3 mr-1" />Evaluated</>
-                                                ) : submission?.submission_url ? (
-                                                    <><FiAlertTriangle className="w-3 h-3 mr-1" />Needs Review</>
-                                                ) : (
-                                                    'Not Submitted'
-                                                )}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {submission?.marks ? `${submission.marks}/7` : '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {submission?.submission_url ? (
+                                            {dayData.report ? (
                                                 <Button
                                                     variant="link"
                                                     asChild
                                                     className="h-auto p-0 text-blue-600 hover:text-blue-800"
                                                 >
                                                     <a
-                                                        href={submission.submission_url}
+                                                        href={dayData.report}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                     >
                                                         <FiExternalLink className="w-4 h-4 mr-1" />
-                                                        View Report
+                                                        View
                                                     </a>
                                                 </Button>
                                             ) : (
@@ -672,158 +676,83 @@ const ReportsEvaluation = ({
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            {submission?.submission_url && !submission?.evaluated && (
+                                            {dayData.linkedin ? (
                                                 <Button
-                                                    onClick={() => handleEvaluate(reportNumber)}
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-900"
+                                                    variant="link"
+                                                    asChild
+                                                    className="h-auto p-0 text-blue-600 hover:text-blue-800"
                                                 >
-                                                    Evaluate
+                                                    <a
+                                                        href={dayData.linkedin}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <FiExternalLink className="w-4 h-4 mr-1" />
+                                                        View
+                                                    </a>
                                                 </Button>
+                                            ) : (
+                                                <span className="text-gray-400">-</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {dayData.youtube ? (
+                                                <Button
+                                                    variant="link"
+                                                    asChild
+                                                    className="h-auto p-0 text-blue-600 hover:text-blue-800"
+                                                >
+                                                    <a
+                                                        href={dayData.youtube}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <FiExternalLink className="w-4 h-4 mr-1" />
+                                                        View
+                                                    </a>
+                                                </Button>
+                                            ) : (
+                                                <span className="text-gray-400">-</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col space-y-1">
+                                                {getStatusBadge(dayData.status)}
+                                                {dayData.reason && (
+                                                    <div className="text-xs text-red-600 mt-1">
+                                                        <strong>Reason:</strong> {dayData.reason}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {(dayData.status === 'S' || dayData.status === 'N') && (
+                                                <div className="flex space-x-2">
+                                                    <Button
+                                                        onClick={() => handleEvaluate(dayNumber, 'approve')}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="border-green-600 text-green-600 hover:bg-green-50 hover:text-green-900"
+                                                    >
+                                                        Approve
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() => {
+                                                            console.log('Reject button clicked, dayNumber:', dayNumber, 'typeof:', typeof dayNumber);
+                                                            handleEvaluate(dayNumber, 'reject');
+                                                        }}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-900"
+                                                    >
+                                                        Reject
+                                                    </Button>
+                                                </div>
                                             )}
                                         </TableCell>
                                     </TableRow>
                                 );
                             })}
-
-                            {/* YouTube Link Row - Only show if modalViewType includes links */}
-                            {showLinks && (() => {
-                                const submission = selectedStudent.submissions?.find(s => s.submission_type === 'youtube_link');
-                                return (
-                                    <TableRow key="youtube">
-                                        <TableCell className="font-medium">
-                                            YouTube Link
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant={
-                                                    submission?.evaluated ? "default" :
-                                                    submission?.submission_url ? "secondary" :
-                                                    "outline"
-                                                }
-                                                className={
-                                                    submission?.evaluated ? "bg-green-100 text-green-800 hover:bg-green-100" :
-                                                    submission?.submission_url ? "bg-orange-100 text-orange-800 hover:bg-orange-100" :
-                                                    "bg-gray-100 text-gray-800 hover:bg-gray-100"
-                                                }
-                                            >
-                                                {submission?.evaluated ? (
-                                                    <><FiCheck className="w-3 h-3 mr-1" />Evaluated</>
-                                                ) : submission?.submission_url ? (
-                                                    <><FiAlertTriangle className="w-3 h-3 mr-1" />Needs Review</>
-                                                ) : (
-                                                    'Not Submitted'
-                                                )}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {submission?.marks ? `${submission.marks}/5.5` : '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {submission?.submission_url ? (
-                                                <Button
-                                                    variant="link"
-                                                    asChild
-                                                    className="h-auto p-0 text-blue-600 hover:text-blue-800"
-                                                >
-                                                    <a
-                                                        href={submission.submission_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
-                                                        <FiExternalLink className="w-4 h-4 mr-1" />
-                                                        View Link
-                                                    </a>
-                                                </Button>
-                                            ) : (
-                                                <span className="text-gray-400">-</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {submission?.submission_url && !submission?.evaluated && (
-                                                <Button
-                                                    onClick={() => handleEvaluate('youtube_link')}
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-900"
-                                                >
-                                                    Evaluate
-                                                </Button>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })()}
-
-                            {/* LinkedIn Link Row - Only show if modalViewType includes links */}
-                            {showLinks && (() => {
-                                const submission = selectedStudent.submissions?.find(s => s.submission_type === 'linkedin_link');
-                                return (
-                                    <TableRow key="linkedin">
-                                        <TableCell className="font-medium">
-                                            LinkedIn Link
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant={
-                                                    submission?.evaluated ? "default" :
-                                                    submission?.submission_url ? "secondary" :
-                                                    "outline"
-                                                }
-                                                className={
-                                                    submission?.evaluated ? "bg-green-100 text-green-800 hover:bg-green-100" :
-                                                    submission?.submission_url ? "bg-orange-100 text-orange-800 hover:bg-orange-100" :
-                                                    "bg-gray-100 text-gray-800 hover:bg-gray-100"
-                                                }
-                                            >
-                                                {submission?.evaluated ? (
-                                                    <><FiCheck className="w-3 h-3 mr-1" />Evaluated</>
-                                                ) : submission?.submission_url ? (
-                                                    <><FiAlertTriangle className="w-3 h-3 mr-1" />Needs Review</>
-                                                ) : (
-                                                    'Not Submitted'
-                                                )}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {submission?.marks ? `${submission.marks}/5.5` : '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {submission?.submission_url ? (
-                                                <Button
-                                                    variant="link"
-                                                    asChild
-                                                    className="h-auto p-0 text-blue-600 hover:text-blue-800"
-                                                >
-                                                    <a
-                                                        href={submission.submission_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
-                                                        <FiExternalLink className="w-4 h-4 mr-1" />
-                                                        View Link
-                                                    </a>
-                                                </Button>
-                                            ) : (
-                                                <span className="text-gray-400">-</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {submission?.submission_url && !submission?.evaluated && (
-                                                <Button
-                                                    onClick={() => handleEvaluate('linkedin_link')}
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-900"
-                                                >
-                                                    Evaluate
-                                                </Button>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })()}
                         </TableBody>
                     </Table>
                 </div>
@@ -1032,69 +961,30 @@ const ReportsEvaluation = ({
     };
 
     const renderEvaluationModal = () => {
+        if (!selectedItem) {
+            return <div>Loading...</div>;
+        }
+
         if (reportType === 'internal') {
+            // For internal reports, show rejection reason input
             return (
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="report-marks">
-                            Report {selectedItem} Marks (0-7)
+                        <Label htmlFor="rejection-reason">
+                            Rejection Reason for Day {selectedItem?.day || 'Unknown'}
                         </Label>
-                        <Input
-                            id="report-marks"
-                            type="number"
-                            step="1"
-                            min="0"
-                            max="7"
-                            value={evaluationData[`m${selectedItem}`]}
+                        <textarea
+                            id="rejection-reason"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            rows="4"
+                            value={evaluationData.reason}
                             onChange={(e) => setEvaluationData(prev => ({
                                 ...prev,
-                                [`m${selectedItem}`]: e.target.value
+                                reason: e.target.value
                             }))}
-                            placeholder="Enter marks"
+                            placeholder="Please provide a reason for rejecting this submission..."
                         />
                     </div>
-
-                    {selectedItem === 'youtube_link' && (
-                        <div className="space-y-2">
-                            <Label htmlFor="youtube-marks">
-                                YouTube Link Marks (0-5.5)
-                            </Label>
-                            <Input
-                                id="youtube-marks"
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="5.5"
-                                value={evaluationData.yt_m}
-                                onChange={(e) => setEvaluationData(prev => ({
-                                    ...prev,
-                                    yt_m: e.target.value
-                                }))}
-                                placeholder="Enter marks for YouTube link"
-                            />
-                        </div>
-                    )}
-
-                    {selectedItem === 'linkedin_link' && (
-                        <div className="space-y-2">
-                            <Label htmlFor="linkedin-marks">
-                                LinkedIn Link Marks (0-5.5)
-                            </Label>
-                            <Input
-                                id="linkedin-marks"
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="5.5"
-                                value={evaluationData.lk_m}
-                                onChange={(e) => setEvaluationData(prev => ({
-                                    ...prev,
-                                    lk_m: e.target.value
-                                }))}
-                                placeholder="Enter marks for LinkedIn link"
-                            />
-                        </div>
-                    )}
                 </div>
             );
         } else {
@@ -1299,21 +1189,36 @@ const ReportsEvaluation = ({
 
             {/* Modal */}
             <Dialog open={showModal && !!selectedStudent} onOpenChange={setShowModal}>
-                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
                     <DialogHeader>
                         <DialogTitle>
                             {selectedStudent?.name} ({selectedStudent?.username}) - {modalViewType === 'reports' ? 'Reports' : modalViewType === 'links' ? 'Links' : (reportType === 'internal' ? 'Internal' : 'Final') + ' Submissions'}
                         </DialogTitle>
+                        <DialogDescription>
+                            {modalViewType === 'reports' ? 'View and manage student reports' : modalViewType === 'links' ? 'View submission links' : `Evaluate ${reportType} submissions`}
+                        </DialogDescription>
                     </DialogHeader>
                     {renderModalContent()}
                 </DialogContent>
             </Dialog>
 
             {/* Evaluation Modal */}
-            <Dialog open={showEvaluationModal} onOpenChange={setShowEvaluationModal}>
-                <DialogContent className="max-w-md">
+            <Dialog open={showEvaluationModal && !!selectedItem} onOpenChange={(open) => {
+                setShowEvaluationModal(open);
+                if (!open) {
+                    setSelectedItem(null);
+                    setEvaluationData({});
+                }
+            }}>
+                <DialogContent className="max-w-md fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
                     <DialogHeader>
                         <DialogTitle>Submit Marks</DialogTitle>
+                        <DialogDescription>
+                            {reportType === 'internal'
+                                ? `Evaluate ${selectedItem?.action === 'approve' ? 'approval' : 'rejection'} for Day ${selectedItem?.day}`
+                                : 'Submit final marks for the student'
+                            }
+                        </DialogDescription>
                     </DialogHeader>
 
                     {renderEvaluationModal()}
@@ -1321,13 +1226,20 @@ const ReportsEvaluation = ({
                     <div className="flex space-x-3 pt-4">
                         <Button
                             variant="outline"
-                            onClick={() => setShowEvaluationModal(false)}
+                            onClick={() => {
+                                setShowEvaluationModal(false);
+                                setSelectedItem(null);
+                                setEvaluationData({});
+                            }}
                             className="flex-1"
                         >
                             Cancel
                         </Button>
                         <Button
-                            onClick={handleMarksSubmit}
+                            onClick={() => {
+                                console.log('Submit button clicked, selectedItem:', selectedItem);
+                                handleMarksSubmit(selectedItem?.day, selectedItem?.action);
+                            }}
                             disabled={submitting}
                             className="flex-1 bg-red-800 hover:bg-red-900"
                         >

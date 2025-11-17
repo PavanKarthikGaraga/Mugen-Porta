@@ -176,29 +176,7 @@ export async function POST(req) {
             );
         }
 
-        // Check member limits based on student year and domain
-        if (selectedDomain === 'TEC' && selectedProject) {
-            // TEC projects limited to 2 members for both Y24 and Y25 students
-            const [projectMembers] = await pool.execute(
-                "SELECT COUNT(*) as currentMembers FROM students WHERE projectId = ?",
-                [selectedProject]
-            );
-
-            const currentMembers = projectMembers[0].currentMembers;
-            if (currentMembers >= 2) {
-                return NextResponse.json(
-                    {
-                        message: "This TEC project is full. TEC projects can only have a maximum of 2 members.",
-                        errorType: "PROJECT_FULL",
-                        projectId: selectedProject,
-                        currentMembers: currentMembers,
-                        maxMembers: 2,
-                        suggestion: "Please select a different TEC project or choose a different domain."
-                    },
-                    { status: 400 }
-                );
-            }
-        }
+        // No project member limits - all projects can accept unlimited members
 
         if (isY22Student || isY23Student || isY24Student) {
             // Check club member limits for Y22, Y23, and Y24 students

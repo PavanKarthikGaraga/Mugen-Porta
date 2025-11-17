@@ -166,8 +166,8 @@ export default function AdminOverviewPage() {
                                 <SelectContent>
                                     <SelectItem value="all">All Domains</SelectItem>
                                     <SelectItem value="TEC">Technical (TEC)</SelectItem>
-                                    <SelectItem value="LCH">Leadership & Community (LCH)</SelectItem>
-                                    <SelectItem value="ESO">Entrepreneurship & Startup (ESO)</SelectItem>
+                                    <SelectItem value="LCH">Liberal Arts, Creative Arts and Hobby (LCH)</SelectItem>
+                                    <SelectItem value="ESO">Extension & Society Outreach (ESO)</SelectItem>
                                     <SelectItem value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</SelectItem>
                                     <SelectItem value="HWB">Health & Well-being (HWB)</SelectItem>
                                 </SelectContent>

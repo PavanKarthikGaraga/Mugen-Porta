@@ -93,61 +93,91 @@ export async function GET(request) {
             );
         }
 
-        // Fetch internal submissions and marks for the requested student
+        // Fetch internal submissions for the requested student (6 days)
         const [submissions] = await pool.execute(
-            'SELECT r1, r2, r3, r4, r5, r6, r7, yt_l, lk_l FROM student_internal_submissions WHERE username = ?',
+            'SELECT day, report, linkedin, youtube, status, reason FROM internal_submissions WHERE username = ? ORDER BY day',
             [accessUsername]
         );
-
-        const [marks] = await pool.execute(
-            'SELECT m1, m2, m3, m4, m5, m6, m7, yt_m, lk_m, total FROM student_internal_marks WHERE username = ?',
-            [accessUsername]
-        );
-
-        const submissionData = submissions.length > 0 ? submissions[0] : {
-            r1: null, r2: null, r3: null, r4: null, r5: null, r6: null, r7: null,
-            yt_l: null, lk_l: null
-        };
-
-        const marksData = marks.length > 0 ? marks[0] : {
-            m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0,
-            yt_m: 0, lk_m: 0, total: 0
-        };
 
         // Convert to the format expected by frontend
         const formattedSubmissions = [];
+        const submissionsByDay = {};
 
-        // Add reports
-        for (let i = 1; i <= 7; i++) {
-            formattedSubmissions.push({
-                submission_type: 'report',
-                report_number: i,
-                submission_url: submissionData[`r${i}`],
-                marks: marksData[`m${i}`],
-                evaluated: marksData[`m${i}`] > 0
-            });
+        // Initialize all 6 days
+        for (let day = 1; day <= 6; day++) {
+            submissionsByDay[day] = {
+                day,
+                report: null,
+                linkedin: null,
+                youtube: null,
+                status: null,
+                reason: null
+            };
         }
 
-        // Add YouTube link
-        formattedSubmissions.push({
-            submission_type: 'youtube_link',
-            submission_url: submissionData.yt_l,
-            marks: marksData.yt_m,
-            evaluated: marksData.yt_m > 0
+        // Populate with existing data
+        submissions.forEach(sub => {
+            if (sub.day >= 1 && sub.day <= 6) {
+                submissionsByDay[sub.day] = {
+                    day: sub.day,
+                    report: sub.report,
+                    linkedin: sub.linkedin,
+                    youtube: sub.youtube,
+                    status: sub.status,
+                    reason: sub.reason
+                };
+            }
         });
 
-        // Add LinkedIn link
-        formattedSubmissions.push({
-            submission_type: 'linkedin_link',
-            submission_url: submissionData.lk_l,
-            marks: marksData.lk_m,
-            evaluated: marksData.lk_m > 0
-        });
+        // Calculate total marks (5 for report + 2.5 for linkedin + 2.5 for youtube = 10 per day)
+        let totalMarks = 0;
+        for (let day = 1; day <= 6; day++) {
+            const daySubmission = submissionsByDay[day];
+            if (daySubmission.status === 'A') { // Only count approved submissions
+                totalMarks += 10; // Each approved submission is worth 10 marks
+            }
+        }
+
+        // Format submissions for frontend compatibility (maintain old structure for UI compatibility)
+        for (let day = 1; day <= 6; day++) {
+            const daySubmission = submissionsByDay[day];
+
+            // Add report for this day
+            formattedSubmissions.push({
+                submission_type: 'report',
+                day_number: day,
+                submission_url: daySubmission.report,
+                status: daySubmission.status,
+                reason: daySubmission.reason,
+                evaluated: daySubmission.status === 'A' || daySubmission.status === 'R'
+            });
+
+            // Add LinkedIn link for this day
+            formattedSubmissions.push({
+                submission_type: 'linkedin_link',
+                day_number: day,
+                submission_url: daySubmission.linkedin,
+                status: daySubmission.status,
+                reason: daySubmission.reason,
+                evaluated: daySubmission.status === 'A' || daySubmission.status === 'R'
+            });
+
+            // Add YouTube link for this day
+            formattedSubmissions.push({
+                submission_type: 'youtube_link',
+                day_number: day,
+                submission_url: daySubmission.youtube,
+                status: daySubmission.status,
+                reason: daySubmission.reason,
+                evaluated: daySubmission.status === 'A' || daySubmission.status === 'R'
+            });
+        }
 
         return NextResponse.json({
             success: true,
             submissions: formattedSubmissions,
-            totalMarks: marksData.total
+            totalMarks: totalMarks,
+            submissionsByDay: Object.values(submissionsByDay)
         });
 
     } catch (error) {
@@ -187,72 +217,47 @@ export async function POST(request) {
             );
         }
 
-        const { submissionType, reportNumber, url } = await request.json();
+        const { day, reportUrl, linkedinUrl, youtubeUrl } = await request.json();
 
         // Validate input
-        if (!submissionType || !url) {
+        if (!day || day < 1 || day > 6) {
             return NextResponse.json(
-                { error: 'Missing required fields' },
+                { error: 'Invalid day. Must be between 1 and 6.' },
                 { status: 400 }
             );
         }
 
-        if (!['report', 'youtube_link', 'linkedin_link'].includes(submissionType)) {
+        if (!reportUrl || !linkedinUrl || !youtubeUrl) {
             return NextResponse.json(
-                { error: 'Invalid submission type' },
+                { error: 'All three URLs (report, LinkedIn, YouTube) are required for submission.' },
                 { status: 400 }
             );
         }
 
-        if (submissionType === 'report') {
-            if (!reportNumber || reportNumber < 1 || reportNumber > 7) {
+        // Check if this day already has a submission
+        const [existingSubmission] = await pool.execute(
+            'SELECT id, status FROM internal_submissions WHERE username = ? AND day = ?',
+            [payload.username, day]
+        );
+
+        if (existingSubmission.length > 0) {
+            const submission = existingSubmission[0];
+            if (submission.status === 'A' || submission.status === 'S') {
                 return NextResponse.json(
-                    { error: 'Invalid report number. Must be between 1 and 7.' },
+                    { error: 'This day has already been submitted and cannot be edited.' },
                     { status: 400 }
                 );
             }
-        }
-
-        // Check if this specific submission already exists
-        let columnName;
-        if (submissionType === 'report') {
-            columnName = `r${reportNumber}`;
-        } else if (submissionType === 'youtube_link') {
-            columnName = 'yt_l';
-        } else if (submissionType === 'linkedin_link') {
-            columnName = 'lk_l';
-        }
-
-        // Check if this specific column already has a value
-        const [existingSubmission] = await pool.execute(
-            `SELECT ${columnName} FROM student_internal_submissions WHERE username = ? AND ${columnName} IS NOT NULL`,
-            [payload.username]
-        );
-
-        if (existingSubmission.length > 0 && existingSubmission[0][columnName]) {
-            return NextResponse.json(
-                { error: 'This submission has already been made. You cannot edit or resubmit.' },
-                { status: 400 }
-            );
-        }
-
-        // Check if student has a record in internal_submissions, if not create one
-        const [existing] = await pool.execute(
-            'SELECT id FROM student_internal_submissions WHERE username = ?',
-            [payload.username]
-        );
-
-        if (existing.length > 0) {
             // Update existing record
             await pool.execute(
-                `UPDATE student_internal_submissions SET ${columnName} = ? WHERE username = ?`,
-                [url, payload.username]
+                'UPDATE internal_submissions SET report = ?, linkedin = ?, youtube = ?, status = "S", updated_at = CURRENT_TIMESTAMP WHERE username = ? AND day = ?',
+                [reportUrl, linkedinUrl, youtubeUrl, payload.username, day]
             );
         } else {
             // Insert new record
             await pool.execute(
-                `INSERT INTO student_internal_submissions (username, ${columnName}) VALUES (?, ?)`,
-                [payload.username, url]
+                'INSERT INTO internal_submissions (username, day, report, linkedin, youtube, status) VALUES (?, ?, ?, ?, ?, "S")',
+                [payload.username, day, reportUrl, linkedinUrl, youtubeUrl]
             );
         }
 
@@ -286,6 +291,116 @@ export async function POST(request) {
             );
         }
 
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        );
+    }
+}
+
+export async function PUT(request) {
+    try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get('tck')?.value;
+
+        if (!token) {
+            return NextResponse.json(
+                { error: 'No token provided' },
+                { status: 401 }
+            );
+        }
+
+        const payload = await verifyToken(token);
+
+        if (!payload) {
+            return NextResponse.json(
+                { error: 'Invalid or expired token' },
+                { status: 401 }
+            );
+        }
+
+        if (payload.role !== 'student') {
+            return NextResponse.json(
+                { error: 'Access denied. Students only.' },
+                { status: 403 }
+            );
+        }
+
+        const { day, reportUrl, linkedinUrl, youtubeUrl } = await request.json();
+
+        // Validate input
+        if (!day || day < 1 || day > 6) {
+            return NextResponse.json(
+                { error: 'Invalid day. Must be between 1 and 6.' },
+                { status: 400 }
+            );
+        }
+
+        // If URLs are provided, this is a resubmit with new URLs
+        if (reportUrl !== undefined && linkedinUrl !== undefined && youtubeUrl !== undefined) {
+            // Check if this day has a rejected submission that can be resubmitted
+            const [existingSubmission] = await pool.execute(
+                'SELECT id, status FROM internal_submissions WHERE username = ? AND day = ?',
+                [payload.username, day]
+            );
+
+            if (existingSubmission.length === 0) {
+                return NextResponse.json(
+                    { error: 'No submission found for this day.' },
+                    { status: 404 }
+                );
+            }
+
+            const submission = existingSubmission[0];
+            if (submission.status !== 'R') {
+                return NextResponse.json(
+                    { error: 'Only rejected submissions can be resubmitted.' },
+                    { status: 400 }
+                );
+            }
+
+            // Update the submission with new URLs and set status to 'N'
+            await pool.execute(
+                'UPDATE internal_submissions SET report = ?, linkedin = ?, youtube = ?, status = "N", reason = NULL, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND day = ?',
+                [reportUrl, linkedinUrl, youtubeUrl, payload.username, day]
+            );
+
+            return NextResponse.json({
+                success: true,
+                message: 'Submission resubmitted successfully'
+            });
+        } else {
+            // If no URLs provided, this is the initial resubmit action (clear and enable editing)
+            // Check if this day has a rejected submission
+            const [existingSubmission] = await pool.execute(
+                'SELECT id, status FROM internal_submissions WHERE username = ? AND day = ?',
+                [payload.username, day]
+            );
+
+            if (existingSubmission.length === 0) {
+                return NextResponse.json(
+                    { error: 'No submission found for this day.' },
+                    { status: 404 }
+                );
+            }
+
+            const submission = existingSubmission[0];
+            if (submission.status !== 'R') {
+                return NextResponse.json(
+                    { error: 'Only rejected submissions can be resubmitted.' },
+                    { status: 400 }
+                );
+            }
+
+            // For now, just return success - the frontend will handle clearing locally
+            return NextResponse.json({
+                success: true,
+                message: 'Resubmit mode enabled'
+            });
+        }
+
+    } catch (error) {
+        console.error('Error resubmitting internal submission:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

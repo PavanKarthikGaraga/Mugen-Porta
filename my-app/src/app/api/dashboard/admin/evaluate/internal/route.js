@@ -38,11 +38,32 @@ export async function POST(request) {
         }
 
         const adminUsername = decoded.username;
-        const { studentUsername, evaluationData } = await request.json();
+        const { studentUsername, day, action, reason } = await request.json();
 
-        if (!studentUsername || !evaluationData) {
+        if (!studentUsername || !day || !action) {
             return NextResponse.json(
-                { message: 'Student username and evaluation data are required' },
+                { message: 'Student username, day, and action are required' },
+                { status: 400 }
+            );
+        }
+
+        if (day < 1 || day > 6) {
+            return NextResponse.json(
+                { message: 'Invalid day. Must be between 1 and 6.' },
+                { status: 400 }
+            );
+        }
+
+        if (!['approve', 'reject'].includes(action)) {
+            return NextResponse.json(
+                { message: 'Invalid action. Must be "approve" or "reject".' },
+                { status: 400 }
+            );
+        }
+
+        if (action === 'reject' && !reason) {
+            return NextResponse.json(
+                { message: 'Reason is required for rejection.' },
                 { status: 400 }
             );
         }
@@ -51,72 +72,81 @@ export async function POST(request) {
         await connection.beginTransaction();
 
         try {
-            // Check if marks record exists for the student
-            const [existingRecordCheck] = await connection.execute(
-                'SELECT id FROM student_internal_marks WHERE username = ?',
+            // Check if the submission exists for this day
+            const [existingSubmission] = await connection.execute(
+                'SELECT id, status FROM internal_submissions WHERE username = ? AND day = ?',
+                [studentUsername, day]
+            );
+
+            if (existingSubmission.length === 0) {
+                return NextResponse.json(
+                    { message: 'No submission found for this day.' },
+                    { status: 404 }
+                );
+            }
+
+            const currentStatus = existingSubmission[0].status;
+            if (currentStatus !== 'S' && currentStatus !== 'N') {
+                return NextResponse.json(
+                    { message: 'This submission has already been evaluated.' },
+                    { status: 400 }
+                );
+            }
+
+            // Update the submission status
+            const newStatus = action === 'approve' ? 'A' : 'R';
+            const updateReason = action === 'reject' ? reason : null;
+
+            await connection.execute(
+                'UPDATE internal_submissions SET status = ?, reason = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND day = ?',
+                [newStatus, updateReason, studentUsername, day]
+            );
+
+            // Calculate new total internal marks (10 marks per approved day)
+            const [allSubmissions] = await connection.execute(
+                'SELECT day, status FROM internal_submissions WHERE username = ?',
                 [studentUsername]
             );
 
-            // Get existing marks to preserve them during partial updates
-            let existingMarksData = {
-                m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0,
-                yt_m: 0, lk_m: 0, total: 0
-            };
+            const totalInternalMarks = allSubmissions
+                .filter(sub => sub.status === 'A')
+                .length * 10;
 
-            if (existingRecordCheck.length > 0) {
-                const [currentMarks] = await connection.execute(
-                    'SELECT m1, m2, m3, m4, m5, m6, m7, yt_m, lk_m, total FROM student_internal_marks WHERE username = ?',
+            // Update external marks table with the new internal total
+            const [existingExternalMarks] = await connection.execute(
+                'SELECT id FROM student_external_marks WHERE username = ?',
+                [studentUsername]
+            );
+
+            if (existingExternalMarks.length > 0) {
+                // Update internal total in external marks
+                await connection.execute(
+                    'UPDATE student_external_marks SET internal = ? WHERE username = ?',
+                    [totalInternalMarks, studentUsername]
+                );
+
+                // Recalculate total external marks
+                const [externalMarks] = await connection.execute(
+                    'SELECT frm, fyt_m, flk_m FROM student_external_marks WHERE username = ?',
                     [studentUsername]
                 );
-                if (currentMarks.length > 0) {
-                    // Ensure all values are numbers, not strings from database
-                    existingMarksData = {
-                        m1: parseInt(currentMarks[0].m1) || 0,
-                        m2: parseInt(currentMarks[0].m2) || 0,
-                        m3: parseInt(currentMarks[0].m3) || 0,
-                        m4: parseInt(currentMarks[0].m4) || 0,
-                        m5: parseInt(currentMarks[0].m5) || 0,
-                        m6: parseInt(currentMarks[0].m6) || 0,
-                        m7: parseInt(currentMarks[0].m7) || 0,
-                        yt_m: parseFloat(currentMarks[0].yt_m) || 0,
-                        lk_m: parseFloat(currentMarks[0].lk_m) || 0,
-                        total: parseFloat(currentMarks[0].total) || 0
-                    };
+
+                if (externalMarks.length > 0) {
+                    const external = externalMarks[0];
+                    const frm = parseFloat(external.frm) || 0;
+                    const fyt_m = parseFloat(external.fyt_m) || 0;
+                    const flk_m = parseFloat(external.flk_m) || 0;
+                    const externalTotal = totalInternalMarks + frm + fyt_m + flk_m;
+                    await connection.execute(
+                        'UPDATE student_external_marks SET total = ? WHERE username = ?',
+                        [externalTotal, studentUsername]
+                    );
                 }
-            }
-
-            // Merge existing marks with new evaluation data (only update provided fields)
-            const marksData = {
-                m1: evaluationData.hasOwnProperty('m1') && evaluationData.m1 !== '' ? parseInt(evaluationData.m1) : existingMarksData.m1,
-                m2: evaluationData.hasOwnProperty('m2') && evaluationData.m2 !== '' ? parseInt(evaluationData.m2) : existingMarksData.m2,
-                m3: evaluationData.hasOwnProperty('m3') && evaluationData.m3 !== '' ? parseInt(evaluationData.m3) : existingMarksData.m3,
-                m4: evaluationData.hasOwnProperty('m4') && evaluationData.m4 !== '' ? parseInt(evaluationData.m4) : existingMarksData.m4,
-                m5: evaluationData.hasOwnProperty('m5') && evaluationData.m5 !== '' ? parseInt(evaluationData.m5) : existingMarksData.m5,
-                m6: evaluationData.hasOwnProperty('m6') && evaluationData.m6 !== '' ? parseInt(evaluationData.m6) : existingMarksData.m6,
-                m7: evaluationData.hasOwnProperty('m7') && evaluationData.m7 !== '' ? parseInt(evaluationData.m7) : existingMarksData.m7,
-                yt_m: evaluationData.hasOwnProperty('yt_m') && evaluationData.yt_m !== '' ? parseFloat(evaluationData.yt_m) : existingMarksData.yt_m,
-                lk_m: evaluationData.hasOwnProperty('lk_m') && evaluationData.lk_m !== '' ? parseFloat(evaluationData.lk_m) : existingMarksData.lk_m
-            };
-
-            // Calculate total
-            const total = marksData.m1 + marksData.m2 + marksData.m3 + marksData.m4 +
-                         marksData.m5 + marksData.m6 + marksData.m7 +
-                         marksData.yt_m + marksData.lk_m;
-
-            if (existingRecordCheck.length > 0) {
-                // Update existing record
-                await connection.execute(
-                    `UPDATE student_internal_marks
-                     SET m1 = ?, m2 = ?, m3 = ?, m4 = ?, m5 = ?, m6 = ?, m7 = ?, yt_m = ?, lk_m = ?, total = ?, evaluated_by = ?
-                     WHERE username = ?`,
-                    [marksData.m1, marksData.m2, marksData.m3, marksData.m4, marksData.m5, marksData.m6, marksData.m7, marksData.yt_m, marksData.lk_m, total, adminUsername, studentUsername]
-                );
             } else {
-                // Insert new record
+                // Create external marks record with just internal total
                 await connection.execute(
-                    `INSERT INTO student_internal_marks (username, m1, m2, m3, m4, m5, m6, m7, yt_m, lk_m, total, evaluated_by)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [studentUsername, marksData.m1, marksData.m2, marksData.m3, marksData.m4, marksData.m5, marksData.m6, marksData.m7, marksData.yt_m, marksData.lk_m, total, adminUsername]
+                    'INSERT INTO student_external_marks (username, internal, total) VALUES (?, ?, ?)',
+                    [studentUsername, totalInternalMarks, totalInternalMarks]
                 );
             }
 

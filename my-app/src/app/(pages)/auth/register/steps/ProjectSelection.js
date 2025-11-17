@@ -284,9 +284,6 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
         const selectedProject = allProjects.find(project => project.id === projectId);
         if (!selectedProject) return;
 
-        // Note: Full TEC projects are now disabled in the UI, so this check is no longer needed
-        // The backend will still validate during final registration
-
         updateFormData({
             selectedProject: projectId,
             projectName: selectedProject.name,
@@ -495,10 +492,7 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
             return "⚠️ Y25 students cannot select projects from TEC domain.";
         }
 
-        // Additional info about TEC project limits
-        if (selectedDomain === 'TEC' && selectedCategory && !formData.selectedProject) {
-            return "ℹ️ TEC projects have a limit of 2 members. Make sure to select an available project.";
-        }
+        // No project limits - all projects are available
 
         return "";
     };
@@ -639,26 +633,16 @@ export default function ProjectSelection({ formData, updateFormData, onValidatio
                             >
                                 <option value="">Choose a project...</option>
                                 {availableProjects.map((project) => {
-                                    const isTecProject = selectedDomain === 'TEC';
-                                    const isFull = isTecProject && project.isFull;
-
                                     return (
                                         <option
                                             key={project.id}
                                             value={project.id}
-                                            disabled={isFull}
-                                            className={isFull ? 'text-gray-400' : ''}
                                         >
-                                            {project.name}{isTecProject && ` (${project.memberCount}/2 members)${isFull ? ' - FULL' : ''}`}
+                                            {project.name}
                                         </option>
                                     );
                                 })}
                             </select>
-                            {selectedDomain === 'TEC' && (
-                                <p className="mt-2 text-sm text-gray-600">
-                                    TEC projects have a 2-member limit. Full projects are disabled.
-                                </p>
-                            )}
                         </div>
                     )}
 

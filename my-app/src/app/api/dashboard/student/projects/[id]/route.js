@@ -39,9 +39,9 @@ export async function GET(request, { params }) {
         const projectWithMemberCount = {
             ...project,
             memberCount: memberCount[0].count,
-            maxMembers: project.domain === 'TEC' ? 2 : null,
-            availableSpots: project.domain === 'TEC' ? Math.max(0, 2 - memberCount[0].count) : null,
-            isFull: project.domain === 'TEC' && memberCount[0].count >= 2
+            maxMembers: null, // Remove max members limit
+            availableSpots: null, // Remove available spots calculation
+            isFull: false // Remove the full status - projects are never full
         };
 
         return NextResponse.json(projectWithMemberCount);
