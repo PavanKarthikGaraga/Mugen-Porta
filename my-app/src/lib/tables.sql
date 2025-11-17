@@ -89,15 +89,17 @@ CREATE TABLE students (
     -- FOREIGN KEY (projectId) REFERENCES projects(id)
 );
 
+-- Email logging table (for historical records and monitoring)
+-- Emails are now sent directly without queuing
 CREATE TABLE email_queue (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) NOT NULL,
     name VARCHAR(100) NOT NULL,
     username VARCHAR(10) NOT NULL,
-    status ENUM('pending', 'sent', 'failed') DEFAULT 'pending',
+    status ENUM('pending', 'sent', 'failed') DEFAULT 'sent', -- Default to 'sent' since emails are sent immediately
     error_message TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    sent_at TIMESTAMP NULL DEFAULT NULL,
+    sent_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP, -- Set to current time since emails are sent immediately
     INDEX idx_status (status),
     INDEX idx_created_at (created_at)
 );
@@ -126,39 +128,20 @@ CREATE TABLE IF NOT EXISTS controls (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Student Internal Submissions (7 reports + 2 links)
-CREATE TABLE student_internal_submissions (
+-- Student Internal Submissions (6 submissions for days 1-6, each with report + LinkedIn + YouTube; each day = 10 marks: 5 for report, 2.5 for LinkedIn, 2.5 for YouTube)
+CREATE TABLE internal_submissions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(10) NOT NULL UNIQUE,
-    r1 VARCHAR(500) NULL, -- Report 1 URL
-    r2 VARCHAR(500) NULL, -- Report 2 URL
-    r3 VARCHAR(500) NULL, -- Report 3 URL
-    r4 VARCHAR(500) NULL, -- Report 4 URL
-    r5 VARCHAR(500) NULL, -- Report 5 URL
-    r6 VARCHAR(500) NULL, -- Report 6 URL
-    r7 VARCHAR(500) NULL, -- Report 7 URL
-    yt_l VARCHAR(500) NULL, -- YouTube Link
-    lk_l VARCHAR(500) NULL, -- LinkedIn Link
-    FOREIGN KEY (username) REFERENCES users(username)
-);
-
--- Student Internal Marks (7 reports + 2 links = 60 marks total)
-CREATE TABLE student_internal_marks (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(10) NOT NULL UNIQUE,
-    m1 INT DEFAULT 0, -- Report 1 marks (0-7)
-    m2 INT DEFAULT 0, -- Report 2 marks (0-7)
-    m3 INT DEFAULT 0, -- Report 3 marks (0-7)
-    m4 INT DEFAULT 0, -- Report 4 marks (0-7)
-    m5 INT DEFAULT 0, -- Report 5 marks (0-7)
-    m6 INT DEFAULT 0, -- Report 6 marks (0-7)
-    m7 INT DEFAULT 0, -- Report 7 marks (0-7)
-    yt_m DECIMAL(3,1) DEFAULT 0.0, -- YouTube marks (0-5.5)
-    lk_m DECIMAL(3,1) DEFAULT 0.0, -- LinkedIn marks (0-5.5)
-    total DECIMAL(5,1) DEFAULT 0.0, -- Total internal marks (calculated)
-    evaluated_by VARCHAR(10) NULL, -- Username of lead/faculty who evaluated
+    username VARCHAR(10) NOT NULL,
+    day INT NOT NULL, -- Day 1-6
+    report VARCHAR(500) NULL, -- Report URL
+    linkedin VARCHAR(500) NULL, -- LinkedIn Link
+    youtube VARCHAR(500) NULL, -- YouTube Link
+    status ENUM('S', 'A', 'R', 'N') NULL, -- Status: Submitted, Approved, Rejected, New (NULL = Not Submitted)
+    reason TEXT NULL, -- Reason for rejection (if status = 'R')
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username),
-    FOREIGN KEY (evaluated_by) REFERENCES users(username)
+    UNIQUE KEY unique_username_day (username, day)
 );
 
 -- Student External Submissions (final report + 2 presentation links)
@@ -186,8 +169,9 @@ CREATE TABLE student_external_marks (
 );
 
 -- Create indexes for faster lookups
-CREATE INDEX idx_internal_submissions_username ON student_internal_submissions(username);
-CREATE INDEX idx_internal_marks_username ON student_internal_marks(username);
+CREATE INDEX idx_internal_submissions_username ON internal_submissions(username);
+CREATE INDEX idx_internal_submissions_username_day ON internal_submissions(username, day);
+CREATE INDEX idx_internal_submissions_status ON internal_submissions(status);
 CREATE INDEX idx_external_submissions_username ON student_external_submissions(username);
 CREATE INDEX idx_external_marks_username ON student_external_marks(username);
 
@@ -195,3 +179,32 @@ CREATE INDEX idx_external_marks_username ON student_external_marks(username);
 INSERT INTO controls (id, registrations_enabled)
 VALUES (1, 1)
 ON DUPLICATE KEY UPDATE registrations_enabled = 1;
+
+-- Migration commands to drop old tables and create new structure
+-- WARNING: These commands will delete existing internal submissions data
+-- Run these only after backing up your data if needed
+
+-- Drop old internal tables
+DROP TABLE IF EXISTS student_internal_marks;
+DROP TABLE IF EXISTS student_internal_submissions;
+
+-- Create new internal submissions table
+CREATE TABLE IF NOT EXISTS internal_submissions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(10) NOT NULL,
+    day INT NOT NULL, -- Day 1-6
+    report VARCHAR(500) NULL, -- Report URL
+    linkedin VARCHAR(500) NULL, -- LinkedIn Link
+    youtube VARCHAR(500) NULL, -- YouTube Link
+    status ENUM('S', 'A', 'R', 'N') NULL, -- Status: Submitted, Approved, Rejected, New (NULL = Not Submitted)
+    reason TEXT NULL, -- Reason for rejection (if status = 'R')
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (username) REFERENCES users(username),
+    UNIQUE KEY unique_username_day (username, day)
+);
+
+-- Create indexes for new table
+CREATE INDEX IF NOT EXISTS idx_internal_submissions_username ON internal_submissions(username);
+CREATE INDEX IF NOT EXISTS idx_internal_submissions_username_day ON internal_submissions(username, day);
+CREATE INDEX IF NOT EXISTS idx_internal_submissions_status ON internal_submissions(status);
