@@ -37,7 +37,7 @@ export default function StudentDashboardLayout({ children }) {
     const navigation = [
         { name: 'Overview', href: '/dashboard/student', icon: FiHome },
         { name: 'Club Details', href: '/dashboard/student/club', icon: FiFolder },
-        { name: 'Reports', href: '/dashboard/student/reports', icon: FiFileText },
+        { name: 'Submissions', href: '/dashboard/student/reports', icon: FiFileText },
         { name: 'Final Submission', href: '/dashboard/student/final-submission', icon: FiSend },
     ];
 

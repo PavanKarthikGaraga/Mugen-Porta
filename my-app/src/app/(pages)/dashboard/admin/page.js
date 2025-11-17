@@ -34,7 +34,7 @@ export default function AdminOverviewPage() {
         domain: 'all',
         year: 'all',
         branch: 'all',
-        dateRange: '30'
+        dateRange: 'all' // Changed default to 'all'
     });
 
     const fetchStats = useCallback(async () => {
@@ -236,7 +236,7 @@ export default function AdminOverviewPage() {
                     <div className="mt-4 flex gap-2">
                         <Button
                             variant="outline"
-                            onClick={() => setFilters({ domain: 'all', year: 'all', branch: 'all', dateRange: '30' })}
+                            onClick={() => setFilters({ domain: 'all', year: 'all', branch: 'all', dateRange: 'all' })}
                         >
                             Clear Filters
                         </Button>
