@@ -8,16 +8,35 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export default function StudentReports() {
+    // Domain mapping for submissions (only 5th and 6th have domains)
+    const domainMapping = {
+        5: 'HWB Submission',
+        6: 'ESO Submission'
+    };
+
+    const getDomainName = (day) => domainMapping[day] || `Submission ${day}`;
+
+    // Check if a submission is unlocked (first 4 are unlocked progressively, 5-6 always unlocked)
+    const isSubmissionUnlocked = (day) => {
+        if (day > 4) return true; // HWB and ESO are always unlocked
+        if (day === 1) return true; // First submission is always unlocked
+
+        // For submissions 2-4, check if previous submission is completed
+        const prevDay = submissions.days[day - 2]; // day-2 because array is 0-indexed
+        return prevDay && (prevDay.report.status === 'approved' || prevDay.report.status === 'submitted');
+    };
+
     const [submissions, setSubmissions] = useState({
         days: Array.from({ length: 6 }, (_, i) => ({
             day: i + 1,
+            domain: getDomainName(i + 1),
             report: { url: '', status: 'pending' },
             linkedin: { url: '', status: 'pending' },
             youtube: { url: '', status: 'pending' },
             reason: null
         }))
     });
-    const [selectedItem, setSelectedItem] = useState('report-1');
+    const [selectedItem, setSelectedItem] = useState(null);
     const [reportsExpanded, setReportsExpanded] = useState(false);
     const [linksExpanded, setLinksExpanded] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -35,6 +54,7 @@ export default function StudentReports() {
                 const newSubmissions = {
                     days: Array.from({ length: 6 }, (_, i) => ({
                         day: i + 1,
+                        domain: getDomainName(i + 1),
                         report: { url: '', status: 'pending' },
                         linkedin: { url: '', status: 'pending' },
                         youtube: { url: '', status: 'pending' },
@@ -49,6 +69,7 @@ export default function StudentReports() {
                         if (dayIndex >= 0 && dayIndex < 6) {
                             newSubmissions.days[dayIndex] = {
                                 day: dayData.day,
+                                domain: getDomainName(dayData.day),
                                 report: {
                                     url: dayData.report || '',
                                     status: dayData.status === 'A' ? 'approved' :
@@ -228,7 +249,7 @@ export default function StudentReports() {
 
     // Helper function to get selected item data
     const getSelectedItemData = () => {
-        if (selectedItem.startsWith('day-')) {
+        if (selectedItem && selectedItem.startsWith('day-')) {
             const dayNumber = parseInt(selectedItem.split('-')[1]);
             return submissions.days.find(d => d.day === dayNumber);
         }
@@ -257,33 +278,33 @@ export default function StudentReports() {
                 </CardHeader>
                 <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Card className="text-center p-4">
-                        <CardContent className="pt-6">
-                            <div className="text-2xl font-bold text-gray-900">
+                    <Card className="text-center p-2">
+                        <CardContent className="pt-3">
+                            <div className="text-xl font-bold text-gray-900">
                                 {submissions.days.filter(d => d.report.status === 'approved').length}/6
                             </div>
-                            <div className="text-sm text-gray-600">Days Approved</div>
+                            <div className="text-sm text-gray-600">Submissions Approved</div>
                         </CardContent>
                     </Card>
-                    <Card className="text-center p-4">
-                        <CardContent className="pt-6">
-                            <div className="text-2xl font-bold text-gray-900">
+                    <Card className="text-center p-2">
+                        <CardContent className="pt-3">
+                            <div className="text-xl font-bold text-gray-900">
                                 {submissions.days.filter(d => d.report.status === 'submitted').length}/6
                             </div>
-                            <div className="text-sm text-gray-600">Days Submitted</div>
+                            <div className="text-sm text-gray-600">Submissions Submitted</div>
                         </CardContent>
                     </Card>
-                    <Card className="text-center p-4">
-                        <CardContent className="pt-6">
-                            <div className="text-2xl font-bold text-gray-900">
+                    <Card className="text-center p-2">
+                        <CardContent className="pt-3">
+                            <div className="text-xl font-bold text-gray-900">
                                 {submissions.days.filter(d => d.report.status === 'rejected').length}
                             </div>
-                            <div className="text-sm text-gray-600">Days Rejected</div>
+                            <div className="text-sm text-gray-600">Submissions Rejected</div>
                         </CardContent>
                     </Card>
-                    <Card className="text-center p-4">
+                    <Card className="text-center p-2">
                         <CardContent className="pt-6">
-                            <div className="text-2xl font-bold text-gray-900">
+                            <div className="text-xl font-bold text-gray-900">
                                 {submissions.days.filter(d => d.report.status === 'approved').length * 10}/60
                             </div>
                             <div className="text-sm text-gray-600">Internal Marks</div>
@@ -295,32 +316,41 @@ export default function StudentReports() {
 
 
             {/* Main Layout */}
-            <div className="flex gap-6">
+            <div className="flex gap-6 ">
                 {/* Sidebar - Left */}
-                <Card className="w-80 flex-shrink-0">
+                <Card className="w-80 flex-shrink-0 h-full">
                     <CardHeader>
-                        <CardTitle>All Days</CardTitle>
+                        <CardTitle>All Submissions</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
+                    <CardContent className="h-full">
+                        <div className="space-y-1">
                             {submissions.days.map((day) => {
                                 const dayStatus = day.report.status; // All components have same status
+                                const isUnlocked = isSubmissionUnlocked(day.day);
                                 return (
                                     <Button
                                         key={day.day}
-                                        onClick={() => setSelectedItem(`day-${day.day}`)}
+                                        onClick={() => isUnlocked && setSelectedItem(`day-${day.day}`)}
                                         variant={selectedItem === `day-${day.day}` ? "secondary" : "ghost"}
-                                        className={`w-full text-left px-3 py-3 rounded-md transition-colors flex items-center justify-between ${
-                                            selectedItem === `day-${day.day}`
-                                                ? 'bg-red-100 text-red-800 border border-red-200'
+                                        disabled={!isUnlocked}
+                                        className={`w-full text-left py-6 rounded-md transition-colors flex items-center justify-between ${
+                                            !isUnlocked
+                                                ? 'cursor-not-allowed'
+                                                : selectedItem === `day-${day.day}`
+                                                ? 'bg-red-100 text-red-800 border border-red-200 py-6'
                                                 : 'hover:bg-gray-50 text-gray-700 border border-transparent'
                                         }`}
                                     >
-                                        <div>
-                                            <span className="text-sm font-medium">Day {day.day}</span>
+                                        <div className="flex flex-col items-start">
+                                            <span className="text-sm font-medium">{day.domain}</span>
                                             <div className="text-xs text-gray-500 mt-1">
                                                 Report, LinkedIn, YouTube
                                             </div>
+                                            {/* {!isUnlocked && (
+                                                <div className="text-xs text-gray-400 mt-1">
+                                                    Complete previous submission to unlock
+                                                </div>
+                                            )} */}
                                         </div>
                                         <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(dayStatus)}`}>
                                             {getStatusIcon(dayStatus)}
@@ -333,14 +363,14 @@ export default function StudentReports() {
                 </Card>
 
                 {/* Main Content - Right */}
-                <Card className="flex-1">
+                <Card className="flex-1 h-full">
                     <CardContent className="p-6">
                         {selectedData && (
                             <div>
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-xl font-semibold text-gray-900 flex items-center">
                                         <FiFileText className="mr-2" />
-                                        Day {selectedData.day} Submission
+                                        {selectedData.domain}
                                     </h2>
                                 <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm border ${resubmitMode[selectedData.day] ? 'text-blue-600 bg-blue-50 border-blue-200' : getStatusColor(selectedData.report.status)}`}>
                                     {resubmitMode[selectedData.day] ? <FiUpload className="w-4 h-4" /> : getStatusIcon(selectedData.report.status)}
@@ -492,12 +522,22 @@ export default function StudentReports() {
                                                     ) : (
                                                         <>
                                                             <FiUpload className="mr-2 h-5 w-5" />
-                                                            Submit Day {selectedData.day}
+                                                            Submit {selectedData.domain}
                                                         </>
                                                     )}
                                                 </Button>
                                             </div>
                                         </div>
+                            </div>
+                        )}
+                        {!selectedData && (
+                            <div className="flex flex-col items-center justify-center py-12 text-center">
+                                <FiFileText className="w-16 h-16 text-gray-300 mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Submission</h3>
+                                <p className="text-gray-600 max-w-md">
+                                    Choose a submission from the sidebar to view details and submit your work.
+                                    The first 4 submissions unlock progressively as you complete them.
+                                </p>
                             </div>
                         )}
                     </CardContent>
