@@ -37,7 +37,7 @@ export default function LeadDashboardLayout({ children }) {
         { name: 'Profile', href: '/dashboard/lead/profile', icon: FiUser },
         { name: 'Students', href: '/dashboard/lead/students', icon: FiUsers },
         { name: 'Submissions', href: '/dashboard/lead/reports', icon: FiFileText },
-        { name: 'Final Submission', href: '/dashboard/lead/final-reports', icon: FiFileText }
+        { name: 'Final Submissions', href: '/dashboard/lead/final-reports', icon: FiFileText }
     ];
 
     const handleLogout = async () => {
