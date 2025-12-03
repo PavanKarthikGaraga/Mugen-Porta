@@ -262,9 +262,9 @@ export default function StudentReports() {
         <div className="space-y-6">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Daily Submissions</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Submissions</h1>
                 <p className="mt-2 text-gray-600">
-                    Submit your daily reports with LinkedIn and YouTube links for internal evaluation (60 marks total - 10 marks per day)
+                    Submit your submissions with LinkedIn and YouTube links for internal evaluation (60 marks total - 10 marks per day)
                 </p>
             </div>
 
@@ -273,7 +273,7 @@ export default function StudentReports() {
                 <CardHeader>
                     <CardTitle className="flex items-center">
                         <FiBarChart className="mr-2" />
-                        Submission Overview
+                        Submissions Overview
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
