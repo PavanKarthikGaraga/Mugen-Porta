@@ -7,15 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
+// Domain mapping for submissions (only 5th and 6th have domains)
+const domainMapping = {
+    5: 'HWB Submission',
+    6: 'ESO Submission'
+};
+
+const getDomainName = (day) => domainMapping[day] || `Submission ${day}`;
+
 export default function StudentReports() {
-    // Domain mapping for submissions (only 5th and 6th have domains)
-    const domainMapping = {
-        5: 'HWB Submission',
-        6: 'ESO Submission'
-    };
-
-    const getDomainName = (day) => domainMapping[day] || `Submission ${day}`;
-
     // Check if a submission is unlocked (first 4 are unlocked progressively, 5-6 always unlocked)
     const isSubmissionUnlocked = (day) => {
         if (day > 4) return true; // HWB and ESO are always unlocked
@@ -29,10 +29,7 @@ export default function StudentReports() {
     const [submissions, setSubmissions] = useState({
         days: Array.from({ length: 6 }, (_, i) => ({
             day: i + 1,
-<<<<<<< HEAD
             domain: getDomainName(i + 1),
-=======
->>>>>>> 1e92e93644888110a17f53c9412c1028df7bfafb
             report: { url: '', status: 'pending' },
             linkedin: { url: '', status: 'pending' },
             youtube: { url: '', status: 'pending' },
@@ -57,10 +54,7 @@ export default function StudentReports() {
                 const newSubmissions = {
                     days: Array.from({ length: 6 }, (_, i) => ({
                         day: i + 1,
-<<<<<<< HEAD
                         domain: getDomainName(i + 1),
-=======
->>>>>>> 1e92e93644888110a17f53c9412c1028df7bfafb
                         report: { url: '', status: 'pending' },
                         linkedin: { url: '', status: 'pending' },
                         youtube: { url: '', status: 'pending' },
@@ -75,10 +69,7 @@ export default function StudentReports() {
                         if (dayIndex >= 0 && dayIndex < 6) {
                             newSubmissions.days[dayIndex] = {
                                 day: dayData.day,
-<<<<<<< HEAD
                                 domain: getDomainName(dayData.day),
-=======
->>>>>>> 1e92e93644888110a17f53c9412c1028df7bfafb
                                 report: {
                                     url: dayData.report || '',
                                     status: dayData.status === 'A' ? 'approved' :
@@ -258,11 +249,7 @@ export default function StudentReports() {
 
     // Helper function to get selected item data
     const getSelectedItemData = () => {
-<<<<<<< HEAD
         if (selectedItem && selectedItem.startsWith('day-')) {
-=======
-        if (selectedItem.startsWith('day-')) {
->>>>>>> 1e92e93644888110a17f53c9412c1028df7bfafb
             const dayNumber = parseInt(selectedItem.split('-')[1]);
             return submissions.days.find(d => d.day === dayNumber);
         }
@@ -316,7 +303,7 @@ export default function StudentReports() {
                         </CardContent>
                     </Card>
                     <Card className="text-center p-2">
-                        <CardContent className="pt-6">
+                        <CardContent className="pt-3">
                             <div className="text-xl font-bold text-gray-900">
                                 {submissions.days.filter(d => d.report.status === 'approved').length * 10}/60
                             </div>
@@ -335,7 +322,6 @@ export default function StudentReports() {
                     <CardHeader>
                         <CardTitle>All Days</CardTitle>
                     </CardHeader>
-<<<<<<< HEAD
                     <CardContent className="h-full">
                         <div className="space-y-1">
                             {submissions.days.map((day) => {
@@ -360,33 +346,6 @@ export default function StudentReports() {
                                             <div className="text-xs text-gray-500 mt-1">
                                                 Report, LinkedIn, YouTube
                                             </div>
-                                            {/* {!isUnlocked && (
-                                                <div className="text-xs text-gray-400 mt-1">
-                                                    Complete previous submission to unlock
-                                                </div>
-                                            )} */}
-=======
-                    <CardContent>
-                        <div className="space-y-2">
-                            {submissions.days.map((day) => {
-                                const dayStatus = day.report.status; // All components have same status
-                                return (
-                                    <Button
-                                        key={day.day}
-                                        onClick={() => setSelectedItem(`day-${day.day}`)}
-                                        variant={selectedItem === `day-${day.day}` ? "secondary" : "ghost"}
-                                        className={`w-full text-left px-3 py-3 rounded-md transition-colors flex items-center justify-between ${
-                                            selectedItem === `day-${day.day}`
-                                                ? 'bg-red-100 text-red-800 border border-red-200'
-                                                : 'hover:bg-gray-50 text-gray-700 border border-transparent'
-                                        }`}
-                                    >
-                                        <div>
-                                            <span className="text-sm font-medium">Day {day.day}</span>
-                                            <div className="text-xs text-gray-500 mt-1">
-                                                Report, LinkedIn, YouTube
-                                            </div>
->>>>>>> 1e92e93644888110a17f53c9412c1028df7bfafb
                                         </div>
                                         <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(dayStatus)}`}>
                                             {getStatusIcon(dayStatus)}
@@ -406,11 +365,7 @@ export default function StudentReports() {
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-xl font-semibold text-gray-900 flex items-center">
                                         <FiFileText className="mr-2" />
-<<<<<<< HEAD
                                         {selectedData.domain}
-=======
-                                        Day {selectedData.day} Submission
->>>>>>> 1e92e93644888110a17f53c9412c1028df7bfafb
                                     </h2>
                                 <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm border ${resubmitMode[selectedData.day] ? 'text-blue-600 bg-blue-50 border-blue-200' : getStatusColor(selectedData.report.status)}`}>
                                     {resubmitMode[selectedData.day] ? <FiUpload className="w-4 h-4" /> : getStatusIcon(selectedData.report.status)}
@@ -562,17 +517,12 @@ export default function StudentReports() {
                                                     ) : (
                                                         <>
                                                             <FiUpload className="mr-2 h-5 w-5" />
-<<<<<<< HEAD
                                                             Submit {selectedData.domain}
-=======
-                                                            Submit Day {selectedData.day}
->>>>>>> 1e92e93644888110a17f53c9412c1028df7bfafb
                                                         </>
                                                     )}
                                                 </Button>
                                             </div>
                                         </div>
-<<<<<<< HEAD
                             </div>
                         )}
                         {!selectedData && (
@@ -583,8 +533,6 @@ export default function StudentReports() {
                                     Choose a submission from the sidebar to view details and submit your work.
                                     The first 4 submissions unlock progressively as you complete them.
                                 </p>
-=======
->>>>>>> 1e92e93644888110a17f53c9412c1028df7bfafb
                             </div>
                         )}
                     </CardContent>
