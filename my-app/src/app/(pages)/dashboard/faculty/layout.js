@@ -36,8 +36,8 @@ export default function FacultyDashboardLayout({ children }) {
         { name: 'Overview', href: '/dashboard/faculty', icon: FiHome },
         { name: 'Profile', href: '/dashboard/faculty/profile', icon: FiUser },
         { name: 'Students', href: '/dashboard/faculty/students', icon: FiUsers },
-        { name: 'Reports', href: '/dashboard/faculty/reports', icon: FiFileText },
-        { name: 'Final Reports', href: '/dashboard/faculty/final-reports', icon: FiFileText }
+        { name: 'Submissions', href: '/dashboard/faculty/reports', icon: FiFileText },
+        { name: 'Final Submissions', href: '/dashboard/faculty/final-reports', icon: FiFileText }
     ];
 
     const handleLogout = async () => {
