@@ -201,11 +201,12 @@ export default function Register() {
             });
 
             if (response.ok) {
+                console.log("Registration Successful!",JSON.stringify(submissionData));
                 toast.success("Registration Successful! Please check your email for login credentials.");
                 router.push("/auth/login");
             } else {
                 const error = await response.json();
-
+                console.log("Registration Failed!",JSON.stringify(error));
                 // Handle structured error responses
                 if (error.errorType === "PROJECT_FULL") {
                     toast.error(`${error.message}\n${error.suggestion}`, {
