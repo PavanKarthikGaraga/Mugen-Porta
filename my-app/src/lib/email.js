@@ -1,19 +1,4 @@
-import nodemailer from 'nodemailer';
-
-// Create transporter with connection pooling for better performance
-const transporter = nodemailer.createTransport({
-    host: 'smtp.office365.com',
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    pool: true, // Enable connection pooling
-    maxConnections: 5, // Maximum number of simultaneous connections
-    maxMessages: 100, // Maximum number of messages per connection
-    rateLimit: 10, // Messages per second
-    auth: {
-        user: process.env.SMTP_USER, // Your email
-        pass: process.env.SMTP_PASS, // Your email password or app password
-    },
-});
+import { emailQueue } from './emailQueue';
 
 export const sendPasswordResetEmail = async (email, name, resetLink) => {
     const htmlTemplate = `
@@ -124,7 +109,6 @@ export const sendPasswordResetEmail = async (email, name, resetLink) => {
 
             <div class="footer">
                 <p><strong>SAC Activities Team</strong></p>
-                // <p>For support, contact us at sacactivities@kluniversity.in</p>
                 <p>For support, contact us at sac@kluniversity.in</p>
             </div>
         </div>
@@ -132,18 +116,18 @@ export const sendPasswordResetEmail = async (email, name, resetLink) => {
     </html>
     `;
 
-    const mailOptions = {
-        from: `"SAC Activities" <${process.env.SMTP_USER}>`,
-        to: email,
-        subject: 'Password Reset Request - SAC Activities',
-        html: htmlTemplate,
-    };
-
     try {
-        const info = await transporter.sendMail(mailOptions);
-        return { success: true, messageId: info.messageId };
+        // Add email job to the queue instead of sending directly
+        const emailJob = {
+            email: email,
+            subject: 'Password Reset Request - SAC Activities',
+            html: htmlTemplate,
+        };
+
+        await emailQueue.add(emailJob);
+        return { success: true, queued: true };
     } catch (error) {
-        console.error('Error sending password reset email:', error);
+        console.error('Error queuing password reset email:', error);
         return { success: false, error: error.message };
     }
 };
@@ -284,14 +268,14 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                 <div class="logo">SAC Activities</div>
                 <h1 class="title">Registration Successful!</h1>
             </div>
-            
+
             <div class="content">
                 <p>Dear <strong>${name}</strong>,</p>
-                
+
                 <p class="success">Congratulations! You have successfully registered for the SAC Activities.</p>
-                
+
                 <p>We are excited to have you join our community of dedicated students working on meaningful projects that make a real impact.</p>
-                
+
                 <div class="credentials-box">
                     <div class="credentials-title">Your Login Credentials</div>
                     <div class="credential-item">
@@ -334,7 +318,7 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                 </div>
                 ` : ''}
 
-                
+
                 <h3>What's Next?</h3>
                 <ul>
                     <li><strong>Updates:</strong> Keep an eye on your email for important announcements about your ${selectedCategory ? 'category' : 'club'} activities</li>
@@ -342,17 +326,16 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                     <li><strong>Community:</strong> Get ready to collaborate with fellow students and mentors in your ${selectedDomain} domain</li>
                     ${selectedCategory ? `<li><strong>Category Focus:</strong> Your activities will be focused on the ${selectedCategory} category</li>` : ''}
                 </ul>
-                
+
                 <p><span class="important">Important:</span> Please keep your login credentials safe. You will need them to access the student portal once it's available.</p>
-                
+
                 <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
-                
+
                 <p>Thank you for your interest in the SAC Activities. We look forward to working with you!</p>
             </div>
-            
+
             <div class="footer">
                 <p><strong>SAC Activities Team</strong></p>
-                <p>For support, contact us at sacactivities@kluniversity.in</p>
                 <p>For support, contact us at sac@kluniversity.in</p>
             </div>
         </div>
@@ -360,18 +343,18 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
     </html>
     `;
 
-    const mailOptions = {
-        from: `"SAC Activities" <${process.env.SMTP_USER}>`,
-        to: email,
-        subject: 'Welcome to SAC Activities - Registration Successful!',
-        html: htmlTemplate,
-    };
-
     try {
-        const info = await transporter.sendMail(mailOptions);
-        return { success: true, messageId: info.messageId };
+        // Add email job to the queue instead of sending directly
+        const emailJob = {
+            email: email,
+            subject: 'Welcome to SAC Activities - Registration Successful!',
+            html: htmlTemplate,
+        };
+
+        await emailQueue.add(emailJob);
+        return { success: true, queued: true };
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('Error queuing registration email:', error);
         return { success: false, error: error.message };
     }
 };

@@ -1,6 +1,8 @@
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+// Initialize email queue
+import "@/lib/emailQueue";
 
 const poppins = Poppins({
   variable: "--font-poppins",
