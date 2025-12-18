@@ -67,9 +67,7 @@ export async function GET(request) {
                     s.clubId,
                     c.name as clubName,
                     s.selectedDomain,
-                    s.selectedCategory,
-                    s.ruralCategory,
-                    s.subCategory
+                    s.selectedCategory
                 FROM students s
                 LEFT JOIN clubs c ON s.clubId = c.id
                 WHERE s.username = ?
@@ -264,8 +262,7 @@ export async function GET(request) {
                 SUM(CASE WHEN selectedDomain = 'LCH' THEN 1 ELSE 0 END) as lch,
                 SUM(CASE WHEN selectedDomain = 'ESO' THEN 1 ELSE 0 END) as eso,
                 SUM(CASE WHEN selectedDomain = 'IIE' THEN 1 ELSE 0 END) as iie,
-                SUM(CASE WHEN selectedDomain = 'HWB' THEN 1 ELSE 0 END) as hwb,
-                SUM(CASE WHEN selectedDomain = 'Rural' OR ruralCategory IS NOT NULL THEN 1 ELSE 0 END) as rural
+                SUM(CASE WHEN selectedDomain = 'HWB' THEN 1 ELSE 0 END) as hwb
             FROM students s
             ${whereClause}
         `;

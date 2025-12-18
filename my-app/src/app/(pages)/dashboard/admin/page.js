@@ -24,8 +24,7 @@ export default function AdminOverviewPage() {
         lch: 0,
         eso: 0,
         iie: 0,
-        hwb: 0,
-        rural: 0
+        hwb: 0
     });
     const [clubStats, setClubStats] = useState([]);
     const [loading, setLoading] = useState(true);

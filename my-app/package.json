@@ -26,7 +26,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
-    "bull": "^4.16.5",
+    "bullmq": "^5.66.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "jose": "^6.0.12",

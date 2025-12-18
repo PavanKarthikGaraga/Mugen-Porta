@@ -21,37 +21,12 @@ export default function ProjectsPage() {
         domain: '',
         clubId: '',
         category: '',
-        rural: false,
-        ruralCategory: '',
         subCategory: '',
         name: '',
         description: ''
     });
     const [selectedClubCategories, setSelectedClubCategories] = useState([]);
 
-    // Rural categories definition
-    const ruralCategories = [
-  { id: 'health-hygiene', name: 'Health and Hygiene' },
-  { id: 'village-infrastructure', name: 'Village Infrastructure' },
-  { id: 'water-conservation', name: 'Water Conservation' },
-  { id: 'energy-utilization-efficiency', name: 'Energy Utilization & Efficiency' },
-  { id: 'community-actions', name: 'Community Actions' },
-  { id: 'agriculture', name: 'Agriculture' },
-  { id: 'water-sanitation', name: 'Water and Sanitation' },
-  { id: 'waste-management', name: 'Waste Management' },
-  { id: 'digital-literacy-ict', name: 'Digital Literacy & ICT' },
-  { id: 'women-empowerment-gender-equality', name: 'Women Empowerment & Gender Equality' },
-  { id: 'renewable-energy-sustainability', name: 'Renewable Energy & Sustainability' },
-  { id: 'nutrition-food-security', name: 'Nutrition & Food Security' },
-  { id: 'disaster-preparedness-resilience', name: 'Disaster Preparedness & Resilience' },
-  { id: 'cultural-heritage-narratives', name: 'Cultural Heritage & Narratives' },
-  { id: 'green-innovations-tree-plantation', name: 'Green Innovations & Tree Plantation' },
-  { id: 'livelihood-entrepreneurship', name: 'Livelihood & Entrepreneurship' },
-  { id: 'rural-urban-education', name: 'Rural/Urban Education' },
-  { id: 'sports-wellness-engagement', name: 'Sports & Wellness Engagement' },
-  { id: 'skill-identification-development', name: 'Skill Identification & Development' },
-  { id: 'mental-health-well-being', name: 'Mental Health & Well-Being' }
-];
 
 
     // Function to generate category abbreviation
@@ -201,8 +176,6 @@ export default function ProjectsPage() {
             domain: '',
             clubId: '',
             category: '',
-            rural: false,
-            ruralCategory: '',
             subCategory: '',
             name: '',
             description: ''
@@ -220,8 +193,6 @@ export default function ProjectsPage() {
             domain: project.domain,
             clubId: project.clubId,
             category: project.category,
-            rural: project.rural || false,
-            ruralCategory: project.ruralCategory || '',
             subCategory: project.subCategory || '',
             name: project.name,
             description: project.description
@@ -258,9 +229,6 @@ export default function ProjectsPage() {
         setFormData(newFormData);
     };
 
-    const handleRuralCategoryChange = (ruralCategory) => {
-        setFormData({ ...formData, ruralCategory, subCategory: '' });
-    };
 
     const getFilteredClubs = () => {
         if (!formData.domain) return [];
@@ -412,9 +380,6 @@ export default function ProjectsPage() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Category
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Rural
-                                    </th>
                                     {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Description
                                     </th> */}
@@ -444,15 +409,6 @@ export default function ProjectsPage() {
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300">
                                                 {project.category}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {project.rural ? (
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
-                                                    Rural
-                                                </span>
-                                            ) : (
-                                                <span className="text-gray-400 text-xs">-</span>
-                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <button
@@ -542,42 +498,6 @@ export default function ProjectsPage() {
                             </div>
                             
                             {/* Rural Project Checkbox */}
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    id="ruralProject"
-                                    type="checkbox"
-                                    checked={formData.rural}
-                                    onChange={(e) => setFormData({ ...formData, rural: e.target.checked, ruralCategory: '', subCategory: '' })}
-                                    className="h-4 w-4 text-red-800 focus:ring-red-800 border-gray-300 rounded"
-                                />
-                                <label htmlFor="ruralProject" className="text-sm font-medium text-gray-700">
-                                    This is a Rural Project
-                                </label>
-                            </div>
-                            
-                            {/* Rural Category Selection (only when rural checkbox is checked) */}
-                            {formData.rural && (
-                                <div>
-                                    <label htmlFor="ruralCategory" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Rural Category
-                                    </label>
-                                    <select
-                                        id="ruralCategory"
-                                        value={formData.ruralCategory}
-                                        onChange={(e) => handleRuralCategoryChange(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                        required
-                                    >
-                                        <option value="">Select Rural Category</option>
-                                        {ruralCategories.map((category) => (
-                                            <option key={category.id} value={category.id}>
-                                                {category.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
-                            
                             <div>
                                 <label htmlFor="projectClub" className="block text-sm font-medium text-gray-700 mb-1">
                                     Club

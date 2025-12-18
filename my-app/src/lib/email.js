@@ -294,37 +294,15 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                     <p><strong>Club:</strong> ${clubDetails.name}</p>
                     <p><strong>Description:</strong> ${clubDetails.description}</p>
                     <p><strong>Domain:</strong> ${selectedDomain}</p>
-                    ${selectedCategory ? `<p><strong>Category:</strong> ${selectedCategory}</p>` : ''}
-                </div>
-                ` : ''}
-
-                ${(isY22Student || isY23Student || isY24Student) && projectDetails ? `
-                <div class="selection-details">
-                    <h3>Your Project Selection${isY24Student ? ' (Y24)' : isY23Student ? ' (Y23)' : isY22Student ? ' (Y22)' : ''}</h3>
-                    <p><strong>Project:</strong> ${projectDetails.name}</p>
-                    <p><strong>Description:</strong> ${projectDetails.description}</p>
-                    <p><strong>Domain:</strong> ${selectedDomain}</p>
-                    ${selectedCategory ? `<p><strong>Category:</strong> ${selectedCategory}</p>` : ''}
-                    ${projectDetails.name && projectDetails.name.includes('Auto-generated') ? `<p class="auto-generated-note"><em>Note: This is an auto-generated project for your selected category.</em></p>` : ''}
-                </div>
-                ` : ''}
-
-                ${isY25Student && selectedDomain === 'TEC' && !projectDetails ? `
-                <div class="selection-details">
-                    <h3>Your TEC Club Selection (Y25)</h3>
-                    <p><strong>Note:</strong> As a Y25 student, you can only select TEC clubs, not individual projects.</p>
-                    <p><strong>Club:</strong> ${clubDetails?.name || 'N/A'}</p>
-                    ${selectedCategory ? `<p><strong>Category:</strong> ${selectedCategory}</p>` : ''}
                 </div>
                 ` : ''}
 
 
                 <h3>What's Next?</h3>
                 <ul>
-                    <li><strong>Updates:</strong> Keep an eye on your email for important announcements about your ${selectedCategory ? 'category' : 'club'} activities</li>
-                    <li><strong>Preparation:</strong> Start familiarizing yourself with your selected ${(isY22Student || isY23Student || isY24Student) ? 'project and domain' : 'club activities'}</li>
+                    <li><strong>Updates:</strong> Keep an eye on your email for important announcements about your club activities</li>
+                    <li><strong>Preparation:</strong> Start familiarizing yourself with your selected club activities</li>
                     <li><strong>Community:</strong> Get ready to collaborate with fellow students and mentors in your ${selectedDomain} domain</li>
-                    ${selectedCategory ? `<li><strong>Category Focus:</strong> Your activities will be focused on the ${selectedCategory} category</li>` : ''}
                 </ul>
 
                 <p><span class="important">Important:</span> Please keep your login credentials safe. You will need them to access the student portal once it's available.</p>

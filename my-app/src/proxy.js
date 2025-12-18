@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from './lib/jwt';
 
-export async function middleware(request) {
+export async function proxy(request) {
     const pathname = request.nextUrl.pathname;
 
     // Check if the request is for auth routes (login, register, etc.)

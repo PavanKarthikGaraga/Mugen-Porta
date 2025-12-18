@@ -35,8 +35,6 @@ CREATE TABLE projects (
     domain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
     clubId VARCHAR(20) NOT NULL,
     category TEXT NOT NULL,
-    rural BOOLEAN DEFAULT FALSE,
-    ruralCategory VARCHAR(50) DEFAULT NULL,
     subCategory VARCHAR(100) DEFAULT NULL,
     name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
@@ -112,9 +110,7 @@ CREATE TABLE students (
     pincode VARCHAR(10) NOT NULL,
     selectedDomain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
     selectedCategory VARCHAR(100) DEFAULT NULL,
-    ruralCategory VARCHAR(50) DEFAULT NULL,
-    subCategory VARCHAR(100) DEFAULT NULL,
-    socialInternshipId VARCHAR(50) DEFAULT NULL,
+    erpFeeReceiptRef VARCHAR(50) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username),
     FOREIGN KEY (clubId) REFERENCES clubs(id),
@@ -125,6 +121,7 @@ CREATE INDEX idx_students_clubId ON students(clubId);
 CREATE INDEX idx_students_projectId ON students(projectId);
 CREATE INDEX idx_students_selectedDomain ON students(selectedDomain);
 CREATE INDEX idx_students_selectedCategory ON students(selectedCategory);
+CREATE INDEX idx_students_erpFeeReceiptRef ON students(erpFeeReceiptRef);
 
 
 /* =========================================================
@@ -168,7 +165,7 @@ CREATE TABLE email_queue (
 CREATE TABLE internal_submissions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(10) NOT NULL,
-    day INT NOT NULL,
+    num INT NOT NULL,
     report VARCHAR(500) NULL,
     linkedin VARCHAR(500) NULL,
     youtube VARCHAR(500) NULL,
@@ -177,7 +174,7 @@ CREATE TABLE internal_submissions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username),
-    UNIQUE KEY unique_username_day (username, day)
+    UNIQUE KEY unique_username_num (username, num)
 );
 
 CREATE INDEX idx_internal_username ON internal_submissions(username);

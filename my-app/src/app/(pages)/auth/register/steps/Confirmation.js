@@ -56,7 +56,13 @@ export default function Confirmation({ formData, updateFormData }) {
                                     <p className="font-medium">{formData.year || "Not provided"}</p>
                                 </div>
                             </div>
-                           
+                            <div className="grid grid-cols-1 gap-2">
+                                <div>
+                                    <p className="text-gray-600">ERP Fee Receipt Reference:</p>
+                                    <p className="font-medium">{formData.erpFeeReceiptRef || "Not provided"}</p>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>

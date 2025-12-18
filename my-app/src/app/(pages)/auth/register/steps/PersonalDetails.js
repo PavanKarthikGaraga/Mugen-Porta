@@ -275,6 +275,24 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         />
                     </div>
                 </div>
+
+                <div className="lg:col-span-2">
+                    <label htmlFor="erpFeeReceiptRef" className="block text-sm font-medium text-gray-700 mb-2">
+                        ERP Fee Receipt Reference Number *
+                    </label>
+                    <input
+                        type="text"
+                        id="erpFeeReceiptRef"
+                        name="erpFeeReceiptRef"
+                        placeholder="Enter your ERP fee receipt reference number"
+                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        value={formData.erpFeeReceiptRef || ""}
+                        onChange={handleInputChange}
+                        maxLength={50}
+                        required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Enter the reference number from your ERP fee receipt (max 50 characters)</p>
+                </div>
             </div>
 
             <div className="mt-6 bg-blue-50 p-4 rounded-lg">

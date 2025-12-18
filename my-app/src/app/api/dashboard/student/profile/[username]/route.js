@@ -34,8 +34,6 @@ export async function GET(request, { params }) {
                 s.pincode,
                 s.selectedDomain,
                 s.selectedCategory,
-                s.ruralCategory,
-                s.subCategory,
                 s.socialInternshipId,
                 s.created_at,
                 c.name as clubName

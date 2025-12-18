@@ -11,7 +11,7 @@ export async function PUT(request, { params }) {
 
     try {
         const { id } = await params;
-        const { domain, clubId, category, rural, ruralCategory, subCategory, name, description } = await request.json();
+        const { domain, clubId, category, subCategory, name, description } = await request.json();
         
         // Verify club exists and get club name
         const [clubCheck] = await pool.execute('SELECT id, name FROM clubs WHERE id = ?', [clubId]);
@@ -23,8 +23,8 @@ export async function PUT(request, { params }) {
         
         
         const [result] = await pool.execute(
-            'UPDATE projects SET domain = ?, clubId = ?, category = ?, rural = ?, ruralCategory = ?, subCategory = ?, name = ?, description = ? WHERE id = ?',
-            [domain, clubId, category, rural || false, ruralCategory || null, subCategory || null, name, description, id]
+            'UPDATE projects SET domain = ?, clubId = ?, category = ?, subCategory = ?, name = ?, description = ? WHERE id = ?',
+            [domain, clubId, category, subCategory || null, name, description, id]
         );
         
         if (result.affectedRows === 0) {

@@ -4,20 +4,26 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from 'next/link'
 import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
 
 
 // Import step components
 import Overview from "./steps/Overview";
 import Rules from "./steps/Rules";
 import Undertaking from "./steps/Undertaking";
-import ProjectSelection from "./steps/ProjectSelection";
 import PersonalDetails from "./steps/PersonalDetails";
+import ClubSelection from "./steps/ClubSelection";
 import AddressDetails from "./steps/AddressDetails";
 import Confirmation from "./steps/Confirmation";
 
 export default function Register() {
     const [currentStep, setCurrentStep] = useState(1);
-    const [projectSelectionValid, setProjectSelectionValid] = useState(false);
     const [formData, setFormData] = useState({
         // Personal Details
         username: "",
@@ -27,7 +33,7 @@ export default function Register() {
         password: "",
         confirmPassword: "",
         role: "student",
-        
+
         // Address Details
         country: "IN", // Default to India
         state: "",
@@ -36,19 +42,23 @@ export default function Register() {
         residenceType: "",
         hostelName: "",
         busRoute: "",
-        
-        // Project Selection
-        selectedProject: null,
-        projectPreference: "",
-        
-        
+
+        // Club Selection
+        selectedClub: "",
+        selectedDomain: "",
+
         // Undertaking
         agreedToTerms: false,
         agreedToRules: false,
+
+        // ERP Fee Receipt
+        erpFeeReceiptRef: "",
     });
     const [loading, setLoading] = useState(false);
     const [registrationsEnabled, setRegistrationsEnabled] = useState(null);
     const [checkingStatus, setCheckingStatus] = useState(true);
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+    const [generatedPassword, setGeneratedPassword] = useState("");
 
     // Check if registrations are enabled
     useEffect(() => {
@@ -81,7 +91,7 @@ export default function Register() {
         { id: 2, name: "Rules", component: Rules },
         { id: 3, name: "Undertaking", component: Undertaking },
         { id: 4, name: "Personal Details", component: PersonalDetails },
-        { id: 5, name: "Project Selection", component: ProjectSelection },
+        { id: 5, name: "Club Selection", component: ClubSelection },
         { id: 6, name: "Address Details", component: AddressDetails },
         { id: 7, name: "Confirmation", component: Confirmation },
     ];
@@ -104,7 +114,7 @@ export default function Register() {
             case 4: // Personal Details
                 // Check all required fields, but cluster is only required for non-1st year students
                 const clusterRequired = formData.year !== "1st";
-                if (!formData.username || !formData.name || !formData.email || !formData.phoneNumber || !formData.branch || !formData.gender || !formData.year || (clusterRequired && !formData.cluster)) {
+                if (!formData.username || !formData.name || !formData.email || !formData.phoneNumber || !formData.branch || !formData.gender || !formData.year || (clusterRequired && !formData.cluster) || !formData.erpFeeReceiptRef) {
                     toast.error("Please fill all required fields");
                     return false;
                 }
@@ -113,27 +123,20 @@ export default function Register() {
                     toast.error("Username must be exactly 10 digits and start with 22, 23, 24, or 25");
                     return false;
                 }
-                break;
-            case 5: // Project Selection
-                if (!formData.selectedClub) {
-                    toast.error("Please select a club");
+                // Validate ERP Fee Receipt Reference Number
+                if (!formData.erpFeeReceiptRef || formData.erpFeeReceiptRef.trim().length === 0) {
+                    toast.error("ERP Fee Receipt Reference Number is required");
                     return false;
                 }
-
-                // Determine student year from username
-                const isY25Student = formData.username && formData.username.startsWith('25');
-                const isY24Student = formData.username && formData.username.startsWith('24');
-                const isY23Student = formData.username && formData.username.startsWith('23');
-                const isY22Student = formData.username && formData.username.startsWith('22');
-
-                // For all students: use component validation status
-                if (isY22Student || isY23Student || isY24Student || isY25Student) {
-                    // Check if project selection step is valid
-                    if (!projectSelectionValid) {
-                        toast.error("Please complete all required selections before proceeding");
-                        return false;
-                    }
-                    break;
+                if (formData.erpFeeReceiptRef.length > 50) {
+                    toast.error("ERP Fee Receipt Reference Number must be 50 characters or less");
+                    return false;
+                }
+                break;
+            case 5: // Club Selection
+                if (!formData.selectedClub || !formData.selectedDomain) {
+                    toast.error("Please select a domain and club");
+                    return false;
                 }
                 break;
             case 6: // Address Details
@@ -173,26 +176,11 @@ export default function Register() {
             // Prepare form data for submission
             let submissionData = { ...formData };
 
-            // No domain restrictions - any category without projects gets auto-generated project ID
-            // The ProjectSelection component handles generating project IDs when no real projects exist
-            // No need to override or nullify selectedProject here
-
             // Debug: log the final submission data
             console.log('Final form submission data:', {
                 selectedDomain: submissionData.selectedDomain,
                 selectedClub: submissionData.selectedClub,
-                selectedCategory: submissionData.selectedCategory,
-                selectedProject: submissionData.selectedProject,
-                projectName: submissionData.projectName,
-                projectDescription: submissionData.projectDescription,
-                isY24Student: formData.username?.startsWith('24')
             });
-
-
-
-            // If rural domain was selected but a project was chosen,
-            // the selectedDomain should already be updated to the project's actual domain
-            // from the ProjectSelection component
 
             const response = await fetch("/api/auth/register", {
                 method: "POST",
@@ -202,8 +190,12 @@ export default function Register() {
 
             if (response.ok) {
                 console.log("Registration Successful!",JSON.stringify(submissionData));
-                toast.success("Registration Successful! Please check your email for login credentials.");
-                router.push("/auth/login");
+                // Generate password pattern for display
+                const last4Digits = formData.phoneNumber.slice(-4);
+                const passwordPattern = `${formData.username}${last4Digits}`;
+                setGeneratedPassword(passwordPattern);
+                setShowSuccessDialog(true);
+                toast.success("Registration Successful!");
             } else {
                 const error = await response.json();
                 console.log("Registration Failed!",JSON.stringify(error));
@@ -317,7 +309,7 @@ export default function Register() {
                     <CurrentStepComponent
                         formData={formData}
                         updateFormData={updateFormData}
-                        onValidationChange={currentStep === 5 ? setProjectSelectionValid : undefined}
+                        onValidationChange={undefined}
                     />
                 </div>
             </div>
@@ -372,6 +364,59 @@ export default function Register() {
                         <p className="text-sm py-1 bg-red-800 text-white">© {new Date().getFullYear()} KLEF - Student Activity Center | Designed & Developed by ZeroOne CodeClub</p>
                     </div>
             </div>
+
+            {/* Success Dialog */}
+            <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-center text-green-600 text-xl">
+                            🎉 Registration Successful!
+                        </DialogTitle>
+                        <DialogDescription className="text-center text-gray-600">
+                            Welcome to KL University SAC Activities
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="text-center">
+                            <p className="text-sm text-gray-700 mb-2">
+                                Your registration has been completed successfully. You can now access your dashboard.
+                            </p>
+                        </div>
+
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <h4 className="text-sm font-semibold text-blue-800 mb-2">Your Login Credentials:</h4>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Username:</span>
+                                    <span className="font-mono font-medium text-blue-700">{formData.username}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Password Pattern:</span>
+                                    <span className="font-mono font-medium text-blue-700">{generatedPassword}</span>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Password = Username + Last 4 digits of phone number
+                            </p>
+                        </div>
+
+                        <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                            <p className="text-xs text-yellow-800">
+                                📧 Check your email for confirmation and additional details about your club activities.
+                            </p>
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <Button
+                                onClick={() => router.push("/auth/login")}
+                                className="flex-1 bg-black hover:bg-gray-900"
+                            >
+                                Login to Dashboard
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

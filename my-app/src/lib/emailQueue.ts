@@ -1,12 +1,74 @@
-import Bull from 'bull';
+import { Queue, Worker } from 'bullmq';
+import { createClient } from 'redis';
 import nodemailer from 'nodemailer';
 
-// Create email queue with Bull
-const emailQueue = new Bull('emailQueue', {
-    redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD,
+// Validate environment variables on startup
+const requiredEnvVars = ['REDIS_HOST', 'REDIS_PORT', 'REDIS_USERNAME', 'REDIS_PASSWORD', 'SMTP_USER', 'SMTP_PASS'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+    console.error('❌ Missing required environment variables:', missingVars);
+    console.error('Please ensure all required environment variables are set in your .env file');
+    throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
+}
+
+console.log('✅ Environment variables validated');
+console.log(`🔗 Redis: ${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
+console.log(`📧 SMTP: ${process.env.SMTP_USER ? 'Configured' : 'Missing'}`);
+
+// Create a single shared Redis connection to avoid max clients error
+const redisConnection = createClient({
+    host: process.env.REDIS_HOST,
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    username: process.env.REDIS_USERNAME,
+    password: process.env.REDIS_PASSWORD,
+    retryDelayOnFailover: 100,
+    enableReadyCheck: false,
+    lazyConnect: true, // Connect only when needed
+});
+
+// Redis connection event handlers
+redisConnection.on('connect', () => {
+    console.log('🔗 Redis client connected successfully');
+});
+
+redisConnection.on('ready', () => {
+    console.log('✅ Redis client ready and authenticated');
+});
+
+redisConnection.on('error', (error) => {
+    console.error('💥 Redis connection error:', error.message);
+    if (error.code === 'ECONNREFUSED') {
+        console.error('💡 ECONNREFUSED: Redis server is not accessible');
+    } else if (error.code === 'EAUTH') {
+        console.error('💡 EAUTH: Redis authentication failed - check credentials');
+    } else if (error.message.includes('max number of clients')) {
+        console.error('💡 MAX CLIENTS: Redis has reached maximum client connections');
+        console.error('💡 Consider increasing Redis maxclients or optimizing connection usage');
+    }
+});
+
+redisConnection.on('end', () => {
+    console.log('❌ Redis connection ended');
+});
+
+// Initialize Redis connection
+redisConnection.connect().catch((error) => {
+    console.error('💥 Failed to connect to Redis:', error.message);
+    console.error('💡 Make sure Redis server is running and credentials are correct');
+});
+
+// Create email queue with BullMQ using shared Redis connection
+const emailQueue = new Queue('mugenEmailQueue', {
+    connection: redisConnection,
+    defaultJobOptions: {
+        removeOnComplete: 50, // Keep only last 50 completed jobs
+        removeOnFail: 100,    // Keep only last 100 failed jobs
+        attempts: 3,          // Retry failed jobs 3 times
+        backoff: {
+            type: 'exponential',
+            delay: 5000,      // 5 seconds initial delay
+        },
     },
 });
 
@@ -21,51 +83,179 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// Process email jobs from the queue
-emailQueue.process(async (job) => {
-    const { email, subject, html } = job.data;
+// Create worker to process email jobs using the same Redis connection
+const emailWorker = new Worker('mugenEmailQueue',
+    async (job) => {
+        const { email, subject, html } = job.data;
+        const jobId = job.id;
 
-    const mailOptions = {
-        from: process.env.SMTP_USER,
-        to: email,
-        subject: subject,
-        html: html,
-    };
+        console.log(`🔄 Processing email job ${jobId} for ${email}`);
 
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Email sent to ${email}`);
-        return { success: true };
-    } catch (error) {
-        console.error(`Error sending email to ${email}:`, error);
-        throw error; // This will mark the job as failed
+        // Validate job data
+        if (!email || !subject || !html) {
+            throw new Error(`Invalid job data: missing email, subject, or html content`);
+        }
+
+        const mailOptions = {
+            from: process.env.SMTP_USER,
+            to: email,
+            subject: subject,
+            html: html,
+        };
+
+        try {
+            console.log(`📧 Sending email to ${email} with subject: "${subject}"`);
+            const info = await transporter.sendMail(mailOptions);
+            console.log(`✅ Email sent successfully to ${email}. Message ID: ${info.messageId}`);
+
+            return {
+                success: true,
+                messageId: info.messageId,
+                recipient: email,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.error(`❌ Error sending email to ${email}:`, {
+                error: error.message,
+                code: error.code,
+                command: error.command,
+                jobId: jobId,
+                attempt: job.attemptsMade + 1
+            });
+
+            // Provide more specific error messages
+            if (error.code === 'EAUTH') {
+                throw new Error('SMTP authentication failed. Check SMTP credentials.');
+            } else if (error.code === 'ECONNREFUSED') {
+                throw new Error('SMTP connection refused. Check SMTP server configuration.');
+            } else if (error.code === 'ETIMEDOUT') {
+                throw new Error('SMTP connection timed out. Check network connectivity.');
+            }
+
+            throw error; // Re-throw for BullMQ to handle retries
+        }
+    },
+    {
+        connection: redisConnection,
+        concurrency: 3, // Reduced from 5 to 3 to minimize Redis connections
+        limiter: {
+            max: 10,      // Maximum 10 jobs
+            duration: 1000, // per 1 second
+        },
     }
+);
+
+// Worker event handlers for monitoring
+emailWorker.on('ready', () => {
+    console.log('🚀 Email worker is ready and processing jobs');
 });
 
-// Queue event handlers for monitoring
-emailQueue.on('ready', () => {
-    console.log('Email queue is ready and processing jobs');
-    emailQueue.resume();
+emailWorker.on('error', (error) => {
+    console.error('💥 Error in email worker:', error);
+    console.error('Worker error details:', {
+        message: error.message,
+        stack: error.stack,
+        code: error.code
+    });
+});
+
+emailWorker.on('active', (job) => {
+    console.log(`⚡ Job ${job.id} is now active and being processed`);
+});
+
+emailWorker.on('completed', (job, result) => {
+    console.log(`✅ Job ${job.id} completed successfully`, {
+        messageId: result?.messageId,
+        recipient: result?.recipient
+    });
+});
+
+emailWorker.on('failed', (job, err) => {
+    console.error(`❌ Job ${job.id} failed:`, {
+        message: err.message,
+        stack: err.stack,
+        attemptsMade: job.attemptsMade,
+        attemptsRemaining: job.opts?.attempts - (job.attemptsMade || 0)
+    });
+});
+
+emailWorker.on('stalled', (jobId) => {
+    console.warn(`⚠️ Job ${jobId} has stalled - this usually means the worker crashed`);
+});
+
+// Queue event handlers
+emailQueue.on('waiting', (jobId) => {
+    console.log(`⏳ Job ${jobId} is waiting to be processed`);
+});
+
+emailQueue.on('cleaned', (jobs, type) => {
+    console.log(`🧹 Cleaned ${jobs.length} ${type} jobs from queue`);
 });
 
 emailQueue.on('error', (error) => {
-    console.error('Error in email queue:', error);
+    console.error('💥 Queue error:', error);
 });
 
-emailQueue.on('waiting', (jobId) => {
-    console.log(`Job ${jobId} is waiting to be processed`);
+emailQueue.on('waiting-children', (job) => {
+    console.log(`👶 Job ${job.id} is waiting for children to complete`);
 });
 
-emailQueue.on('active', (jobId, jobPromise) => {
-    console.log(`Job ${jobId} is now active`);
+// Redis connection health monitoring
+setInterval(async () => {
+    try {
+        // Ping Redis to check connection health
+        await redisConnection.ping();
+    } catch (error) {
+        console.error('💥 Redis health check failed:', error.message);
+        // Attempt to reconnect
+        try {
+            if (!redisConnection.isOpen) {
+                console.log('🔄 Attempting to reconnect to Redis...');
+                await redisConnection.connect();
+                console.log('✅ Redis reconnected successfully');
+            }
+        } catch (reconnectError) {
+            console.error('❌ Redis reconnection failed:', reconnectError.message);
+        }
+    }
+}, 30000); // Check every 30 seconds
+
+// Graceful shutdown handling
+process.on('SIGTERM', async () => {
+    console.log('🛑 Received SIGTERM, gracefully shutting down...');
+    try {
+        await emailWorker.close();
+        await emailQueue.close();
+        await redisConnection.quit();
+        console.log('✅ Email system and Redis connection shut down successfully');
+    } catch (error) {
+        console.error('❌ Error during shutdown:', error);
+    }
+    process.exit(0);
 });
 
-emailQueue.on('completed', (jobId, result) => {
-    console.log(`Job ${jobId} completed successfully`);
+process.on('SIGINT', async () => {
+    console.log('🛑 Received SIGINT, gracefully shutting down...');
+    try {
+        await emailWorker.close();
+        await emailQueue.close();
+        await redisConnection.quit();
+        console.log('✅ Email system and Redis connection shut down successfully');
+    } catch (error) {
+        console.error('❌ Error during shutdown:', error);
+    }
+    process.exit(0);
 });
 
-emailQueue.on('failed', (jobId, err) => {
-    console.error(`Job ${jobId} failed with error:`, err.message);
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('💥 Uncaught Exception:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
 });
 
 // Export the queue for use in other files

@@ -214,13 +214,22 @@ export default function Login() {
                             )}
                         </Button>
 
-                        <div className="text-center">
+                        <div className="text-center space-y-2">
                             <Link
                                 href="/auth/forget-password"
                                 className="text-sm text-blue-600 hover:text-blue-800 underline"
                             >
                                 Forgot Password?
                             </Link>
+                            <div className="text-sm text-gray-600">
+                                Don't have an account?{" "}
+                                <Link
+                                    href="/auth/register"
+                                    className="text-blue-600 hover:text-blue-800 underline font-medium"
+                                >
+                                    Register here
+                                </Link>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

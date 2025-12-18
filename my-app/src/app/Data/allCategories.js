@@ -51,38 +51,6 @@ export const allCategories = {
       ]
     },
     {
-      id: "agriculture_rural",
-      name: "Agriculture & Rural Development Outreach",
-      description: "Introduce organic farming and water-efficient methods.",
-      subcategories: [
-        {
-          id: "farmer_training",
-          name: "Farmer Training on Sustainable Practices",
-          info: "Introduce organic farming and water-efficient methods."
-        },
-        {
-          id: "soil_health",
-          name: "Soil Health & Crop Advisory Sessions",
-          info: "Educate farmers on soil testing and crop selection."
-        },
-        {
-          id: "farm_equipment",
-          name: "Farm Equipment Sharing & Awareness Drives",
-          info: "Promote shared usage of modern tools and machinery."
-        },
-        {
-          id: "post_harvest",
-          name: "Post-Harvest Storage & Value-Addition Workshops",
-          info: "Guide farmers on reducing crop loss and increasing profit."
-        },
-        {
-          id: "agri_tech",
-          name: "Agri-Tech Demonstration Projects",
-          info: "Showcase IoT, AI, and tech solutions for farming efficiency."
-        }
-      ]
-    },
-    {
       id: "education_literacy",
       name: "Education & Literacy Outreach",
       description: "Volunteer to teach subjects and support school education.",
@@ -113,11 +81,6 @@ export const allCategories = {
           id: "festival_celebration",
           name: "Festival Celebration with Villages",
           info: "Engage with communities through cultural events and performances."
-        },
-        {
-          id: "rural_art_craft",
-          name: "Rural Art & Craft Promotion",
-          info: "Help local artisans showcase and sell their creations."
         },
         {
           id: "community_storytelling",
@@ -208,11 +171,6 @@ export const allCategories = {
           name: "Problem-Solution Mapping Sessions",
           info: "Guide students in validating and testing their innovative ideas."
         },
-        {
-          id: "rural_innovation",
-          name: "Innovation in Rural Development",
-          info: "Focus on products and solutions for rural and social impact."
-        }
       ]
     },
     {
