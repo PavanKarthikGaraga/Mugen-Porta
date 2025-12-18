@@ -1,66 +1,38 @@
 import { Queue, Worker } from 'bullmq';
-import { createClient } from 'redis';
 import nodemailer from 'nodemailer';
 
 // Validate environment variables on startup
-const requiredEnvVars = ['REDIS_HOST', 'REDIS_PORT', 'REDIS_USERNAME', 'REDIS_PASSWORD', 'SMTP_USER', 'SMTP_PASS'];
-const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+// const requiredEnvVars = ['REDIS_HOST', 'REDIS_PORT', 'REDIS_USERNAME', 'REDIS_PASSWORD', 'SMTP_USER', 'SMTP_PASS'];
+// const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
-if (missingVars.length > 0) {
-    console.error('❌ Missing required environment variables:', missingVars);
-    console.error('Please ensure all required environment variables are set in your .env file');
-    throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
-}
+// if (missingVars.length > 0) {
+//     console.error('❌ Missing required environment variables:', missingVars);
+//     console.error('Please ensure all required environment variables are set in your .env file');
+//     throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
+// }
 
-console.log('✅ Environment variables validated');
-console.log(`🔗 Redis: ${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
-console.log(`📧 SMTP: ${process.env.SMTP_USER ? 'Configured' : 'Missing'}`);
+// console.log('✅ Environment variables validated');
+// console.log(`🔗 Redis: ${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
+// console.log(`📧 SMTP: ${process.env.SMTP_USER ? 'Configured' : 'Missing'}`);
 
-// Create a single shared Redis connection to avoid max clients error
-const redisConnection = createClient({
-    host: process.env.REDIS_HOST,
+// BullMQ will create its own Redis connection internally using ioredis
+// This ensures compatibility and proper connection management
+const redisConfig = {
+    host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),
-    username: process.env.REDIS_USERNAME,
     password: process.env.REDIS_PASSWORD,
-    retryDelayOnFailover: 100,
-    enableReadyCheck: false,
-    lazyConnect: true, // Connect only when needed
+};
+
+console.log('🔗 BullMQ Redis config:', {
+    host: redisConfig.host,
+    port: redisConfig.port,
+    // username: redisConfig.username ? '[SET]' : '[MISSING]',
+    password: redisConfig.password ? '[SET]' : '[MISSING]',
 });
 
-// Redis connection event handlers
-redisConnection.on('connect', () => {
-    console.log('🔗 Redis client connected successfully');
-});
-
-redisConnection.on('ready', () => {
-    console.log('✅ Redis client ready and authenticated');
-});
-
-redisConnection.on('error', (error) => {
-    console.error('💥 Redis connection error:', error.message);
-    if (error.code === 'ECONNREFUSED') {
-        console.error('💡 ECONNREFUSED: Redis server is not accessible');
-    } else if (error.code === 'EAUTH') {
-        console.error('💡 EAUTH: Redis authentication failed - check credentials');
-    } else if (error.message.includes('max number of clients')) {
-        console.error('💡 MAX CLIENTS: Redis has reached maximum client connections');
-        console.error('💡 Consider increasing Redis maxclients or optimizing connection usage');
-    }
-});
-
-redisConnection.on('end', () => {
-    console.log('❌ Redis connection ended');
-});
-
-// Initialize Redis connection
-redisConnection.connect().catch((error) => {
-    console.error('💥 Failed to connect to Redis:', error.message);
-    console.error('💡 Make sure Redis server is running and credentials are correct');
-});
-
-// Create email queue with BullMQ using shared Redis connection
+// Create email queue with BullMQ using connection config (BullMQ creates ioredis internally)
 const emailQueue = new Queue('mugenEmailQueue', {
-    connection: redisConnection,
+    connection: redisConfig,
     defaultJobOptions: {
         removeOnComplete: 50, // Keep only last 50 completed jobs
         removeOnFail: 100,    // Keep only last 100 failed jobs
@@ -83,7 +55,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// Create worker to process email jobs using the same Redis connection
+// Create worker to process email jobs using the same Redis connection config
 const emailWorker = new Worker('mugenEmailQueue',
     async (job) => {
         const { email, subject, html } = job.data;
@@ -136,8 +108,8 @@ const emailWorker = new Worker('mugenEmailQueue',
         }
     },
     {
-        connection: redisConnection,
-        concurrency: 3, // Reduced from 5 to 3 to minimize Redis connections
+        connection: redisConfig,
+        concurrency: 3, // Process up to 3 emails simultaneously
         limiter: {
             max: 10,      // Maximum 10 jobs
             duration: 1000, // per 1 second
@@ -200,25 +172,7 @@ emailQueue.on('waiting-children', (job) => {
     console.log(`👶 Job ${job.id} is waiting for children to complete`);
 });
 
-// Redis connection health monitoring
-setInterval(async () => {
-    try {
-        // Ping Redis to check connection health
-        await redisConnection.ping();
-    } catch (error) {
-        console.error('💥 Redis health check failed:', error.message);
-        // Attempt to reconnect
-        try {
-            if (!redisConnection.isOpen) {
-                console.log('🔄 Attempting to reconnect to Redis...');
-                await redisConnection.connect();
-                console.log('✅ Redis reconnected successfully');
-            }
-        } catch (reconnectError) {
-            console.error('❌ Redis reconnection failed:', reconnectError.message);
-        }
-    }
-}, 30000); // Check every 30 seconds
+// BullMQ handles Redis connection health monitoring internally
 
 // Graceful shutdown handling
 process.on('SIGTERM', async () => {
@@ -226,8 +180,7 @@ process.on('SIGTERM', async () => {
     try {
         await emailWorker.close();
         await emailQueue.close();
-        await redisConnection.quit();
-        console.log('✅ Email system and Redis connection shut down successfully');
+        console.log('✅ Email system shut down successfully');
     } catch (error) {
         console.error('❌ Error during shutdown:', error);
     }
@@ -239,8 +192,7 @@ process.on('SIGINT', async () => {
     try {
         await emailWorker.close();
         await emailQueue.close();
-        await redisConnection.quit();
-        console.log('✅ Email system and Redis connection shut down successfully');
+        console.log('✅ Email system shut down successfully');
     } catch (error) {
         console.error('❌ Error during shutdown:', error);
     }
@@ -258,5 +210,5 @@ process.on('unhandledRejection', (reason, promise) => {
     process.exit(1);
 });
 
-// Export the queue for use in other files
-export { emailQueue };
+// Export the queue and transporter for use in other files
+export { emailQueue, transporter };

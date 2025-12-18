@@ -1,4 +1,4 @@
-import { emailQueue } from './emailQueue';
+import { emailQueue, transporter } from './emailQueue';
 
 export const sendPasswordResetEmail = async (email, name, resetLink) => {
     const htmlTemplate = `
@@ -117,7 +117,23 @@ export const sendPasswordResetEmail = async (email, name, resetLink) => {
     `;
 
     try {
-        // Add email job to the queue instead of sending directly
+        // Temporarily send email directly to test if the issue is with queuing or sending
+        console.log('🔄 Sending password reset email directly...');
+
+        const mailOptions = {
+            from: process.env.SMTP_USER,
+            to: email,
+            subject: 'Password Reset Request - SAC Activities',
+            html: htmlTemplate,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`✅ Password reset email sent successfully to ${email}. Message ID: ${info.messageId}`);
+
+        return { success: true, messageId: info.messageId };
+
+        // TODO: Re-enable queuing once Redis issue is resolved
+        /*
         const emailJob = {
             email: email,
             subject: 'Password Reset Request - SAC Activities',
@@ -126,8 +142,9 @@ export const sendPasswordResetEmail = async (email, name, resetLink) => {
 
         await emailQueue.add(emailJob);
         return { success: true, queued: true };
+        */
     } catch (error) {
-        console.error('Error queuing password reset email:', error);
+        console.error('Error sending password reset email:', error);
         return { success: false, error: error.message };
     }
 };

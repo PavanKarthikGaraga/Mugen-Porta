@@ -117,9 +117,9 @@ export async function GET(request) {
 
         // Populate with existing data
         submissions.forEach(sub => {
-            if (sub.day >= 1 && sub.day <= 6) {
-                submissionsByDay[sub.day] = {
-                    day: sub.day,
+            if (sub.num >= 1 && sub.num <= 6) {
+                submissionsByDay[sub.num] = {
+                    day: sub.num,
                     report: sub.report,
                     linkedin: sub.linkedin,
                     youtube: sub.youtube,

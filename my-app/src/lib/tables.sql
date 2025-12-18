@@ -25,7 +25,6 @@ CREATE TABLE clubs (
     name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     domain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
-    category VARCHAR(100) DEFAULT NULL,
     categories JSON NOT NULL,
     memberLimit INT DEFAULT 50
 );
