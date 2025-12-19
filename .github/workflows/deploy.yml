@@ -16,19 +16,19 @@ jobs:
     steps:
       - name: Pull latest code from main
         run: |
-          cd /home/sac/Mugen-Porta
+          cd  /var/www/Mugen-Porta/my-app
           git fetch origin main
           git reset --hard origin/main
           git clean -fd
 
       - name: Install dependencies
         run: |
-          cd /home/sac/Mugen-Porta/my-app
+          cd  /var/www/Mugen-Porta/my-app
           npm install
 
       - name: Build app
         run: |
-          cd /home/sac/Mugen-Porta/my-app
+          cd /var/www/Mugen-Porta/my-app
           npm run build
 
       - name: Restart PM2
