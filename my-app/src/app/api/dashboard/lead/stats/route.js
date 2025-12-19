@@ -35,8 +35,8 @@ export async function GET(request) {
             [clubId]
         );
 
-        // Get category-wise count
-        const [categoryWiseResult] = await pool.execute(
+        // Get domain-wise count
+        const [domainWiseResult] = await pool.execute(
             'SELECT selectedDomain, COUNT(*) as count FROM students WHERE clubId = ? GROUP BY selectedDomain ORDER BY count DESC',
             [clubId]
         );
@@ -47,16 +47,16 @@ export async function GET(request) {
             yearWiseCount[row.year] = row.count;
         });
 
-        const categoryWiseCount = {};
-        categoryWiseResult.forEach(row => {
-            categoryWiseCount[row.selectedDomain] = row.count;
+        const domainWiseCount = {};
+        domainWiseResult.forEach(row => {
+            domainWiseCount[row.selectedDomain] = row.count;
         });
 
         const stats = {
             totalStudents: totalStudentsResult[0].count,
             recentRegistrations: recentRegistrationsResult[0].count,
             yearWiseCount,
-            categoryWiseCount
+            domainWiseCount
         };
 
         return NextResponse.json(stats);

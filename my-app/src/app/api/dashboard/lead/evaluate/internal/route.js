@@ -99,7 +99,7 @@ export async function POST(request) {
 
         // Check if the submission exists for this day
         const [existingSubmission] = await pool.execute(
-            'SELECT id, status FROM internal_submissions WHERE username = ? AND day = ?',
+            'SELECT id, status FROM internal_submissions WHERE username = ? AND num = ?',
             [studentUsername, day]
         );
 
@@ -123,13 +123,13 @@ export async function POST(request) {
         const updateReason = action === 'reject' ? reason : null;
 
         await pool.execute(
-            'UPDATE internal_submissions SET status = ?, reason = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND day = ?',
+            'UPDATE internal_submissions SET status = ?, reason = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND num = ?',
             [newStatus, updateReason, studentUsername, day]
         );
 
         // Calculate new total internal marks (10 marks per approved day)
         const [allSubmissions] = await pool.execute(
-            'SELECT day, status FROM internal_submissions WHERE username = ?',
+            'SELECT num, status FROM internal_submissions WHERE username = ?',
             [studentUsername]
         );
 

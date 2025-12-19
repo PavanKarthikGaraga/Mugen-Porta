@@ -17,36 +17,63 @@ export async function POST(req) {
         }
 
         const payload = await verifyToken(token);
-        if (!payload || !payload.isProxy || !payload.proxyAdminUsername) {
+        if (!payload || !payload.isProxy) {
             return new Response(JSON.stringify({ error: "Not in proxy session" }), {
                 status: 400,
                 headers: { "Content-Type": "application/json" }
             });
         }
 
-        // Get admin user details
-        const db = await pool.getConnection();
-        const [adminUser] = await db.query('SELECT * FROM users WHERE username = ?', [payload.proxyAdminUsername]);
+        // Check if it's an admin proxy session or lead proxy session
+        let originalUser = null;
+        let message = "";
 
-        if (!adminUser || adminUser.length === 0) {
-            return new Response(JSON.stringify({ error: "Admin user not found" }), {
-                status: 404,
+        if (payload.proxyAdminUsername) {
+            // Admin proxy session - return to admin
+            const db = await pool.getConnection();
+            const [adminUser] = await db.query('SELECT * FROM users WHERE username = ?', [payload.proxyAdminUsername]);
+
+            if (!adminUser || adminUser.length === 0) {
+                return new Response(JSON.stringify({ error: "Admin user not found" }), {
+                    status: 404,
+                    headers: { "Content-Type": "application/json" }
+                });
+            }
+
+            originalUser = adminUser[0];
+            message = "Successfully returned to admin session";
+            await db.release();
+        } else if (payload.proxyLeadUsername) {
+            // Lead proxy session - return to lead
+            const db = await pool.getConnection();
+            const [leadUser] = await db.query('SELECT * FROM users WHERE username = ?', [payload.proxyLeadUsername]);
+
+            if (!leadUser || leadUser.length === 0) {
+                return new Response(JSON.stringify({ error: "Lead user not found" }), {
+                    status: 404,
+                    headers: { "Content-Type": "application/json" }
+                });
+            }
+
+            originalUser = leadUser[0];
+            message = "Successfully returned to lead session";
+            await db.release();
+        } else {
+            return new Response(JSON.stringify({ error: "Invalid proxy session" }), {
+                status: 400,
                 headers: { "Content-Type": "application/json" }
             });
         }
 
-        const admin = adminUser[0];
-        await db.release();
-
-        // Generate new token for admin
-        const adminToken = await generateToken({
-            username: admin.username,
-            name: admin.name,
-            role: admin.role
+        // Generate new token for original user (admin or lead)
+        const originalToken = await generateToken({
+            username: originalUser.username,
+            name: originalUser.name,
+            role: originalUser.role
         });
 
-        // Set admin token in cookie (replacing proxy token)
-        cookieStore.set("tck", adminToken, {
+        // Set original token in cookie (replacing proxy token)
+        cookieStore.set("tck", originalToken, {
             httpOnly: true,
             samesite: 'lax',
             maxage: 45 * 60 // 45 minutes
@@ -54,11 +81,11 @@ export async function POST(req) {
 
         return new Response(JSON.stringify({
             ok: true,
-            message: "Successfully returned to admin session",
+            message: message,
             user: {
-                username: admin.username,
-                name: admin.name,
-                role: admin.role
+                username: originalUser.username,
+                name: originalUser.name,
+                role: originalUser.role
             }
         }), {
             status: 200,

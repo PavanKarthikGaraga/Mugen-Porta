@@ -3,10 +3,9 @@ import { NextResponse } from 'next/server';
 
 /**
  * Registration Data API - Read Only
- * 
+ *
  * This endpoint provides all data needed for the registration process:
  * - Clubs with their details
- * - Projects with their details
  * - Domain mappings
  */
 
@@ -15,9 +14,8 @@ export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
         const clubId = searchParams.get('clubId');
-        const projectId = searchParams.get('projectId');
-        
-        // If specific club or project member count is requested
+
+        // If specific club member count is requested
         if (clubId) {
             // Get current member count and club limit
             const [memberResult] = await pool.execute(
@@ -37,20 +35,6 @@ export async function GET(request) {
                 currentMembers,
                 memberLimit,
                 availableSpots: memberLimit - currentMembers
-            });
-        }
-        
-        if (projectId) {
-            // Get the current member count for the project
-            const [result] = await pool.execute(
-                'SELECT COUNT(*) as memberCount FROM students WHERE projectId = ?',
-                [projectId]
-            );
-
-            return NextResponse.json({
-                success: true,
-                projectId: projectId,
-                memberCount: result[0].memberCount
             });
         }
         
@@ -92,71 +76,21 @@ export async function GET(request) {
                 availableSpots: Math.max(0, club.memberLimit - memberCount)
             };
         });
-        
-        // Fetch projects with club information
-        const [projects] = await pool.execute(`
-            SELECT p.*, c.name as clubName
-            FROM projects p
-            LEFT JOIN clubs c ON p.clubId = c.id
-            ORDER BY p.id
-        `);
 
-        // Get member counts for all projects
-        const projectIds = projects.map(p => p.id);
-        let projectMemberCounts = {};
-
-        if (projectIds.length > 0) {
-            const placeholders = projectIds.map(() => '?').join(',');
-            const [memberCounts] = await pool.execute(
-                `SELECT projectId, COUNT(*) as memberCount
-                 FROM students
-                 WHERE projectId IN (${placeholders})
-                 GROUP BY projectId`,
-                projectIds
-            );
-
-            // Convert to object for easy lookup
-            projectMemberCounts = memberCounts.reduce((acc, count) => {
-                acc[count.projectId] = count.memberCount;
-                return acc;
-            }, {});
-        }
-
-        // Return projects with member counts and availability status
-        const enhancedProjects = projects.map(project => {
-            const memberCount = projectMemberCounts[project.id] || 0;
-            const isTecProject = project.domain === 'TEC';
-            // Remove the 2-member limit - projects are never full
-            const isFull = false;
-
-            return {
-                ...project,
-                images: [],
-                hasImages: false,
-                memberCount: memberCount,
-                isFull: isFull,
-                maxMembers: null, // Remove max members limit
-                availableSpots: null // Remove available spots calculation
-            };
-        });
-        
         // Domain categories for reference
         const domains = [
-            { id: "TEC", name: "Technical", description: "Technology and Engineering projects" },
+            { id: "TEC", name: "Technical", description: "Technology and Engineering activities" },
             { id: "LCH", name: "Literary, Cultural & Heritage", description: "Arts, Literature and Cultural preservation" },
             { id: "ESO", name: "Extension & Social Outreach", description: "Community service and social initiatives" },
-            { id: "IIE", name: "Innovation, Incubation & Entrepreneurship", description: "Startup and Innovation projects" },
-            { id: "HWB", name: "Health & Well-being", description: "Health, fitness and wellness programs" },
-            { id: "Rural", name: "Rural Mission", description: "Rural development and community projects" }
+            { id: "IIE", name: "Innovation, Incubation & Entrepreneurship", description: "Startup and Innovation activities" },
+            { id: "HWB", name: "Health & Well-being", description: "Health, fitness and wellness programs" }
         ];
         
         const registrationData = {
             clubs: enhancedClubs,
-            projects: enhancedProjects,
             domains: domains,
             metadata: {
                 clubsCount: enhancedClubs.length,
-                projectsCount: enhancedProjects.length,
                 timestamp: new Date().toISOString()
             }
         };

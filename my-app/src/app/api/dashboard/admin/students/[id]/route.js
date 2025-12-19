@@ -15,14 +15,10 @@ export async function GET(request, { params }) {
         const query = `
             SELECT 
                 s.*,
-                p.name as projectName,
-                p.category as projectCategory,
-                p.description as projectDescription,
                 c.name as clubName,
                 c.description as clubDescription,
                 u.role as userRole
             FROM students s
-            LEFT JOIN projects p ON s.projectId = p.id
             LEFT JOIN clubs c ON s.clubId = c.id
             LEFT JOIN users u ON s.username = u.username
             WHERE s.id = ?
@@ -116,7 +112,6 @@ export async function PUT(request, { params }) {
                 pincode = ?,
                 selectedDomain = ?,
                 socialInternshipId = ?,
-                projectId = ?,
                 clubId = ?
             WHERE id = ?
         `;
@@ -138,7 +133,6 @@ export async function PUT(request, { params }) {
             pincode,
             selectedDomain,
             socialInternshipId,
-            projectId,
             clubId,
             id
         ]);

@@ -44,9 +44,7 @@ export async function POST(req) {
         const isY23Student = username.startsWith('23');
         const isY22Student = username.startsWith('22');
 
-        // For simplified registration: always null for projects and categories
-        let selectedProject = null;
-        let selectedCategory = null;
+        // Simplified registration: no projects or categories
 
         // Validate required fields
         // Cluster is optional for 1st year (Y25) students
@@ -82,9 +80,6 @@ export async function POST(req) {
             );
         }
 
-        // Simplified registration: no projects or categories for any students
-        selectedProject = null;
-        selectedCategory = null;
 
         if (!agreedToTerms) {
             return NextResponse.json(
@@ -160,7 +155,6 @@ export async function POST(req) {
             );
         }
 
-        // Simplified registration: no project validation needed
 
         // Check club member limits for all students
         const [clubInfo] = await pool.execute(
@@ -209,12 +203,9 @@ export async function POST(req) {
                 [username, name, email, hashedPassword]
             );
 
-            // Simplified registration: always null for projects and categories
-            const projectIdToInsert = null;
             const categoryToInsert = null;
             console.log('Database insertion data:', {
                 username,
-                projectIdToInsert,
                 categoryToInsert,
                 selectedClub,
                 selectedDomain,
@@ -223,20 +214,18 @@ export async function POST(req) {
             // Insert into students table
             const [studentResult] = await connection.execute(
                 `INSERT INTO students (
-                    username, projectId, clubId, name, email, branch, gender,
+                    username, clubId, name, email, branch, gender,
                     cluster, year, phoneNumber, residenceType, hostelName, busRoute,
-                    country, state, district, pincode, selectedDomain, selectedCategory, erpFeeReceiptRef
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    country, state, district, pincode, selectedDomain, erpFeeReceiptRef
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
-                    projectIdToInsert, // Y22, Y23, Y24 can have projects, Y25 null
                     selectedClub,                          // All students can have clubs
                     name, email, branch, gender,
                     isY25Student ? null : cluster, // Cluster is null for Y25 (1st year) students
                     year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
                     countryName || country, state, district, pincode, selectedDomain,
-                    null, // Simplified registration: no categories
                     erpFeeReceiptRef.trim() // ERP Fee Receipt Reference Number
                 ]
             );
@@ -264,13 +253,11 @@ export async function POST(req) {
                 generatedPassword,
                 year,
                 selectedDomain,
-                null, // No project details for simplified registration
                 clubDetails,
                 isY22Student,
                 isY23Student,
                 isY24Student,
-                isY25Student,
-                null // No category for simplified registration
+                isY25Student
             );
 
             // Log email result but don't fail registration if email queuing fails

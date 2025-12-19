@@ -10,7 +10,7 @@ export default function Overview({ formData, updateFormData }) {
             <div className="bg-gray-50 p-6 rounded-lg border mb-6">
                 <h3 className="text-lg font-semibold mb-3 text-gray-800">AY 2025–26 Goal</h3>
                 <p className="text-gray-700 leading-relaxed">
-                    Create a balanced platform where Rural Mission, Clubs, and Innovation work together to help students 
+                    Create a balanced platform where Clubs work together to help students
                     discover themselves, excel in their passions, and achieve outcomes worth celebrating.
                 </p>
             </div>
@@ -37,21 +37,16 @@ export default function Overview({ formData, updateFormData }) {
 
                     <div className="border border-gray-200 p-6 rounded-lg">
                         <h3 className="text-xl font-semibold mb-4 text-gray-800">Three SAC Pillars</h3>
-                        <p className="text-gray-600 mb-4">For this academic year, all three SAC pillars will start simultaneously:</p>
+                        <p className="text-gray-600 mb-4">For this academic year, both SAC pillars will start simultaneously:</p>
                         
                         <div className="space-y-4">
                             <div className="border-l-2 border-gray-300 pl-4">
-                                <h4 className="font-semibold text-gray-800">1. Rural Mission </h4>
-                                <p className="text-sm text-gray-600">Community-based projects, village development initiatives, awareness drives, and social internships.</p>
-                            </div>
-                            
-                            <div className="border-l-2 border-gray-300 pl-4">
-                                <h4 className="font-semibold text-gray-800">2. Clubs & Talent Hubs</h4>
+                                <h4 className="font-semibold text-gray-800">1. Clubs & Talent Hubs</h4>
                                 <p className="text-sm text-gray-600">Technical, cultural, literary, sports, and creativity clubs that help students explore and refine their interests.</p>
                             </div>
-                            
+
                             <div className="border-l-2 border-gray-300 pl-4">
-                                <h4 className="font-semibold text-gray-800">3. Innovation & Entrepreneurship</h4>
+                                <h4 className="font-semibold text-gray-800">2. Innovation & Entrepreneurship</h4>
                                 <p className="text-sm text-gray-600">Idea-to-prototype projects, hackathons, business model challenges, and incubation opportunities.</p>
                             </div>
                         </div>

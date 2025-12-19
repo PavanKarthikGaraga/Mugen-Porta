@@ -91,13 +91,6 @@ export default function AdminOverviewPage() {
             href: '/dashboard/admin/students'
         },
         {
-            title: 'Active Projects',
-            value: stats.activeProjects,
-            icon: FiFolder,
-            color: 'green',
-            href: '/dashboard/admin/projects'
-        },
-        {
             title: 'Total Clubs',
             value: stats.totalClubs,
             icon: FiBarChart,

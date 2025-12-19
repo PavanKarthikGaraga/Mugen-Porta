@@ -406,18 +406,29 @@ const ReportsEvaluation = ({
             });
 
             if (response.ok) {
-                setShowEvaluationModal(false);
-                setSelectedItem(null);
-                setEvaluationData({});
-                // Don't close the main modal immediately, let user see the updated status
-                fetchStudents(); // Refresh data in background
-                toast.success('Evaluation submitted successfully!');
+                // Show success message in the evaluation modal
+                setEvaluationData(prev => ({ ...prev, success: true }));
 
-                // Close modal after a short delay to let user see the updated status
+                // Refresh data immediately
+                await fetchStudents();
+
+                // Find the updated student data and update selectedStudent
+                setAllStudents(currentStudents => {
+                    const updatedStudent = currentStudents.find(s => s.username === selectedStudent?.username);
+                    if (updatedStudent) {
+                        setSelectedStudent(updatedStudent);
+                    }
+                    return currentStudents;
+                });
+
+                // Keep success visible for 3 seconds, then close both modals
                 setTimeout(() => {
+                    setShowEvaluationModal(false);
                     setShowModal(false);
+                    setSelectedItem(null);
                     setSelectedStudent(null);
-                }, 1500);
+                    setEvaluationData({});
+                }, 3000);
             } else {
                 // Read response body only once
                 let errorMessage = 'Failed to submit evaluation';
@@ -435,6 +446,7 @@ const ReportsEvaluation = ({
                     }
                 }
                 toast.error(errorMessage);
+                // Don't close modal on error, let user retry
             }
         } catch (error) {
             console.error('Error submitting evaluation:', error);
@@ -1112,7 +1124,6 @@ const ReportsEvaluation = ({
                             <option value="ESO">Environment & Social</option>
                             <option value="IIE">Innovation & Entrepreneurship</option>
                             <option value="HWB">Health & Wellbeing</option>
-                            <option value="Rural">Rural Development</option>
                         </select>
                     </div>
 
@@ -1189,7 +1200,7 @@ const ReportsEvaluation = ({
 
             {/* Modal */}
             <Dialog open={showModal && !!selectedStudent} onOpenChange={setShowModal}>
-                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto data-[state=open]:slide-in-from-top-[50%] data-[state=open]:slide-in-from-left-1/2">
                     <DialogHeader>
                         <DialogTitle>
                             {selectedStudent?.name} ({selectedStudent?.username}) - {modalViewType === 'reports' ? 'Reports' : modalViewType === 'links' ? 'Links' : (reportType === 'internal' ? 'Internal' : 'Final') + ' Submissions'}
@@ -1210,42 +1221,66 @@ const ReportsEvaluation = ({
                     setEvaluationData({});
                 }
             }}>
-                <DialogContent className="max-w-md fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
+                <DialogContent className="max-w-md data-[state=open]:slide-in-from-top-[50%] data-[state=open]:slide-in-from-left-1/2">
                     <DialogHeader>
-                        <DialogTitle>Submit Marks</DialogTitle>
+                        <DialogTitle>
+                            {evaluationData.success ? 'Evaluation Submitted!' : 'Submit Marks'}
+                        </DialogTitle>
                         <DialogDescription>
-                            {reportType === 'internal'
-                                ? `Evaluate ${selectedItem?.action === 'approve' ? 'approval' : 'rejection'} for Day ${selectedItem?.day}`
-                                : 'Submit final marks for the student'
+                            {evaluationData.success
+                                ? 'Evaluation has been submitted successfully.'
+                                : reportType === 'internal'
+                                    ? `Evaluate ${selectedItem?.action === 'approve' ? 'approval' : 'rejection'} for Day ${selectedItem?.day}`
+                                    : 'Submit final marks for the student'
                             }
                         </DialogDescription>
                     </DialogHeader>
 
-                    {renderEvaluationModal()}
+                    {evaluationData.success ? (
+                        <div className="flex flex-col items-center justify-center py-8">
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                <FiCheck className="w-8 h-8 text-green-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Success!</h3>
+                            <p className="text-gray-600 text-center">Evaluation submitted successfully. The data will refresh automatically.</p>
+                        </div>
+                    ) : (
+                        <>
+                            {renderEvaluationModal()}
 
-                    <div className="flex space-x-3 pt-4">
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setShowEvaluationModal(false);
-                                setSelectedItem(null);
-                                setEvaluationData({});
-                            }}
-                            className="flex-1"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={() => {
-                                console.log('Submit button clicked, selectedItem:', selectedItem);
-                                handleMarksSubmit(selectedItem?.day, selectedItem?.action);
-                            }}
-                            disabled={submitting}
-                            className="flex-1 bg-red-800 hover:bg-red-900"
-                        >
-                            {submitting ? 'Submitting...' : 'Submit Marks'}
-                        </Button>
-                    </div>
+                            <div className="flex space-x-3 pt-4">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowEvaluationModal(false);
+                                        setSelectedItem(null);
+                                        setEvaluationData({});
+                                    }}
+                                    className="flex-1"
+                                    disabled={submitting}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        console.log('Submit button clicked, selectedItem:', selectedItem);
+                                        handleMarksSubmit(selectedItem?.day, selectedItem?.action);
+                                    }}
+                                    disabled={submitting}
+                                    className="flex-1 bg-red-800 hover:bg-red-900"
+                                >
+                                    {submitting ? (
+                                        <div className="flex items-center">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                            Submitting...
+                                        </div>
+                                    ) : (
+                                        'Submit Marks'
+                                    )}
+                                </Button>
+                            </div>
+                        </>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>

@@ -7,7 +7,7 @@ export default function FacultyOverviewPage() {
     const [stats, setStats] = useState({
         totalStudents: 0,
         yearWiseCount: {},
-        categoryWiseCount: {},
+        domainWiseCount: {},
         recentRegistrations: 0,
         clubWiseStats: {}
     });
@@ -113,7 +113,7 @@ export default function FacultyOverviewPage() {
         '4th': '4th Year'
     };
 
-    const categoryLabels = {
+    const domainLabels = {
         'TEC': 'Technical',
         'LCH': 'Leadership & Community',
         'ESO': 'Entrepreneurship & Startup',
@@ -236,9 +236,9 @@ export default function FacultyOverviewPage() {
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {Object.entries(stats.categoryWiseCount || {}).map(([category, count]) => (
-                                    <div key={category} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                        <span className="text-gray-900">{categoryLabels[category] || category}</span>
+                                {Object.entries(stats.domainWiseCount || {}).map(([domain, count]) => (
+                                    <div key={domain} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <span className="text-gray-900">{domainLabels[domain] || domain}</span>
                                         <span className="font-semibold text-gray-900">{count}</span>
                                     </div>
                                 ))}

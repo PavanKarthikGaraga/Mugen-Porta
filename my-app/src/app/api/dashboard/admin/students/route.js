@@ -66,8 +66,7 @@ export async function GET(request) {
                     s.phoneNumber,
                     s.clubId,
                     c.name as clubName,
-                    s.selectedDomain,
-                    s.selectedCategory
+                    s.selectedDomain
                 FROM students s
                 LEFT JOIN clubs c ON s.clubId = c.id
                 WHERE s.username = ?
@@ -153,7 +152,6 @@ export async function GET(request) {
                 s.residenceType,
                 s.hostelName,
                 s.selectedDomain,
-                s.projectId,
                 s.clubId,
                 c.name as clubName,
                 s.state,
@@ -183,10 +181,10 @@ export async function GET(request) {
         if (usernames.length > 0) {
             const placeholders = usernames.map(() => '?').join(',');
             const [internalResults] = await connection.execute(
-                `SELECT username, day, report, linkedin, youtube, status, reason
+                `SELECT username, num, report, linkedin, youtube, status, reason
                  FROM internal_submissions
                  WHERE username IN (${placeholders})
-                 ORDER BY username, day`,
+                 ORDER BY username, num`,
                 usernames
             );
             internalSubmissions = internalResults;
@@ -211,7 +209,7 @@ export async function GET(request) {
                 // Add report for this day
                 submissions.push({
                     submission_type: 'report',
-                    day_number: sub.day,
+                    day_number: sub.num,
                     submission_url: sub.report,
                     status: sub.status,
                     reason: sub.reason,
@@ -220,7 +218,7 @@ export async function GET(request) {
                 // Add LinkedIn for this day
                 submissions.push({
                     submission_type: 'linkedin_link',
-                    day_number: sub.day,
+                    day_number: sub.num,
                     submission_url: sub.linkedin,
                     status: sub.status,
                     reason: sub.reason,
@@ -229,7 +227,7 @@ export async function GET(request) {
                 // Add YouTube for this day
                 submissions.push({
                     submission_type: 'youtube_link',
-                    day_number: sub.day,
+                    day_number: sub.num,
                     submission_url: sub.youtube,
                     status: sub.status,
                     reason: sub.reason,

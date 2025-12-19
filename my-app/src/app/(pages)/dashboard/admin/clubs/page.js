@@ -391,7 +391,6 @@ export default function ClubsPage() {
                                     <option value="ESO">ESO</option>
                                     <option value="IIE">IIE</option>
                                     <option value="HWB">HWB</option>
-                                    {/* <option value="Rural">Rural</option> */}
                                 </select>
                             </div>
                             <div>

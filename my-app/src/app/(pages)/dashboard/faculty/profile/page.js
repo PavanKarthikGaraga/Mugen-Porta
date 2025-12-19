@@ -9,8 +9,6 @@ export default function FacultyProfilePage() {
         name: '',
         email: '',
         phoneNumber: '',
-        year: '',
-        branch: '',
         assignedClubs: [],
         created_at: ''
     });
@@ -213,51 +211,6 @@ export default function FacultyProfilePage() {
                             )}
                         </div>
 
-                        {/* Year */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                <FiCalendar className="inline h-4 w-4 mr-2" />
-                                Year
-                            </label>
-                            {editing ? (
-                                <select
-                                    value={formData.year || ''}
-                                    onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                >
-                                    <option value="">Select Year</option>
-                                    <option value="1st">1st Year</option>
-                                    <option value="2nd">2nd Year</option>
-                                    <option value="3rd">3rd Year</option>
-                                    <option value="4th">4th Year</option>
-                                </select>
-                            ) : (
-                                <div className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md border">
-                                    {profile.year ? `${profile.year} Year` : 'Not specified'}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Branch */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                <FiMapPin className="inline h-4 w-4 mr-2" />
-                                Branch
-                            </label>
-                            {editing ? (
-                                <input
-                                    type="text"
-                                    value={formData.branch || ''}
-                                    onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                    placeholder="e.g., CSE"
-                                />
-                            ) : (
-                                <div className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md border">
-                                    {profile.branch || 'Not specified'}
-                                </div>
-                            )}
-                        </div>
 
                         {/* Assigned Clubs */}
                         <div className="md:col-span-2">
