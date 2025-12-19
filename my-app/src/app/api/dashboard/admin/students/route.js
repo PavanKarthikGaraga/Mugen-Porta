@@ -66,8 +66,7 @@ export async function GET(request) {
                     s.phoneNumber,
                     s.clubId,
                     c.name as clubName,
-                    s.selectedDomain,
-                    s.selectedCategory
+                    s.selectedDomain
                 FROM students s
                 LEFT JOIN clubs c ON s.clubId = c.id
                 WHERE s.username = ?
@@ -153,7 +152,6 @@ export async function GET(request) {
                 s.residenceType,
                 s.hostelName,
                 s.selectedDomain,
-                s.projectId,
                 s.clubId,
                 c.name as clubName,
                 s.state,

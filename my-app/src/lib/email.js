@@ -1,4 +1,4 @@
-import { emailQueue, transporter } from './emailQueue';
+import { transporter } from './emailQueue';
 
 export const sendPasswordResetEmail = async (email, name, resetLink) => {
     const htmlTemplate = `
@@ -117,7 +117,7 @@ export const sendPasswordResetEmail = async (email, name, resetLink) => {
     `;
 
     try {
-        // Temporarily send email directly to test if the issue is with queuing or sending
+        // Send email directly (not using Redis queue due to compatibility issues)
         console.log('🔄 Sending password reset email directly...');
 
         const mailOptions = {
@@ -131,25 +131,13 @@ export const sendPasswordResetEmail = async (email, name, resetLink) => {
         console.log(`✅ Password reset email sent successfully to ${email}. Message ID: ${info.messageId}`);
 
         return { success: true, messageId: info.messageId };
-
-        // TODO: Re-enable queuing once Redis issue is resolved
-        /*
-        const emailJob = {
-            email: email,
-            subject: 'Password Reset Request - SAC Activities',
-            html: htmlTemplate,
-        };
-
-        await emailQueue.add(emailJob);
-        return { success: true, queued: true };
-        */
     } catch (error) {
         console.error('Error sending password reset email:', error);
         return { success: false, error: error.message };
     }
 };
 
-export const sendRegistrationEmail = async (email, name, username, password, year, selectedDomain, projectDetails, clubDetails, isY22Student, isY23Student, isY24Student, isY25Student, selectedCategory = null) => {
+export const sendRegistrationEmail = async (email, name, username, password, year, selectedDomain, clubDetails, isY22Student, isY23Student, isY24Student, isY25Student) => {
     const htmlTemplate = `
     <!DOCTYPE html>
     <html lang="en">
@@ -291,7 +279,7 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
 
                 <p class="success">Congratulations! You have successfully registered for the SAC Activities.</p>
 
-                <p>We are excited to have you join our community of dedicated students working on meaningful projects that make a real impact.</p>
+                <p>We are excited to have you join our community of dedicated students working on meaningful activities that make a real impact.</p>
 
                 <div class="credentials-box">
                     <div class="credentials-title">Your Login Credentials</div>
@@ -339,17 +327,22 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
     `;
 
     try {
-        // Add email job to the queue instead of sending directly
-        const emailJob = {
-            email: email,
+        // Send email directly (not using Redis queue due to compatibility issues)
+        console.log('🔄 Sending registration email directly...');
+
+        const mailOptions = {
+            from: process.env.SMTP_USER,
+            to: email,
             subject: 'Welcome to SAC Activities - Registration Successful!',
             html: htmlTemplate,
         };
 
-        await emailQueue.add(emailJob);
-        return { success: true, queued: true };
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`✅ Registration email sent successfully to ${email}. Message ID: ${info.messageId}`);
+
+        return { success: true, messageId: info.messageId };
     } catch (error) {
-        console.error('Error queuing registration email:', error);
+        console.error('Error sending registration email:', error);
         return { success: false, error: error.message };
     }
 };

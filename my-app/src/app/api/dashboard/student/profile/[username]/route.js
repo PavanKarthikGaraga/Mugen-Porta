@@ -16,7 +16,6 @@ export async function GET(request, { params }) {
         const [studentData] = await pool.execute(
             `SELECT
                 s.username,
-                s.projectId,
                 s.clubId,
                 s.name,
                 s.email,
@@ -33,8 +32,6 @@ export async function GET(request, { params }) {
                 s.district,
                 s.pincode,
                 s.selectedDomain,
-                s.selectedCategory,
-                s.socialInternshipId,
                 s.created_at,
                 c.name as clubName
              FROM students s

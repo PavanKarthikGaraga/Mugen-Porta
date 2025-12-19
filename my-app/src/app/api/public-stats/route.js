@@ -29,29 +29,10 @@ export async function GET(request) {
             'SELECT COUNT(*) as count FROM clubs'
         );
 
-        // Get total projects count
-        const [totalProjects] = await pool.execute(
-            'SELECT COUNT(*) as count FROM projects'
-        );
-
         // Get clubs by domain
         const [clubsByDomain] = await pool.execute(`
             SELECT domain, COUNT(*) as count
             FROM clubs
-            GROUP BY domain
-            ORDER BY count DESC
-        `);
-
-        // Get active projects count
-        const [activeProjects] = await pool.execute(
-            'SELECT COUNT(*) as count FROM projects WHERE status = "active"'
-        );
-
-        // Get projects by domain
-        const [projectsByDomain] = await pool.execute(`
-            SELECT domain, COUNT(*) as count
-            FROM projects
-            WHERE status = 'active'
             GROUP BY domain
             ORDER BY count DESC
         `);
@@ -76,14 +57,11 @@ export async function GET(request) {
         const stats = {
             overview: {
                 totalStudents: totalStudents[0].count,
-                totalClubs: totalClubs[0].count,
-                totalProjects: totalProjects[0].count,
-                activeProjects: activeProjects[0].count
+                totalClubs: totalClubs[0].count
             },
             studentsByDomain: studentsByDomain,
             studentsByYear: studentsByYear,
             clubsByDomain: clubsByDomain,
-            projectsByDomain: projectsByDomain,
             genderDistribution: genderStats,
             topStates: stateStats
         };

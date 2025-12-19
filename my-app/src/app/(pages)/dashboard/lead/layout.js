@@ -3,12 +3,15 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText
+    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText, FiUserCheck
 } from "react-icons/fi";
+import { toast } from "sonner";
 
 export default function LeadDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userData, setUserData] = useState({ username: '', name: '', clubName: '' });
+    const [isProxySession, setIsProxySession] = useState(false);
+    const [proxyStudentInfo, setProxyStudentInfo] = useState(null);
     const pathname = usePathname();
     const router = useRouter();
 
@@ -19,11 +22,23 @@ export default function LeadDashboardLayout({ children }) {
                 const response = await fetch('/api/auth/me');
                 if (response.ok) {
                     const data = await response.json();
+                    const user = data.user;
                     setUserData({
-                        username: data.user?.username || '',
-                        name: data.user?.name || '',
-                        clubName: data.user?.clubName || ''
+                        username: user?.username || '',
+                        name: user?.name || '',
+                        clubName: user?.clubName || ''
                     });
+
+                    // Check if this is a proxy session
+                    setIsProxySession(user?.isProxy || false);
+                    if (user?.isProxy && user?.proxyLeadUsername) {
+                        setProxyStudentInfo({
+                            username: user?.proxyLeadUsername,
+                            name: user?.proxyLeadName
+                        });
+                    } else {
+                        setProxyStudentInfo(null);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
@@ -37,11 +52,31 @@ export default function LeadDashboardLayout({ children }) {
         { name: 'Profile', href: '/dashboard/lead/profile', icon: FiUser },
         { name: 'Students', href: '/dashboard/lead/students', icon: FiUsers },
         { name: 'Submissions', href: '/dashboard/lead/reports', icon: FiFileText },
-        { name: 'Final Submissions', href: '/dashboard/lead/final-reports', icon: FiFileText }
+        // { name: 'Final Submissions', href: '/dashboard/lead/final-reports', icon: FiFileText }
     ];
 
     const handleLogout = async () => {
-        // Clear token and redirect to login
+        if (isProxySession) {
+            // If in proxy session, logout from proxy first
+            try {
+                const response = await fetch('/api/auth/proxy-logout', {
+                    method: 'POST',
+                });
+                if (response.ok) {
+                    toast.success('Exited student dashboard successfully');
+                    // Refresh the page to return to lead session
+                    window.location.reload();
+                    return;
+                } else {
+                    const error = await response.json();
+                    toast.error(`Proxy logout failed: ${error.error}`);
+                }
+            } catch (error) {
+                toast.error('Proxy logout failed. Please try again.');
+            }
+        }
+
+        // Regular logout - clear token and redirect to login
         try {
             // Clear cookie and call logout API
             document.cookie = 'tck=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
@@ -54,6 +89,26 @@ export default function LeadDashboardLayout({ children }) {
         localStorage.clear();
         sessionStorage.clear();
         router.push('/auth/login');
+    };
+
+    const handleProxyLogin = async () => {
+        try {
+            const response = await fetch('/api/auth/lead-proxy-login', {
+                method: 'POST',
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                toast.success('Successfully accessed student dashboard');
+                // Redirect to student dashboard
+                router.push('/dashboard/student');
+            } else {
+                const error = await response.json();
+                toast.error(`Failed to access student dashboard: ${error.error}`);
+            }
+        } catch (error) {
+            toast.error('Failed to access student dashboard. Please try again.');
+        }
     };
 
     return (
@@ -72,16 +127,35 @@ export default function LeadDashboardLayout({ children }) {
                             >
                                 {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
                             </button>
-                            <h1 className="text-xl font-bold ml-4 lg:ml-0">Lead Dashboard</h1>
+                            <h1 className="text-xl font-bold ml-4 lg:ml-0">
+                                Lead Dashboard
+                                {isProxySession && (
+                                    <span className="ml-2 text-sm font-normal text-orange-300">
+                                        (Student Mode)
+                                    </span>
+                                )}
+                            </h1>
                         </div>
 
                         {/* Right side */}
                         <div className="flex items-center space-x-4">
+                            {!isProxySession && (
+                                <button
+                                    onClick={handleProxyLogin}
+                                    className="flex items-center space-x-2 px-3 py-2 rounded-md transition-colors text-sm"
+                                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                                >
+                                    <FiUserCheck size={16} />
+                                    <span>Student Dashboard</span>
+                                </button>
+                            )}
                             <div className="hidden sm:block text-right">
                                 <span className="block text-sm">
                                     ID: {userData.username}
                                 </span>
-                            
+
                             </div>
                             <button
                                 onClick={handleLogout}
@@ -91,7 +165,7 @@ export default function LeadDashboardLayout({ children }) {
                                 onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
                             >
                                 <FiLogOut size={16} />
-                                <span>Logout</span>
+                                <span>{isProxySession ? 'Exit Student Mode' : 'Logout'}</span>
                             </button>
                         </div>
                     </div>

@@ -21,7 +21,7 @@ export async function GET(request) {
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
                        s.phoneNumber, s.year, s.branch, l.clubId, c.name as clubName,
-                       f.phoneNumber as fPhoneNumber, f.year as fYear, f.branch as fBranch, f.assignedClubs
+                       f.phoneNumber as fPhoneNumber, f.assignedClubs
                 FROM users u
                 LEFT JOIN students s ON u.username = s.username AND u.role = 'lead'
                 LEFT JOIN leads l ON u.username = l.username AND u.role = 'lead'
@@ -36,7 +36,7 @@ export async function GET(request) {
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
                        s.phoneNumber, s.year, s.branch, l.clubId, c.name as clubName,
-                       f.phoneNumber as fPhoneNumber, f.year as fYear, f.branch as fBranch, f.assignedClubs
+                       f.phoneNumber as fPhoneNumber, f.assignedClubs
                 FROM users u
                 LEFT JOIN students s ON u.username = s.username AND u.role = 'lead'
                 LEFT JOIN leads l ON u.username = l.username AND u.role = 'lead'
@@ -79,7 +79,7 @@ export async function POST(request) {
 
     try {
         const body = await request.json();
-        const { role, username, name, email, phoneNumber, year, branch, clubId, assignedClubs } = body;
+        const { role, username, name, email, phoneNumber, clubId, assignedClubs } = body;
 
         // Validate required fields
         if (!role || !username || !name || !email) {
@@ -98,9 +98,9 @@ export async function POST(request) {
                 );
             }
         } else if (role === 'faculty') {
-            if (!phoneNumber || !year || !branch) {
+            if (!phoneNumber) {
                 return NextResponse.json(
-                    { error: 'Phone number, year, and branch are required for faculty' },
+                    { error: 'Phone number is required for faculty' },
                     { status: 400 }
                 );
             }
@@ -176,10 +176,10 @@ export async function POST(request) {
                 // Insert into specific role table
                 if (role === 'faculty') {
                     const facultyQuery = `
-                        INSERT INTO faculty (username, name, email, phoneNumber, year, branch, assignedClubs)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO faculty (username, name, email, phoneNumber, assignedClubs)
+                        VALUES (?, ?, ?, ?, ?)
                     `;
-                    await connection.execute(facultyQuery, [username, name, email, phoneNumber, year, branch, JSON.stringify(assignedClubs)]);
+                    await connection.execute(facultyQuery, [username, name, email, phoneNumber, JSON.stringify(assignedClubs)]);
                 }
             }
 

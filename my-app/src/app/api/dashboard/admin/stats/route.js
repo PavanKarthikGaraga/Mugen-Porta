@@ -72,15 +72,6 @@ export async function GET(request) {
             params
         );
 
-        // Get active projects count
-        const [activeProjectsResult] = await pool.execute(
-            `SELECT COUNT(DISTINCT p.id) as count
-             FROM projects p
-             LEFT JOIN students s ON p.id = s.projectId
-             ${whereClause.replace('s.', 's.')}`,
-            params
-        );
-
         // Get total clubs count (filtered by students matching criteria)
         const [totalClubsResult] = await pool.execute(
             `SELECT COUNT(DISTINCT c.id) as count
@@ -113,7 +104,6 @@ export async function GET(request) {
 
         const stats = {
             totalStudents: totalStudentsResult[0].count,
-            activeProjects: activeProjectsResult[0].count,
             totalClubs: totalClubsResult[0].count,
             recentRegistrations: recentRegistrationsResult[0].count,
             totalRegistrations: totalRegistrationsResult[0].count

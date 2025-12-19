@@ -95,7 +95,7 @@ export async function GET(request) {
 
         // Fetch internal submissions for the requested student (6 days)
         const [submissions] = await pool.execute(
-            'SELECT day, report, linkedin, youtube, status, reason FROM internal_submissions WHERE username = ? ORDER BY day',
+            'SELECT num, report, linkedin, youtube, status, reason FROM internal_submissions WHERE username = ? ORDER BY num',
             [accessUsername]
         );
 
@@ -236,7 +236,7 @@ export async function POST(request) {
 
         // Check if this day already has a submission
         const [existingSubmission] = await pool.execute(
-            'SELECT id, status FROM internal_submissions WHERE username = ? AND day = ?',
+            'SELECT id, status FROM internal_submissions WHERE username = ? AND num = ?',
             [payload.username, day]
         );
 
@@ -250,13 +250,13 @@ export async function POST(request) {
             }
             // Update existing record
             await pool.execute(
-                'UPDATE internal_submissions SET report = ?, linkedin = ?, youtube = ?, status = "S", updated_at = CURRENT_TIMESTAMP WHERE username = ? AND day = ?',
+                'UPDATE internal_submissions SET report = ?, linkedin = ?, youtube = ?, status = "S", updated_at = CURRENT_TIMESTAMP WHERE username = ? AND num = ?',
                 [reportUrl, linkedinUrl, youtubeUrl, payload.username, day]
             );
         } else {
             // Insert new record
             await pool.execute(
-                'INSERT INTO internal_submissions (username, day, report, linkedin, youtube, status) VALUES (?, ?, ?, ?, ?, "S")',
+                'INSERT INTO internal_submissions (username, num, report, linkedin, youtube, status) VALUES (?, ?, ?, ?, ?, "S")',
                 [payload.username, day, reportUrl, linkedinUrl, youtubeUrl]
             );
         }
@@ -340,7 +340,7 @@ export async function PUT(request) {
         if (reportUrl !== undefined && linkedinUrl !== undefined && youtubeUrl !== undefined) {
             // Check if this day has a rejected submission that can be resubmitted
             const [existingSubmission] = await pool.execute(
-                'SELECT id, status FROM internal_submissions WHERE username = ? AND day = ?',
+                'SELECT id, status FROM internal_submissions WHERE username = ? AND num = ?',
                 [payload.username, day]
             );
 
@@ -361,7 +361,7 @@ export async function PUT(request) {
 
             // Update the submission with new URLs and set status to 'N'
             await pool.execute(
-                'UPDATE internal_submissions SET report = ?, linkedin = ?, youtube = ?, status = "N", reason = NULL, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND day = ?',
+                'UPDATE internal_submissions SET report = ?, linkedin = ?, youtube = ?, status = "N", reason = NULL, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND num = ?',
                 [reportUrl, linkedinUrl, youtubeUrl, payload.username, day]
             );
 
@@ -373,7 +373,7 @@ export async function PUT(request) {
             // If no URLs provided, this is the initial resubmit action (clear and enable editing)
             // Check if this day has a rejected submission
             const [existingSubmission] = await pool.execute(
-                'SELECT id, status FROM internal_submissions WHERE username = ? AND day = ?',
+                'SELECT id, status FROM internal_submissions WHERE username = ? AND num = ?',
                 [payload.username, day]
             );
 

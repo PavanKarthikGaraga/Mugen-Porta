@@ -210,7 +210,7 @@ export default function StudentOverviewPage() {
                     >
                         <div>
                             <h3 className="font-medium text-gray-900">View Club Details</h3>
-                            <p className="text-sm text-gray-600">Check your club and project information</p>
+                            <p className="text-sm text-gray-600">Check your club information</p>
                         </div>
                     </Button>
                     <Button

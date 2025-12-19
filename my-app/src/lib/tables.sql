@@ -17,7 +17,7 @@ CREATE INDEX idx_users_role ON users(role);
 
 
 /* =========================================================
-   CLUBS & PROJECTS
+   CLUBS
    ========================================================= */
 
 CREATE TABLE clubs (
@@ -25,25 +25,46 @@ CREATE TABLE clubs (
     name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     domain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
-    categories JSON NOT NULL,
     memberLimit INT DEFAULT 50
 );
 
-CREATE TABLE projects (
-    id VARCHAR(10) PRIMARY KEY,
-    domain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
-    clubId VARCHAR(20) NOT NULL,
-    category TEXT NOT NULL,
-    subCategory VARCHAR(100) DEFAULT NULL,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NOT NULL,
-    status ENUM('active', 'inactive') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (clubId) REFERENCES clubs(id)
-);
+INSERT INTO clubs (id, name, description, domain, memberLimit) VALUES
+('TEC01', 'ZeroOne Code Club', 'ZeroOne Code Club', 'TEC', 50),
+('TEC02', 'CyberSecurity', 'CyberSecurity', 'TEC', 50),
+('TEC03', 'WebApps', 'WebApps', 'TEC', 50),
+('TEC04', 'AgriTech Nexus', 'AgriTech Nexus', 'TEC', 50),
+('TEC05', 'Electric Vehicle / Automation', 'Electric Vehicle / Automation', 'TEC', 50),
+('TEC06', 'Animation', 'Animation', 'TEC', 50),
 
-CREATE INDEX idx_projects_clubId ON projects(clubId);
-CREATE INDEX idx_projects_domain ON projects(domain);
+('LCH01', 'Short Film Makers', 'Short Film Makers', 'LCH', 50),
+('LCH02', 'DANCE', 'DANCE', 'LCH', 50),
+('LCH03', 'Music Club', 'Music Club', 'LCH', 50),
+('LCH04', 'Handicrafts', 'Handicrafts', 'LCH', 50),
+('LCH05', 'Adventure', 'Adventure', 'LCH', 50),
+('LCH06', 'VERSATALES', 'VERSATALES', 'LCH', 50),
+('LCH07', 'Dramatics', 'Dramatics', 'LCH', 50),
+('LCH08', 'Fashion', 'Fashion', 'LCH', 50),
+('LCH09', 'Painting', 'Painting', 'LCH', 50),
+('LCH10', 'KL eSports Club', 'KL eSports Club', 'LCH', 50),
+('LCH11', 'Photography', 'Photography', 'LCH', 50),
+('LCH12', 'Vachas', 'Vachas', 'LCH', 50),
+('LCH13', 'Mugen Manji™', 'Mugen Manji™', 'LCH', 50),
+('LCH14', 'Japanese Cultural Club', 'Japanese Cultural Club', 'LCH', 50),
+
+('ESO01', 'SVR', 'SVR', 'ESO', 50),
+('ESO02', 'Event Management Society', 'Event Management Society', 'ESO', 50),
+('ESO03', 'KUTUMB Society', 'KUTUMB Society', 'ESO', 50),
+('ESO04', 'Yuva Tourism', 'Yuva Tourism', 'ESO', 50),
+('ESO05', 'OHANA CLUB (International Student Council)', 'OHANA CLUB (International Student Council)', 'ESO', 50),
+('ESO06', 'Spiritual Sciences', 'Spiritual Sciences', 'ESO', 50),
+('ESO07', 'KL Youth Policy LAB', 'KL Youth Policy LAB', 'ESO', 50),
+
+('IIE01', 'VYUHA', 'VYUHA', 'IIE', 50),
+
+('HWB01', 'Yoga', 'Yoga', 'HWB', 50),
+('HWB02', 'SafeLife', 'SafeLife', 'HWB', 50);
+
+
 
 
 /* =========================================================
@@ -74,8 +95,6 @@ CREATE TABLE faculty (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     phoneNumber VARCHAR(15) NOT NULL,
-    year ENUM('1st', '2nd', '3rd', '4th') NOT NULL,
-    branch VARCHAR(50) NOT NULL,
     assignedClubs JSON NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username)
@@ -91,7 +110,6 @@ CREATE INDEX idx_faculty_username ON faculty(username);
 CREATE TABLE students (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(10) NOT NULL UNIQUE,
-    projectId VARCHAR(10) DEFAULT NULL,
     clubId VARCHAR(20) DEFAULT NULL,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -108,18 +126,14 @@ CREATE TABLE students (
     district VARCHAR(50) NOT NULL,
     pincode VARCHAR(10) NOT NULL,
     selectedDomain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
-    selectedCategory VARCHAR(100) DEFAULT NULL,
     erpFeeReceiptRef VARCHAR(50) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username),
-    FOREIGN KEY (clubId) REFERENCES clubs(id),
-    FOREIGN KEY (projectId) REFERENCES projects(id)
+    FOREIGN KEY (clubId) REFERENCES clubs(id)
 );
 
 CREATE INDEX idx_students_clubId ON students(clubId);
-CREATE INDEX idx_students_projectId ON students(projectId);
 CREATE INDEX idx_students_selectedDomain ON students(selectedDomain);
-CREATE INDEX idx_students_selectedCategory ON students(selectedCategory);
 CREATE INDEX idx_students_erpFeeReceiptRef ON students(erpFeeReceiptRef);
 
 

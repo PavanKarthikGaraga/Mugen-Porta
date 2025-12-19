@@ -69,10 +69,10 @@ export async function PUT(request) {
         }
 
         const body = await request.json();
-        const { name, email, phoneNumber, year, branch } = body;
+        const { name, email, phoneNumber } = body;
 
         // Validate required fields
-        if (!name || !email || !phoneNumber || !year || !branch) {
+        if (!name || !email || !phoneNumber) {
             return NextResponse.json(
                 { error: 'All fields are required' },
                 { status: 400 }
@@ -92,8 +92,8 @@ export async function PUT(request) {
 
             // Update faculty table
             await connection.execute(
-                'UPDATE faculty SET name = ?, email = ?, phoneNumber = ?, year = ?, branch = ? WHERE username = ?',
-                [name, email, phoneNumber, year, branch, payload.username]
+                'UPDATE faculty SET name = ?, email = ?, phoneNumber = ? WHERE username = ?',
+                [name, email, phoneNumber, payload.username]
             );
 
             await connection.commit();

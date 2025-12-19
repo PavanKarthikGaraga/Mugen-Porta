@@ -144,7 +144,6 @@ export default function AdminStudents() {
                     student.residenceType,
                     `"${student.hostelName || 'N/A'}"`,
                     student.selectedDomain,
-                    student.projectId || 'N/A',
                     `"${student.clubName || 'N/A'}"`,
                     student.state,
                     student.district
@@ -239,7 +238,6 @@ export default function AdminStudents() {
                             <option value="ESO">Environment & Social</option>
                             <option value="IIE">Innovation & Entrepreneurship</option>
                             <option value="HWB">Health & Wellbeing</option>
-                            <option value="Rural">Rural Development</option>
                         </select>
                     </div>
 
@@ -299,7 +297,6 @@ export default function AdminStudents() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project ID</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Club</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -320,9 +317,6 @@ export default function AdminStudents() {
                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getDomainBadgeClass(student.selectedDomain)}`}>
                                             {student.selectedDomain}
                                         </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {student.projectId || 'Not Assigned'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {student.clubName || 'Not Assigned'}

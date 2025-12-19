@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { FiUpload, FiCheck, FiX, FiEye, FiLink, FiYoutube, FiLinkedin, FiFileText, FiBarChart, FiChevronDown, FiChevronRight } from "react-icons/fi";
+import { FiUpload, FiCheck, FiX, FiEye, FiLink, FiYoutube, FiLinkedin, FiFileText, FiBarChart, FiChevronDown, FiChevronRight, FiRefreshCw } from "react-icons/fi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ export default function StudentReports() {
 
         // For submissions 2-4, check if previous submission is completed
         const prevDay = submissions.days[day - 2]; // day-2 because array is 0-indexed
-        return prevDay && (prevDay.report.status === 'approved' || prevDay.report.status === 'submitted');
+        return prevDay && (prevDay.report.status === 'approved' || prevDay.report.status === 'submitted' || prevDay.report.status === 'new');
     };
 
     const [submissions, setSubmissions] = useState({
@@ -42,6 +42,7 @@ export default function StudentReports() {
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
     const [resubmitMode, setResubmitMode] = useState({}); // Track which days are in resubmit mode
+    const [resetMode, setResetMode] = useState({}); // Track which days are in reset mode
 
     // Fetch existing submissions
     const fetchSubmissions = useCallback(async () => {
@@ -173,8 +174,8 @@ export default function StudentReports() {
         }
     };
 
-    const handleResubmit = (day) => {
-        // Clear the URLs locally and enable resubmit mode
+    const handleReset = (day) => {
+        // Clear the URLs locally and enable resubmit mode directly
         const newDays = [...submissions.days];
         const index = newDays.findIndex(d => d.day === day);
         if (index !== -1) {
@@ -183,9 +184,15 @@ export default function StudentReports() {
             newDays[index].youtube.url = '';
             setSubmissions(prev => ({ ...prev, days: newDays }));
 
-            // Set resubmit mode for this day
+            // Set both reset and resubmit mode to show the big submit button directly
+            setResetMode(prev => ({ ...prev, [day]: true }));
             setResubmitMode(prev => ({ ...prev, [day]: true }));
         }
+    };
+
+    const handleResubmit = (day) => {
+        // Enable resubmit mode for this day
+        setResubmitMode(prev => ({ ...prev, [day]: true }));
     };
 
     const handleResubmitSubmit = async (day, reportUrl, linkedinUrl, youtubeUrl) => {
@@ -367,17 +374,46 @@ export default function StudentReports() {
                                         <FiFileText className="mr-2" />
                                         {selectedData.domain}
                                     </h2>
-                                <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm border ${resubmitMode[selectedData.day] ? 'text-blue-600 bg-blue-50 border-blue-200' : getStatusColor(selectedData.report.status)}`}>
-                                    {resubmitMode[selectedData.day] ? <FiUpload className="w-4 h-4" /> : getStatusIcon(selectedData.report.status)}
-                                    <span className="capitalize">{resubmitMode[selectedData.day] ? 'Resubmitting' : selectedData.report.status}</span>
+                                <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm border ${
+                                    resubmitMode[selectedData.day]
+                                        ? 'text-blue-600 bg-blue-50 border-blue-200'
+                                        : resetMode[selectedData.day]
+                                            ? 'text-orange-600 bg-orange-50 border-orange-200'
+                                            : getStatusColor(selectedData.report.status)
+                                }`}>
+                                    {resubmitMode[selectedData.day]
+                                        ? <FiUpload className="w-4 h-4" />
+                                        : getStatusIcon(selectedData.report.status)
+                                    }
+                                    <span className="capitalize">
+                                        {resubmitMode[selectedData.day]
+                                            ? 'Resubmitting'
+                                            : selectedData.report.status
+                                        }
+                                    </span>
                                 </div>
                                 </div>
 
-                            {/* Rejection Reason Display */}
-                            {selectedData.reason && selectedData.report.status === 'rejected' && !resubmitMode[selectedData.day] && (
+                            {/* Rejection Reason Display with Reset Button */}
+                            {selectedData.reason && selectedData.report.status === 'rejected' && !resetMode[selectedData.day] && !resubmitMode[selectedData.day] && (
                                     <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
-                                        <div className="text-sm text-red-800">
-                                            <strong className="text-red-900">Rejection Reason:</strong> {selectedData.reason}
+                                        <div className="flex justify-between items-start">
+                                            <div className="text-sm text-red-800 flex-1">
+                                                <strong className="text-red-900">Rejection Reason:</strong> {selectedData.reason}
+                                            </div>
+                                            <Button
+                                                onClick={() => {
+                                                    const dayNumber = parseInt(selectedItem.split('-')[1]);
+                                                    handleReset(dayNumber);
+                                                }}
+                                                disabled={loading}
+                                                size="sm"
+                                                variant="outline"
+                                                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-900 ml-4"
+                                            >
+                                                <FiRefreshCw className="mr-2 h-4 w-4" />
+                                                Reset
+                                            </Button>
                                         </div>
                                     </div>
                                 )}
@@ -403,7 +439,7 @@ export default function StudentReports() {
                                                         }
                                                     }}
                                                     placeholder="Enter report URL"
-                                                    disabled={selectedData.report.status === 'submitted' || selectedData.report.status === 'approved' || selectedData.report.status === 'new' || (selectedData.report.status === 'rejected' && !resubmitMode[selectedData.day])}
+                                                    disabled={selectedData.report.status === 'submitted' || selectedData.report.status === 'approved' || selectedData.report.status === 'new' || (selectedData.report.status === 'rejected' && !resetMode[selectedData.day] && !resubmitMode[selectedData.day])}
                                                 />
                                             </div>
 
@@ -426,7 +462,7 @@ export default function StudentReports() {
                                             }
                                         }}
                                         placeholder="Enter LinkedIn post URL"
-                                        disabled={selectedData.linkedin.status === 'submitted' || selectedData.linkedin.status === 'approved' || selectedData.linkedin.status === 'new' || (selectedData.linkedin.status === 'rejected' && !resubmitMode[selectedData.day])}
+                                        disabled={selectedData.linkedin.status === 'submitted' || selectedData.linkedin.status === 'approved' || selectedData.linkedin.status === 'new' || (selectedData.linkedin.status === 'rejected' && !resetMode[selectedData.day] && !resubmitMode[selectedData.day])}
                                     />
                                 </div>
 
@@ -449,28 +485,13 @@ export default function StudentReports() {
                                             }
                                         }}
                                         placeholder="Enter YouTube video URL"
-                                        disabled={selectedData.youtube.status === 'submitted' || selectedData.youtube.status === 'approved' || selectedData.youtube.status === 'new' || (selectedData.youtube.status === 'rejected' && !resubmitMode[selectedData.day])}
+                                        disabled={selectedData.youtube.status === 'submitted' || selectedData.youtube.status === 'approved' || selectedData.youtube.status === 'new' || (selectedData.youtube.status === 'rejected' && !resetMode[selectedData.day] && !resubmitMode[selectedData.day])}
                                     />
                                 </div>
 
                                     <div className="flex space-x-3">
-                                        {/* Resubmit Button - only show for rejected submissions when not in resubmit mode */}
-                                            {selectedData.report.status === 'rejected' && !resubmitMode[selectedData.day] && (
-                                                <Button
-                                                    onClick={() => {
-                                                        const dayNumber = parseInt(selectedItem.split('-')[1]);
-                                                        handleResubmit(dayNumber);
-                                                    }}
-                                                    disabled={loading}
-                                                    variant="outline"
-                                                    className="border-orange-600 text-orange-600 hover:bg-orange-50 hover:text-orange-900"
-                                                >
-                                                    <FiUpload className="mr-2 h-5 w-5" />
-                                                    Resubmit
-                                                </Button>
-                                            )}
-
-                                            {/* Submit/Resubmit Button */}
+                                        {/* Submit/Resubmit Button */}
+                                        {(selectedData.report.status !== 'rejected' || resubmitMode[selectedData.day]) && (
                                                 <Button
                                                     onClick={() => {
                                                         const dayNumber = parseInt(selectedItem.split('-')[1]);
@@ -509,11 +530,6 @@ export default function StudentReports() {
                                                             <FiCheck className="mr-2 h-5 w-5" />
                                                             Resubmitted
                                                         </>
-                                                    ) : selectedData.report.status === 'rejected' ? (
-                                                        <>
-                                                            <FiX className="mr-2 h-5 w-5" />
-                                                            Rejected
-                                                        </>
                                                     ) : (
                                                         <>
                                                             <FiUpload className="mr-2 h-5 w-5" />
@@ -521,6 +537,7 @@ export default function StudentReports() {
                                                         </>
                                                     )}
                                                 </Button>
+                                            )}
                                             </div>
                                         </div>
                             </div>

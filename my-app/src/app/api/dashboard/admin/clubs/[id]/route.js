@@ -39,11 +39,6 @@ export async function DELETE(request, { params }) {
     try {
         const { id } = await params;
         
-        // Check if club has projects
-        const [projects] = await pool.execute('SELECT COUNT(*) as count FROM projects WHERE clubId = ?', [id]);
-        if (projects[0].count > 0) {
-            return NextResponse.json({ error: 'Cannot delete club with existing projects' }, { status: 400 });
-        }
         
         const [result] = await pool.execute('DELETE FROM clubs WHERE id = ?', [id]);
         

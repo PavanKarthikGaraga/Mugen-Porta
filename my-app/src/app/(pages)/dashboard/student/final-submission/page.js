@@ -81,7 +81,7 @@ export default function StudentFinalSubmission() {
                 fetchSubmission();
             } else {
                 const error = await response.json();
-                setMessage({ type: 'error', text: error.message || 'Failed to submit final project' });
+                setMessage({ type: 'error', text: error.message || 'Failed to submit final work' });
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Network error occurred' });
@@ -198,7 +198,7 @@ export default function StudentFinalSubmission() {
                                 disabled={submission.evaluated}
                             />
                         <p className="text-xs text-gray-500 mt-1">
-                            Provide a link to your final project report
+                            Provide a link to your final work report
                         </p>
                     </div>
                     </div>
@@ -234,7 +234,7 @@ export default function StudentFinalSubmission() {
                                 disabled={submission.evaluated}
                             />
                             <p className="text-xs text-gray-500 mt-1">
-                                Link to your project presentation video on YouTube
+                                Link to your work presentation video on YouTube
                             </p>
                         </div>
                     </div>
@@ -257,7 +257,7 @@ export default function StudentFinalSubmission() {
                                 disabled={submission.evaluated}
                             />
                             <p className="text-xs text-gray-500 mt-1">
-                                Link to your project presentation post on LinkedIn
+                                Link to your work presentation post on LinkedIn
                             </p>
                         </div>
                     </div>
@@ -303,9 +303,9 @@ export default function StudentFinalSubmission() {
                 <h3 className="text-lg font-medium text-yellow-800 mb-3">Important Notes</h3>
                 <ul className="list-disc list-inside text-yellow-700 space-y-2">
                     <li>Ensure all URLs are publicly accessible and will remain available for evaluation</li>
-                    <li>The final report should comprehensively document your entire project</li>
-                    <li>Presentation videos should clearly demonstrate your project and its outcomes</li>
-                    <li>LinkedIn posts should professionally showcase your project work</li>
+                    <li>The final report should comprehensively document your entire work</li>
+                    <li>Presentation videos should clearly demonstrate your work and its outcomes</li>
+                    <li>LinkedIn posts should professionally showcase your work</li>
                     <li>You can only submit once - make sure everything is correct before submitting</li>
                 </ul>
             </div>

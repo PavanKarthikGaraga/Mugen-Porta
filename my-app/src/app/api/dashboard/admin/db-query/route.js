@@ -119,11 +119,6 @@ export async function GET(request) {
                 description: 'List all active projects'
             },
             {
-                name: 'Students with project details',
-                query: 'SELECT s.name, s.email, p.name as project_name, c.name as club_name FROM students s LEFT JOIN projects p ON s.projectId = p.id LEFT JOIN clubs c ON s.clubId = c.id LIMIT 10;',
-                description: 'Get students with their project and club information'
-            },
-            {
                 name: 'Gender distribution',
                 query: 'SELECT gender, COUNT(*) as count FROM students GROUP BY gender;',
                 description: 'Student count by gender'

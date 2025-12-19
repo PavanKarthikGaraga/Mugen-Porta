@@ -81,16 +81,6 @@ export default function Confirmation({ formData, updateFormData }) {
                                 <p className="font-medium">{formData.selectedClub || "Not selected"}</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <p className="text-sm text-gray-600">Category:</p>
-                                <p className="font-medium">{formData.selectedCategory || "Not selected"}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-600">Project:</p>
-                                <p className="font-medium">{formData.projectName || "Not selected"}</p>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Address Information */}
