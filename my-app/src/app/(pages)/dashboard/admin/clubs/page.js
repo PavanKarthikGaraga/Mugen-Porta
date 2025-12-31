@@ -19,7 +19,7 @@ export default function ClubsPage() {
         description: '',
         domain: '',
         categories: [],
-    memberLimit: ''
+        memberLimit: ''
     });
     const [newCategory, setNewCategory] = useState('');
 
@@ -50,11 +50,11 @@ export default function ClubsPage() {
     const fetchClubs = async () => {
         try {
             const response = await fetch('/api/dashboard/admin/clubs');
-            
+
             if (await handleApiError(response)) {
                 return; // Error was handled
             }
-            
+
             if (response.ok) {
                 const data = await response.json();
                 setClubs(data);
@@ -70,7 +70,7 @@ export default function ClubsPage() {
         try {
             const url = editingClub ? `/api/dashboard/admin/clubs/${editingClub.id}` : '/api/dashboard/admin/clubs';
             const method = editingClub ? 'PUT' : 'POST';
-            
+
             const response = await fetch(url, {
                 method,
                 headers: {
@@ -191,8 +191,8 @@ export default function ClubsPage() {
                         >
                             <option value="">All Domains</option>
                             <option value="TEC">Technical (TEC)</option>
-                            <option value="LCH">Leadership & Community (LCH)</option>
-                            <option value="ESO">Entrepreneurship & Startup (ESO)</option>
+                            <option value="LCH">Liberal Arts, Creative Arts and Hobby  (LCH)</option>
+                            <option value="ESO">Extension & Society Outreach (ESO)</option>
                             <option value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</option>
                             <option value="HWB">Health & Well-being (HWB)</option>
                         </select>
@@ -228,7 +228,7 @@ export default function ClubsPage() {
                         <p className="mt-2 text-gray-600">Loading clubs...</p>
                     </div>
                 )}
-                
+
                 {!loading && filteredClubs.length === 0 && clubs.length === 0 && (
                     <div className="p-8 text-center">
                         <p className="text-gray-500">No clubs found. Create your first club!</p>

@@ -97,8 +97,8 @@ export default function LeadOverviewPage() {
 
     const domainLabels = {
         'TEC': 'Technical',
-        'LCH': 'Leadership & Community',
-        'ESO': 'Entrepreneurship & Startup',
+        'LCH': 'Liberal Arts, Creative Arts and Hobby ',
+        'ESO': 'Extension & Society Outreach',
         'IIE': 'Innovation, Incubation & Entrepreneurship',
         'HWB': 'Health & Well-being'
     };
@@ -130,8 +130,8 @@ export default function LeadOverviewPage() {
                                 </div>
                                 <Icon className={`h-8 w-8 ${stat.color === 'blue' ? 'text-blue-500' :
                                     stat.color === 'green' ? 'text-green-500' :
-                                    stat.color === 'purple' ? 'text-purple-500' :
-                                    stat.color === 'red' ? 'text-red-500' : 'text-gray-500'}`} />
+                                        stat.color === 'purple' ? 'text-purple-500' :
+                                            stat.color === 'red' ? 'text-red-500' : 'text-gray-500'}`} />
                             </div>
                         </div>
                     );
