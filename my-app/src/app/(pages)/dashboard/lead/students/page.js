@@ -96,8 +96,8 @@ export default function LeadStudents() {
 
     const categoryLabels = {
         'TEC': 'Technical',
-        'LCH': 'Leadership & Community',
-        'ESO': 'Entrepreneurship & Startup',
+        'LCH': 'Liberal Arts, Creative Arts and Hobby ',
+        'ESO': 'Extension & Society Outreach',
         'IIE': 'Innovation, Incubation & Entrepreneurship',
         'HWB': 'Health & Well-being'
     };
@@ -128,72 +128,72 @@ export default function LeadStudents() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <Label className="block text-sm font-medium mb-2">Search</Label>
-                        <div className="relative">
-                            <FiSearch className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                            <Input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search by name, username, or email"
-                                className="pl-10"
-                            />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <Label className="block text-sm font-medium mb-2">Search</Label>
+                            <div className="relative">
+                                <FiSearch className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                <Input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder="Search by name, username, or email"
+                                    className="pl-10"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <Label className="block text-sm font-medium mb-2">Year</Label>
+                            <Select
+                                value={filters.year}
+                                onValueChange={(value) => setFilters({ ...filters, year: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="All Years" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Years</SelectItem>
+                                    <SelectItem value="1st">1st Year</SelectItem>
+                                    <SelectItem value="2nd">2nd Year</SelectItem>
+                                    <SelectItem value="3rd">3rd Year</SelectItem>
+                                    <SelectItem value="4th">4th Year</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <Label className="block text-sm font-medium mb-2">Category</Label>
+                            <Select
+                                value={filters.category}
+                                onValueChange={(value) => setFilters({ ...filters, category: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="All Categories" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Categories</SelectItem>
+                                    <SelectItem value="TEC">Technical (TEC)</SelectItem>
+                                    <SelectItem value="LCH">Liberal Arts, Creative Arts and Hobby  (LCH)</SelectItem>
+                                    <SelectItem value="ESO">Extension & Society Outreach (ESO)</SelectItem>
+                                    <SelectItem value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</SelectItem>
+                                    <SelectItem value="HWB">Health & Well-being (HWB)</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
-                    <div>
-                        <Label className="block text-sm font-medium mb-2">Year</Label>
-                        <Select
-                            value={filters.year}
-                            onValueChange={(value) => setFilters({ ...filters, year: value })}
+                    <div className="mt-4 flex gap-2">
+                        <Button
+                            onClick={() => {
+                                setFilters({ year: 'all', category: 'all' });
+                                setSearchTerm('');
+                            }}
+                            variant="outline"
                         >
-                            <SelectTrigger>
-                                <SelectValue placeholder="All Years" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Years</SelectItem>
-                                <SelectItem value="1st">1st Year</SelectItem>
-                                <SelectItem value="2nd">2nd Year</SelectItem>
-                                <SelectItem value="3rd">3rd Year</SelectItem>
-                                <SelectItem value="4th">4th Year</SelectItem>
-                            </SelectContent>
-                        </Select>
+                            Clear Filters
+                        </Button>
                     </div>
-
-                    <div>
-                        <Label className="block text-sm font-medium mb-2">Category</Label>
-                        <Select
-                            value={filters.category}
-                            onValueChange={(value) => setFilters({ ...filters, category: value })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="All Categories" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Categories</SelectItem>
-                                <SelectItem value="TEC">Technical (TEC)</SelectItem>
-                                <SelectItem value="LCH">Leadership & Community (LCH)</SelectItem>
-                                <SelectItem value="ESO">Entrepreneurship & Startup (ESO)</SelectItem>
-                                <SelectItem value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</SelectItem>
-                                <SelectItem value="HWB">Health & Well-being (HWB)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                <div className="mt-4 flex gap-2">
-                    <Button
-                        onClick={() => {
-                            setFilters({ year: 'all', category: 'all' });
-                            setSearchTerm('');
-                        }}
-                        variant="outline"
-                    >
-                        Clear Filters
-                    </Button>
-                </div>
                 </CardContent>
             </Card>
 
