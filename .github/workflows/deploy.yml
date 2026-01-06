@@ -16,21 +16,21 @@ jobs:
     steps:
       - name: Pull latest code from main
         run: |
-          cd  /var/www/Mugen-Porta/my-app
+          cd  /var/www/Kepler-452b/my-app
           git fetch origin main
           git reset --hard origin/main
           git clean -fd
 
       - name: Install dependencies
         run: |
-          cd  /var/www/Mugen-Porta/my-app
+          cd  /var/www/Kepler-452b/my-app
           npm install
 
       - name: Build app
         run: |
-          cd /var/www/Mugen-Porta/my-app
+          cd /var/www/Kepler-452b/my-app
           npm run build
 
       - name: Restart PM2
         run: |
-          pm2 restart portal
+          pm2 restart sac
