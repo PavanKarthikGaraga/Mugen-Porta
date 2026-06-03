@@ -64,7 +64,7 @@ To run this project, you need to set up the following environment variables in y
     bun dev
     ```
 
-5.  Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5.  Open [http://localhost:3000](http://localhost:3000) with your browser to see  the result.
 
 ## Project Structure
 
