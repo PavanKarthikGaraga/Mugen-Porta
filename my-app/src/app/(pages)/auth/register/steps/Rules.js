@@ -1,7 +1,7 @@
 export default function Rules({ formData, updateFormData }) {
     return (
         <div className="bg-white p-5 md:p-6 max-w-none">
-            <h2 className="text-xl font-bold mb-5 text-center text-gray-800">General Guidelines & Rules for Students – AY 2025–26</h2>
+            <h2 className="text-xl font-bold mb-5 text-center text-gray-800">General Guidelines & Rules for Students – AY 2026–27</h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 text-sm">
                 {/* Registration & Participation */}
