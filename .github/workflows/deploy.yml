@@ -21,6 +21,14 @@ jobs:
           git reset --hard origin/main
           git clean -fd
 
+      - name: Verify file updated
+        run: |
+          echo "=== Git log (last 3) ==="
+          cd /var/www/Mugen-Porta
+          git log --oneline -3
+          echo "=== Overview.js content check ==="
+          grep -n "AY 20" /var/www/Mugen-Porta/my-app/src/app/\(pages\)/auth/register/steps/Overview.js
+
       - name: Install dependencies
         run: |
           cd /var/www/Mugen-Porta/my-app
