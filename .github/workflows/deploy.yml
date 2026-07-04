@@ -16,18 +16,22 @@ jobs:
     steps:
       - name: Pull latest code from main
         run: |
+          set -e
           cd /var/www/Mugen-Porta
+          echo "Current user: $(whoami)"
+          echo "Git remote: $(git remote -v)"
           git fetch origin main
           git reset --hard origin/main
           git clean -fd
+          echo "Git log after pull:"
+          git log --oneline -3
 
       - name: Verify file updated
         run: |
-          echo "=== Git log (last 3) ==="
-          cd /var/www/Mugen-Porta
-          git log --oneline -3
           echo "=== Overview.js content check ==="
-          grep -n "AY 20" /var/www/Mugen-Porta/my-app/src/app/\(pages\)/auth/register/steps/Overview.js
+          grep -n "AY 20\|Y2[2-6]" "/var/www/Mugen-Porta/my-app/src/app/(pages)/auth/register/steps/Overview.js"
+          echo "=== If you see AY 2025 above, git pull failed ==="
+          echo "=== If you see AY 2026 above, git pull worked ==="
 
       - name: Install dependencies
         run: |
