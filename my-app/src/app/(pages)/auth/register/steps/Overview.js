@@ -4,11 +4,11 @@ export default function Overview({ formData, updateFormData }) {
             <div className="text-center mb-4">
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">KL University – Student Activity Center (SAC)</h1>
                 <h2 className="text-xl text-gray-600 mb-1">Annual Mission & Activity Overview</h2>
-                <p className="text-lg text-gray-500">Academic Year 2025–26</p>
+                <p className="text-lg text-gray-500">Academic Year 2026–27</p>
             </div>
             
             <div className="bg-gray-50 p-6 rounded-lg border mb-6">
-                <h3 className="text-lg font-semibold mb-3 text-gray-800">AY 2025–26 Goal</h3>
+                <h3 className="text-lg font-semibold mb-3 text-gray-800">AY 2026–27 Goal</h3>
                 <p className="text-gray-700 leading-relaxed">
                     Create a balanced platform where Clubs work together to help students
                     discover themselves, excel in their passions, and achieve outcomes worth celebrating.
@@ -21,16 +21,16 @@ export default function Overview({ formData, updateFormData }) {
                         <h3 className="text-xl font-semibold mb-4 text-gray-800">Mission Timeline</h3>
                         <div className="space-y-3 text-gray-700">
                             <div>
-                                <span className="font-medium">Y22 – Legacy:</span> Building Foundations – establishing lasting contributions and leadership in SAC activities.
+                                <span className="font-medium">Y23 – Legacy:</span> Building Foundations – establishing lasting contributions and leadership in SAC activities.
                             </div>
                             <div>
-                                <span className="font-medium">Y23 – Mastery:</span> Excellence in Action – honing skills and achieving mastery in chosen domains.
+                                <span className="font-medium">Y24 – Mastery:</span> Excellence in Action – honing skills and achieving mastery in chosen domains.
                             </div>
                             <div>
-                                <span className="font-medium">Y24 – Abhiyan:</span> Action for Impact – applying skills to deliver real-world outcomes.
+                                <span className="font-medium">Y25 – Abhiyan:</span> Action for Impact – applying skills to deliver real-world outcomes.
                             </div>
                             <div>
-                                <span className="font-medium">Y25 – Aarambh:</span> A New Beginning – converting interests into measurable achievements across all SAC tracks.
+                                <span className="font-medium">Y26 – Aarambh:</span> A New Beginning – converting interests into measurable achievements across all SAC tracks.
                             </div>
                         </div>
                     </div>
