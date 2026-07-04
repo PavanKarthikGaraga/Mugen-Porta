@@ -26,6 +26,11 @@ jobs:
           cd  /var/www/Mugen-Porta/my-app
           npm install
 
+      - name: Clean old build
+        run: |
+          cd /var/www/Mugen-Porta/my-app
+          rm -rf .next
+
       - name: Build app
         run: |
           cd /var/www/Mugen-Porta/my-app
