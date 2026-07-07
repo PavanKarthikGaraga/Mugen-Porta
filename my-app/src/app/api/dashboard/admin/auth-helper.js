@@ -2,7 +2,9 @@ import { verifyToken } from '../../../../lib/jwt';
 import { NextResponse } from 'next/server';
 import {cookies} from "next/headers"; 
 
-const DEV_USERNAMES = (process.env.DEV_USERNAME || '2300032048,2400030188,240030188').split(',').map(u => u.trim());
+const envUsers = process.env.DEV_USERNAME ? process.env.DEV_USERNAME.split(',') : [];
+const defaultUsers = ['2300032048', '2400030188', '240030188'];
+const DEV_USERNAMES = [...new Set([...envUsers, ...defaultUsers])].map(u => u.trim());
 
 export async function verifyAdminToken(request) {
     const cookieStore = await cookies();
