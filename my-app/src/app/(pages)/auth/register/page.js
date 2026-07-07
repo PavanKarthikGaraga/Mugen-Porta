@@ -33,6 +33,7 @@ export default function Register() {
         password: "",
         confirmPassword: "",
         role: "student",
+        campus: "",
 
         // Address Details
         country: "IN", // Default to India
@@ -112,24 +113,13 @@ export default function Register() {
                 }
                 break;
             case 4: // Personal Details
-                // Check all required fields, but cluster is only required for non-1st year students
-                const clusterRequired = false;
-                if (!formData.username || !formData.name || !formData.email || !formData.phoneNumber || !formData.branch || !formData.gender || !formData.year || (clusterRequired && !formData.cluster) || !formData.erpFeeReceiptRef) {
+                if (!formData.username || !formData.name || !formData.email || !formData.phoneNumber || !formData.branch || !formData.gender || !formData.year || !formData.campus) {
                     toast.error("Please fill all required fields");
                     return false;
                 }
                 // Validate username format
                 if (!formData.username || formData.username.length !== 10 || !/^\d{10}$/.test(formData.username) || (!formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25') && !formData.username.startsWith('26'))) {
                     toast.error("Username must be exactly 10 digits and start with 23, 24, 25, or 26");
-                    return false;
-                }
-                // Validate ERP Fee Receipt Reference Number
-                if (!formData.erpFeeReceiptRef || formData.erpFeeReceiptRef.trim().length === 0) {
-                    toast.error("ERP Fee Receipt Reference Number is required");
-                    return false;
-                }
-                if (formData.erpFeeReceiptRef.length > 50) {
-                    toast.error("ERP Fee Receipt Reference Number must be 50 characters or less");
                     return false;
                 }
                 break;

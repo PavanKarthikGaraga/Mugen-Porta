@@ -16,6 +16,7 @@ export async function POST(req) {
             gender,
             cluster,
             year,
+            campus,
 
             // Address Details
             country,
@@ -34,7 +35,7 @@ export async function POST(req) {
             // Agreements
             agreedToTerms,
 
-            // ERP Fee Receipt
+            // ERP Fee Receipt (kept for backward compat but no longer required)
             erpFeeReceiptRef
         } = await req.json();
 
@@ -49,7 +50,7 @@ export async function POST(req) {
 
         // Validate required fields
         // Cluster is optional for all students
-        if (!username || !name || !email || !phoneNumber || !branch || !gender || !year) {
+        if (!username || !name || !email || !phoneNumber || !branch || !gender || !year || !campus) {
             return NextResponse.json(
                 { message: "All required personal details are required" },
                 { status: 400 }
@@ -88,20 +89,7 @@ export async function POST(req) {
             );
         }
 
-        // Validate ERP Fee Receipt Reference Number
-        if (!erpFeeReceiptRef || erpFeeReceiptRef.trim().length === 0) {
-            return NextResponse.json(
-                { message: "ERP Fee Receipt Reference Number is required" },
-                { status: 400 }
-            );
-        }
-
-        if (erpFeeReceiptRef.length > 50) {
-            return NextResponse.json(
-                { message: "ERP Fee Receipt Reference Number must be 50 characters or less" },
-                { status: 400 }
-            );
-        }
+        // ERP Fee Receipt is no longer required
 
         // Additional validations
         if (username.length > 10) {

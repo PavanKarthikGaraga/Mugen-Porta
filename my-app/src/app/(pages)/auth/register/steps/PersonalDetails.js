@@ -4,95 +4,80 @@ import { countryCodes } from "../../../../Data/coutries.js";
 export default function PersonalDetails({ formData, updateFormData }) {
 
     const validateUsername = (username) => {
-        if (!username) return false; // Don't allow empty
-        if (username.length !== 10) return false; // Must be exactly 10 characters
-        if (!/^\d{10}$/.test(username)) return false; // Must be all digits
-        if (!username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false; // Must start with 23, 24, 25, or 26
+        if (!username) return false;
+        if (username.length !== 10) return false;
+        if (!/^\d{10}$/.test(username)) return false;
+        if (!username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false;
         return true;
     };
 
     const validateUsernameForTyping = (username) => {
-        if (!username) return true; // Allow empty while typing
-        if (username.length > 10) return false; // Don't allow more than 10 characters
-        if (!/^\d*$/.test(username)) return false; // Must be all digits
-        
-        // If user has typed at least 2 characters, check the prefix
+        if (!username) return true;
+        if (username.length > 10) return false;
+        if (!/^\d*$/.test(username)) return false;
         if (username.length >= 2) {
             if (!username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false;
         }
-        
         return true;
     };
 
-    const isUsernameComplete = (username) => {
-        return validateUsername(username);
-    };
+    const isUsernameComplete = (username) => validateUsername(username);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        
+
         if (name === "username") {
-            // Validate username input for typing
-            if (value && !validateUsernameForTyping(value)) {
-                // Don't update if invalid
-                return;
-            }
-            // Auto-generate email when username changes
+            if (value && !validateUsernameForTyping(value)) return;
             const email = value ? `${value}@kluniversity.in` : "";
-            updateFormData({
-                [name]: value,
-                email: email
-            });
+            updateFormData({ [name]: value, email });
         } else if (name === "countryCode") {
-            // Store the country name instead of code
             const selectedCountry = countryCodes.find(c => c.dial_code === value);
-            updateFormData({
-                [name]: value,
-                countryName: selectedCountry ? selectedCountry.name : ""
-            });
+            updateFormData({ [name]: value, countryName: selectedCountry ? selectedCountry.name : "" });
         } else if (name === "year") {
-            // Update username prefix based on year selection
             let currentUsername = formData.username || "";
             if (value === "1st" && !currentUsername.startsWith("26")) {
-                // Replace first 2 digits with 26 for 1st year
-                currentUsername = currentUsername.length >= 2 ?
-                    "26" + currentUsername.substring(2) :
-                    "26" + currentUsername;
+                currentUsername = currentUsername.length >= 2 ? "26" + currentUsername.substring(2) : "26" + currentUsername;
             } else if (value === "2nd" && !currentUsername.startsWith("25")) {
-                // Replace first 2 digits with 25 for 2nd year
-                currentUsername = currentUsername.length >= 2 ?
-                    "25" + currentUsername.substring(2) :
-                    "25" + currentUsername;
+                currentUsername = currentUsername.length >= 2 ? "25" + currentUsername.substring(2) : "25" + currentUsername;
             } else if (value === "3rd" && !currentUsername.startsWith("24")) {
-                // Replace first 2 digits with 24 for 3rd year
-                currentUsername = currentUsername.length >= 2 ?
-                    "24" + currentUsername.substring(2) :
-                    "24" + currentUsername;
+                currentUsername = currentUsername.length >= 2 ? "24" + currentUsername.substring(2) : "24" + currentUsername;
             } else if (value === "4th" && !currentUsername.startsWith("23")) {
-                // Replace first 2 digits with 23 for 4th year
-                currentUsername = currentUsername.length >= 2 ?
-                    "23" + currentUsername.substring(2) :
-                    "23" + currentUsername;
+                currentUsername = currentUsername.length >= 2 ? "23" + currentUsername.substring(2) : "23" + currentUsername;
             }
-            
             const email = currentUsername ? `${currentUsername}@kluniversity.in` : "";
-            updateFormData({
-                [name]: value,
-                username: currentUsername,
-                email: email
-            });
+            updateFormData({ [name]: value, username: currentUsername, email });
         } else {
-            updateFormData({
-                [name]: value
-            });
+            updateFormData({ [name]: value });
         }
     };
 
     return (
         <div className="bg-white p-6 md:p-8 max-w-none">
             <h2 className="text-2xl font-bold mb-6 text-center">Personal Details</h2>
-            
+
             <div className="grid gap-6 lg:grid-cols-3 md:grid-cols-2">
+
+                {/* Campus - mandatory, before Academic Year */}
+                <div>
+                    <label htmlFor="campus" className="block text-sm font-medium text-gray-700 mb-2">
+                        Campus *
+                    </label>
+                    <select
+                        id="campus"
+                        name="campus"
+                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                        value={formData.campus || ""}
+                        onChange={handleInputChange}
+                        required
+                    >
+                        <option value="">Select Campus</option>
+                        <option value="KLU - Vaddeswaram">KLU - Vaddeswaram</option>
+                        <option value="KLH - Bachupally">KLH - Bachupally</option>
+                        <option value="KLH - Bowrampet">KLH - Bowrampet</option>
+                    </select>
+                </div>
+
+                {/* Academic Year */}
                 <div>
                     <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-2">
                         Academic Year *
@@ -113,6 +98,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                     </select>
                 </div>
 
+                {/* Gender */}
                 <div>
                     <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
                         Gender *
@@ -132,6 +118,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                     </select>
                 </div>
 
+                {/* Username */}
                 <div className="lg:col-span-2">
                     <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
                         Username *
@@ -163,12 +150,11 @@ export default function PersonalDetails({ formData, updateFormData }) {
                                 : 'Username must contain only digits'}
                         </p>
                     ) : (
-                        <p className="text-xs text-gray-500 mt-1">
-                            Must start with 23, 24, 25, or 26 and be exactly 10 digits long
-                        </p>
+                        <p className="text-xs text-gray-500 mt-1">Must start with 23, 24, 25, or 26 and be exactly 10 digits long</p>
                     )}
                 </div>
 
+                {/* Full Name */}
                 <div className="lg:col-span-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                         Full Name *
@@ -185,6 +171,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                     />
                 </div>
 
+                {/* Branch */}
                 <div>
                     <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">
                         Branch *
@@ -204,26 +191,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                     </select>
                 </div>
 
-                {/* Cluster field - always rendered to prevent layout shifts */}
-                <div>
-                    <label htmlFor="cluster" className="block text-sm font-medium text-gray-700 mb-2">
-                        Cluster <span className="text-gray-400 text-xs">(optional)</span>
-                    </label>
-                    <select
-                        id="cluster"
-                        name="cluster"
-                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
-                        value={formData.cluster || ""}
-                        onChange={handleInputChange}
-                        disabled={false}
-                        required={false}
-                    >
-                        <option value="">Select Cluster</option>
-                        <option value="1">Cluster 1</option>
-                        <option value="2">Cluster 2</option>
-                    </select>
-                </div>
-
+                {/* Email (auto-generated) */}
                 <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                         Email Address *
@@ -241,6 +209,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                     <p className="text-xs text-gray-500 mt-1">Email is auto-generated based on username</p>
                 </div>
 
+                {/* Phone Number */}
                 <div className="lg:col-span-2">
                     <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
                         Phone Number *
@@ -274,28 +243,11 @@ export default function PersonalDetails({ formData, updateFormData }) {
                     </div>
                 </div>
 
-                <div className="lg:col-span-2">
-                    <label htmlFor="erpFeeReceiptRef" className="block text-sm font-medium text-gray-700 mb-2">
-                        ERP Fee Receipt Reference Number *
-                    </label>
-                    <input
-                        type="text"
-                        id="erpFeeReceiptRef"
-                        name="erpFeeReceiptRef"
-                        placeholder="Enter your ERP fee receipt reference number"
-                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                        value={formData.erpFeeReceiptRef || ""}
-                        onChange={handleInputChange}
-                        maxLength={50}
-                        required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Enter the reference number from your ERP fee receipt (max 50 characters)</p>
-                </div>
             </div>
 
             <div className="mt-6 bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-blue-800">
-                    <strong>Note:</strong> Fields marked with * are required. Make sure all information is accurate 
+                    <strong>Note:</strong> Fields marked with * are required. Make sure all information is accurate
                     as it will be used for program communications and certificates.
                 </p>
             </div>
