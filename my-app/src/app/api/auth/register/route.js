@@ -47,11 +47,10 @@ export async function POST(req) {
         // Simplified registration: no projects or categories
 
         // Validate required fields
-        // Cluster is optional for 1st year (Y25) students
-        const clusterRequired = !isY25Student;
-        if (!username || !name || !email || !phoneNumber || !branch || !gender || !year || (clusterRequired && !cluster)) {
+        // Cluster is optional for all students
+        if (!username || !name || !email || !phoneNumber || !branch || !gender || !year) {
             return NextResponse.json(
-                { message: clusterRequired && !cluster ? "Cluster is required for your year" : "All required personal details are required" },
+                { message: "All required personal details are required" },
                 { status: 400 }
             );
         }
@@ -222,7 +221,7 @@ export async function POST(req) {
                     username,
                     selectedClub,                          // All students can have clubs
                     name, email, branch, gender,
-                    isY25Student ? null : cluster, // Cluster is null for Y25 (1st year) students
+                    cluster || null, // Cluster is optional for all students
                     year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
                     countryName || country, state, district, pincode, selectedDomain,

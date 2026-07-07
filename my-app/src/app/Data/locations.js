@@ -64,7 +64,12 @@ export const boyHostels = [
     "hostelName": "Kanchanaganga",
     "Location of the Hostel": "In Campus",
     "Hostel Land line Number": "08645-350222"
-},
+  },
+  {
+    "S.No": "11",
+    "hostelName": "Lotus",
+    "Location of the Hostel": "In Campus"
+  },
 ]
 
 export const busRoutes = [
