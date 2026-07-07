@@ -45,8 +45,9 @@ export default function Register() {
         busRoute: "",
 
         // Club Selection
-        selectedClub: "",
         selectedDomain: "",
+        selectedClub: "",
+        pathway: "",
 
         // Undertaking
         agreedToTerms: false,
@@ -125,7 +126,11 @@ export default function Register() {
                 break;
             case 5: // Club Selection
                 if (!formData.selectedClub || !formData.selectedDomain) {
-                    toast.error("Please select a domain and club");
+                    toast.error("Please select both a domain and a club");
+                    return false;
+                }
+                if (formData.selectedClub === "ESO01" && !formData.pathway) {
+                    toast.error("Please select a pathway for SVR club");
                     return false;
                 }
                 break;

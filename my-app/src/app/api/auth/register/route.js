@@ -31,6 +31,7 @@ export async function POST(req) {
             // Club Selection
             selectedClub,
             selectedDomain,
+            pathway,
 
             // Agreements
             agreedToTerms,
@@ -182,7 +183,14 @@ export async function POST(req) {
         // Get connection for transaction
         const connection = await pool.getConnection();
 
-        // Start transaction
+        if (selectedClub === "ESO01" && !pathway) {
+            return NextResponse.json(
+                { message: "Pathway is required for SVR club" },
+                { status: 400 }
+            );
+        }
+
+        // Start database transaction
         await connection.beginTransaction();
 
         try {
@@ -206,8 +214,8 @@ export async function POST(req) {
                 `INSERT INTO students (
                     username, clubId, name, email, branch, gender,
                     campus, year, phoneNumber, residenceType, hostelName, busRoute,
-                    country, state, district, pincode, selectedDomain
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    country, state, district, pincode, selectedDomain, pathway
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
                     selectedClub,                          // All students can have clubs
@@ -215,7 +223,8 @@ export async function POST(req) {
                     campus,
                     year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
-                    countryName || country, state, district, pincode, selectedDomain
+                    countryName || country, state, district, pincode, selectedDomain,
+                    pathway || null
                 ]
             );
 

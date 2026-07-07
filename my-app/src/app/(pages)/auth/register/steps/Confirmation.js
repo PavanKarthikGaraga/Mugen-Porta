@@ -75,6 +75,12 @@ export default function Confirmation({ formData, updateFormData }) {
                                 <p className="text-sm text-gray-600">Club:</p>
                                 <p className="font-medium">{formData.selectedClub || "Not selected"}</p>
                             </div>
+                            {formData.selectedClub === "ESO01" && (
+                                <div className="col-span-2 mt-2">
+                                    <p className="text-sm text-gray-600">Pathway:</p>
+                                    <p className="font-medium">{formData.pathway || "Not selected"}</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 

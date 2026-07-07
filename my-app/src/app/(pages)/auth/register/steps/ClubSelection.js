@@ -66,13 +66,60 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
         setSelectedClub(clubId);
         updateFormData({
             selectedClub: clubId,
+            pathway: "" // reset pathway on club change
         });
     };
 
+    // Pathways for SVR (ESO01)
+    const svrPathways = [
+        {
+            group: "Community Engagement & Service Learning",
+            options: ["Community needs assessment", "Volunteerism", "Civic engagement", "Service-learning projects"]
+        },
+        {
+            group: "Smart Village Revolution & Rural Development",
+            options: ["Village adoption", "Rural infrastructure", "Sustainable village planning", "Rural innovation"]
+        },
+        {
+            group: "Swachh Bharat, Water, Sanitation & Waste Management",
+            options: ["Solid waste management", "Plastic-free villages", "Water conservation", "Sanitation campaigns"]
+        },
+        {
+            group: "Health, Nutrition & Community Well-being",
+            options: ["Health awareness", "Nutrition", "Preventive healthcare", "Public health campaigns"]
+        },
+        {
+            group: "Education, Literacy & Digital Inclusion",
+            options: ["Digital literacy", "School transformation", "Adult literacy", "STEM education", "Educational outreach"]
+        },
+        {
+            group: "Women Empowerment, Child Development & Social Inclusion",
+            options: ["Gender equality", "Child rights", "Self-help groups", "Financial inclusion", "Inclusive community development"]
+        },
+        {
+            group: "Environment, Climate Action & Biodiversity",
+            options: ["Tree plantation", "Biodiversity conservation", "Climate resilience", "Sustainable lifestyles"]
+        },
+        {
+            group: "Livelihoods, Skill Development & Rural Entrepreneurship",
+            options: ["Skill training", "Local enterprises", "Agriculture-based livelihoods", "Rural employment"]
+        },
+        {
+            group: "Disaster Preparedness, Humanitarian Response & Community Resilience",
+            options: ["Disaster management", "First response", "Relief coordination", "Climate disaster preparedness"]
+        },
+        {
+            group: "Global Citizenship, SDGs & Social Innovation Fellowship",
+            options: ["SDG implementation", "Social innovation", "Public policy for communities", "Global citizenship", "Community leadership fellowship"]
+        }
+    ];
+
     // Check if current selection meets constraints for proceeding
     const canProceed = React.useMemo(() => {
-        return selectedClub && selectedDomain;
-    }, [selectedClub, selectedDomain]);
+        if (!selectedClub || !selectedDomain) return false;
+        if (selectedClub === "ESO01" && !formData.pathway) return false;
+        return true;
+    }, [selectedClub, selectedDomain, formData.pathway]);
 
     // Communicate validation status to parent component
     React.useEffect(() => {
@@ -150,6 +197,32 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                         )}
                     </div>
 
+                    {/* Pathway Selection for SVR (ESO01) */}
+                    {selectedClub === "ESO01" && (
+                        <div className="mt-6">
+                            <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                Select SVR Pathway *
+                            </label>
+                            <select
+                                value={formData.pathway || ""}
+                                onChange={(e) => updateFormData({ pathway: e.target.value })}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                required
+                            >
+                                <option value="">Choose a pathway...</option>
+                                {svrPathways.map((group, idx) => (
+                                    <optgroup key={idx} label={group.group}>
+                                        {group.options.map((option, optIdx) => (
+                                            <option key={optIdx} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </optgroup>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
                     {/* Selection Summary */}
                     {(formData.selectedClub || selectedDomain) && (
                         <div className={`mt-6 p-4 rounded-lg border ${
@@ -168,6 +241,9 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                 )}
                                 {formData.selectedClub && (
                                     <div><span className="font-medium">Club:</span> {availableClubs.find(c => c.id === formData.selectedClub)?.name}</div>
+                                )}
+                                {formData.selectedClub === "ESO01" && formData.pathway && (
+                                    <div><span className="font-medium">Pathway:</span> {formData.pathway}</div>
                                 )}
                                 <div className={`mt-2 font-medium ${
                                     canProceed ? 'text-green-700' : 'text-red-700'
