@@ -85,7 +85,17 @@ export default function StudentClubDetailsPage() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Domain</label>
-                                <p className="text-gray-700">{clubData.selectedDomain || 'N/A'}</p>
+                                <p className="text-gray-700">
+                                    {clubData.domain
+                                        ? {
+                                            TEC: "Technical",
+                                            LCH: "Literary, Cultural & Heritage",
+                                            ESO: "Extension & Social Outreach",
+                                            IIE: "Innovation, Incubation & Entrepreneurship",
+                                            HWB: "Health & Well-being",
+                                          }[clubData.domain] || clubData.domain
+                                        : "N/A"}
+                                </p>
                             </div>
 
                         </div>
