@@ -77,7 +77,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
             options: ["Community needs assessment", "Volunteerism", "Civic engagement", "Service-learning projects"]
         },
         {
-            group: "Smart Village Revolution & Rural Development",
+            group: "Rural Development",
             options: ["Village adoption", "Rural infrastructure", "Sustainable village planning", "Rural innovation"]
         },
         {
