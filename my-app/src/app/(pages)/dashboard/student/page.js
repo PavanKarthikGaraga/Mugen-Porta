@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 export default function StudentOverviewPage() {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [dots, setDots] = useState("");
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -23,14 +22,6 @@ export default function StudentOverviewPage() {
         fetchUser();
     }, []);
 
-    // Animated ellipsis
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
-        }, 500);
-        return () => clearInterval(interval);
-    }, []);
-
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -39,183 +30,97 @@ export default function StudentOverviewPage() {
         );
     }
 
-    return (
-        <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-12">
-            {/* Outer glow card */}
-            <div
-                className="w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl"
-                style={{
-                    background: "linear-gradient(135deg, #1a1a1a 0%, #2d0a0a 50%, #1a1a1a 100%)",
-                    border: "1px solid rgba(151,0,3,0.4)",
-                    boxShadow: "0 0 60px rgba(151,0,3,0.2), 0 25px 50px rgba(0,0,0,0.5)",
-                }}
-            >
-                {/* Top accent bar */}
-                <div
-                    className="h-1 w-full"
-                    style={{
-                        background: "linear-gradient(90deg, transparent, rgb(151,0,3), transparent)",
-                    }}
-                />
+    const firstName = userData?.name?.split(" ")[0] || "Student";
 
-                <div className="p-10 flex flex-col items-center text-center">
-                    {/* Animated gear / construction icon */}
-                    <div className="relative mb-8">
+    return (
+        <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gray-50">
+            <div className="w-full max-w-lg">
+
+                {/* Card */}
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+
+                    {/* Red top bar */}
+                    <div className="h-1.5 w-full" style={{ background: "rgb(151,0,3)" }} />
+
+                    <div className="px-10 py-12 text-center">
+
+                        {/* Icon */}
                         <div
-                            className="w-24 h-24 rounded-full flex items-center justify-center"
-                            style={{
-                                background: "rgba(151,0,3,0.15)",
-                                border: "2px solid rgba(151,0,3,0.4)",
-                            }}
+                            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+                            style={{ backgroundColor: "rgba(151,0,3,0.08)", border: "1.5px solid rgba(151,0,3,0.2)" }}
                         >
                             <svg
-                                className="w-12 h-12"
-                                style={{
-                                    color: "rgb(151,0,3)",
-                                    animation: "spin 6s linear infinite",
-                                }}
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-9 h-9"
                                 fill="none"
                                 viewBox="0 0 24 24"
-                                stroke="currentColor"
+                                stroke="rgb(151,0,3)"
                                 strokeWidth={1.5}
                             >
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
-                                    d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z"
-                                />
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z"
                                 />
                             </svg>
                         </div>
-                        {/* Ping ring */}
-                        <span
-                            className="absolute top-0 left-0 w-24 h-24 rounded-full opacity-30"
-                            style={{
-                                border: "2px solid rgb(151,0,3)",
-                                animation: "ping 2s cubic-bezier(0, 0, 0.2, 1) infinite",
-                            }}
-                        />
-                    </div>
 
-                    {/* Greeting */}
-                    {userData?.name && (
-                        <p
-                            className="text-sm font-semibold uppercase tracking-widest mb-2"
-                            style={{ color: "rgba(151,0,3,0.9)" }}
-                        >
-                            Hey, {userData.name.split(" ")[0]} 👋
+                        {/* Greeting */}
+                        <p className="text-sm font-semibold uppercase tracking-widest mb-2" style={{ color: "rgb(151,0,3)" }}>
+                            Welcome, {firstName}
                         </p>
-                    )}
 
-                    {/* Main heading */}
-                    <h1
-                        className="text-4xl font-extrabold mb-4 leading-tight"
-                        style={{
-                            background: "linear-gradient(135deg, #ffffff 0%, #cccccc 100%)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                        }}
-                    >
-                        Dashboard Under
-                        <br />
-                        Development
-                    </h1>
+                        {/* Heading */}
+                        <h1 className="text-3xl font-bold text-gray-900 mb-3 leading-snug">
+                            Dashboard Under Development
+                        </h1>
 
-                    {/* Animated status line */}
-                    <div
-                        className="flex items-center gap-2 mb-6 px-4 py-2 rounded-full"
-                        style={{
-                            background: "rgba(151,0,3,0.12)",
-                            border: "1px solid rgba(151,0,3,0.3)",
-                        }}
-                    >
-                        <span
-                            className="w-2 h-2 rounded-full"
-                            style={{
-                                backgroundColor: "rgb(151,0,3)",
-                                animation: "pulse 1.5s ease-in-out infinite",
-                            }}
-                        />
-                        <span className="text-sm font-medium" style={{ color: "rgb(200,200,200)" }}>
-                            Building something great{dots}
-                        </span>
-                    </div>
+                        {/* Subtitle */}
+                        <p className="text-gray-500 text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+                            We&apos;re setting up your student portal for the new academic year.
+                            It will go live shortly with everything you need.
+                        </p>
 
-                    {/* Message */}
-                    <p
-                        className="text-base leading-relaxed mb-8 max-w-md"
-                        style={{ color: "rgba(180,180,180,0.85)" }}
-                    >
-                        Your student dashboard is currently being set up for the new academic year.
-                        It will go live soon with all your club details, submissions, and activity
-                        reports. Stay tuned!
-                    </p>
+                        {/* Divider */}
+                        <div className="border-t border-gray-100 mb-8" />
 
-                    {/* Divider */}
-                    <div
-                        className="w-full h-px mb-8"
-                        style={{
-                            background:
-                                "linear-gradient(90deg, transparent, rgba(151,0,3,0.5), transparent)",
-                        }}
-                    />
+                        {/* Coming soon features */}
+                        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Coming soon</p>
+                        <div className="grid grid-cols-2 gap-3 mb-8">
+                            {[
+                                { icon: "📋", label: "Club Details" },
+                                { icon: "📝", label: "Submissions" },
+                                { icon: "📊", label: "Activity Reports" },
+                                { icon: "🏆", label: "Activity Logs" },
+                            ].map((item) => (
+                                <div
+                                    key={item.label}
+                                    className="flex items-center gap-2.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-100"
+                                >
+                                    <span className="text-lg">{item.icon}</span>
+                                    <span className="text-sm font-medium text-gray-600">{item.label}</span>
+                                </div>
+                            ))}
+                        </div>
 
-                    {/* Info chips */}
-                    <div className="flex flex-wrap justify-center gap-3 mb-8">
-                        {[
-                            "📋 Club Details",
-                            "📝 Submissions",
-                            "📊 Reports",
-                            "🏆 Activity Logs",
-                        ].map((item) => (
-                            <span
-                                key={item}
-                                className="text-xs font-medium px-3 py-1.5 rounded-full"
-                                style={{
-                                    background: "rgba(255,255,255,0.06)",
-                                    border: "1px solid rgba(255,255,255,0.1)",
-                                    color: "rgba(200,200,200,0.8)",
-                                }}
-                            >
-                                {item}
+                        {/* Footer note */}
+                        <p className="text-xs text-gray-400">
+                            For queries, contact the{" "}
+                            <span className="font-semibold" style={{ color: "rgb(151,0,3)" }}>
+                                SAC Activities Team
                             </span>
-                        ))}
+                        </p>
                     </div>
 
-                    {/* Footer note */}
-                    <p className="text-xs" style={{ color: "rgba(120,120,120,0.8)" }}>
-                        For any queries, reach out to the{" "}
-                        <span style={{ color: "rgb(151,0,3)" }}>SAC Activities Team</span>
-                    </p>
+                    {/* Red bottom bar */}
+                    <div className="h-1.5 w-full" style={{ background: "rgb(151,0,3)" }} />
                 </div>
 
-                {/* Bottom accent bar */}
-                <div
-                    className="h-1 w-full"
-                    style={{
-                        background: "linear-gradient(90deg, transparent, rgb(151,0,3), transparent)",
-                    }}
-                />
+                {/* Below card */}
+                <p className="text-center text-xs text-gray-400 mt-5">
+                    Designed &amp; Developed by Pavan Karthik Garaga &nbsp;|&nbsp; ZeroOne CodeClub
+                </p>
             </div>
-
-            {/* Keyframe styles injected inline */}
-            <style>{`
-                @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-                @keyframes ping {
-                    75%, 100% { transform: scale(1.8); opacity: 0; }
-                }
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.3; }
-                }
-            `}</style>
         </div>
     );
 }
