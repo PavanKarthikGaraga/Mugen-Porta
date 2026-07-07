@@ -49,6 +49,7 @@ export async function GET(request) {
         const residenceType = searchParams.get('residenceType')?.trim() || '';
         const clubId = searchParams.get('clubId')?.trim() || '';
         const username = searchParams.get('username')?.trim() || '';
+        const campus = searchParams.get('campus')?.trim() || '';
 
         const offset = all ? 0 : (page - 1) * limit;
         const actualLimit = all ? 10000 : limit; // Large limit for "all" case
@@ -132,6 +133,11 @@ export async function GET(request) {
             queryParams.push(clubId);
         }
 
+        if (campus && campus.length > 0) {
+            whereConditions.push('s.campus = ?');
+            queryParams.push(campus);
+        }
+
         const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
 
         // Get total count
@@ -156,6 +162,7 @@ export async function GET(request) {
                 c.name as clubName,
                 s.state,
                 s.district,
+                s.campus,
                 -- External submissions
                 ses.fr as final_report, ses.fyt_l as final_youtube, ses.flk_l as final_linkedin,
                 -- External marks

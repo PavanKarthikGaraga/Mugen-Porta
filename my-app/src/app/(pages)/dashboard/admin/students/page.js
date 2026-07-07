@@ -12,7 +12,8 @@ export default function AdminStudents() {
         domain: "",
         year: "",
         residenceType: "",
-        clubId: ""
+        clubId: "",
+        campus: ""
     });
     const [pagination, setPagination] = useState({
         page: 1,
@@ -34,7 +35,8 @@ export default function AdminStudents() {
                 domain: filters.domain,
                 year: filters.year,
                 residenceType: filters.residenceType,
-                clubId: filters.clubId
+                clubId: filters.clubId,
+                campus: filters.campus
             });
 
             const response = await fetch(`/api/dashboard/admin/students?${params}`);
@@ -113,7 +115,8 @@ export default function AdminStudents() {
                 domain: filters.domain,
                 year: filters.year,
                 residenceType: filters.residenceType,
-                clubId: filters.clubId
+                clubId: filters.clubId,
+                campus: filters.campus
             });
 
             // Fetch all students with current filters applied
@@ -128,7 +131,7 @@ export default function AdminStudents() {
 
             // Create CSV content
             const headers = [
-                'ID', 'Username', 'Name', 'Gender', 'Year', 'Phone',
+                'ID', 'Username', 'Name', 'Gender', 'Year', 'Campus', 'Phone',
                 'Residence Type', 'Hostel Name', 'Domain', 'Project ID', 'Club', 'State', 'District'
             ];
 
@@ -140,6 +143,7 @@ export default function AdminStudents() {
                     `"${student.name}"`,
                     student.gender,
                     student.year,
+                    `"${student.campus || 'N/A'}"`,
                     student.phoneNumber,
                     student.residenceType,
                     `"${student.hostelName || 'N/A'}"`,
@@ -210,7 +214,7 @@ export default function AdminStudents() {
 
             {/* Search and Filters */}
             <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                     {/* Search */}
                     <div className="lg:col-span-1">
                         <div className="relative">
@@ -223,6 +227,20 @@ export default function AdminStudents() {
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                             />
                         </div>
+                    </div>
+
+                    {/* Campus Filter */}
+                    <div>
+                        <select
+                            value={filters.campus}
+                            onChange={(e) => setFilters({...filters, campus: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                            <option value="">All Campuses</option>
+                            <option value="KLU - Vaddeswaram">KLU - Vaddeswaram</option>
+                            <option value="KLH - Bachupally">KLH - Bachupally</option>
+                            <option value="KLH - Bowrampet">KLH - Bowrampet</option>
+                        </select>
                     </div>
 
                     {/* Domain Filter */}

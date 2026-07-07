@@ -203,18 +203,17 @@ export async function POST(req) {
             const [studentResult] = await connection.execute(
                 `INSERT INTO students (
                     username, clubId, name, email, branch, gender,
-                    cluster, year, phoneNumber, residenceType, hostelName, busRoute,
-                    country, state, district, pincode, selectedDomain, erpFeeReceiptRef
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    campus, year, phoneNumber, residenceType, hostelName, busRoute,
+                    country, state, district, pincode, selectedDomain
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
                     selectedClub,                          // All students can have clubs
                     name, email, branch, gender,
-                    cluster || null, // Cluster is optional for all students
+                    campus,
                     year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
-                    countryName || country, state, district, pincode, selectedDomain,
-                    erpFeeReceiptRef.trim() // ERP Fee Receipt Reference Number
+                    countryName || country, state, district, pincode, selectedDomain
                 ]
             );
 
