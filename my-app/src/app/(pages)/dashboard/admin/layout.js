@@ -49,7 +49,7 @@ export default function AdminDashboardLayout({ children }) {
                     }
 
                     // Check if user has dev access (specific username from env or default)
-                    const devUsernames = (process.env.NEXT_PUBLIC_DEV_USERNAME || '2300032048,2400030188').split(',').map(u => u.trim());
+                    const devUsernames = (process.env.NEXT_PUBLIC_DEV_USERNAME || '2300032048,2400030188,240030188').split(',').map(u => u.trim());
                     setHasDevAccess(devUsernames.includes(username));
                 }
             } catch (error) {

@@ -26,7 +26,7 @@ export default function EmailQueuePage() {
 
             if (response.ok) {
                 const data = await response.json();
-                const devUsernames = (process.env.NEXT_PUBLIC_DEV_USERNAME || '2300032048,2400030188').split(',').map(u => u.trim());
+                const devUsernames = (process.env.NEXT_PUBLIC_DEV_USERNAME || '2300032048,2400030188,240030188').split(',').map(u => u.trim());
                 const hasDevAccess = devUsernames.includes(data.user.username);
                 setHasAccess(hasDevAccess);
                 
