@@ -38,11 +38,12 @@ export async function POST(req) {
             erpFeeReceiptRef
         } = await req.json();
 
-        // Check if it's Y22, Y23, Y24 or Y25 student based on username
+        // Check if it's Y22, Y23, Y24, Y25 or Y26 student based on username
+        const isY22Student = username.startsWith('22');
+        const isY23Student = username.startsWith('23');
         const isY24Student = username.startsWith('24');
         const isY25Student = username.startsWith('25');
-        const isY23Student = username.startsWith('23');
-        const isY22Student = username.startsWith('22');
+        const isY26Student = username.startsWith('26');
 
         // Simplified registration: no projects or categories
 
@@ -64,9 +65,9 @@ export async function POST(req) {
 
         // Validation based on student year - unified logic matching frontend
 
-        if (!isY22Student && !isY23Student && !isY24Student && !isY25Student) {
+        if (!isY22Student && !isY23Student && !isY24Student && !isY25Student && !isY26Student) {
             return NextResponse.json(
-                { message: "Invalid username format. Must start with 22, 23, 24, or 25" },
+                { message: "Invalid username format. Must start with 22, 23, 24, 25, or 26" },
                 { status: 400 }
             );
         }
@@ -256,7 +257,8 @@ export async function POST(req) {
                 isY22Student,
                 isY23Student,
                 isY24Student,
-                isY25Student
+                isY25Student,
+                isY26Student
             );
 
             // Log email result but don't fail registration if email queuing fails
