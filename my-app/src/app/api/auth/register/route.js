@@ -99,14 +99,16 @@ export async function POST(req) {
             );
         }
 
-        if (residenceType === "Hostel" && !hostelName) {
+        const isKLHCampus = campus === "KLH - Bachupally" || campus === "KLH - Bowrampet";
+
+        if (residenceType === "Hostel" && !hostelName && !isKLHCampus) {
             return NextResponse.json(
                 { message: "Hostel name is required for hostel residents" },
                 { status: 400 }
             );
         }
 
-        if (residenceType === "Day Scholar" && !busRoute) {
+        if (residenceType === "Day Scholar" && !busRoute && !isKLHCampus) {
             return NextResponse.json(
                 { message: "Bus route is required for day scholars" },
                 { status: 400 }
