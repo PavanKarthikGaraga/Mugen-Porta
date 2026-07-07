@@ -49,8 +49,8 @@ export default function AdminDashboardLayout({ children }) {
                     }
 
                     // Check if user has dev access (specific username from env or default)
-                    const devUsername = process.env.DEV_USERNAME || '2300032048';
-                    setHasDevAccess(username === devUsername);
+                    const devUsernames = (process.env.NEXT_PUBLIC_DEV_USERNAME || '2300032048,2400030188').split(',').map(u => u.trim());
+                    setHasDevAccess(devUsernames.includes(username));
                 }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);

@@ -2,7 +2,7 @@ import { verifyToken } from '../../../../lib/jwt';
 import { NextResponse } from 'next/server';
 import {cookies} from "next/headers"; 
 
-const DEV_USERNAME = process.env.DEV_USERNAME || '2300032048';
+const DEV_USERNAMES = (process.env.DEV_USERNAME || '2300032048,2400030188').split(',').map(u => u.trim());
 
 export async function verifyAdminToken(request) {
     const cookieStore = await cookies();
@@ -64,8 +64,8 @@ export async function verifyDevAccess(request) {
         return authResult;
     }
 
-    // Check if user has dev access (specific username)
-    if (authResult.payload.username !== DEV_USERNAME) {
+    // Check if user has dev access (specific usernames)
+    if (!DEV_USERNAMES.includes(authResult.payload.username)) {
         return {
             success: false,
             response: NextResponse.json(
