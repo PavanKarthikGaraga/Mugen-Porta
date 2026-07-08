@@ -17,6 +17,7 @@ export async function POST(req) {
             cluster,
             year,
             campus,
+            careerChoice,
 
             // Address Details
             country,
@@ -101,7 +102,7 @@ export async function POST(req) {
         }
 
         // Determine if user is from KLH campuses to conditionally require hostel/bus fields
-        const isKLHCampus = campus === "KLH - Bachupally" || campus === "KLH - Bowrampet" || campus === "KLH - GBS";
+        const isKLHCampus = campus === "KLH - Bachupally" || campus === "KLH - Aziz Nagar" || campus === "KLH - GBS";
 
         if (residenceType === "Hostel" && !hostelName && !isKLHCampus) {
             return NextResponse.json(
@@ -215,8 +216,8 @@ export async function POST(req) {
                 `INSERT INTO students (
                     username, clubId, name, email, branch, gender,
                     campus, year, phoneNumber, residenceType, hostelName, busRoute,
-                    country, state, district, pincode, selectedDomain, pathway
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    country, state, district, pincode, selectedDomain, pathway, careerChoice
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
                     selectedClub,                          // All students can have clubs
@@ -225,7 +226,7 @@ export async function POST(req) {
                     year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
                     countryName || country, state, district, pincode, selectedDomain,
-                    pathway || null
+                    pathway || null, careerChoice || null
                 ]
             );
 

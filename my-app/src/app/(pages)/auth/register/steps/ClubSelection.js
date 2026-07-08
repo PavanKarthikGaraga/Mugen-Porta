@@ -17,7 +17,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
         { id: "HWB", name: "Health & Well-being", description: "Health, fitness and wellness programs" }
     ];
 
-    const isKLHCampus = ["KLH - Bachupally", "KLH - Bowrampet", "KLH - GBS"].includes(formData.campus);
+    const isKLHCampus = ["KLH - Bachupally", "KLH - Aziz Nagar", "KLH - GBS"].includes(formData.campus);
     const klhClubIds = ['KLH01', 'KLH02', 'KLH03', 'KLH04', 'KLH05', 'KLH06', 'KLH07', 'KLH08'];
 
     // Fetch clubs from unified registration API

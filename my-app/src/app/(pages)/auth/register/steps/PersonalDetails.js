@@ -73,7 +73,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         <option value="">Select Campus</option>
                         <option value="KLU - Vaddeswaram">KLU - Vaddeswaram</option>
                         <option value="KLH - Bachupally">KLH - Bachupally</option>
-                        <option value="KLH - Bowrampet">KLH - Bowrampet</option>
+                        <option value="KLH - Aziz Nagar">KLH - Aziz Nagar</option>
                         <option value="KLH - GBS">KLH - GBS</option>
                     </select>
                 </div>
@@ -189,6 +189,30 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         {branchNames.map((branch) => (
                             <option key={branch.id} value={branch.name}>{branch.name}</option>
                         ))}
+                    </select>
+                </div>
+
+                {/* Career Choice */}
+                <div className="lg:col-span-2">
+                    <label htmlFor="careerChoice" className="block text-sm font-medium text-gray-700 mb-2">
+                        Career Choice *
+                    </label>
+                    <select
+                        id="careerChoice"
+                        name="careerChoice"
+                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                        value={formData.careerChoice || ""}
+                        onChange={handleInputChange}
+                        required
+                    >
+                        <option value="">Select Career Choice</option>
+                        <option value="Placement">Placement</option>
+                        <option value="Higher Education">Higher Education</option>
+                        <option value="Entrepreneurship">Entrepreneurship</option>
+                        <option value="Research & Development (R&D)">Research & Development (R&D)</option>
+                        <option value="Civil Services">Civil Services</option>
+                        <option value="Social Service / NGOs">Social Service / NGOs</option>
+                        <option value="Overseas Career">Overseas Career</option>
                     </select>
                 </div>
 

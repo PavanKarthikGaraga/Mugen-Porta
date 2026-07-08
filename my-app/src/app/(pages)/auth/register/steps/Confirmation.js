@@ -56,7 +56,12 @@ export default function Confirmation({ formData, updateFormData }) {
                                     <p className="font-medium">{formData.year || "Not provided"}</p>
                                 </div>
                             </div>
-
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="col-span-2">
+                                    <p className="text-gray-600">Career Choice:</p>
+                                    <p className="font-medium">{formData.careerChoice || "Not provided"}</p>
+                                </div>
+                            </div>
 
                         </div>
                     </div>
@@ -113,13 +118,13 @@ export default function Confirmation({ formData, updateFormData }) {
                                     <p className="text-gray-600">Residence Type:</p>
                                     <p className="font-medium">{formData.residenceType || "Not provided"}</p>
                                 </div>
-                                {formData.residenceType === "Hostel" && !["KLH - Bachupally", "KLH - Bowrampet", "KLH - GBS"].includes(formData.campus) && (
+                                {formData.residenceType === "Hostel" && !["KLH - Bachupally", "KLH - Aziz Nagar", "KLH - GBS"].includes(formData.campus) && (
                                     <div>
                                         <p className="text-gray-600">Hostel:</p>
                                         <p className="font-medium">{formData.hostelName || "Not provided"}</p>
                                     </div>
                                 )}
-                                {formData.residenceType === "Day Scholar" && !["KLH - Bachupally", "KLH - Bowrampet", "KLH - GBS"].includes(formData.campus) && (
+                                {formData.residenceType === "Day Scholar" && !["KLH - Bachupally", "KLH - Aziz Nagar", "KLH - GBS"].includes(formData.campus) && (
                                     <div>
                                         <p className="text-gray-600">Bus Route:</p>
                                         <p className="font-medium">{formData.busRoute || "Not provided"}</p>
