@@ -25,7 +25,7 @@ export default function StudentClubDetailsPage() {
                     const studentDetails = await studentResponse.json();
 
                     // Fetch club information
-                    if (studentDetails.clubId) {
+                    if (studentDetails.clubId && studentDetails.clubId !== "null" && studentDetails.clubId !== "undefined") {
                         try {
                             const clubResponse = await fetch(`/api/dashboard/student/clubs/${studentDetails.clubId}`, { credentials: 'include' });
                             if (clubResponse.ok) {
@@ -53,6 +53,14 @@ export default function StudentClubDetailsPage() {
                                 studentDetails: studentDetails
                             });
                         }
+                    } else if (studentDetails.selectedDomain || studentDetails.clubName) {
+                        // Fallback for students who registered but clubId is missing or invalid
+                        setClubData({
+                            id: studentDetails.clubId || null,
+                            name: studentDetails.clubName || "Club Pending Configuration",
+                            domain: studentDetails.selectedDomain || "Unknown",
+                            studentDetails: studentDetails
+                        });
                     }
                 }
             } catch (error) {
