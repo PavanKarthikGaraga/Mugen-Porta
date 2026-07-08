@@ -183,7 +183,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                     {(() => {
                                         let clubsToDisplay = isKLHCampus 
                                             ? availableClubs.filter(club => klhClubIds.includes(club.id))
-                                            : availableClubs.filter(club => club.domain === selectedDomain);
+                                            : availableClubs.filter(club => club.domain === selectedDomain && !klhClubIds.includes(club.id) && !club.id.startsWith('KLH'));
                                             
                                         return clubsToDisplay.map((club) => {
                                             const isFull = club.isFull;
