@@ -13,7 +13,8 @@ export default function AdminStudents() {
         year: "",
         residenceType: "",
         clubId: "",
-        campus: ""
+        campus: "",
+        careerChoice: ""
     });
     const [pagination, setPagination] = useState({
         page: 1,
@@ -36,7 +37,8 @@ export default function AdminStudents() {
                 year: filters.year,
                 residenceType: filters.residenceType,
                 clubId: filters.clubId,
-                campus: filters.campus
+                campus: filters.campus,
+                careerChoice: filters.careerChoice
             });
 
             const response = await fetch(`/api/dashboard/admin/students?${params}`);
@@ -214,7 +216,7 @@ export default function AdminStudents() {
 
             {/* Search and Filters */}
             <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
                     {/* Search */}
                     <div className="lg:col-span-1">
                         <div className="relative">
@@ -301,6 +303,24 @@ export default function AdminStudents() {
                                     {club.clubName} ({club.memberCount})
                                 </option>
                             ))}
+                        </select>
+                    </div>
+
+                    {/* Career Choice Filter */}
+                    <div>
+                        <select
+                            value={filters.careerChoice}
+                            onChange={(e) => setFilters({...filters, careerChoice: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                            <option value="">All Careers</option>
+                            <option value="Placement">Placement</option>
+                            <option value="Higher Education">Higher Education</option>
+                            <option value="Entrepreneurship">Entrepreneurship</option>
+                            <option value="Research & Development (R&D)">Research & Development (R&D)</option>
+                            <option value="Civil Services">Civil Services</option>
+                            <option value="Social Service / NGOs">Social Service / NGOs</option>
+                            <option value="Overseas Career">Overseas Career</option>
                         </select>
                     </div>
                 </div>

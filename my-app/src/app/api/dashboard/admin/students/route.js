@@ -50,6 +50,7 @@ export async function GET(request) {
         const clubId = searchParams.get('clubId')?.trim() || '';
         const username = searchParams.get('username')?.trim() || '';
         const campus = searchParams.get('campus')?.trim() || '';
+        const careerChoice = searchParams.get('careerChoice')?.trim() || '';
 
         const offset = all ? 0 : (page - 1) * limit;
         const actualLimit = all ? 10000 : limit; // Large limit for "all" case
@@ -138,6 +139,11 @@ export async function GET(request) {
             queryParams.push(campus);
         }
 
+        if (careerChoice && careerChoice.length > 0) {
+            whereConditions.push('s.careerChoice = ?');
+            queryParams.push(careerChoice);
+        }
+
         const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
 
         // Get total count
@@ -163,6 +169,7 @@ export async function GET(request) {
                 s.state,
                 s.district,
                 s.campus,
+                s.careerChoice,
                 -- External submissions
                 ses.fr as final_report, ses.fyt_l as final_youtube, ses.flk_l as final_linkedin,
                 -- External marks
