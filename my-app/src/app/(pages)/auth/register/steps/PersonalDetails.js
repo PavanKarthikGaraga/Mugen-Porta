@@ -74,6 +74,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         <option value="KLU - Vaddeswaram">KLU - Vaddeswaram</option>
                         <option value="KLH - Bachupally">KLH - Bachupally</option>
                         <option value="KLH - Bowrampet">KLH - Bowrampet</option>
+                        <option value="KLH - GBS">KLH - GBS</option>
                     </select>
                 </div>
 

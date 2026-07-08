@@ -100,7 +100,8 @@ export async function POST(req) {
             );
         }
 
-        const isKLHCampus = campus === "KLH - Bachupally" || campus === "KLH - Bowrampet";
+        // Determine if user is from KLH campuses to conditionally require hostel/bus fields
+        const isKLHCampus = campus === "KLH - Bachupally" || campus === "KLH - Bowrampet" || campus === "KLH - GBS";
 
         if (residenceType === "Hostel" && !hostelName && !isKLHCampus) {
             return NextResponse.json(

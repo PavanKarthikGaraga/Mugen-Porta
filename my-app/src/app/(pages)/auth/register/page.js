@@ -140,7 +140,7 @@ export default function Register() {
                     return false;
                 }
                 // Check hostel name if residence type is hostel and campus is NOT KLH
-                const isKLHCampus = formData.campus === "KLH - Bachupally" || formData.campus === "KLH - Bowrampet";
+                const isKLHCampus = formData.campus === "KLH - Bachupally" || formData.campus === "KLH - Bowrampet" || formData.campus === "KLH - GBS";
                 if (formData.residenceType === "Hostel" && !formData.hostelName && !isKLHCampus) {
                     toast.error("Please select a hostel name");
                     return false;
