@@ -113,13 +113,13 @@ export default function Confirmation({ formData, updateFormData }) {
                                     <p className="text-gray-600">Residence Type:</p>
                                     <p className="font-medium">{formData.residenceType || "Not provided"}</p>
                                 </div>
-                                {formData.residenceType === "Hostel" && (
+                                {formData.residenceType === "Hostel" && !["KLH - Bachupally", "KLH - Bowrampet", "KLH - GBS"].includes(formData.campus) && (
                                     <div>
                                         <p className="text-gray-600">Hostel:</p>
                                         <p className="font-medium">{formData.hostelName || "Not provided"}</p>
                                     </div>
                                 )}
-                                {formData.residenceType === "Day Scholar" && (
+                                {formData.residenceType === "Day Scholar" && !["KLH - Bachupally", "KLH - Bowrampet", "KLH - GBS"].includes(formData.campus) && (
                                     <div>
                                         <p className="text-gray-600">Bus Route:</p>
                                         <p className="font-medium">{formData.busRoute || "Not provided"}</p>
