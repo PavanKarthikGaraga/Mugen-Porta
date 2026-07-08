@@ -222,7 +222,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                 <option value="">Choose a pathway...</option>
                                 {svrPathways.map((group, idx) => (
                                     <option key={idx} value={group.group}>
-                                        {group.group}
+                                        {group.group} ({group.options.join(', ')})
                                     </option>
                                 ))}
                             </select>
