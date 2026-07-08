@@ -6,12 +6,16 @@ import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiUser, FiInfo,
     FiLock, FiFileText, FiSend
 } from "react-icons/fi";
+import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
 
 export default function StudentDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
     const [userData, setUserData] = useState({ username: '', name: '' });
+    const [showCareerPrompt, setShowCareerPrompt] = useState(false);
+    const [selectedCareer, setSelectedCareer] = useState("");
+    const [savingCareer, setSavingCareer] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
 
@@ -26,6 +30,17 @@ export default function StudentDashboardLayout({ children }) {
                         username: data.user?.username || '',
                         name: data.user?.name || ''
                     });
+
+                    // Fetch profile to check career choice
+                    if (data.user?.username) {
+                        const profileRes = await fetch(`/api/dashboard/student/profile/${data.user.username}`);
+                        if (profileRes.ok) {
+                            const profileData = await profileRes.json();
+                            if (!profileData.careerChoice) {
+                                setShowCareerPrompt(true);
+                            }
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
@@ -33,6 +48,32 @@ export default function StudentDashboardLayout({ children }) {
         };
         fetchUserData();
     }, []);
+
+    const handleSaveCareer = async () => {
+        if (!selectedCareer) {
+            toast.error("Please select a career choice");
+            return;
+        }
+        setSavingCareer(true);
+        try {
+            const res = await fetch(`/api/dashboard/student/profile/${userData.username}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ careerChoice: selectedCareer })
+            });
+            if (res.ok) {
+                toast.success("Career choice saved successfully!");
+                setShowCareerPrompt(false);
+            } else {
+                toast.error("Failed to save career choice");
+            }
+        } catch (error) {
+            console.error("Error saving career choice:", error);
+            toast.error("An error occurred while saving.");
+        } finally {
+            setSavingCareer(false);
+        }
+    };
 
     const navigation = [
         { name: 'Overview', href: '/dashboard/student', icon: FiHome },
@@ -59,6 +100,39 @@ export default function StudentDashboardLayout({ children }) {
 
     return (
         <div className="h-screen flex flex-col" style={{ backgroundColor: '#1a1a1a' }}>
+            {/* Career Choice Prompt Modal (Global) */}
+            {showCareerPrompt && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-75 px-4">
+                    <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full relative">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4">Complete Your Profile</h2>
+                        <p className="text-gray-600 mb-6">
+                            Please select your career choice to continue. This information helps us tailor opportunities for you.
+                        </p>
+                        <select
+                            value={selectedCareer}
+                            onChange={(e) => setSelectedCareer(e.target.value)}
+                            className="w-full h-12 px-4 mb-6 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-700 focus:border-red-700 outline-none text-black"
+                        >
+                            <option value="">Select Career Choice</option>
+                            <option value="Placement">Placement</option>
+                            <option value="Higher Education">Higher Education</option>
+                            <option value="Entrepreneurship">Entrepreneurship</option>
+                            <option value="Research & Development (R&D)">Research & Development (R&D)</option>
+                            <option value="Civil Services">Civil Services</option>
+                            <option value="Social Service / NGOs">Social Service / NGOs</option>
+                            <option value="Overseas Career">Overseas Career</option>
+                        </select>
+                        <button
+                            onClick={handleSaveCareer}
+                            disabled={savingCareer}
+                            className="w-full py-3 bg-red-700 text-white font-semibold rounded-lg hover:bg-red-800 transition-colors disabled:opacity-50"
+                        >
+                            {savingCareer ? "Saving..." : "Save Selection"}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Top Navbar - Fixed */}
             <nav className="text-white shadow-lg relative z-30 flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
                 <div className="px-4 sm:px-6 lg:px-8">

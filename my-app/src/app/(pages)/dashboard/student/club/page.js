@@ -53,11 +53,11 @@ export default function StudentClubDetailsPage() {
                                 studentDetails: studentDetails
                             });
                         }
-                    } else if (studentDetails.selectedDomain || studentDetails.clubName) {
-                        // Fallback for students who registered but clubId is missing or invalid
+                    } else {
+                        // Fallback for students who registered but clubId is missing or invalid, or no matching club record
                         setClubData({
                             id: studentDetails.clubId || null,
-                            name: studentDetails.clubName || "Club Pending Configuration",
+                            name: studentDetails.clubName || studentDetails.clubId || "Club Pending Configuration",
                             domain: studentDetails.selectedDomain || "Unknown",
                             studentDetails: studentDetails
                         });
