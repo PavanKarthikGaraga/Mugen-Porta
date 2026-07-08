@@ -17,6 +17,9 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
         { id: "HWB", name: "Health & Well-being", description: "Health, fitness and wellness programs" }
     ];
 
+    const isKLHCampus = ["KLH - Bachupally", "KLH - Bowrampet", "KLH - GBS"].includes(formData.campus);
+    const klhClubIds = ['KLH01', 'KLH02', 'KLH03', 'KLH04', 'KLH05', 'KLH06', 'KLH07', 'KLH08'];
+
     // Fetch clubs from unified registration API
     useEffect(() => {
         const fetchRegistrationData = async () => {
@@ -66,6 +69,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
         setSelectedClub(clubId);
         updateFormData({
             selectedClub: clubId,
+            selectedDomain: selectedClubData.domain, // Auto-set domain
             pathway: "" // reset pathway on club change
         });
     };
@@ -116,10 +120,11 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
 
     // Check if current selection meets constraints for proceeding
     const canProceed = React.useMemo(() => {
-        if (!selectedClub || !selectedDomain) return false;
+        if (!selectedClub) return false;
+        if (!isKLHCampus && !selectedDomain) return false;
         if (selectedClub === "ESO01" && !formData.pathway) return false;
         return true;
-    }, [selectedClub, selectedDomain, formData.pathway]);
+    }, [selectedClub, selectedDomain, formData.pathway, isKLHCampus]);
 
     // Communicate validation status to parent component
     React.useEffect(() => {
@@ -141,28 +146,30 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
             ) : (
                 <div className="space-y-6">
                     {/* Domain and Club Selection - Side by Side */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Domain Selection */}
-                        <div>
-                            <label className="block text-lg font-semibold text-gray-800 mb-3">
-                                Select Domain
-                            </label>
-                            <select
-                                value={selectedDomain}
-                                onChange={(e) => handleDomainChange(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                            >
-                                <option value="">Choose a domain...</option>
-                                {allDomains.map((domain) => (
-                                    <option key={domain.id} value={domain.id}>
-                                        {domain.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                    <div className={`grid grid-cols-1 ${isKLHCampus ? '' : 'md:grid-cols-2'} gap-6`}>
+                        {/* Domain Selection (Hidden for KLH) */}
+                        {!isKLHCampus && (
+                            <div>
+                                <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                    Select Domain
+                                </label>
+                                <select
+                                    value={selectedDomain}
+                                    onChange={(e) => handleDomainChange(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                >
+                                    <option value="">Choose a domain...</option>
+                                    {allDomains.map((domain) => (
+                                        <option key={domain.id} value={domain.id}>
+                                            {domain.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
                         {/* Club Selection */}
-                        {selectedDomain && (
+                        {(selectedDomain || isKLHCampus) && (
                             <div>
                                 <label className="block text-lg font-semibold text-gray-800 mb-3">
                                     Select Club
@@ -174,8 +181,11 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                 >
                                     <option value="">Choose a club...</option>
                                     {(() => {
-                                        let clubsForDomain = availableClubs.filter(club => club.domain === selectedDomain);
-                                        return clubsForDomain.map((club) => {
+                                        let clubsToDisplay = isKLHCampus 
+                                            ? availableClubs.filter(club => klhClubIds.includes(club.id))
+                                            : availableClubs.filter(club => club.domain === selectedDomain);
+                                            
+                                        return clubsToDisplay.map((club) => {
                                             const isFull = club.isFull;
                                             return (
                                                 <option

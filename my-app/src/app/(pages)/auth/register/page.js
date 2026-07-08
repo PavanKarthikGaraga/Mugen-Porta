@@ -125,8 +125,9 @@ export default function Register() {
                 }
                 break;
             case 5: // Club Selection
-                if (!formData.selectedClub || !formData.selectedDomain) {
-                    toast.error("Please select both a domain and a club");
+                const isKLH = ["KLH - Bachupally", "KLH - Bowrampet", "KLH - GBS"].includes(formData.campus);
+                if (!formData.selectedClub || (!isKLH && !formData.selectedDomain)) {
+                    toast.error(isKLH ? "Please select a club" : "Please select both a domain and a club");
                     return false;
                 }
                 if (formData.selectedClub === "ESO01" && !formData.pathway) {
