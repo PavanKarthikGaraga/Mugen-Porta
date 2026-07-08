@@ -1,140 +1,123 @@
 export default function Rules({ formData, updateFormData }) {
     return (
         <div className="bg-white p-5 md:p-6 max-w-none">
-            <h2 className="text-xl font-bold mb-5 text-center text-gray-800">General Guidelines & Rules for Students – AY 2026–27</h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 text-sm">
-                {/* Registration & Participation */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 className="text-base font-semibold mb-3 text-gray-800">1. Registration & Participation</h3>
-                    <ul className="space-y-2 text-gray-700 text-sm">
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Every student must enroll in at least one SAC Club from any of the five domains: Health, Technical, Cultural, Innovation & Incubation, Outreach & Extension.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Selection of the activity/project should be completed within the first 2 weeks of the semester.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Students may participate in more than one domain if they can manage the time and deliverables.</span>
-                        </li>
-                    </ul>
-                </div>
-
-                {/* Task Duration & Completion */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 className="text-base font-semibold mb-3 text-gray-800">2. Task Duration & Completion</h3>
-                    <ul className="space-y-2 text-gray-700 text-sm">
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>All assigned activities/projects must be completed within 4–12 weeks from the approval date.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Students must plan, learn, and execute their task with proper documentation.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Deliverables (reports, presentations, products, events, etc.) must be submitted before the semester deadline.</span>
-                        </li>
-                    </ul>
-                </div>
-
-                {/* Conduct & Professionalism */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 className="text-base font-semibold mb-3 text-gray-800">3. Conduct & Professionalism</h3>
-                    <ul className="space-y-2 text-gray-700 text-sm">
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Maintain discipline, punctuality, and regular attendance for all SAC activities.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Show respect towards mentors, coordinators, peers, and community members.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Avoid any behavior that brings disrepute to the university.</span>
-                        </li>
-                    </ul>
-                </div>
-
-                {/* Work Standards */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 className="text-base font-semibold mb-3 text-gray-800">4. Work Standards</h3>
-                    <ul className="space-y-2 text-gray-700 text-sm">
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>All work must be original — plagiarism or duplication will lead to disqualification.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Follow safety, ethical, and quality guidelines relevant to the chosen domain.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>For events, competitions, or outreach programs, follow dress code & communication etiquette.</span>
-                        </li>
-                    </ul>
-                </div>
-
-                {/* Learning & Outcome Focus */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 className="text-base font-semibold mb-3 text-gray-800">5. Learning & Outcome Focus</h3>
-                    <ul className="space-y-2 text-gray-700 text-sm">
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Students should aim to gain new knowledge and skills related to their chosen domain.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span className="font-medium">Projects will be evaluated based on:</span>
-                        </li>
-                        <li className="ml-4 space-y-1">
-                            <div className="text-sm text-gray-600">• Creativity & Innovation</div>
-                            <div className="text-sm text-gray-600">• Quality of Work</div>
-                            <div className="text-sm text-gray-600">• Relevance & Impact</div>
-                            <div className="text-sm text-gray-600">• Timely Completion</div>
-                            <div className="text-sm text-gray-600">• Teamwork & Leadership</div>
-                        </li>
-                    </ul>
-                </div>
-
-                {/* Evaluation & Recognition */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 className="text-base font-semibold mb-3 text-gray-800">6. Evaluation & Recognition</h3>
-                    <ul className="space-y-2 text-gray-700 text-sm">
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Students will earn points, credits, or appreciation based on performance.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Ranking will be maintained at the end of the semester.</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
-                            <span>Outstanding performers will receive awards, certificates, and recognition at SAC events.</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            {/* Disciplinary Measures */}
-            <div className="mt-5 bg-gray-100 p-4 rounded-lg border border-gray-300">
-                <h3 className="text-base font-semibold mb-2 text-gray-800">7. Disciplinary Measures</h3>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                    Non-participation, late submission, or violation of rules may lead to loss of points, disqualification, 
-                    or disciplinary action as per university policy.
+            {/* Header / Goal */}
+            <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-red-800 mb-2">AY 2026–27 Goal</h2>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Student Achievement Ecosystem</h3>
+                <p className="text-gray-700 text-sm leading-relaxed max-w-3xl mx-auto mb-3">
+                    To build a dynamic Student Achievement Ecosystem that empowers every student to discover their potential, develop future-ready competencies, create meaningful outcomes, and achieve excellence through innovation, leadership, entrepreneurship, community engagement, creativity, and lifelong learning.
+                </p>
+                <p className="text-gray-700 text-sm leading-relaxed max-w-3xl mx-auto font-medium">
+                    Our goal is to ensure that every student graduates not only with a degree, but with a portfolio of achievements, professional competencies, leadership experiences, and measurable impact on society.
                 </p>
             </div>
+            
+            <div className="space-y-8">
+                {/* Mission Timeline */}
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                    <h3 className="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Mission Timeline</h3>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-gray-100 text-gray-700">
+                                <tr>
+                                    <th className="px-4 py-2 rounded-tl-md">Batch</th>
+                                    <th className="px-4 py-2">Theme</th>
+                                    <th className="px-4 py-2 rounded-tr-md">Mission</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                <tr>
+                                    <td className="px-4 py-3 font-semibold">Y23</td>
+                                    <td className="px-4 py-3 text-red-700 font-medium">Inspire</td>
+                                    <td className="px-4 py-3 text-gray-600">Become mentors who transfer knowledge, strengthen student communities, and leave a lasting legacy of excellence.</td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-3 font-semibold">Y24</td>
+                                    <td className="px-4 py-3 text-red-700 font-medium">Elevate</td>
+                                    <td className="px-4 py-3 text-gray-600">Strengthen competencies, pursue excellence, and transform experience into impactful achievements.</td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-3 font-semibold">Y25</td>
+                                    <td className="px-4 py-3 text-red-700 font-medium">Ignite</td>
+                                    <td className="px-4 py-3 text-gray-600">Convert knowledge into action by solving real-world problems through innovation, entrepreneurship, and community engagement.</td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-3 font-semibold">Y26</td>
+                                    <td className="px-4 py-3 text-red-700 font-medium">Discover</td>
+                                    <td className="px-4 py-3 text-gray-600">Explore interests, identify strengths, develop competencies, and begin the journey toward lifelong achievement.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="mt-4 text-center">
+                        <p className="text-sm font-medium text-gray-600">This creates a natural progression:</p>
+                        <p className="text-base font-bold text-gray-800 mt-1">Discover → Ignite → Elevate → Inspire</p>
+                    </div>
+                </div>
 
-            <div className="mt-4 text-center bg-blue-50 p-3 rounded-lg border border-blue-200">
-                <p className="text-blue-800 text-sm">
-                    Please read all rules carefully before proceeding. By continuing, you acknowledge 
-                    that you understand and agree to follow these guidelines.
+                {/* Three SAC Pillars */}
+                <div>
+                    <h3 className="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Three SAC Pillars</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                            <h4 className="font-bold text-red-800 mb-2">1. Discover & Develop</h4>
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-4 hover:line-clamp-none">
+                                Helping students explore their interests, identify hidden talents, build competencies, and continuously learn through clubs, skill hubs, workshops, cultural activities, sports, and professional development.
+                            </p>
+                            <div className="text-xs font-semibold text-gray-800 mb-1">Focus Areas:</div>
+                            <p className="text-xs text-gray-500">Passion Discovery, Skill Development, Competency Building, Talent Enhancement</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                            <h4 className="font-bold text-red-800 mb-2">2. Create & Innovate</h4>
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-4 hover:line-clamp-none">
+                                Providing opportunities to convert ideas into projects, research, products, startups, performances, intellectual property, and technology solutions.
+                            </p>
+                            <div className="text-xs font-semibold text-gray-800 mb-1">Focus Areas:</div>
+                            <p className="text-xs text-gray-500">Innovation, Entrepreneurship, Research, Product Development, Creative Excellence</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                            <h4 className="font-bold text-red-800 mb-2">3. Lead & Transform</h4>
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-4 hover:line-clamp-none">
+                                Empowering students to lead teams, mentor peers, create social impact, participate in national missions, and build sustainable communities through service learning and leadership.
+                            </p>
+                            <div className="text-xs font-semibold text-gray-800 mb-1">Focus Areas:</div>
+                            <p className="text-xs text-gray-500">Leadership, Community Engagement, Social Innovation, Sustainability, Nation Building</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Student Achievement Framework */}
+                <div className="bg-blue-50 p-5 rounded-lg border border-blue-100">
+                    <h3 className="text-lg font-bold mb-4 text-blue-900 border-b border-blue-200 pb-2">Student Achievement Framework (Activity Structure)</h3>
+                    <div className="space-y-3">
+                        <div className="flex gap-3">
+                            <div className="font-bold text-blue-800 whitespace-nowrap">Phase 1 — Discover:</div>
+                            <div className="text-sm text-gray-700">Students identify their interests, strengths, aspirations, and preferred achievement pathway.</div>
+                        </div>
+                        <div className="flex gap-3">
+                            <div className="font-bold text-blue-800 whitespace-nowrap">Phase 2 — Learn:</div>
+                            <div className="text-sm text-gray-700">Acquire knowledge through structured learning, expert sessions, certifications, mentoring, and guided practice.</div>
+                        </div>
+                        <div className="flex gap-3">
+                            <div className="font-bold text-blue-800 whitespace-nowrap">Phase 3 — Practice:</div>
+                            <div className="text-sm text-gray-700">Apply learning through regular participation, team collaboration, hands-on activities, and competency-building exercises.</div>
+                        </div>
+                        <div className="flex gap-3">
+                            <div className="font-bold text-blue-800 whitespace-nowrap">Phase 4 — Create:</div>
+                            <div className="text-sm text-gray-700">Develop tangible outcomes such as projects, research, performances, publications, prototypes, events, startups, or community initiatives.</div>
+                        </div>
+                        <div className="flex gap-3">
+                            <div className="font-bold text-blue-800 whitespace-nowrap">Phase 5 — Achieve:</div>
+                            <div className="text-sm text-gray-700">Outcomes are evaluated based on innovation, quality, relevance, leadership, and measurable impact. Students receive achievement points, competency badges, learning credits, rankings, and institutional recognition.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-8 text-center">
+                <p className="text-gray-600 text-sm font-medium">
+                    By proceeding, you acknowledge your commitment to the Student Achievement Ecosystem.
                 </p>
             </div>
         </div>
