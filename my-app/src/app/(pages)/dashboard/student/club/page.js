@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function StudentClubDetailsPage() {
     const [clubData, setClubData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState(null);
 
     useEffect(() => {
         const fetchClubDetails = async () => {
@@ -62,6 +63,9 @@ export default function StudentClubDetailsPage() {
                             studentDetails: studentDetails
                         });
                     }
+                } else {
+                    const errData = await studentResponse.json();
+                    setErrorMsg(`Could not find your student profile (Error: ${errData.message || 'Unknown'}). Please contact support.`);
                 }
             } catch (error) {
                 console.error('Failed to fetch club details:', error);
@@ -89,7 +93,15 @@ export default function StudentClubDetailsPage() {
             </div>
 
             {/* Club Information */}
-            {clubData ? (
+            {errorMsg ? (
+                <Card className="mb-8 border-red-200">
+                    <CardContent className="p-8 text-center">
+                        <FiInfo className="mx-auto h-12 w-12 text-red-400 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Error</h3>
+                        <p className="text-red-500">{errorMsg}</p>
+                    </CardContent>
+                </Card>
+            ) : clubData ? (
                 <Card className="mb-8">
                     <CardHeader>
                         <CardTitle className="flex items-center">

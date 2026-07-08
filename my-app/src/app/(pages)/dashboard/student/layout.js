@@ -36,7 +36,8 @@ export default function StudentDashboardLayout({ children }) {
                         const profileRes = await fetch(`/api/dashboard/student/profile/${data.user.username}`);
                         if (profileRes.ok) {
                             const profileData = await profileRes.json();
-                            if (!profileData.careerChoice) {
+                            const cChoice = profileData.careerChoice;
+                            if (!cChoice || cChoice === 'null' || cChoice === 'undefined' || (typeof cChoice === 'string' && cChoice.trim() === '')) {
                                 setShowCareerPrompt(true);
                             }
                         }
@@ -78,8 +79,8 @@ export default function StudentDashboardLayout({ children }) {
     const navigation = [
         { name: 'Overview', href: '/dashboard/student', icon: FiHome },
         { name: 'Club Details', href: '/dashboard/student/club', icon: FiFolder },
-        // { name: 'Submissions', href: '/dashboard/student/reports', icon: FiFileText },
-        // { name: 'Final Submission', href: '/dashboard/student/final-submission', icon: FiSend },
+        { name: 'Submissions', href: '/dashboard/student/reports', icon: FiFileText },
+        { name: 'Final Submission', href: '/dashboard/student/final-submission', icon: FiSend },
     ];
 
     const handleLogout = async () => {
