@@ -34,9 +34,24 @@ export default function StudentClubDetailsPage() {
                                     ...clubInfo,
                                     studentDetails: studentDetails
                                 });
+                            } else {
+                                // Fallback if club data is not found in the DB (e.g., custom KLH clubs not yet inserted)
+                                setClubData({
+                                    id: studentDetails.clubId,
+                                    name: studentDetails.clubName || "Club Pending Configuration",
+                                    domain: studentDetails.selectedDomain || "Unknown",
+                                    studentDetails: studentDetails
+                                });
                             }
                         } catch (error) {
                             console.error('Error fetching club data:', error);
+                            // Set fallback even on error
+                            setClubData({
+                                id: studentDetails.clubId,
+                                name: studentDetails.clubName || "Club Pending Configuration",
+                                domain: studentDetails.selectedDomain || "Unknown",
+                                studentDetails: studentDetails
+                            });
                         }
                     }
                 }
@@ -121,6 +136,15 @@ export default function StudentClubDetailsPage() {
                                     Active Member
                                 </span>
                             </div>
+                            
+                            {clubData.studentDetails?.pathway && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Pathway</label>
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {clubData.studentDetails.pathway}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
 

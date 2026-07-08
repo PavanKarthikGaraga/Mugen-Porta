@@ -32,6 +32,7 @@ export async function GET(request, { params }) {
                 s.district,
                 s.pincode,
                 s.selectedDomain,
+                s.pathway,
                 s.created_at,
                 c.name as clubName
              FROM students s
