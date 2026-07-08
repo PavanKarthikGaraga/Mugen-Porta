@@ -213,19 +213,40 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                             <label className="block text-lg font-semibold text-gray-800 mb-3">
                                 Select SVR Pathway *
                             </label>
-                            <select
-                                value={formData.pathway || ""}
-                                onChange={(e) => updateFormData({ pathway: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                                required
-                            >
-                                <option value="">Choose a pathway...</option>
+                            <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
                                 {svrPathways.map((group, idx) => (
-                                    <option key={idx} value={group.group}>
-                                        {group.group} ({group.options.join(', ')})
-                                    </option>
+                                    <div
+                                        key={idx}
+                                        onClick={() => updateFormData({ pathway: group.group })}
+                                        className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                                            formData.pathway === group.group
+                                                ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500 shadow-sm'
+                                                : 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
+                                        }`}
+                                    >
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0 h-5 w-5 rounded-full border border-gray-400 flex items-center justify-center mt-0.5 bg-white">
+                                                {formData.pathway === group.group && (
+                                                    <div className="h-2.5 w-2.5 bg-blue-600 rounded-full"></div>
+                                                )}
+                                            </div>
+                                            <div className="ml-3">
+                                                <span className={`block text-base font-bold ${formData.pathway === group.group ? 'text-blue-900' : 'text-gray-800'}`}>
+                                                    {group.group}
+                                                </span>
+                                                <div className="mt-2 text-sm text-gray-500 space-y-1">
+                                                    {group.options.map((opt, i) => (
+                                                        <div key={i} className="flex items-start">
+                                                            <span className="mr-2 text-gray-400">•</span>
+                                                            <span>{opt}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
-                            </select>
+                            </div>
                         </div>
                     )}
 
