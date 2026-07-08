@@ -68,6 +68,17 @@ export default function ClubsPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const submitData = { ...formData };
+            
+            // For new clubs, automatically prefix the domain to the ID if it's not already there
+            if (!editingClub && submitData.domain) {
+                let rawId = submitData.id.trim();
+                // Check if user already typed the domain, if not, prepend it
+                if (!rawId.toUpperCase().startsWith(submitData.domain.toUpperCase())) {
+                    submitData.id = submitData.domain.toUpperCase() + rawId;
+                }
+            }
+
             const url = editingClub ? `/api/dashboard/admin/clubs/${editingClub.id}` : '/api/dashboard/admin/clubs';
             const method = editingClub ? 'PUT' : 'POST';
 
@@ -76,7 +87,7 @@ export default function ClubsPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(submitData),
             });
 
             if (await handleApiError(response)) {
@@ -333,19 +344,29 @@ export default function ClubsPage() {
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
                                 <label htmlFor="clubId" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Club ID
+                                    {editingClub ? 'Club ID' : 'Club ID Number'}
                                 </label>
-                                <input
-                                    id="clubId"
-                                    type="text"
-                                    value={formData.id}
-                                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent ${editingClub ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                                    required
-                                    disabled={editingClub}
-                                    maxLength={4}
-                                    placeholder="4 characters max"
-                                />
+                                <div className="flex">
+                                    {!editingClub && formData.domain && (
+                                        <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm font-medium">
+                                            {formData.domain}
+                                        </span>
+                                    )}
+                                    <input
+                                        id="clubId"
+                                        type="text"
+                                        value={formData.id}
+                                        onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                                        className={`flex-1 w-full px-3 py-2 border border-gray-300 ${!editingClub && formData.domain ? 'rounded-r-md' : 'rounded-md'} focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent ${editingClub ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                        required
+                                        disabled={editingClub}
+                                        maxLength={4}
+                                        placeholder={editingClub ? "" : "e.g., 02"}
+                                    />
+                                </div>
+                                {!editingClub && (
+                                    <p className="mt-1 text-xs text-gray-500">Domain prefix will be added automatically.</p>
+                                )}
                             </div>
                             <div>
                                 <label htmlFor="clubName" className="block text-sm font-medium text-gray-700 mb-1">
