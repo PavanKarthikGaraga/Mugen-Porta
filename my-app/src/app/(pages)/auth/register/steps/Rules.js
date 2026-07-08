@@ -1,123 +1,87 @@
 export default function Rules({ formData, updateFormData }) {
     return (
         <div className="bg-white p-5 md:p-6 max-w-none">
-            {/* Header / Goal */}
-            <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-red-800 mb-2">AY 2026–27 Goal</h2>
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">Student Achievement Ecosystem</h3>
-                <p className="text-gray-700 text-sm leading-relaxed max-w-3xl mx-auto mb-3">
-                    To build a dynamic Student Achievement Ecosystem that empowers every student to discover their potential, develop future-ready competencies, create meaningful outcomes, and achieve excellence through innovation, leadership, entrepreneurship, community engagement, creativity, and lifelong learning.
-                </p>
-                <p className="text-gray-700 text-sm leading-relaxed max-w-3xl mx-auto font-medium">
-                    Our goal is to ensure that every student graduates not only with a degree, but with a portfolio of achievements, professional competencies, leadership experiences, and measurable impact on society.
-                </p>
-            </div>
+            <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 border-b pb-4">
+                Guidelines & Rules for Students – AY 2026–27
+            </h2>
             
-            <div className="space-y-8">
-                {/* Mission Timeline */}
-                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
-                    <h3 className="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Mission Timeline</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-100 text-gray-700">
-                                <tr>
-                                    <th className="px-4 py-2 rounded-tl-md">Batch</th>
-                                    <th className="px-4 py-2">Theme</th>
-                                    <th className="px-4 py-2 rounded-tr-md">Mission</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                <tr>
-                                    <td className="px-4 py-3 font-semibold">Y23</td>
-                                    <td className="px-4 py-3 text-red-700 font-medium">Inspire</td>
-                                    <td className="px-4 py-3 text-gray-600">Become mentors who transfer knowledge, strengthen student communities, and leave a lasting legacy of excellence.</td>
-                                </tr>
-                                <tr>
-                                    <td className="px-4 py-3 font-semibold">Y24</td>
-                                    <td className="px-4 py-3 text-red-700 font-medium">Elevate</td>
-                                    <td className="px-4 py-3 text-gray-600">Strengthen competencies, pursue excellence, and transform experience into impactful achievements.</td>
-                                </tr>
-                                <tr>
-                                    <td className="px-4 py-3 font-semibold">Y25</td>
-                                    <td className="px-4 py-3 text-red-700 font-medium">Ignite</td>
-                                    <td className="px-4 py-3 text-gray-600">Convert knowledge into action by solving real-world problems through innovation, entrepreneurship, and community engagement.</td>
-                                </tr>
-                                <tr>
-                                    <td className="px-4 py-3 font-semibold">Y26</td>
-                                    <td className="px-4 py-3 text-red-700 font-medium">Discover</td>
-                                    <td className="px-4 py-3 text-gray-600">Explore interests, identify strengths, develop competencies, and begin the journey toward lifelong achievement.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="mt-4 text-center">
-                        <p className="text-sm font-medium text-gray-600">This creates a natural progression:</p>
-                        <p className="text-base font-bold text-gray-800 mt-1">Discover → Ignite → Elevate → Inspire</p>
-                    </div>
+            <div className="space-y-6 text-sm">
+                
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="text-base font-bold mb-2 text-red-800 flex items-center">
+                        <span className="bg-red-100 text-red-800 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">1</span>
+                        Achievement Pathway Registration
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed ml-8">
+                        Every student shall register for one or more achievement pathways based on their interests, competencies, and career aspirations. Students are expected to commit to their selected pathway and actively participate in structured learning, mentoring, and outcome-oriented activities throughout the semester.
+                    </p>
                 </div>
 
-                {/* Three SAC Pillars */}
-                <div>
-                    <h3 className="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Three SAC Pillars</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                            <h4 className="font-bold text-red-800 mb-2">1. Discover & Develop</h4>
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-4 hover:line-clamp-none">
-                                Helping students explore their interests, identify hidden talents, build competencies, and continuously learn through clubs, skill hubs, workshops, cultural activities, sports, and professional development.
-                            </p>
-                            <div className="text-xs font-semibold text-gray-800 mb-1">Focus Areas:</div>
-                            <p className="text-xs text-gray-500">Passion Discovery, Skill Development, Competency Building, Talent Enhancement</p>
-                        </div>
-                        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                            <h4 className="font-bold text-red-800 mb-2">2. Create & Innovate</h4>
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-4 hover:line-clamp-none">
-                                Providing opportunities to convert ideas into projects, research, products, startups, performances, intellectual property, and technology solutions.
-                            </p>
-                            <div className="text-xs font-semibold text-gray-800 mb-1">Focus Areas:</div>
-                            <p className="text-xs text-gray-500">Innovation, Entrepreneurship, Research, Product Development, Creative Excellence</p>
-                        </div>
-                        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                            <h4 className="font-bold text-red-800 mb-2">3. Lead & Transform</h4>
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-4 hover:line-clamp-none">
-                                Empowering students to lead teams, mentor peers, create social impact, participate in national missions, and build sustainable communities through service learning and leadership.
-                            </p>
-                            <div className="text-xs font-semibold text-gray-800 mb-1">Focus Areas:</div>
-                            <p className="text-xs text-gray-500">Leadership, Community Engagement, Social Innovation, Sustainability, Nation Building</p>
-                        </div>
-                    </div>
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="text-base font-bold mb-2 text-red-800 flex items-center">
+                        <span className="bg-red-100 text-red-800 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">2</span>
+                        Achievement Timeline & Milestones
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed ml-8">
+                        Every achievement pathway shall follow a structured timeline consisting of Discover, Learn, Practice, Create, Achieve, and Showcase. Students shall complete each milestone within the prescribed duration and submit the required deliverables through the Student Achievement Portal.
+                    </p>
                 </div>
 
-                {/* Student Achievement Framework */}
-                <div className="bg-blue-50 p-5 rounded-lg border border-blue-100">
-                    <h3 className="text-lg font-bold mb-4 text-blue-900 border-b border-blue-200 pb-2">Student Achievement Framework (Activity Structure)</h3>
-                    <div className="space-y-3">
-                        <div className="flex gap-3">
-                            <div className="font-bold text-blue-800 whitespace-nowrap">Phase 1 — Discover:</div>
-                            <div className="text-sm text-gray-700">Students identify their interests, strengths, aspirations, and preferred achievement pathway.</div>
-                        </div>
-                        <div className="flex gap-3">
-                            <div className="font-bold text-blue-800 whitespace-nowrap">Phase 2 — Learn:</div>
-                            <div className="text-sm text-gray-700">Acquire knowledge through structured learning, expert sessions, certifications, mentoring, and guided practice.</div>
-                        </div>
-                        <div className="flex gap-3">
-                            <div className="font-bold text-blue-800 whitespace-nowrap">Phase 3 — Practice:</div>
-                            <div className="text-sm text-gray-700">Apply learning through regular participation, team collaboration, hands-on activities, and competency-building exercises.</div>
-                        </div>
-                        <div className="flex gap-3">
-                            <div className="font-bold text-blue-800 whitespace-nowrap">Phase 4 — Create:</div>
-                            <div className="text-sm text-gray-700">Develop tangible outcomes such as projects, research, performances, publications, prototypes, events, startups, or community initiatives.</div>
-                        </div>
-                        <div className="flex gap-3">
-                            <div className="font-bold text-blue-800 whitespace-nowrap">Phase 5 — Achieve:</div>
-                            <div className="text-sm text-gray-700">Outcomes are evaluated based on innovation, quality, relevance, leadership, and measurable impact. Students receive achievement points, competency badges, learning credits, rankings, and institutional recognition.</div>
-                        </div>
-                    </div>
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="text-base font-bold mb-2 text-red-800 flex items-center">
+                        <span className="bg-red-100 text-red-800 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">3</span>
+                        Professional Ethics & Student Responsibility
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed ml-8">
+                        Students shall demonstrate integrity, discipline, accountability, teamwork, leadership, and respect while participating in all Student Achievement Ecosystem activities. Professional behaviour, effective communication, and responsible use of university resources are expected at all times.
+                    </p>
+                </div>
+
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="text-base font-bold mb-2 text-red-800 flex items-center">
+                        <span className="bg-red-100 text-red-800 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">4</span>
+                        Quality, Innovation & Excellence Standards
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed ml-8">
+                        Every submission shall reflect originality, creativity, innovation, technical or professional competency, and measurable quality. Plagiarism, duplication, manipulation of records, or unethical practices shall not be accepted under any circumstances.
+                    </p>
+                </div>
+
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="text-base font-bold mb-2 text-red-800 flex items-center">
+                        <span className="bg-red-100 text-red-800 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">5</span>
+                        Competency Development & Outcome Achievement
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed ml-8">
+                        The primary objective of participation is competency development and achievement creation. Students are expected to continuously enhance their knowledge, apply practical skills, solve real-world problems, and generate meaningful academic, professional, entrepreneurial, creative, or community outcomes.
+                    </p>
+                </div>
+
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="text-base font-bold mb-2 text-red-800 flex items-center">
+                        <span className="bg-red-100 text-red-800 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">6</span>
+                        Achievement Assessment & Recognition Framework
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed ml-8">
+                        Student achievements shall be evaluated based on competency development, innovation, quality of outcomes, leadership, collaboration, consistency, and impact. Outstanding performers shall receive Achievement Credits, Competency Badges, Leadership Recognition, Excellence Awards, and institutional honours through the Student Achievement Ecosystem.
+                    </p>
+                </div>
+
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="text-base font-bold mb-2 text-red-800 flex items-center">
+                        <span className="bg-red-100 text-red-800 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">7</span>
+                        Academic Integrity & Accountability
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed ml-8">
+                        Students are accountable for the authenticity and timely completion of their work. Failure to meet prescribed standards, violation of university policies, or unethical conduct may result in withdrawal of Achievement Credits, loss of recognition, or disciplinary action as per university regulations.
+                    </p>
                 </div>
             </div>
 
-            <div className="mt-8 text-center">
-                <p className="text-gray-600 text-sm font-medium">
-                    By proceeding, you acknowledge your commitment to the Student Achievement Ecosystem.
+            <div className="mt-8 text-center bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <p className="text-blue-900 text-sm font-medium">
+                    Please read all rules carefully before proceeding. By continuing, you acknowledge 
+                    that you understand and agree to follow these guidelines.
                 </p>
             </div>
         </div>

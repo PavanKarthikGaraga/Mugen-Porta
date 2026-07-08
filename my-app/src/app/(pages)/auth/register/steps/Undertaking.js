@@ -14,22 +14,15 @@ export default function Undertaking({ formData, updateFormData }) {
                 
                 <div className="space-y-4 text-gray-700 leading-relaxed text-sm">
                     <p>
-                        I hereby declare that I have read, understood, and agreed to abide by all the rules and regulations 
-                        of the Student Activity Center. I commit to actively participating in my selected domain activities, 
-                        completing all assigned projects within the stipulated 4-12 weeks timeline, and maintaining proper 
-                        documentation of my progress. I understand that all work must be original, and I will follow safety, 
-                        ethical, and quality guidelines while maintaining discipline, punctuality, and professionalism in all 
-                        SAC activities and interactions with mentors, coordinators, peers, and community members.
+                        I hereby declare that I have read, understood, and agree to abide by all the policies, guidelines, and regulations of the Student Activity Center (SAC) under the Student Achievement Ecosystem. I commit to actively participating in my selected achievement pathway, club, or activity, completing all assigned responsibilities and deliverables as prescribed, and maintaining proper documentation of my learning, progress, and achievements. I understand that all work submitted must be original, and I will adhere to the highest standards of ethics, safety, quality, discipline, punctuality, and professionalism while interacting with mentors, coordinators, peers, industry experts, and community members.
                     </p>
                     
                     <p>
-                        By proceeding with registration, I accept full responsibility for my choices and actions, understanding 
-                        that once registered, no changes to the selected domain or club will be allowed. I acknowledge that 
-                        project evaluation will be based on creativity, innovation, quality, relevance, impact, and timely 
-                        completion, and that non-participation, late submission, or violation of rules may result in loss of 
-                        points, disqualification, or disciplinary action as per university policy. I commit to demonstrating 
-                        leadership qualities, collaborating effectively with team members, and avoiding any behavior that 
-                        brings disrepute to the university.
+                        By proceeding with registration, I accept full responsibility for my choices and actions. I understand that any changes to my registered pathway, club, or activity shall be subject to the policies and approval process of the Student Activity Center. I acknowledge that my achievements will be evaluated based on competency development, innovation, creativity, quality of work, relevance, impact, collaboration, leadership, and successful completion of the expected outcomes. I further understand that failure to participate responsibly, maintain academic integrity, or comply with SAC policies may result in withdrawal of recognition, loss of achievement credits, or disciplinary action as per the university regulations.
+                    </p>
+
+                    <p className="font-semibold text-gray-800">
+                        I pledge to uphold the values of the Student Achievement Ecosystem by continuously learning, collaborating, innovating, leading with integrity, and contributing meaningfully to the university and society.
                     </p>
                 </div>
             </div>
