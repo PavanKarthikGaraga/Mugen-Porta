@@ -25,6 +25,8 @@ export default function AdminStudents() {
     const [clubStats, setClubStats] = useState([]);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [studentToDelete, setStudentToDelete] = useState(null);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState(null);
 
     const fetchStudents = useCallback(async (page = 1) => {
         setLoading(true);
@@ -100,6 +102,11 @@ export default function AdminStudents() {
     const handleDeleteClick = (student) => {
         setStudentToDelete(student);
         setShowDeleteModal(true);
+    };
+
+    const handleViewClick = (student) => {
+        setSelectedStudent(student);
+        setShowViewModal(true);
     };
 
     const confirmDelete = () => {
@@ -365,6 +372,7 @@ export default function AdminStudents() {
                                             <button 
                                                 className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
                                                 title="View Details"
+                                                onClick={() => handleViewClick(student)}
                                             >
                                                 <FiEye className="h-4 w-4" />
                                             </button>
@@ -443,6 +451,87 @@ export default function AdminStudents() {
                             Next
                             <FiChevronRight className="h-4 w-4 ml-1" />
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* View Details Modal */}
+            {showViewModal && selectedStudent && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                    <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+                        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                            <h3 className="text-xl font-semibold text-gray-900">
+                                Student Details
+                            </h3>
+                            <button
+                                onClick={() => {
+                                    setShowViewModal(false);
+                                    setSelectedStudent(null);
+                                }}
+                                className="text-gray-400 hover:text-gray-500"
+                            >
+                                <span className="sr-only">Close</span>
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Personal Info */}
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Personal Information</h4>
+                                    <dl className="space-y-2">
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Name</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.name}</dd></div>
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Username</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.username}</dd></div>
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Email</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.email}</dd></div>
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Phone</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.phoneNumber}</dd></div>
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Gender</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.gender}</dd></div>
+                                    </dl>
+                                </div>
+
+                                {/* Academic Info */}
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Academic Information</h4>
+                                    <dl className="space-y-2">
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Campus</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.campus}</dd></div>
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Year</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.year}</dd></div>
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Branch</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.branch || 'N/A'}</dd></div>
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Career Choice</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.careerChoice || 'N/A'}</dd></div>
+                                    </dl>
+                                </div>
+
+                                {/* Club Info */}
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Club Details</h4>
+                                    <dl className="space-y-2">
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Domain</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.selectedDomain || 'N/A'}</dd></div>
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Club</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.clubName || 'N/A'}</dd></div>
+                                    </dl>
+                                </div>
+
+                                {/* Additional Info */}
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Additional Information</h4>
+                                    <dl className="space-y-2">
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Residence Type</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.residenceType || 'N/A'}</dd></div>
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">Hostel Name</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.hostelName || 'N/A'}</dd></div>
+                                        <div className="flex flex-col"><dt className="text-sm text-gray-500">State / District</dt><dd className="text-sm font-medium text-gray-900">{selectedStudent.state || 'N/A'} / {selectedStudent.district || 'N/A'}</dd></div>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-gray-200 flex justify-end bg-gray-50 rounded-b-lg">
+                            <button
+                                onClick={() => {
+                                    setShowViewModal(false);
+                                    setSelectedStudent(null);
+                                }}
+                                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
