@@ -68,6 +68,8 @@ export default function ClubsPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const submitData = { ...formData };
+
             const url = editingClub ? `/api/dashboard/admin/clubs/${editingClub.id}` : '/api/dashboard/admin/clubs';
             const method = editingClub ? 'PUT' : 'POST';
 
@@ -76,7 +78,7 @@ export default function ClubsPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(submitData),
             });
 
             if (await handleApiError(response)) {
@@ -332,49 +334,6 @@ export default function ClubsPage() {
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label htmlFor="clubId" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Club ID
-                                </label>
-                                <input
-                                    id="clubId"
-                                    type="text"
-                                    value={formData.id}
-                                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent ${editingClub ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                                    required
-                                    disabled={editingClub}
-                                    maxLength={4}
-                                    placeholder="4 characters max"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="clubName" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Club Name
-                                </label>
-                                <input
-                                    id="clubName"
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent ${editingClub ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                                    required
-                                    disabled={editingClub}
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="clubDescription" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Description
-                                </label>
-                                <textarea
-                                    id="clubDescription"
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                    required
-                                />
-                            </div>
-                            <div>
                                 <label htmlFor="clubDomain" className="block text-sm font-medium text-gray-700 mb-1">
                                     Domain
                                 </label>
@@ -393,6 +352,48 @@ export default function ClubsPage() {
                                     <option value="HWB">HWB</option>
                                 </select>
                             </div>
+                            <div>
+                                <label htmlFor="clubId" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Club ID Number
+                                </label>
+                                <input
+                                    id="clubId"
+                                    type="text"
+                                    value={formData.id}
+                                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                    required
+                                    maxLength={6}
+                                    placeholder={editingClub ? "" : "e.g., ESO02"}
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="clubName" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Club Name
+                                </label>
+                                <input
+                                    id="clubName"
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="clubDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Description
+                                </label>
+                                <textarea
+                                    id="clubDescription"
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+
                             <div>
                                 <label htmlFor="clubMemberLimit" className="block text-sm font-medium text-gray-700 mb-1">
                                     Member Limit

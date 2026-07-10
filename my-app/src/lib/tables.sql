@@ -126,6 +126,7 @@ CREATE TABLE students (
     district VARCHAR(50) NOT NULL,
     pincode VARCHAR(10) NOT NULL,
     selectedDomain ENUM('TEC', 'LCH', 'ESO', 'IIE', 'HWB') NOT NULL,
+    careerChoice VARCHAR(100) DEFAULT NULL,
     erpFeeReceiptRef VARCHAR(50) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username),

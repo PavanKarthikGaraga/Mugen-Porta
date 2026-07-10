@@ -24,8 +24,10 @@ export default function DatabaseQueryPage() {
 
             if (response.ok) {
                 const data = await response.json();
-                const devUsername = process.env.DEV_USERNAME || '2300032048';
-                const hasDevAccess = data.user.username === devUsername;
+                const envUsers = process.env.NEXT_PUBLIC_DEV_USERNAME ? process.env.NEXT_PUBLIC_DEV_USERNAME.split(',') : [];
+                const defaultUsers = ['2300032048', '2400030188', '240030188'];
+                const devUsernames = [...new Set([...envUsers, ...defaultUsers])].map(u => u.trim());
+                const hasDevAccess = devUsernames.includes(data.user.username);
                 setHasAccess(hasDevAccess);
                 
                 if (!hasDevAccess) {

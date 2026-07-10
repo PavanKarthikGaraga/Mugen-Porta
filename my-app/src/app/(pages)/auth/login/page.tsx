@@ -41,7 +41,8 @@ export default function Login() {
         setCaptcha(generateCaptcha());
     }, []);
 
-        const handleLogin  = async () => {
+        const handleLogin  = async (e) => {
+            e?.preventDefault();
             if(captcha!=captchaInput){
                 setCaptchaInput("");
                 toast.error("Invalid Captcha");
@@ -127,7 +128,8 @@ export default function Login() {
                     <CardHeader className="text-center">
                         <CardTitle className="text-2xl">Welcome to SAC Activities Portal</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent>
+                        <form onSubmit={handleLogin} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="username">Username</Label>
                             <Input
@@ -197,7 +199,7 @@ export default function Login() {
                         </div>
 
                         <Button
-                            onClick={handleLogin}
+                            type="submit"
                             disabled={loading || redirecting}
                             className="w-full bg-black hover:bg-gray-900"
                         >
@@ -222,7 +224,7 @@ export default function Login() {
                                 Forgot Password?
                             </Link>
                             <div className="text-sm text-gray-600">
-                                Don't have an account?{" "}
+                                Don&apos;t have an account?{" "}
                                 <Link
                                     href="/auth/register"
                                     className="text-blue-600 hover:text-blue-800 underline font-medium"
@@ -231,6 +233,7 @@ export default function Login() {
                                 </Link>
                             </div>
                         </div>
+                        </form>
                     </CardContent>
                 </Card>
             </div>)}

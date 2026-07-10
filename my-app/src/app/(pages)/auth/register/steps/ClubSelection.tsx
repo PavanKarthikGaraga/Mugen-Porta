@@ -17,6 +17,9 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
         { id: "HWB", name: "Health & Well-being", description: "Health, fitness and wellness programs" }
     ];
 
+    const isKLHCampus = ["KLH - Bachupally", "KLH - Aziz Nagar", "KLH - GBS"].includes(formData.campus);
+    const klhClubIds = ['KLH01', 'KLH02', 'KLH03', 'KLH04', 'KLH05', 'KLH06', 'KLH07', 'KLH08'];
+
     // Fetch clubs from unified registration API
     useEffect(() => {
         const fetchRegistrationData = async () => {
@@ -66,13 +69,62 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
         setSelectedClub(clubId);
         updateFormData({
             selectedClub: clubId,
+            selectedDomain: selectedClubData.domain, // Auto-set domain
+            pathway: "" // reset pathway on club change
         });
     };
 
+    // Pathways for SVR (ESO01)
+    const svrPathways = [
+        {
+            group: "Community Engagement & Service Learning",
+            options: ["Community needs assessment", "Volunteerism", "Civic engagement", "Service-learning projects"]
+        },
+        {
+            group: "Rural Development",
+            options: ["Village adoption", "Rural infrastructure", "Sustainable village planning", "Rural innovation"]
+        },
+        {
+            group: "Swachh Bharat, Water, Sanitation & Waste Management",
+            options: ["Solid waste management", "Plastic-free villages", "Water conservation", "Sanitation campaigns"]
+        },
+        {
+            group: "Health, Nutrition & Community Well-being",
+            options: ["Health awareness", "Nutrition", "Preventive healthcare", "Public health campaigns"]
+        },
+        {
+            group: "Education, Literacy & Digital Inclusion",
+            options: ["Digital literacy", "School transformation", "Adult literacy", "STEM education", "Educational outreach"]
+        },
+        {
+            group: "Women Empowerment, Child Development & Social Inclusion",
+            options: ["Gender equality", "Child rights", "Self-help groups", "Financial inclusion", "Inclusive community development"]
+        },
+        {
+            group: "Environment, Climate Action & Biodiversity",
+            options: ["Tree plantation", "Biodiversity conservation", "Climate resilience", "Sustainable lifestyles"]
+        },
+        {
+            group: "Livelihoods, Skill Development & Rural Entrepreneurship",
+            options: ["Skill training", "Local enterprises", "Agriculture-based livelihoods", "Rural employment"]
+        },
+        {
+            group: "Disaster Preparedness, Humanitarian Response & Community Resilience",
+            options: ["Disaster management", "First response", "Relief coordination", "Climate disaster preparedness"]
+        },
+        {
+            group: "Global Citizenship, SDGs & Social Innovation Fellowship",
+            options: ["SDG implementation", "Social innovation", "Public policy for communities", "Global citizenship", "Community leadership fellowship"]
+        }
+    ];
+
     // Check if current selection meets constraints for proceeding
     const canProceed = React.useMemo(() => {
-        return selectedClub && selectedDomain;
-    }, [selectedClub, selectedDomain]);
+        if (!selectedClub) return false;
+        if (!isKLHCampus && !selectedDomain) return false;
+        if (selectedClub === "ESO01" && !formData.pathway) return false;
+        return true;
+    }, [selectedClub, selectedDomain, formData.pathway, isKLHCampus]);
 
     // Communicate validation status to parent component
     React.useEffect(() => {
@@ -94,28 +146,30 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
             ) : (
                 <div className="space-y-6">
                     {/* Domain and Club Selection - Side by Side */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Domain Selection */}
-                        <div>
-                            <label className="block text-lg font-semibold text-gray-800 mb-3">
-                                Select Domain
-                            </label>
-                            <select
-                                value={selectedDomain}
-                                onChange={(e) => handleDomainChange(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                            >
-                                <option value="">Choose a domain...</option>
-                                {allDomains.map((domain) => (
-                                    <option key={domain.id} value={domain.id}>
-                                        {domain.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                    <div className={`grid grid-cols-1 ${isKLHCampus ? '' : 'md:grid-cols-2'} gap-6`}>
+                        {/* Domain Selection (Hidden for KLH) */}
+                        {!isKLHCampus && (
+                            <div>
+                                <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                    Select Domain
+                                </label>
+                                <select
+                                    value={selectedDomain}
+                                    onChange={(e) => handleDomainChange(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                >
+                                    <option value="">Choose a domain...</option>
+                                    {allDomains.map((domain) => (
+                                        <option key={domain.id} value={domain.id}>
+                                            {domain.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
                         {/* Club Selection */}
-                        {selectedDomain && (
+                        {(selectedDomain || isKLHCampus) && (
                             <div>
                                 <label className="block text-lg font-semibold text-gray-800 mb-3">
                                     Select Club
@@ -127,8 +181,11 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                 >
                                     <option value="">Choose a club...</option>
                                     {(() => {
-                                        let clubsForDomain = availableClubs.filter(club => club.domain === selectedDomain);
-                                        return clubsForDomain.map((club) => {
+                                        let clubsToDisplay = isKLHCampus 
+                                            ? availableClubs.filter(club => klhClubIds.includes(club.id))
+                                            : availableClubs.filter(club => club.domain === selectedDomain && !klhClubIds.includes(club.id) && !club.id.startsWith('KLH'));
+                                            
+                                        return clubsToDisplay.map((club) => {
                                             const isFull = club.isFull;
                                             return (
                                                 <option
@@ -150,6 +207,49 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                         )}
                     </div>
 
+                    {/* Pathway Selection for SVR (ESO01) */}
+                    {selectedClub === "ESO01" && (
+                        <div className="mt-6">
+                            <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                Select SVR Pathway *
+                            </label>
+                            <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                                {svrPathways.map((group, idx) => (
+                                    <div
+                                        key={idx}
+                                        onClick={() => updateFormData({ pathway: group.group })}
+                                        className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                                            formData.pathway === group.group
+                                                ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500 shadow-sm'
+                                                : 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
+                                        }`}
+                                    >
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0 h-5 w-5 rounded-full border border-gray-400 flex items-center justify-center mt-0.5 bg-white">
+                                                {formData.pathway === group.group && (
+                                                    <div className="h-2.5 w-2.5 bg-blue-600 rounded-full"></div>
+                                                )}
+                                            </div>
+                                            <div className="ml-3">
+                                                <span className={`block text-base font-bold ${formData.pathway === group.group ? 'text-blue-900' : 'text-gray-800'}`}>
+                                                    {group.group}
+                                                </span>
+                                                <div className="mt-2 text-sm text-gray-500 space-y-1">
+                                                    {group.options.map((opt, i) => (
+                                                        <div key={i} className="flex items-start">
+                                                            <span className="mr-2 text-gray-400">•</span>
+                                                            <span>{opt}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Selection Summary */}
                     {(formData.selectedClub || selectedDomain) && (
                         <div className={`mt-6 p-4 rounded-lg border ${
@@ -168,6 +268,9 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                 )}
                                 {formData.selectedClub && (
                                     <div><span className="font-medium">Club:</span> {availableClubs.find(c => c.id === formData.selectedClub)?.name}</div>
+                                )}
+                                {formData.selectedClub === "ESO01" && formData.pathway && (
+                                    <div><span className="font-medium">Pathway:</span> {formData.pathway}</div>
                                 )}
                                 <div className={`mt-2 font-medium ${
                                     canProceed ? 'text-green-700' : 'text-red-700'

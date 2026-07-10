@@ -53,4 +53,6 @@ export const branchNames = [
   { id: 43, name: "MBA" },
   { id: 44, name: "MCA" },
   { id: 45, name: "Pharma D" },
+  { id: 46, name: "KL CDOE Management (OL) BBA" },
+  { id: 47, name: "KL CDOE Humanities (OL) BCA" },
 ];

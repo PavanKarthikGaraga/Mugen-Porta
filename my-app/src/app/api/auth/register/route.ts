@@ -16,6 +16,8 @@ export async function POST(req) {
             gender,
             cluster,
             year,
+            campus,
+            careerChoice,
 
             // Address Details
             country,
@@ -30,28 +32,29 @@ export async function POST(req) {
             // Club Selection
             selectedClub,
             selectedDomain,
+            pathway,
 
             // Agreements
             agreedToTerms,
 
-            // ERP Fee Receipt
+            // ERP Fee Receipt (kept for backward compat but no longer required)
             erpFeeReceiptRef
         } = await req.json();
 
-        // Check if it's Y22, Y23, Y24 or Y25 student based on username
+        // Check if it's Y22, Y23, Y24, Y25 or Y26 student based on username
+        const isY22Student = username.startsWith('22');
+        const isY23Student = username.startsWith('23');
         const isY24Student = username.startsWith('24');
         const isY25Student = username.startsWith('25');
-        const isY23Student = username.startsWith('23');
-        const isY22Student = username.startsWith('22');
+        const isY26Student = username.startsWith('26');
 
         // Simplified registration: no projects or categories
 
         // Validate required fields
-        // Cluster is optional for 1st year (Y25) students
-        const clusterRequired = !isY25Student;
-        if (!username || !name || !email || !phoneNumber || !branch || !gender || !year || (clusterRequired && !cluster)) {
+        // Cluster is optional for all students
+        if (!username || !name || !email || !phoneNumber || !branch || !gender || !year || !campus) {
             return NextResponse.json(
-                { message: clusterRequired && !cluster ? "Cluster is required for your year" : "All required personal details are required" },
+                { message: "All required personal details are required" },
                 { status: 400 }
             );
         }
@@ -65,9 +68,9 @@ export async function POST(req) {
 
         // Validation based on student year - unified logic matching frontend
 
-        if (!isY22Student && !isY23Student && !isY24Student && !isY25Student) {
+        if (!isY22Student && !isY23Student && !isY24Student && !isY25Student && !isY26Student) {
             return NextResponse.json(
-                { message: "Invalid username format. Must start with 22, 23, 24, or 25" },
+                { message: "Invalid username format. Must start with 22, 23, 24, 25, or 26" },
                 { status: 400 }
             );
         }
@@ -88,20 +91,7 @@ export async function POST(req) {
             );
         }
 
-        // Validate ERP Fee Receipt Reference Number
-        if (!erpFeeReceiptRef || erpFeeReceiptRef.trim().length === 0) {
-            return NextResponse.json(
-                { message: "ERP Fee Receipt Reference Number is required" },
-                { status: 400 }
-            );
-        }
-
-        if (erpFeeReceiptRef.length > 50) {
-            return NextResponse.json(
-                { message: "ERP Fee Receipt Reference Number must be 50 characters or less" },
-                { status: 400 }
-            );
-        }
+        // ERP Fee Receipt is no longer required
 
         // Additional validations
         if (username.length > 10) {
@@ -111,14 +101,17 @@ export async function POST(req) {
             );
         }
 
-        if (residenceType === "Hostel" && !hostelName) {
+        // Determine if user is from KLH campuses to conditionally require hostel/bus fields
+        const isKLHCampus = campus === "KLH - Bachupally" || campus === "KLH - Aziz Nagar" || campus === "KLH - GBS";
+
+        if (residenceType === "Hostel" && !hostelName && !isKLHCampus) {
             return NextResponse.json(
                 { message: "Hostel name is required for hostel residents" },
                 { status: 400 }
             );
         }
 
-        if (residenceType === "Day Scholar" && !busRoute) {
+        if (residenceType === "Day Scholar" && !busRoute && !isKLHCampus) {
             return NextResponse.json(
                 { message: "Bus route is required for day scholars" },
                 { status: 400 }
@@ -192,7 +185,14 @@ export async function POST(req) {
         // Get connection for transaction
         const connection = await pool.getConnection();
 
-        // Start transaction
+        if (selectedClub === "ESO01" && !pathway) {
+            return NextResponse.json(
+                { message: "Pathway is required for SVR club" },
+                { status: 400 }
+            );
+        }
+
+        // Start database transaction
         await connection.beginTransaction();
 
         try {
@@ -215,18 +215,18 @@ export async function POST(req) {
             const [studentResult] = await connection.execute(
                 `INSERT INTO students (
                     username, clubId, name, email, branch, gender,
-                    cluster, year, phoneNumber, residenceType, hostelName, busRoute,
-                    country, state, district, pincode, selectedDomain, erpFeeReceiptRef
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    campus, year, phoneNumber, residenceType, hostelName, busRoute,
+                    country, state, district, pincode, selectedDomain, pathway, careerChoice
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
                     selectedClub,                          // All students can have clubs
                     name, email, branch, gender,
-                    isY25Student ? null : cluster, // Cluster is null for Y25 (1st year) students
+                    campus,
                     year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
                     countryName || country, state, district, pincode, selectedDomain,
-                    erpFeeReceiptRef.trim() // ERP Fee Receipt Reference Number
+                    pathway || null, careerChoice || null
                 ]
             );
 
@@ -257,7 +257,8 @@ export async function POST(req) {
                 isY22Student,
                 isY23Student,
                 isY24Student,
-                isY25Student
+                isY25Student,
+                isY26Student
             );
 
             // Log email result but don't fail registration if email queuing fails

@@ -32,6 +32,8 @@ export async function GET(request, { params }) {
                 s.district,
                 s.pincode,
                 s.selectedDomain,
+                s.pathway,
+                s.careerChoice,
                 s.created_at,
                 c.name as clubName
              FROM students s
@@ -55,6 +57,40 @@ export async function GET(request, { params }) {
         console.error('Database error:', error);
         return NextResponse.json({
             error: 'Failed to fetch student profile',
+            details: error.message
+        }, { status: 500 });
+    }
+}
+
+export async function PATCH(request, { params }) {
+    try {
+        const { username } = await params;
+        const { careerChoice } = await request.json();
+
+        if (!username || !careerChoice) {
+            return NextResponse.json(
+                { message: "Username and careerChoice are required" },
+                { status: 400 }
+            );
+        }
+
+        const [result] = await pool.execute(
+            'UPDATE students SET careerChoice = ? WHERE username = ?',
+            [careerChoice, username]
+        );
+
+        if (result.affectedRows === 0) {
+            return NextResponse.json(
+                { message: "Student not found" },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json({ message: "Career choice updated successfully" });
+    } catch (error) {
+        console.error('Database error:', error);
+        return NextResponse.json({
+            error: 'Failed to update student profile',
             details: error.message
         }, { status: 500 });
     }

@@ -32,8 +32,8 @@ export default function Confirmation({ formData, updateFormData }) {
                                     <p className="font-medium">{formData.name || "Not provided"}</p>
                                 </div>
                                  <div>
-                                    <p className="text-gray-600">Cluster:</p>
-                                    <p className="font-medium">{formData.cluster || "Not provided"}</p>
+                                    <p className="text-gray-600">Campus:</p>
+                                    <p className="font-medium">{formData.campus || "Not provided"}</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
@@ -56,10 +56,10 @@ export default function Confirmation({ formData, updateFormData }) {
                                     <p className="font-medium">{formData.year || "Not provided"}</p>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 gap-2">
-                                <div>
-                                    <p className="text-gray-600">ERP Fee Receipt Reference:</p>
-                                    <p className="font-medium">{formData.erpFeeReceiptRef || "Not provided"}</p>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="col-span-2">
+                                    <p className="text-gray-600">Career Choice:</p>
+                                    <p className="font-medium">{formData.careerChoice || "Not provided"}</p>
                                 </div>
                             </div>
 
@@ -80,6 +80,12 @@ export default function Confirmation({ formData, updateFormData }) {
                                 <p className="text-sm text-gray-600">Club:</p>
                                 <p className="font-medium">{formData.selectedClub || "Not selected"}</p>
                             </div>
+                            {formData.selectedClub === "ESO01" && (
+                                <div className="col-span-2 mt-2">
+                                    <p className="text-sm text-gray-600">Pathway:</p>
+                                    <p className="font-medium">{formData.pathway || "Not selected"}</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -112,13 +118,13 @@ export default function Confirmation({ formData, updateFormData }) {
                                     <p className="text-gray-600">Residence Type:</p>
                                     <p className="font-medium">{formData.residenceType || "Not provided"}</p>
                                 </div>
-                                {formData.residenceType === "Hostel" && (
+                                {formData.residenceType === "Hostel" && !["KLH - Bachupally", "KLH - Aziz Nagar", "KLH - GBS"].includes(formData.campus) && (
                                     <div>
                                         <p className="text-gray-600">Hostel:</p>
                                         <p className="font-medium">{formData.hostelName || "Not provided"}</p>
                                     </div>
                                 )}
-                                {formData.residenceType === "Day Scholar" && (
+                                {formData.residenceType === "Day Scholar" && !["KLH - Bachupally", "KLH - Aziz Nagar", "KLH - GBS"].includes(formData.campus) && (
                                     <div>
                                         <p className="text-gray-600">Bus Route:</p>
                                         <p className="font-medium">{formData.busRoute || "Not provided"}</p>

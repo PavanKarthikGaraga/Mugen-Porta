@@ -33,6 +33,8 @@ export default function Register() {
         password: "",
         confirmPassword: "",
         role: "student",
+        campus: "",
+        careerChoice: "",
 
         // Address Details
         country: "IN", // Default to India
@@ -44,8 +46,9 @@ export default function Register() {
         busRoute: "",
 
         // Club Selection
-        selectedClub: "",
         selectedDomain: "",
+        selectedClub: "",
+        pathway: "",
 
         // Undertaking
         agreedToTerms: false,
@@ -112,9 +115,7 @@ export default function Register() {
                 }
                 break;
             case 4: // Personal Details
-                // Check all required fields, but cluster is only required for non-1st year students
-                const clusterRequired = false;
-                if (!formData.username || !formData.name || !formData.email || !formData.phoneNumber || !formData.branch || !formData.gender || !formData.year || (clusterRequired && !formData.cluster) || !formData.erpFeeReceiptRef) {
+                if (!formData.username || !formData.name || !formData.email || !formData.phoneNumber || !formData.branch || !formData.gender || !formData.year || !formData.campus || !formData.careerChoice) {
                     toast.error("Please fill all required fields");
                     return false;
                 }
@@ -123,19 +124,15 @@ export default function Register() {
                     toast.error("Username must be exactly 10 digits and start with 23, 24, 25, or 26");
                     return false;
                 }
-                // Validate ERP Fee Receipt Reference Number
-                if (!formData.erpFeeReceiptRef || formData.erpFeeReceiptRef.trim().length === 0) {
-                    toast.error("ERP Fee Receipt Reference Number is required");
-                    return false;
-                }
-                if (formData.erpFeeReceiptRef.length > 50) {
-                    toast.error("ERP Fee Receipt Reference Number must be 50 characters or less");
-                    return false;
-                }
                 break;
             case 5: // Club Selection
-                if (!formData.selectedClub || !formData.selectedDomain) {
-                    toast.error("Please select a domain and club");
+                const isKLH = ["KLH - Bachupally", "KLH - Aziz Nagar", "KLH - GBS"].includes(formData.campus);
+                if (!formData.selectedClub || (!isKLH && !formData.selectedDomain)) {
+                    toast.error(isKLH ? "Please select a club" : "Please select both a domain and a club");
+                    return false;
+                }
+                if (formData.selectedClub === "ESO01" && !formData.pathway) {
+                    toast.error("Please select a pathway for SVR club");
                     return false;
                 }
                 break;
@@ -144,8 +141,9 @@ export default function Register() {
                     toast.error("Please fill all address fields");
                     return false;
                 }
-                // Check hostel name if residence type is hostel
-                if (formData.residenceType === "Hostel" && !formData.hostelName) {
+                // Check hostel name if residence type is hostel and campus is NOT KLH
+                const isKLHCampus = formData.campus === "KLH - Bachupally" || formData.campus === "KLH - Aziz Nagar" || formData.campus === "KLH - GBS";
+                if (formData.residenceType === "Hostel" && !formData.hostelName && !isKLHCampus) {
                     toast.error("Please select a hostel name");
                     return false;
                 }

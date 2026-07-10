@@ -168,7 +168,7 @@ export default function AddressDetails({ formData, updateFormData }) {
                     </select>
                 </div>
 
-                {formData.residenceType === "Hostel" && (
+                {formData.residenceType === "Hostel" && formData.campus !== "KLH - Bachupally" && formData.campus !== "KLH - Aziz Nagar" && formData.campus !== "KLH - GBS" && (
                     <div>
                         <label htmlFor="hostelName" className="block text-sm font-medium text-gray-700 mb-2">
                             Hostel Name *
@@ -196,7 +196,7 @@ export default function AddressDetails({ formData, updateFormData }) {
                     </div>
                 )}
 
-                {formData.residenceType === "Day Scholar" && (
+                {formData.residenceType === "Day Scholar" && formData.campus !== "KLH - Bachupally" && formData.campus !== "KLH - Aziz Nagar" && formData.campus !== "KLH - GBS" && (
                     <div>
                         <label htmlFor="busRoute" className="block text-sm font-medium text-gray-700 mb-2">
                             Bus Route (if applicable)

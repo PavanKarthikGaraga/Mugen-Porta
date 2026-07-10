@@ -10,19 +10,46 @@ export async function PUT(request, { params }) {
     }
 
     try {
-        const { id } = await params;
-        const { name, description, domain, categories, memberLimit } = await request.json();
+        const { id: oldId } = await params;
+        const { id: newId, name, description, domain, memberLimit } = await request.json();
         
-        const [result] = await pool.execute(
-            'UPDATE clubs SET name = ?, description = ?, domain = ?, categories = ?, memberLimit = ? WHERE id = ?',
-            [name, description, domain, JSON.stringify(categories), memberLimit || 50, id]
-        );
-        
-        if (result.affectedRows === 0) {
-            return NextResponse.json({ error: 'Club not found' }, { status: 404 });
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Disable foreign key checks temporarily to allow ID update
+            await connection.execute('SET FOREIGN_KEY_CHECKS=0');
+
+            // Update the main club record
+            const targetId = newId || oldId;
+            const [result] = await connection.execute(
+                'UPDATE clubs SET id = ?, name = ?, description = ?, domain = ?, memberLimit = ? WHERE id = ?',
+                [targetId, name, description, domain, memberLimit || 50, oldId]
+            );
+
+            // If the ID changed, update references manually
+            if (newId && newId !== oldId) {
+                await connection.execute('UPDATE students SET clubId = ? WHERE clubId = ?', [newId, oldId]);
+                await connection.execute('UPDATE leads SET clubId = ? WHERE clubId = ?', [newId, oldId]);
+            }
+
+            // Re-enable foreign key checks
+            await connection.execute('SET FOREIGN_KEY_CHECKS=1');
+
+            await connection.commit();
+            
+            if (result.affectedRows === 0) {
+                return NextResponse.json({ error: 'Club not found' }, { status: 404 });
+            }
+            
+            return NextResponse.json({ message: 'Club updated successfully' });
+        } catch (error) {
+            await connection.rollback();
+            await connection.execute('SET FOREIGN_KEY_CHECKS=1');
+            throw error;
+        } finally {
+            connection.release();
         }
-        
-        return NextResponse.json({ message: 'Club updated successfully' });
     } catch (error) {
         console.error('Database error:', error);
         return NextResponse.json({ error: 'Failed to update club' }, { status: 500 });

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function StudentClubDetailsPage() {
     const [clubData, setClubData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState(null);
 
     useEffect(() => {
         const fetchClubDetails = async () => {
@@ -25,7 +26,7 @@ export default function StudentClubDetailsPage() {
                     const studentDetails = await studentResponse.json();
 
                     // Fetch club information
-                    if (studentDetails.clubId) {
+                    if (studentDetails.clubId && studentDetails.clubId !== "null" && studentDetails.clubId !== "undefined") {
                         try {
                             const clubResponse = await fetch(`/api/dashboard/student/clubs/${studentDetails.clubId}`, { credentials: 'include' });
                             if (clubResponse.ok) {
@@ -34,11 +35,37 @@ export default function StudentClubDetailsPage() {
                                     ...clubInfo,
                                     studentDetails: studentDetails
                                 });
+                            } else {
+                                // Fallback if club data is not found in the DB (e.g., custom KLH clubs not yet inserted)
+                                setClubData({
+                                    id: studentDetails.clubId,
+                                    name: studentDetails.clubName || "Club Pending Configuration",
+                                    domain: studentDetails.selectedDomain || "Unknown",
+                                    studentDetails: studentDetails
+                                });
                             }
                         } catch (error) {
                             console.error('Error fetching club data:', error);
+                            // Set fallback even on error
+                            setClubData({
+                                id: studentDetails.clubId,
+                                name: studentDetails.clubName || "Club Pending Configuration",
+                                domain: studentDetails.selectedDomain || "Unknown",
+                                studentDetails: studentDetails
+                            });
                         }
+                    } else {
+                        // Fallback for students who registered but clubId is missing or invalid, or no matching club record
+                        setClubData({
+                            id: studentDetails.clubId || null,
+                            name: studentDetails.clubName || studentDetails.clubId || "Club Pending Configuration",
+                            domain: studentDetails.selectedDomain || "Unknown",
+                            studentDetails: studentDetails
+                        });
                     }
+                } else {
+                    const errData = await studentResponse.json();
+                    setErrorMsg(`Could not find your student profile (Error: ${errData.message || 'Unknown'}). Please contact support.`);
                 }
             } catch (error) {
                 console.error('Failed to fetch club details:', error);
@@ -66,7 +93,15 @@ export default function StudentClubDetailsPage() {
             </div>
 
             {/* Club Information */}
-            {clubData ? (
+            {errorMsg ? (
+                <Card className="mb-8 border-red-200">
+                    <CardContent className="p-8 text-center">
+                        <FiInfo className="mx-auto h-12 w-12 text-red-400 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Error</h3>
+                        <p className="text-red-500">{errorMsg}</p>
+                    </CardContent>
+                </Card>
+            ) : clubData ? (
                 <Card className="mb-8">
                     <CardHeader>
                         <CardTitle className="flex items-center">
@@ -85,7 +120,17 @@ export default function StudentClubDetailsPage() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Domain</label>
-                                <p className="text-gray-700">{clubData.selectedDomain || 'N/A'}</p>
+                                <p className="text-gray-700">
+                                    {clubData.domain
+                                        ? {
+                                            TEC: "Technical",
+                                            LCH: "Literary, Cultural & Heritage",
+                                            ESO: "Extension & Social Outreach",
+                                            IIE: "Innovation, Incubation & Entrepreneurship",
+                                            HWB: "Health & Well-being",
+                                          }[clubData.domain] || clubData.domain
+                                        : "N/A"}
+                                </p>
                             </div>
 
                         </div>
@@ -111,6 +156,15 @@ export default function StudentClubDetailsPage() {
                                     Active Member
                                 </span>
                             </div>
+                            
+                            {clubData.studentDetails?.pathway && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Pathway</label>
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {clubData.studentDetails.pathway}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
