@@ -25,7 +25,8 @@ jobs:
       - name: Install dependencies
         run: |
           cd /var/www/Mugen-Porta/my-app
-          npm install --include=dev
+          rm -rf node_modules package-lock.json
+          npm install --legacy-peer-deps
 
       - name: Clean old build
         run: |
