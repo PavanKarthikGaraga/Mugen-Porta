@@ -111,7 +111,7 @@ export default function ControlsPage() {
 
     return (
         <div className="max-w-md mx-auto space-y-6">
-            <Card>
+            <Card className="bg-white shadow-sm">
                 <CardHeader>
                     <CardTitle className="text-center">Registration Control</CardTitle>
                     <p className="text-center text-gray-600 mt-2">Enable or disable student registrations</p>
@@ -169,7 +169,7 @@ export default function ControlsPage() {
             </Card>
 
             {/* Proxy Login Card */}
-            <Card>
+            <Card className="bg-white shadow-sm">
                 <CardHeader>
                     <CardTitle className="flex items-center justify-center">
                         <FiUser className="mr-2" />
