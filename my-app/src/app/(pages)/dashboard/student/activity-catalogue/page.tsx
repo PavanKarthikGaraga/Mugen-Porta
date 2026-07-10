@@ -1,0 +1,295 @@
+"use client";
+import { useState, useMemo } from "react";
+import { FiFilter, FiGrid, FiList, FiX, FiSliders } from "react-icons/fi";
+import { ACTIVITIES, DOMAINS, LEVELS, ACTIVITY_PACKS, FACULTIES } from "@/app/Data/activities-mock";
+import CatalogueCard from "@/app/components/dashboard/CatalogueCard";
+import FilterPanel  from "@/app/components/dashboard/FilterPanel";
+import SearchBar    from "@/app/components/dashboard/SearchBar";
+import DashboardCard from "@/app/components/dashboard/DashboardCard";
+
+const BRAND = "rgb(151,0,3)";
+const PAGE_SIZE = 12;
+
+const FILTERS = [
+  { key: "domain",     label: "Domain",           type: "chips",  options: Object.values(DOMAINS).map((d) => d.id) },
+  { key: "difficulty", label: "Difficulty",        type: "chips",  options: ["Beginner","Intermediate","Advanced"] },
+  { key: "level",      label: "Journey Level",     type: "select", options: LEVELS.map((l) => l.name) },
+  { key: "pack",       label: "Activity Pack",     type: "select", options: ACTIVITY_PACKS },
+  { key: "faculty",    label: "Faculty",           type: "select", options: FACULTIES },
+  { key: "maxCredits", label: "Max Credits",       type: "range",  min: 4, max: 25, step: 1, unit: " SDC" },
+  { key: "maxHours",   label: "Max Duration",      type: "range",  min: 4, max: 50, step: 2, unit: "h" },
+  { key: "sdg",        label: "SDG",               type: "select", options: Array.from({ length: 17 }, (_, i) => `SDG ${i + 1}`) },
+  { key: "status",     label: "Status",            type: "chips",  options: ["Open","Full","Upcoming"] },
+  { key: "career",     label: "Career Path",       type: "chips",  options: ["Placement","Higher Education","Entrepreneurship","Research & Development"] },
+];
+
+const EMPTY_FILTERS = {
+  domain: "", difficulty: "", level: "", pack: "", faculty: "",
+  maxCredits: 25, maxHours: 50, sdg: "", status: "", career: "",
+};
+
+export default function ActivityCataloguePage() {
+  const [search,       setSearch]       = useState("");
+  const [activeFilters,setActiveFilters]= useState({ ...EMPTY_FILTERS });
+  const [bookmarks,    setBookmarks]    = useState(new Set());
+  const [view,         setView]         = useState("grid"); // grid | list
+  const [page,         setPage]         = useState(1);
+  const [filterOpen,   setFilterOpen]   = useState(false);
+
+  // ── Toggle bookmark ──────────────────────────────────────────────────────
+  const toggleBookmark = (id) => {
+    setBookmarks((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  // ── Filter + search ──────────────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    return ACTIVITIES.filter((a) => {
+      if (q && !a.name.toLowerCase().includes(q) &&
+          !a.code.toLowerCase().includes(q) &&
+          !a.purpose.toLowerCase().includes(q) &&
+          !a.faculty.toLowerCase().includes(q)) return false;
+      if (activeFilters.domain     && a.domain !== activeFilters.domain) return false;
+      if (activeFilters.difficulty && a.difficulty !== activeFilters.difficulty) return false;
+      if (activeFilters.level      && a.level !== activeFilters.level.toLowerCase()) return false;
+      if (activeFilters.pack       && a.pack !== activeFilters.pack) return false;
+      if (activeFilters.faculty    && a.faculty !== activeFilters.faculty) return false;
+      if (a.credits > activeFilters.maxCredits) return false;
+      if (a.hours   > activeFilters.maxHours)   return false;
+      if (activeFilters.sdg) {
+        const sdgNum = parseInt(activeFilters.sdg.replace("SDG ", ""));
+        if (!a.sdgs.includes(sdgNum)) return false;
+      }
+      if (activeFilters.status) {
+        const isFull = a.enrolledCount >= a.maxEnrollment;
+        if (activeFilters.status === "Full" && !isFull) return false;
+        if (activeFilters.status === "Open" && isFull)  return false;
+      }
+      if (activeFilters.career && !a.career.includes(activeFilters.career)) return false;
+      return true;
+    });
+  }, [search, activeFilters]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const handleFilterChange = (key, value) => {
+    setActiveFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(1);
+  };
+
+  const activeFilterCount = Object.entries(activeFilters).filter(
+    ([k, v]) => v !== EMPTY_FILTERS[k] && v !== ""
+  ).length;
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      {/* ── Header ── */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+        <div className="h-1.5" style={{ background: BRAND }} />
+        <div className="p-5">
+          <div className="flex items-start justify-between flex-wrap gap-3">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Activity Catalogue</h1>
+              <p className="text-sm text-gray-500 mt-0.5">
+                {ACTIVITIES.length} activities across 5 domains. Discover, enroll, and grow.
+              </p>
+            </div>
+            {/* Domain summary pills */}
+            <div className="flex flex-wrap gap-2">
+              {Object.values(DOMAINS).map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => handleFilterChange("domain", activeFilters.domain === d.id ? "" : d.id)}
+                  className="text-xs font-medium px-3 py-1 rounded-full border transition-all"
+                  style={
+                    activeFilters.domain === d.id
+                      ? { backgroundColor: d.color, color: "#fff", borderColor: d.color }
+                      : { backgroundColor: d.bg, color: d.color, borderColor: `${d.color}30` }
+                  }
+                >
+                  {d.name.split(" ")[0]}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4 items-start">
+
+        {/* ── Filter Sidebar (desktop) ── */}
+        <div className="hidden lg:block w-56 flex-shrink-0">
+          <DashboardCard title="Filters" subtitle={activeFilterCount > 0 ? `${activeFilterCount} active` : "All activities"}>
+            <FilterPanel
+              filters={FILTERS}
+              activeFilters={activeFilters}
+              onChange={handleFilterChange}
+              onClear={() => { setActiveFilters({ ...EMPTY_FILTERS }); setPage(1); }}
+            />
+          </DashboardCard>
+        </div>
+
+        {/* ── Main area ── */}
+        <div className="flex-1 min-w-0 space-y-4">
+
+          {/* Search + controls row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <SearchBar
+              value={search}
+              onChange={(v) => { setSearch(v); setPage(1); }}
+              placeholder="Search by name, code, faculty…"
+              className="flex-1 min-w-48"
+            />
+            {/* Mobile filter toggle */}
+            <button
+              onClick={() => setFilterOpen(!filterOpen)}
+              className="lg:hidden flex items-center gap-1.5 text-xs font-medium px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <FiSliders size={14} />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="w-4 h-4 text-[10px] flex items-center justify-center rounded-full text-white" style={{ backgroundColor: BRAND }}>
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+            {/* View toggle */}
+            <div className="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setView("grid")}
+                className={`p-2 transition-colors ${view === "grid" ? "text-white" : "text-gray-400 hover:text-gray-600"}`}
+                style={view === "grid" ? { backgroundColor: BRAND } : {}}
+              >
+                <FiGrid size={14} />
+              </button>
+              <button
+                onClick={() => setView("list")}
+                className={`p-2 transition-colors ${view === "list" ? "text-white" : "text-gray-400 hover:text-gray-600"}`}
+                style={view === "list" ? { backgroundColor: BRAND } : {}}
+              >
+                <FiList size={14} />
+              </button>
+            </div>
+            {/* Results count */}
+            <span className="text-xs text-gray-500 hidden sm:block">
+              {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+
+          {/* Mobile filter panel */}
+          {filterOpen && (
+            <div className="lg:hidden bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-semibold text-gray-900">Filters</p>
+                <button onClick={() => setFilterOpen(false)} className="text-gray-400 hover:text-gray-600">
+                  <FiX size={16} />
+                </button>
+              </div>
+              <FilterPanel
+                filters={FILTERS}
+                activeFilters={activeFilters}
+                onChange={handleFilterChange}
+                onClear={() => { setActiveFilters({ ...EMPTY_FILTERS }); setPage(1); }}
+              />
+            </div>
+          )}
+
+          {/* Active filter chips */}
+          {activeFilterCount > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(activeFilters).map(([key, val]) => {
+                const def = EMPTY_FILTERS[key];
+                if (val === def || val === "") return null;
+                const filterDef = FILTERS.find((f) => f.key === key);
+                const label = filterDef?.label || key;
+                const display = filterDef?.type === "range" ? `≤${val}${filterDef?.unit || ""}` : val;
+                return (
+                  <span
+                    key={key}
+                    className="flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full text-white"
+                    style={{ backgroundColor: BRAND }}
+                  >
+                    {label}: {display}
+                    <button onClick={() => handleFilterChange(key, def)} className="hover:opacity-75">
+                      <FiX size={10} />
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Results grid */}
+          {paginated.length === 0 ? (
+            <div className="text-center py-16 text-gray-400">
+              <p className="text-3xl mb-3">🔍</p>
+              <p className="text-sm font-medium text-gray-600">No activities match your filters</p>
+              <button
+                onClick={() => { setSearch(""); setActiveFilters({ ...EMPTY_FILTERS }); }}
+                className="mt-3 text-xs font-medium hover:underline"
+                style={{ color: BRAND }}
+              >
+                Clear all filters
+              </button>
+            </div>
+          ) : (
+            <div className={view === "grid"
+              ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
+              : "space-y-3"
+            }>
+              {paginated.map((a) => (
+                <CatalogueCard
+                  key={a.id}
+                  activity={a}
+                  bookmarked={bookmarks.has(a.id)}
+                  onBookmark={toggleBookmark}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-xs font-medium border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
+              >
+                ← Prev
+              </button>
+              {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
+                const pg = page <= 4 ? i + 1 : page - 3 + i;
+                if (pg < 1 || pg > totalPages) return null;
+                return (
+                  <button
+                    key={pg}
+                    onClick={() => setPage(pg)}
+                    className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${
+                      pg === page ? "text-white" : "border hover:bg-gray-50"
+                    }`}
+                    style={pg === page ? { backgroundColor: BRAND } : {}}
+                  >
+                    {pg}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 text-xs font-medium border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
+              >
+                Next →
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
