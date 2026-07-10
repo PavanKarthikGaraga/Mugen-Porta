@@ -36,6 +36,7 @@ jobs:
       - name: Build app
         run: |
           cd /var/www/Mugen-Porta/my-app
+          npm install typescript @types/node @types/react @types/react-dom --no-save --legacy-peer-deps
           npm run build
 
       - name: Restart PM2
