@@ -29,6 +29,7 @@
     "bullmq": "^5.66.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "ioredis": "^5.8.2",
     "jose": "^6.0.12",
     "lucide-react": "^0.546.0",
@@ -50,8 +51,12 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "typescript": "7.0.2"
   }
 }

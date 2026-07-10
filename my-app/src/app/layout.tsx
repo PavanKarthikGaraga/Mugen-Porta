@@ -1,6 +1,7 @@
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/ThemeProvider";
 // Initialize email queue
 import "@/lib/emailQueue";
 
@@ -63,10 +64,17 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body
-        className={`${poppins.variable} antialiased`}
+        className={`${poppins.variable} antialiased transition-colors duration-200`}
       >
-        {children}
-        <Toaster position="top-right" />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );

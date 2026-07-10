@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { countryCodes } from "../../../../Data/coutries.js";
-import { stateNames } from "../../../../Data/states.js";
-import { districtNames } from "../../../../Data/districts.js";
-import { girlHostels, boyHostels, busRoutes } from "../../../../Data/locations.js";
+import { countryCodes } from "../../../../Data/coutries";
+import { stateNames } from "../../../../Data/states";
+import { districtNames } from "../../../../Data/districts";
+import { girlHostels, boyHostels, busRoutes } from "../../../../Data/locations";
 
 export default function AddressDetails({ formData, updateFormData }) {
     const [selectedCountry, setSelectedCountry] = useState(formData.country || "IN");
