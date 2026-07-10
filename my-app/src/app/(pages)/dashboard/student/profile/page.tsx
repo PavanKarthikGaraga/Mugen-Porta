@@ -39,13 +39,13 @@ export default function ProfilePage() {
             ST
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Arjun Sharma</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Nischal Singana</h2>
             <p className="text-xs text-gray-500 dark:text-zinc-400">Computer Science & Engineering</p>
           </div>
           <div className="w-full h-px bg-gray-100 dark:bg-zinc-800" />
           <div className="w-full space-y-2 text-left">
             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-400">
-              <FiMail /> arjun@kluniversity.in
+              <FiMail /> 2400000000@kluniversity.in
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-400">
               <FiBookOpen /> Year 3 · Sem 6
@@ -65,11 +65,11 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-500">First Name</label>
-                <input type="text" defaultValue="Arjun" className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none" />
+                <input type="text" defaultValue="Nischal" className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-500">Last Name</label>
-                <input type="text" defaultValue="Sharma" className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none" />
+                <input type="text" defaultValue="Singana" className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none" />
               </div>
               <div className="col-span-2 space-y-1.5">
                 <label className="text-xs font-semibold text-gray-500">Tagline / Bio</label>

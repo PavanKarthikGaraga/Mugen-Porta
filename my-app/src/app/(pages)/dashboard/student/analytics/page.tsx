@@ -90,7 +90,7 @@ export default function AnalyticsPage() {
       <div className="bg-white dark:bg-zinc-950 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm">
          <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4">Department Leaderboard (Top 5)</h2>
          <div className="space-y-2">
-            {["Priya Sharma", "Rahul Verma", "Arjun Sharma (You)", "Sneha Reddy", "Karthik Nair"].map((name, i) => (
+            {["Priya Sharma", "Rahul Verma", "Nischal Singana (You)", "Sneha Reddy", "Karthik Nair"].map((name, i) => (
               <div key={name} className={`flex items-center justify-between p-3 rounded-xl border ${i === 2 ? 'border-red-200 bg-red-50 dark:bg-red-900/10' : 'border-gray-50 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900'}`}>
                 <div className="flex items-center gap-3">
                   <span className="text-lg font-bold text-gray-400 dark:text-zinc-500">#{i + 1}</span>

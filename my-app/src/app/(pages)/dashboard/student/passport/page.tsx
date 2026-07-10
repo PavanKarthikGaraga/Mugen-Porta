@@ -119,7 +119,7 @@ export default function PassportPage() {
           {/* Name + meta */}
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Arjun Sharma</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Nischal Singana</h1>
               <p className="text-sm font-medium text-gray-500 mt-0.5">{tagline}</p>
               <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
                 <span>📍 {academic.campus}</span>
