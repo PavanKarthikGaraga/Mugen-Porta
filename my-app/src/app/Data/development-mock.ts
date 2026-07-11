@@ -316,9 +316,9 @@ export const PASSPORT = {
   about: "I am a 3rd-year Computer Science Engineering student at KL University with a passion for full-stack development, machine learning, and social entrepreneurship. I believe technology should solve real problems for real people.",
   tagline: "Builder · Thinker · Change Agent",
   links: {
-    github: "https://github.com/arjun-sharma",
-    linkedin: "https://linkedin.com/in/arjun-sharma",
-    portfolio: "https://arjunsharma.dev",
+    github: "https://github.com/NischalSingana",
+    linkedin: "https://www.linkedin.com/in/singananischal/",
+    portfolio: "https://nischalsingana.me/",
     resume: "#",
   },
   academic: {
