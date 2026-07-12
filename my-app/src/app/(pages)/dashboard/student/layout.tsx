@@ -21,7 +21,7 @@ const navigation = [
   { name: "Activity Catalogue",         href: "/dashboard/student/activity-catalogue",icon: FiGrid },
   { name: "My Activities",              href: "/dashboard/student/my-activities",     icon: FiList },
   { name: "Competencies",               href: "/dashboard/student/competencies",      icon: FiZap },
-  { name: "Student Dev. Credits",       href: "/dashboard/student/sdc",              icon: FiStar },
+  { name: "SAMAM Points",                href: "/dashboard/student/sdc",              icon: FiStar },
   { name: "Badge Wallet",               href: "/dashboard/student/badges",           icon: FiAward },
   { name: "Excellence Passport",        href: "/dashboard/student/passport",         icon: FiFileText },
   { name: "Career Dashboard",           href: "/dashboard/student/career",           icon: FiBriefcase },
