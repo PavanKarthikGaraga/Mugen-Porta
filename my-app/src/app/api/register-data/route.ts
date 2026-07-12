@@ -1,6 +1,9 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * Registration Data API - Read Only
  *
@@ -97,10 +100,12 @@ export async function GET(request) {
         
         const response = NextResponse.json(registrationData);
         
-        // Add security headers
+        // Add security headers and prevent caching for accurate member counts
         response.headers.set('X-Content-Type-Options', 'nosniff');
         response.headers.set('X-Frame-Options', 'DENY');
-        response.headers.set('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
+        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
         
         return response;
         
