@@ -27,7 +27,6 @@ const TABS = [
   { key: "analytics", label: "Analytics", icon: <FiBarChart2 size={14} /> },
   { key: "students",  label: "Students",  icon: <FiUsers size={14} />     },
   { key: "activities",label: "Activities",icon: <FiActivity size={14} />  },
-  { key: "awards",    label: "Points & Badges", icon: <FiAward size={14} /> },
 ];
 
 /* ─── Tiny mini-bar ─────────────────────────────────── */
@@ -734,128 +733,7 @@ export default function SamamAdminPage() {
         </div>
       )}
 
-      {/* ═══ TAB: POINTS & BADGES ═════════════════════════════════════ */}
-      {tab === "awards" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Award Points */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-            <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <FiStar style={{ color: "#D97706" }} /> Award SAMAM Points
-            </h3>
-            <div className="space-y-3">
-              <Field label="Student Username *">
-                <input value={pointsForm.username} onChange={e => setPointsForm(p => ({ ...p, username: e.target.value }))}
-                  className={inputCls} placeholder="e.g. 2300012345" />
-              </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Points *">
-                  <input type="number" min="1" max="500" value={pointsForm.points} onChange={e => setPointsForm(p => ({ ...p, points: e.target.value }))}
-                    className={inputCls} placeholder="e.g. 10" />
-                </Field>
-                <Field label="Domain *">
-                  <select value={pointsForm.domain} onChange={e => setPointsForm(p => ({ ...p, domain: e.target.value }))} className={inputCls}>
-                    {["TEC","LCH","ESO","IIE","HWB"].map(d => <option key={d}>{d}</option>)}
-                  </select>
-                </Field>
-              </div>
-              <Field label="Category">
-                <select value={pointsForm.category} onChange={e => setPointsForm(p => ({ ...p, category: e.target.value }))} className={inputCls}>
-                  <option value="admin_award">Admin Award</option>
-                  <option value="workshop">Workshop</option>
-                  <option value="event">Event</option>
-                  <option value="project">Project</option>
-                  <option value="competition">Competition</option>
-                  <option value="volunteer">Volunteer</option>
-                </select>
-              </Field>
-              <Field label="Reason / Description *">
-                <textarea value={pointsForm.reason} onChange={e => setPointsForm(p => ({ ...p, reason: e.target.value }))}
-                  className={textareaCls} rows={3} placeholder="Why are you awarding these points?" />
-              </Field>
-              <button
-                onClick={awardPoints}
-                disabled={awardLoading || !pointsForm.username || !pointsForm.points || !pointsForm.reason}
-                className="w-full py-2.5 text-xs font-semibold rounded-xl text-white disabled:opacity-50 flex items-center justify-center gap-2"
-                style={{ backgroundColor: "#D97706" }}>
-                {awardLoading ? <FiRefreshCw size={13} className="animate-spin" /> : <FiStar size={13} />}
-                Award {pointsForm.points || "0"} Points
-              </button>
-            </div>
-          </div>
 
-          {/* Award Badge */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-            <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <FiAward style={{ color: "#7C3AED" }} /> Award Badge
-            </h3>
-            <div className="space-y-3">
-              <Field label="Student Username *">
-                <input value={badgeForm.username} onChange={e => setBadgeForm(p => ({ ...p, username: e.target.value }))}
-                  className={inputCls} placeholder="e.g. 2300012345" />
-              </Field>
-              <Field label="Badge *">
-                <select value={badgeForm.badge_id} onChange={e => setBadgeForm(p => ({ ...p, badge_id: e.target.value }))} className={inputCls}>
-                  <option value="">Select a badge…</option>
-                  {badgeCatalog.map(b => (
-                    <option key={b.id} value={b.id}>{b.name} ({b.rarity}) — {b.domain}</option>
-                  ))}
-                </select>
-              </Field>
-              {badgeForm.badge_id && (() => {
-                const b = badgeCatalog.find(x => String(x.id) === String(badgeForm.badge_id));
-                return b ? (
-                  <div className="p-3 rounded-xl border flex items-start gap-3"
-                    style={{ borderColor: `${RARITY_COLORS[b.rarity]}30`, backgroundColor: `${RARITY_COLORS[b.rarity]}08` }}>
-                    <span className="text-2xl">{b.icon || "🏅"}</span>
-                    <div>
-                      <p className="text-xs font-bold text-gray-900">{b.name}</p>
-                      <p className="text-[10px] text-gray-500 mt-0.5">{b.description}</p>
-                      <span className="text-[9px] font-semibold mt-1 inline-block px-1.5 py-0.5 rounded-full"
-                        style={{ backgroundColor: `${RARITY_COLORS[b.rarity]}18`, color: RARITY_COLORS[b.rarity] }}>
-                        {b.rarity} · {b.domain}
-                      </span>
-                    </div>
-                  </div>
-                ) : null;
-              })()}
-              <Field label="Reason / Earned From *">
-                <textarea value={badgeForm.reason} onChange={e => setBadgeForm(p => ({ ...p, reason: e.target.value }))}
-                  className={textareaCls} rows={3} placeholder="What did the student do to earn this badge?" />
-              </Field>
-              <button
-                onClick={awardBadge}
-                disabled={awardLoading || !badgeForm.username || !badgeForm.badge_id || !badgeForm.reason}
-                className="w-full py-2.5 text-xs font-semibold rounded-xl text-white disabled:opacity-50 flex items-center justify-center gap-2"
-                style={{ backgroundColor: "#7C3AED" }}>
-                {awardLoading ? <FiRefreshCw size={13} className="animate-spin" /> : <FiAward size={13} />}
-                Award Badge
-              </button>
-            </div>
-          </div>
-
-          {/* Recent Awards Log */}
-          {awardHistory.length > 0 && (
-            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Session Award Log</h3>
-              <div className="space-y-2">
-                {awardHistory.map((a, i) => (
-                  <div key={i} className="flex items-center gap-3 text-xs p-2.5 bg-gray-50 rounded-xl">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white flex-shrink-0"
-                      style={{ backgroundColor: a.type === "points" ? "#D97706" : "#7C3AED" }}>
-                      {a.type === "points" ? <FiStar size={13} /> : <FiAward size={13} />}
-                    </div>
-                    <div className="flex-1">
-                      <span className="font-semibold text-gray-800">{a.username}</span>
-                      <span className="text-gray-500 ml-1">{a.type === "points" ? `+${a.points} pts (${a.domain})` : `Badge #${a.badge_id}`}</span>
-                    </div>
-                    <span className="text-gray-400">{a.time}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Activity Create/Edit Modal */}
       {showActivityModal && (
