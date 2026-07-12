@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
-    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText, FiAward,NotebookTabs
+    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText, FiAward
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
 import { toast } from "sonner";
@@ -123,8 +123,8 @@ export default function AdminDashboardLayout({ children }) {
                             <button
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
                                 className="lg:hidden p-2 rounded-md transition-colors"
-                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}
                             >
                                 {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
                             </button>
@@ -148,8 +148,8 @@ export default function AdminDashboardLayout({ children }) {
                                 onClick={handleLogout}
                                 className="flex items-center space-x-2 px-3 py-2 rounded-md transition-colors text-sm"
                                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                                onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+                                onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
                             >
                                 <FiLogOut size={16} />
                                 <span>{isProxySession ? 'Exit Proxy' : 'Logout'}</span>
