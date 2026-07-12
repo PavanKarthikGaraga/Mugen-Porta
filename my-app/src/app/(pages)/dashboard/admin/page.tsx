@@ -671,7 +671,6 @@ export default function AdminOverviewPage() {
         {[
           { label: "Manage Students",  icon: <FiUsers      size={18} />, href: "/dashboard/admin/students", color: "#2563EB" },
           { label: "Manage Clubs",     icon: <FiFolder     size={18} />, href: "/dashboard/admin/clubs",    color: "#7C3AED" },
-          { label: "Submissions",      icon: <FiBookOpen   size={18} />, href: "/dashboard/admin/reports",  color: "#059669" },
           { label: "Controls",         icon: <FiTrendingUp size={18} />, href: "/dashboard/admin/controls", color: BRAND    },
         ].map((item) => (
           <Link
