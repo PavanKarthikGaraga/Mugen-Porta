@@ -4,7 +4,8 @@ import Link from "next/link";
 import {
   FiUsers, FiFolder, FiCalendar, FiFilter, FiChevronRight,
   FiRefreshCw, FiTrendingUp, FiBookOpen, FiGrid, FiCheckCircle,
-  FiXCircle, FiClock, FiHome,
+  FiXCircle, FiClock, FiHome, FiCpu, FiPenTool, FiGlobe, FiZap, FiHeart, FiUser,
+  FiAward, FiStar, FiBarChart2
 } from "react-icons/fi";
 import { handleApiError } from "@/lib/apiErrorHandler";
 import { branchNames } from "@/app/Data/branches";
@@ -16,11 +17,11 @@ const BRAND = "rgb(151,0,3)";
 
 // ── Domain metadata ────────────────────────────────────────────────────────────
 const domainMeta = [
-  { key: "tec", label: "Technical (TEC)",                      color: "#2563EB", icon: "⚙️" },
-  { key: "lch", label: "Liberal & Creative Arts (LCH)",        color: "#7C3AED", icon: "🎨" },
-  { key: "eso", label: "Extension & Outreach (ESO)",           color: "#D97706", icon: "🌍" },
-  { key: "iie", label: "Innovation & Entrepreneurship (IIE)",  color: "#059669", icon: "💡" },
-  { key: "hwb", label: "Health & Well-being (HWB)",            color: "#E11D48", icon: "❤️" },
+  { key: "tec", label: "Technical (TEC)",                      color: "#2563EB", icon: <FiCpu /> },
+  { key: "lch", label: "Liberal & Creative Arts (LCH)",        color: "#7C3AED", icon: <FiPenTool /> },
+  { key: "eso", label: "Extension & Outreach (ESO)",           color: "#D97706", icon: <FiGlobe /> },
+  { key: "iie", label: "Innovation & Entrepreneurship (IIE)",  color: "#059669", icon: <FiZap /> },
+  { key: "hwb", label: "Health & Well-being (HWB)",            color: "#E11D48", icon: <FiHeart /> },
 ];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -76,7 +77,7 @@ function Sparkline({ trend }: { trend: TrendDay[] }) {
       </svg>
       <div className="flex justify-between mt-1">
         {trend.map((d, i) => (
-          <span key={i} className="text-[9px] text-gray-400">{String(d.date).slice(5)}</span>
+          <span key={i} className="text-[9px] text-gray-400">{new Date(d.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
         ))}
       </div>
     </div>
@@ -92,6 +93,9 @@ export default function AdminOverviewPage() {
   const [showAllClubs, setShowAllClubs] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState({ domain: "all", year: "all", branch: "all", dateRange: "all" });
+  const [activeTab, setActiveTab] = useState<'overview' | 'samam'>('overview');
+  const [samamStats, setSamamStats] = useState<any>(null);
+  const [samamLoading, setSamamLoading] = useState(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -127,6 +131,22 @@ export default function AdminOverviewPage() {
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
+  const fetchSamamStats = useCallback(async () => {
+    try {
+      setSamamLoading(true);
+      const res = await fetch('/api/dashboard/admin/samam-stats');
+      if (res.ok) setSamamStats(await res.json());
+    } catch (err) {
+      console.error('Failed to fetch SAMAM stats:', err);
+    } finally {
+      setSamamLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'samam' && !samamStats) fetchSamamStats();
+  }, [activeTab, samamStats, fetchSamamStats]);
+
   const activeFiltersCount = Object.values(filters).filter((v) => v !== "all").length;
   const totalDomain = domainMeta.reduce((acc, d) => acc + (domainStats[d.key as keyof DomainStats] as number || 0), 0) || 1;
 
@@ -152,9 +172,9 @@ export default function AdminOverviewPage() {
   (stats?.genderBreakdown ?? []).forEach((r) => { genderMap[String(r.gender)] = Number(r.count); });
   const totalGender = Math.max(Object.values(genderMap).reduce((a, b) => a + b, 0), 1);
   const genderRows = [
-    { label: "Male",   color: "#2563EB", emoji: "👨" },
-    { label: "Female", color: "#E11D48", emoji: "👩" },
-    { label: "Other",  color: "#7C3AED", emoji: "🧑" },
+    { label: "Male",   color: "#2563EB", icon: <FiUser size={12} className="inline mr-1" /> },
+    { label: "Female", color: "#E11D48", icon: <FiUser size={12} className="inline mr-1" /> },
+    { label: "Other",  color: "#7C3AED", icon: <FiUsers size={12} className="inline mr-1" /> },
   ];
 
   // ── Residence breakdown ───────────────────────────────────────────────────────
@@ -286,6 +306,29 @@ export default function AdminOverviewPage() {
           </div>
         )}
       </div>
+
+      {/* ═══ Tab Switcher ═══════════════════════════════════════════════════════ */}
+      <div className="flex gap-1 bg-white border border-gray-100 rounded-xl p-1 w-fit shadow-sm">
+        {[
+          { key: 'overview', label: 'Overview',        icon: <FiHome size={13} /> },
+          { key: 'samam',    label: 'SAMAM Dashboard', icon: <FiAward size={13} /> },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key as any)}
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg transition-all ${
+              activeTab === tab.key ? 'text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+            style={activeTab === tab.key ? { backgroundColor: BRAND } : {}}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ═══ OVERVIEW TAB ════════════════════════════════════════════════════════ */}
+      {activeTab === 'overview' && <>
 
       {/* ═══ Stat tiles ════════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -445,7 +488,7 @@ export default function AdminOverviewPage() {
                 return (
                   <div key={g.label}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-gray-700">{g.emoji} {g.label}</span>
+                      <span className="text-xs font-medium text-gray-700 flex items-center">{g.icon} {g.label}</span>
                       <span className="text-xs font-bold text-gray-900">{count.toLocaleString()} <span className="text-gray-400 font-normal">({pct}%)</span></span>
                     </div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -646,6 +689,146 @@ export default function AdminOverviewPage() {
           </Link>
         ))}
       </div>
+
+    </> /* end overview tab */}
+
+    {/* ═══ SAMAM DASHBOARD TAB ════════════════════════════════════════════════ */}
+    {activeTab === 'samam' && (
+      <div className="space-y-5">
+
+        {/* SAMAM Stat tiles */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard icon={<FiUsers size={16} />} label="Students Earning Points"
+            value={samamLoading ? '—' : (samamStats?.sdcStats?.studentsWithCredits ?? 0).toLocaleString()} accent="#2563EB" />
+          <StatCard icon={<FiStar size={16} />} label="Total SAMAM Points Awarded"
+            value={samamLoading ? '—' : (samamStats?.sdcStats?.totalCredits ?? 0).toLocaleString()} accent="#D97706" />
+          <StatCard icon={<FiAward size={16} />} label="Badges Issued"
+            value={samamLoading ? '—' : (samamStats?.badgeStats?.totalIssued ?? 0).toLocaleString()} accent="#7C3AED" />
+          <StatCard icon={<FiBarChart2 size={16} />} label="Students with Competencies"
+            value={samamLoading ? '—' : (samamStats?.competencyStats?.studentsWithCompetencies ?? 0).toLocaleString()} accent="#059669" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+          {/* Level Breakdown */}
+          <DashboardCard title="Student Level Breakdown" subtitle="Distribution of students across SAMAM levels">
+            {samamLoading ? (
+              <div className="space-y-3 animate-pulse">{[1,2,3,4].map(i => <div key={i} className="h-6 bg-gray-100 rounded" />)}</div>
+            ) : (samamStats?.levelBreakdown ?? []).length > 0 ? (() => {
+              const levels = samamStats.levelBreakdown;
+              const levelColors: Record<string, string> = {
+                'Explorer': '#CD7F32', 'Foundation': '#6B7280',
+                'Practitioner': '#2563EB', 'Leader': '#D97706'
+              };
+              const maxCount = Math.max(...levels.map((l: any) => Number(l.count)), 1);
+              return (
+                <div className="space-y-3">
+                  {levels.map((l: any) => (
+                    <div key={l.level}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-gray-700">{l.level}</span>
+                        <span className="text-xs font-bold text-gray-900">{Number(l.count).toLocaleString()} students</span>
+                      </div>
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${Math.round((Number(l.count) / maxCount) * 100)}%`, backgroundColor: levelColors[l.level] || BRAND }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })() : <p className="text-xs text-gray-400 italic text-center py-4">No level data yet</p>}
+          </DashboardCard>
+
+          {/* SAMAM Points by Domain */}
+          <DashboardCard title="SAMAM Points by Domain" subtitle="Total points awarded per domain">
+            {samamLoading ? (
+              <div className="space-y-3 animate-pulse">{[1,2,3,4,5].map(i => <div key={i} className="h-6 bg-gray-100 rounded" />)}</div>
+            ) : (samamStats?.domainSdcBreakdown ?? []).length > 0 ? (() => {
+              const rows = samamStats.domainSdcBreakdown;
+              const maxCreds = Math.max(...rows.map((r: any) => Number(r.total_credits)), 1);
+              const domainColors: Record<string, string> = { TEC: '#2563EB', LCH: '#7C3AED', ESO: '#D97706', IIE: '#059669', HWB: '#E11D48' };
+              return (
+                <div className="space-y-3">
+                  {rows.map((r: any) => (
+                    <div key={r.domain}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-gray-700">{r.domain}</span>
+                        <span className="text-xs font-bold text-gray-900">
+                          {Number(r.total_credits).toLocaleString()} pts
+                          <span className="text-gray-400 font-normal ml-1">({r.transaction_count} activities)</span>
+                        </span>
+                      </div>
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${Math.round((Number(r.total_credits) / maxCreds) * 100)}%`, backgroundColor: domainColors[r.domain] || BRAND }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })() : <p className="text-xs text-gray-400 italic text-center py-4">No points data yet</p>}
+          </DashboardCard>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Points Leaderboard */}
+          <DashboardCard title="SAMAM Points Leaderboard" subtitle="Top 5 students by total points earned">
+            {samamLoading ? (
+              <div className="space-y-3 animate-pulse">{[1,2,3,4,5].map(i => <div key={i} className="h-8 bg-gray-100 rounded" />)}</div>
+            ) : (samamStats?.topSdcStudents ?? []).length > 0 ? (
+              <div className="space-y-2">
+                {samamStats.topSdcStudents.map((s: any, i: number) => (
+                  <div key={s.username} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0`}
+                      style={{ backgroundColor: ['#D97706','#9CA3AF','#CD7F32','#6B7280','#6B7280'][i] || BRAND }}>
+                      {i + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900 truncate">{s.name}</p>
+                      <p className="text-[10px] text-gray-400">{s.username} · {s.branch}</p>
+                    </div>
+                    <span className="text-sm font-bold text-gray-900 flex-shrink-0" style={{ color: BRAND }}>
+                      {Number(s.total_credits).toLocaleString()} <span className="text-xs font-normal text-gray-400">pts</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : <p className="text-xs text-gray-400 italic text-center py-4">No activity yet</p>}
+          </DashboardCard>
+
+          {/* Recent Badges Issued */}
+          <DashboardCard title="Recent Badges Issued" subtitle="Badges awarded in the last 7 days">
+            {samamLoading ? (
+              <div className="space-y-3 animate-pulse">{[1,2,3,4].map(i => <div key={i} className="h-8 bg-gray-100 rounded" />)}</div>
+            ) : (samamStats?.recentBadges ?? []).length > 0 ? (
+              <div className="space-y-2">
+                {samamStats.recentBadges.map((b: any, i: number) => {
+                  const rarityColor: Record<string,string> = { Common:'#9CA3AF', Rare:'#2563EB', Epic:'#7C3AED', Legendary:'#D97706' };
+                  return (
+                    <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border"
+                        style={{ backgroundColor: `${rarityColor[b.rarity] || '#9CA3AF'}15`, borderColor: `${rarityColor[b.rarity] || '#9CA3AF'}30` }}>
+                        <FiAward size={14} style={{ color: rarityColor[b.rarity] || '#9CA3AF' }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 truncate">{b.badge_name}</p>
+                        <p className="text-[10px] text-gray-400 truncate">{b.name} · {b.username}</p>
+                      </div>
+                      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: `${rarityColor[b.rarity] || '#9CA3AF'}15`, color: rarityColor[b.rarity] || '#9CA3AF' }}>
+                        {b.rarity}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : <p className="text-xs text-gray-400 italic text-center py-4">No badges issued in the last 7 days</p>}
+          </DashboardCard>
+        </div>
+
+      </div>
+    )}
 
     </div>
   );

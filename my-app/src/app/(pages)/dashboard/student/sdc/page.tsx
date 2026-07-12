@@ -21,7 +21,7 @@ function BarChart({ data }: { data: any[] }) {
               <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
               <span className="text-gray-700 font-medium">{d.domain}</span>
             </div>
-            <span className="font-bold text-gray-900">{d.credits} SDC</span>
+            <span className="font-bold text-gray-900">{d.credits} pts</span>
           </div>
           <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
             <div
@@ -87,9 +87,9 @@ export default function SDCPage() {
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="h-1.5" style={{ background: BRAND }} />
         <div className="p-5">
-          <h1 className="text-xl font-bold text-gray-900">Student Development Credits</h1>
+          <h1 className="text-xl font-bold text-gray-900">SAMAM Points</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Your comprehensive SDC record — by domain, semester, and over time.
+            Your comprehensive SAMAM Points record — by domain, semester, and over time.
           </p>
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function SDCPage() {
             size={140}
             strokeWidth={12}
             color={BRAND}
-            label={`${total} / ${target} SDC`}
+            label={`${total} / ${target} pts`}
             sublabel="Overall progress"
           />
           <div className="w-full space-y-1.5">
@@ -121,7 +121,7 @@ export default function SDCPage() {
                   className={total >= t.needed ? "text-emerald-500" : "text-gray-300"}
                 />
                 <span className="text-gray-500 flex-1">{t.label}</span>
-                <span className="font-semibold text-gray-700">{t.needed}</span>
+                <span className="font-semibold text-gray-700">{t.needed} pts</span>
               </div>
             ))}
           </div>
@@ -135,13 +135,13 @@ export default function SDCPage() {
             size={140}
             strokeWidth={12}
             color="#2563EB"
-            label={`${semesterCurrent} / ${semesterTarget} SDC`}
-            sublabel="Semester 5 progress"
+            label={`${semesterCurrent} / ${semesterTarget} pts`}
+            sublabel="Current semester"
           />
           <div className="w-full p-3 bg-blue-50 rounded-xl border border-blue-100">
             <p className="text-xs font-semibold text-blue-800 mb-1">On track?</p>
             <p className="text-xs text-blue-700 leading-relaxed">
-              You need <span className="font-bold">{Math.max(0, semesterTarget - semesterCurrent)} more SDC</span> this semester.
+              You need <span className="font-bold">{Math.max(0, semesterTarget - semesterCurrent)} more points</span> this semester.
             </p>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function SDCPage() {
 
       {/* ── Credits by Domain + Monthly Trend ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <DashboardCard title="Credits by Domain" subtitle="Distribution across all 5 domains">
+        <DashboardCard title="Points by Domain" subtitle="Distribution across all 5 domains">
           {/* Donut-style stat */}
           <div className="flex items-center gap-6 mb-4">
             <svg width={80} height={80} viewBox="0 0 80 80" className="-rotate-90">
@@ -199,13 +199,13 @@ export default function SDCPage() {
             </svg>
             <div className="text-center">
               <p className="text-2xl font-bold text-gray-900">{total}</p>
-              <p className="text-xs text-gray-400">Total SDC</p>
+              <p className="text-xs text-gray-400">Total Points</p>
             </div>
           </div>
           <BarChart data={byDomain || []} />
         </DashboardCard>
 
-        <DashboardCard title="Monthly Credit Trend" subtitle="SDC credits earned per month">
+        <DashboardCard title="Monthly Points Trend" subtitle="SAMAM Points earned per month">
           <div className="overflow-x-auto">
             {monthlyTrend && monthlyTrend.length > 0 ? (
                 <LineChart data={monthlyTrend} series={trendSeries} height={180} />

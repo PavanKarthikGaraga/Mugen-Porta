@@ -152,7 +152,7 @@ export default function SAMAMDashboardPage() {
           <div className="p-5">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Student Dev. Credits</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">SAMAM Points</p>
                 <p className="text-3xl font-bold text-gray-900 mt-0.5">
                   {sdcData.total}
                   <span className="text-base font-medium text-gray-400"> / {sdcData.target}</span>
@@ -177,7 +177,7 @@ export default function SAMAMDashboardPage() {
                 </div>
               ))}
               {sdcData.byDomain.length === 0 && (
-                <p className="text-xs text-gray-400 italic">No credits earned yet.</p>
+                <p className="text-xs text-gray-400 italic">No points earned yet.</p>
               )}
             </div>
             <Link
