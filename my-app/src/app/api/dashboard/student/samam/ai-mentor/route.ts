@@ -37,22 +37,22 @@ export async function POST(request: Request) {
                 FROM students s
                 LEFT JOIN student_profiles sp ON s.username = sp.username
                 WHERE s.username = ?
-            `, [student.username]),
+            `, [student.username as string]),
             pool.execute(`
                 SELECT domain, SUM(credits) as total
                 FROM sdc_transactions
                 WHERE username = ?
                 GROUP BY domain
-            `, [student.username]),
+            `, [student.username as string]),
             pool.execute(`
                 SELECT cd.name, sc.score 
                 FROM student_competencies sc
                 JOIN competency_definitions cd ON sc.competency_id = cd.id
                 WHERE sc.username = ?
-            `, [student.username]),
+            `, [student.username as string]),
             pool.execute(`
                 SELECT COUNT(id) as count FROM student_badges WHERE username = ?
-            `, [student.username])
+            `, [student.username as string])
         ]) as any[];
 
         const p = (profileRows[0] as any[])[0] || {};
