@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
-    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText,NotebookTabs
+    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText, FiAward,NotebookTabs
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
 import { toast } from "sonner";
@@ -62,12 +62,13 @@ export default function AdminDashboardLayout({ children }) {
     }, []);
 
     const navigation = [
-        { name: 'Overview', href: '/dashboard/admin', icon: FiHome },
-        { name: 'Users', href: '/dashboard/admin/users', icon: FiUsers },
-        { name: 'Clubs', href: '/dashboard/admin/clubs', icon: FiFolder },
-        { name: 'Students', href: '/dashboard/admin/students', icon: FiFolder },
+        { name: 'Overview',         href: '/dashboard/admin',         icon: FiHome    },
+        { name: 'Users',             href: '/dashboard/admin/users',    icon: FiUsers   },
+        { name: 'Clubs',             href: '/dashboard/admin/clubs',    icon: FiFolder  },
+        { name: 'Students',          href: '/dashboard/admin/students', icon: FiFolder  },
+        { name: 'SAMAM Dashboard',   href: '/dashboard/admin/samam',    icon: FiAward   },
         // { name: 'Final Submissions', href: '/dashboard/admin/final-reports', icon: FiFileText },
-        { name: 'Controls', href: '/dashboard/admin/controls', icon: FiSettings }
+        { name: 'Controls',          href: '/dashboard/admin/controls', icon: FiSettings }
     ];
 
     const devNavigation = [
