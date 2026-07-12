@@ -44,7 +44,7 @@ export async function GET(request) {
         // Default: Return all registration data
         
         // Fetch clubs
-        const [clubs] = await pool.execute('SELECT * FROM clubs ORDER BY id');
+        const [clubs] = await pool.execute('SELECT * FROM clubs ORDER BY id') as [any[], any];
 
         // Get member counts for all clubs
         const clubIds = clubs.map(c => c.id);
@@ -58,7 +58,7 @@ export async function GET(request) {
                  WHERE clubId IN (${placeholders})
                  GROUP BY clubId`,
                 clubIds
-            );
+            ) as [any[], any];
 
             // Convert to object for easy lookup
             clubMemberCounts = memberCounts.reduce((acc, count) => {
