@@ -13,14 +13,7 @@ const SUGGESTED_PROMPTS = [
   "How can I improve my Leadership score?",
   "Recommend activities for AI Engineering.",
   "Help me reflect on my recent workshop.",
-  "What SDC credits should I target next?",
-];
-
-const MOCK_AI_RESPONSES = [
-  "Based on your profile, I recommend joining the 'Public Speaking Club' to boost your Leadership score by up to 10 points.",
-  "For an AI Engineering career, you should focus on the 'Machine Learning Bootcamp' activity next semester. It perfectly aligns with your gaps.",
-  "That's a great question! Let's break down your SDC credits. You currently need 20 more credits in the Technical domain.",
-  "Reflection is key. Try writing down three things you learned and one thing you struggled with during the workshop.",
+  "What SAMAM Points should I target next?",
 ];
 
 export default function AIMentorPage() {
@@ -43,21 +36,34 @@ export default function AIMentorPage() {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const handleSend = (text: string) => {
+  const handleSend = async (text: string) => {
     if (!text.trim()) return;
 
     // Add user message
     const newMsg: Message = { id: Date.now(), role: "user", text };
-    setMessages((prev) => [...prev, newMsg]);
+    const newMessages = [...messages, newMsg];
+    setMessages(newMessages);
     setInput("");
     setIsTyping(true);
 
-    // Mock AI response delay
-    setTimeout(() => {
-      const randomResponse = MOCK_AI_RESPONSES[Math.floor(Math.random() * MOCK_AI_RESPONSES.length)];
-      setMessages((prev) => [...prev, { id: Date.now(), role: "ai", text: randomResponse }]);
+    try {
+      const res = await fetch('/api/dashboard/student/samam/ai-mentor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: newMessages })
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        setMessages((prev) => [...prev, { id: Date.now(), role: "ai", text: data.text }]);
+      } else {
+        setMessages((prev) => [...prev, { id: Date.now(), role: "ai", text: `Error: ${data.error || data.message || 'Something went wrong.'}` }]);
+      }
+    } catch (error) {
+       setMessages((prev) => [...prev, { id: Date.now(), role: "ai", text: 'Network error. Please try again.' }]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   return (
