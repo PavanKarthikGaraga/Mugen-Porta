@@ -15,13 +15,9 @@ import WeeklyChart    from "@/app/components/dashboard/WeeklyChart";
 import CompetencyRadar from "@/app/components/dashboard/CompetencyRadar";
 import AIRecommendation from "@/app/components/dashboard/AIRecommendation";
 import {
-  mockStudent,
-  mockSDC,
   mockStats,
   mockWeeklyHours,
-  mockCompetencies,
   mockUpcomingActivities,
-  mockRecentBadges,
   mockNotifications,
   mockAIRecommendations,
   mockGraduateAttributes,
@@ -30,29 +26,53 @@ import {
 const BRAND = "rgb(151,0,3)";
 
 // ── Level configuration ────────────────────────────────────────────────────────
-const levelConfig = {
-  Bronze:   { color: "#CD7F32", bg: "bg-orange-50",  text: "text-orange-700" },
-  Silver:   { color: "#6B7280", bg: "bg-gray-100",   text: "text-gray-700"   },
-  Gold:     { color: "#D97706", bg: "bg-amber-50",   text: "text-amber-700"  },
-  Platinum: { color: "#6366F1", bg: "bg-indigo-50",  text: "text-indigo-700" },
+const levelConfig: Record<string, any> = {
+  Explorer:     { color: "#CD7F32", bg: "bg-orange-50",  text: "text-orange-700" },
+  Foundation:   { color: "#6B7280", bg: "bg-gray-100",   text: "text-gray-700"   },
+  Practitioner: { color: "#D97706", bg: "bg-amber-50",   text: "text-amber-700"  },
+  Leader:       { color: "#6366F1", bg: "bg-indigo-50",  text: "text-indigo-700" },
 };
 
 export default function SAMAMDashboardPage() {
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<any>(null);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [sdcData, setSdcData] = useState<any>(null);
+  const [competenciesData, setCompetenciesData] = useState<any[]>([]);
+  const [badgesData, setBadgesData] = useState<any>({ earned: [], locked: [] });
   const [loading,  setLoading ] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchAllData = async () => {
       try {
         const res = await fetch("/api/auth/me");
-        if (res.ok) { const d = await res.json(); setUserData(d.user); }
-      } catch (e) { console.error(e); }
-      finally     { setLoading(false); }
+        if (!res.ok) throw new Error("Not auth");
+        const authData = await res.json();
+        setUserData(authData.user);
+
+        const username = authData.user.username;
+        
+        const [profileRes, sdcRes, compRes, badgesRes] = await Promise.all([
+          fetch(`/api/dashboard/student/samam/profile/${username}`),
+          fetch(`/api/dashboard/student/samam/sdc/${username}`),
+          fetch(`/api/dashboard/student/samam/competencies/${username}`),
+          fetch(`/api/dashboard/student/samam/badges/${username}`)
+        ]);
+
+        if (profileRes.ok) setProfileData(await profileRes.json());
+        if (sdcRes.ok) setSdcData(await sdcRes.json());
+        if (compRes.ok) setCompetenciesData(await compRes.json());
+        if (badgesRes.ok) setBadgesData(await badgesRes.json());
+
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchUser();
+    fetchAllData();
   }, []);
 
-  if (loading) {
+  if (loading || !profileData || !sdcData) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: BRAND }} />
@@ -60,10 +80,14 @@ export default function SAMAMDashboardPage() {
     );
   }
 
-  const firstName     = userData?.name?.split(" ")[0] || mockStudent.name.split(" ")[0];
-  const level         = levelConfig[mockStudent.level] || levelConfig.Silver;
-  const sdcPct        = Math.round((mockSDC.total / mockSDC.target) * 100);
+  const firstName     = profileData.name?.split(" ")[0] || userData?.username;
+  const levelStr      = profileData.samam?.level || "Explorer";
+  const level         = levelConfig[levelStr] || levelConfig.Explorer;
+  const sdcPct        = sdcData.target > 0 ? Math.round((sdcData.total / sdcData.target) * 100) : 0;
   const hourThisWeek  = mockWeeklyHours.reduce((s, d) => s + d.hours, 0).toFixed(1);
+
+  // Flatten competencies for the radar chart
+  const flatCompetencies = competenciesData.flatMap((cat: any) => cat.competencies);
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto">
@@ -80,43 +104,42 @@ export default function SAMAMDashboardPage() {
               className="w-16 h-16 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
               style={{ backgroundColor: BRAND }}
             >
-              {mockStudent.initials}
+              {firstName?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start flex-wrap gap-2">
                 <div>
                   <h2 className="text-base font-bold text-gray-900">Welcome back, {firstName}!</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">{mockStudent.branch} · {mockStudent.year}</p>
-                  <p className="text-xs text-gray-400">{mockStudent.campus}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{profileData.branch} · {profileData.year}</p>
                 </div>
                 <span className={`ml-auto text-xs font-semibold px-3 py-1 rounded-full ${level.bg} ${level.text}`}>
-                  {mockStudent.level} Level
+                  {levelStr} Level
                 </span>
               </div>
 
               {/* Level progress */}
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Progress to {mockStudent.nextLevel}</span>
-                  <span className="text-xs font-semibold text-gray-700">{mockStudent.levelProgress}%</span>
+                  <span className="text-xs text-gray-500">Progress to {profileData.samam?.nextLevel || 'Next Level'}</span>
+                  <span className="text-xs font-semibold text-gray-700">{profileData.samam?.levelProgress || 0}%</span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${mockStudent.levelProgress}%`, backgroundColor: level.color }}
+                    style={{ width: `${profileData.samam?.levelProgress || 0}%`, backgroundColor: level.color }}
                   />
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-3 mt-3">
                 <span className="text-xs text-gray-500">
-                  🏫 <span className="font-medium">{mockStudent.club}</span>
+                  🏫 <span className="font-medium">{profileData.clubName || 'No Club'}</span>
                 </span>
                 <span className="text-xs text-gray-500">
-                  🎯 <span className="font-medium">{mockStudent.careerChoice}</span>
+                  🎯 <span className="font-medium">{profileData.samam?.careerChoice || 'Undecided'}</span>
                 </span>
                 <span className="text-xs text-gray-500">
-                  🎓 Class of <span className="font-medium">{mockStudent.graduationYear}</span>
+                  🎓 Class of <span className="font-medium">{profileData.samam?.graduationYear || 'TBD'}</span>
                 </span>
               </div>
             </div>
@@ -131,8 +154,8 @@ export default function SAMAMDashboardPage() {
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Student Dev. Credits</p>
                 <p className="text-3xl font-bold text-gray-900 mt-0.5">
-                  {mockSDC.total}
-                  <span className="text-base font-medium text-gray-400"> / {mockSDC.target}</span>
+                  {sdcData.total}
+                  <span className="text-base font-medium text-gray-400"> / {sdcData.target}</span>
                 </p>
               </div>
               <div
@@ -144,15 +167,18 @@ export default function SAMAMDashboardPage() {
             </div>
             {/* Breakdown bars */}
             <div className="space-y-2">
-              {mockSDC.breakdown.map((item) => (
-                <div key={item.category} className="flex items-center gap-2">
+              {sdcData.byDomain.map((item: any) => (
+                <div key={item.domain} className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                   <div className="flex-1 flex items-center justify-between text-xs">
-                    <span className="text-gray-600 truncate">{item.category}</span>
+                    <span className="text-gray-600 truncate">{item.domain}</span>
                     <span className="font-semibold text-gray-800 ml-2">{item.credits}</span>
                   </div>
                 </div>
               ))}
+              {sdcData.byDomain.length === 0 && (
+                <p className="text-xs text-gray-400 italic">No credits earned yet.</p>
+              )}
             </div>
             <Link
               href="/dashboard/student/sdc"
@@ -178,7 +204,7 @@ export default function SAMAMDashboardPage() {
         <StatCard
           icon={<FiZap size={16} />}
           label="Competencies"
-          value={mockStats.competenciesDeveloped}
+          value={flatCompetencies.filter(c => c.score > 0).length || 0}
           trend="+2 this term"
           trendUp={true}
           accent="#2563EB"
@@ -186,7 +212,7 @@ export default function SAMAMDashboardPage() {
         <StatCard
           icon={<FiAward size={16} />}
           label="Badges Earned"
-          value={mockStats.badgesEarned}
+          value={badgesData.earned.length}
           trend="1 new"
           trendUp={true}
           accent="#D97706"
@@ -242,12 +268,18 @@ export default function SAMAMDashboardPage() {
           }
         >
           <div className="flex flex-col items-center gap-3">
-            <CompetencyRadar data={mockCompetencies} accentColor={BRAND} />
-            <div className="w-full space-y-1.5">
-              {mockCompetencies.slice(0, 3).map((c) => (
-                <ProgressCard key={c.name} label={c.name} value={c.score} color={BRAND} />
-              ))}
-            </div>
+            {flatCompetencies.length > 0 ? (
+              <>
+                <CompetencyRadar data={flatCompetencies.map(c => ({ name: c.name, score: c.score }))} accentColor={BRAND} />
+                <div className="w-full space-y-1.5">
+                  {flatCompetencies.sort((a,b) => b.score - a.score).slice(0, 3).map((c) => (
+                    <ProgressCard key={c.name} label={c.name} value={c.score} color={BRAND} />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-gray-500 italic my-8">No competency data yet.</p>
+            )}
           </div>
         </DashboardCard>
 
@@ -314,7 +346,7 @@ export default function SAMAMDashboardPage() {
         {/* Recent Badges */}
         <DashboardCard
           title="Recent Badges"
-          subtitle={`${mockStats.badgesEarned} badges earned total`}
+          subtitle={`${badgesData.earned.length} badges earned total`}
           action={
             <Link href="/dashboard/student/badges" className="text-xs font-medium hover:underline" style={{ color: BRAND }}>
               View wallet →
@@ -322,9 +354,12 @@ export default function SAMAMDashboardPage() {
           }
         >
           <div className="grid grid-cols-2 gap-2">
-            {mockRecentBadges.map((b) => (
+            {badgesData.earned.slice(0, 4).map((b: any) => (
               <BadgeCard key={b.id} badge={b} />
             ))}
+            {badgesData.earned.length === 0 && (
+              <p className="text-xs text-gray-500 italic col-span-2">No badges earned yet.</p>
+            )}
           </div>
         </DashboardCard>
 

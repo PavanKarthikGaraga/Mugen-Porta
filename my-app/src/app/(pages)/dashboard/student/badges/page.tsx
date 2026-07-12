@@ -1,12 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiDownload, FiShare2, FiCheckCircle, FiLock, FiExternalLink, FiFilter } from "react-icons/fi";
-import { BADGES, LOCKED_BADGES } from "@/app/Data/development-mock";
 import SearchBar from "@/app/components/dashboard/SearchBar";
 
 const BRAND = "rgb(151,0,3)";
 
-const RARITY_CONFIG = {
+const RARITY_CONFIG: Record<string, any> = {
   Common:    { label: "Common",    stars: 1, ring: "#9CA3AF", glow: "rgba(156,163,175,0.15)" },
   Rare:      { label: "Rare",      stars: 2, ring: "#2563EB", glow: "rgba(37,99,235,0.15)"   },
   Epic:      { label: "Epic",      stars: 3, ring: "#7C3AED", glow: "rgba(124,58,237,0.15)"  },
@@ -14,7 +13,7 @@ const RARITY_CONFIG = {
 };
 
 // Tiny QR placeholder SVG
-function QRPlaceholder({ size = 60 }) {
+function QRPlaceholder({ size = 60 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 60 60" fill="none" aria-label="QR code placeholder">
       <rect width={60} height={60} rx={4} fill="#F9FAFB" />
@@ -39,7 +38,7 @@ function QRPlaceholder({ size = 60 }) {
   );
 }
 
-function BadgeCard({ badge, onSelect }) {
+function BadgeCard({ badge, onSelect }: { badge: any, onSelect: (b: any) => void }) {
   const rarity = RARITY_CONFIG[badge.rarity] || RARITY_CONFIG.Common;
   return (
     <button
@@ -72,7 +71,7 @@ function BadgeCard({ badge, onSelect }) {
   );
 }
 
-function BadgeModal({ badge, onClose }) {
+function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
   const rarity = RARITY_CONFIG[badge.rarity] || RARITY_CONFIG.Common;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
@@ -111,16 +110,18 @@ function BadgeModal({ badge, onClose }) {
           </div>
 
           {/* Competencies */}
-          <div>
-            <p className="text-xs font-semibold text-gray-700 mb-2">Competencies Evidenced</p>
-            <div className="flex flex-wrap gap-1.5">
-              {badge.competencies.map((c) => (
-                <span key={c} className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                  {c}
-                </span>
-              ))}
+          {badge.competencies && Array.isArray(badge.competencies) && badge.competencies.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-700 mb-2">Competencies Evidenced</p>
+              <div className="flex flex-wrap gap-1.5">
+                {badge.competencies.map((c: string) => (
+                  <span key={c} className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                    {c}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* QR + verification */}
           <div className="flex items-start gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
@@ -168,17 +169,52 @@ function BadgeModal({ badge, onClose }) {
 }
 
 export default function BadgesPage() {
+  const [earnedBadges, setEarnedBadges] = useState<any[]>([]);
+  const [lockedBadges, setLockedBadges] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [search,       setSearch]       = useState("");
   const [domainFilter, setDomainFilter] = useState("");
   const [rarityFilter, setRarityFilter] = useState("");
-  const [selected,     setSelected]     = useState(null);
+  const [selected,     setSelected]     = useState<any>(null);
 
-  const domains  = [...new Set(BADGES.map((b) => b.domain))];
+  useEffect(() => {
+    const fetchBadges = async () => {
+      try {
+        const authRes = await fetch("/api/auth/me");
+        if (!authRes.ok) throw new Error("Not auth");
+        const authData = await authRes.json();
+        
+        const username = authData.user.username;
+        const res = await fetch(`/api/dashboard/student/samam/badges/${username}`);
+        if (res.ok) {
+          const data = await res.json();
+          setEarnedBadges(data.earned || []);
+          setLockedBadges(data.locked || []);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBadges();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: BRAND }} />
+      </div>
+    );
+  }
+
+  const domains  = [...new Set(earnedBadges.map((b) => b.domain))];
   const rarities = ["Common","Rare","Epic","Legendary"];
 
-  const filtered = BADGES.filter((b) => {
+  const filtered = earnedBadges.filter((b) => {
     if (search && !b.name.toLowerCase().includes(search.toLowerCase()) &&
-        !b.earnedFrom.toLowerCase().includes(search.toLowerCase())) return false;
+        !(b.earnedFrom && b.earnedFrom.toLowerCase().includes(search.toLowerCase()))) return false;
     if (domainFilter && b.domain !== domainFilter) return false;
     if (rarityFilter && b.rarity !== rarityFilter) return false;
     return true;
@@ -201,7 +237,7 @@ export default function BadgesPage() {
             {/* Rarity breakdown */}
             <div className="flex flex-wrap gap-2">
               {rarities.map((r) => {
-                const count = BADGES.filter((b) => b.rarity === r).length;
+                const count = earnedBadges.filter((b) => b.rarity === r).length;
                 const cfg = RARITY_CONFIG[r];
                 return count > 0 ? (
                   <div key={r} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-100 bg-white">
@@ -223,7 +259,7 @@ export default function BadgesPage() {
               className="text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 focus:outline-none"
             >
               <option value="">All Domains</option>
-              {domains.map((d) => <option key={d}>{d}</option>)}
+              {domains.map((d: any) => <option key={d}>{d}</option>)}
             </select>
             <select
               value={rarityFilter}
@@ -266,11 +302,11 @@ export default function BadgesPage() {
 
       {/* ── Locked Badges ── */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-          Locked Badges ({LOCKED_BADGES.length} to unlock)
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 mt-8">
+          Locked Badges ({lockedBadges.length} to unlock)
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {LOCKED_BADGES.map((badge) => {
+          {lockedBadges.map((badge) => {
             const rarity = RARITY_CONFIG[badge.rarity] || RARITY_CONFIG.Common;
             return (
               <div
@@ -287,6 +323,9 @@ export default function BadgesPage() {
               </div>
             );
           })}
+          {lockedBadges.length === 0 && (
+             <p className="text-xs text-gray-500 italic">No more badges to unlock right now.</p>
+          )}
         </div>
       </div>
 

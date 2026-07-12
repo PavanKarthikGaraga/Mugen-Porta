@@ -3,11 +3,24 @@
  * RingProgress — pure SVG circular progress ring
  * Props: value (0-100), size, strokeWidth, color, label, sublabel, showValue
  */
+import { ReactNode } from "react";
+
+interface RingProgressProps {
+  value?: number;
+  size?: number;
+  strokeWidth?: number;
+  color?: string;
+  label?: string | ReactNode;
+  sublabel?: string | ReactNode;
+  showValue?: boolean;
+  children?: ReactNode;
+}
+
 export default function RingProgress({
   value = 0, size = 120, strokeWidth = 10,
   color = "rgb(151,0,3)", label, sublabel, showValue = true,
   children,
-}) {
+}: RingProgressProps) {
   const r   = (size - strokeWidth) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (value / 100) * circ;

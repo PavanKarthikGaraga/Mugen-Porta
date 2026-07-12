@@ -1,377 +1,652 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { FiUsers, FiFolder, FiBarChart, FiTrendingUp, FiCalendar, FiFilter } from "react-icons/fi";
-import { handleApiError } from '@/lib/apiErrorHandler';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import {
+  FiUsers, FiFolder, FiCalendar, FiFilter, FiChevronRight,
+  FiRefreshCw, FiTrendingUp, FiBookOpen, FiGrid, FiCheckCircle,
+  FiXCircle, FiClock, FiHome,
+} from "react-icons/fi";
+import { handleApiError } from "@/lib/apiErrorHandler";
 import { branchNames } from "@/app/Data/branches";
+import StatCard from "@/app/components/dashboard/StatCard";
+import DashboardCard from "@/app/components/dashboard/DashboardCard";
+import ProgressCard from "@/app/components/dashboard/ProgressCard";
 
+const BRAND = "rgb(151,0,3)";
+
+// ── Domain metadata ────────────────────────────────────────────────────────────
+const domainMeta = [
+  { key: "tec", label: "Technical (TEC)",                      color: "#2563EB", icon: "⚙️" },
+  { key: "lch", label: "Liberal & Creative Arts (LCH)",        color: "#7C3AED", icon: "🎨" },
+  { key: "eso", label: "Extension & Outreach (ESO)",           color: "#D97706", icon: "🌍" },
+  { key: "iie", label: "Innovation & Entrepreneurship (IIE)",  color: "#059669", icon: "💡" },
+  { key: "hwb", label: "Health & Well-being (HWB)",            color: "#E11D48", icon: "❤️" },
+];
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+interface SubmissionStats {
+  approved: number; rejected: number; pending: number;
+  not_submitted: number; total: number;
+}
+interface BreakdownRow { [key: string]: string | number }
+interface TrendDay { date: string; count: number }
+
+interface StatsData {
+  totalStudents: number;
+  totalClubs: number;
+  totalRegistrations: number;
+  recentRegistrations: number;
+  submissionStats: SubmissionStats;
+  yearBreakdown:      BreakdownRow[];
+  genderBreakdown:    BreakdownRow[];
+  residenceBreakdown: BreakdownRow[];
+  topBranches:        BreakdownRow[];
+  recentTrend:        TrendDay[];
+}
+
+interface DomainStats { total: number; tec: number; lch: number; eso: number; iie: number; hwb: number }
+interface ClubStat   { clubId: string; clubName: string; memberCount: number }
+
+// ── Mini sparkline ─────────────────────────────────────────────────────────────
+function Sparkline({ trend }: { trend: TrendDay[] }) {
+  if (!trend || trend.length === 0) return <p className="text-xs text-gray-400 italic">No data</p>;
+  const max = Math.max(...trend.map((d) => Number(d.count)), 1);
+  const W = 240, H = 48, pad = 4;
+  const pts = trend.map((d, i) => {
+    const x = pad + (i / Math.max(trend.length - 1, 1)) * (W - pad * 2);
+    const y = H - pad - (Number(d.count) / max) * (H - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const areaBottom = `${W - pad},${H - pad} ${pad},${H - pad}`;
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-12">
+        <defs>
+          <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={BRAND} stopOpacity="0.25" />
+            <stop offset="100%" stopColor={BRAND} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points={`${pts.join(" ")} ${areaBottom}`} fill="url(#sg)" />
+        <polyline points={pts.join(" ")} fill="none" stroke={BRAND} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {trend.map((d, i) => {
+          const [cx, cy] = pts[i].split(",").map(Number);
+          return <circle key={i} cx={cx} cy={cy} r="3" fill={BRAND} />;
+        })}
+      </svg>
+      <div className="flex justify-between mt-1">
+        {trend.map((d, i) => (
+          <span key={i} className="text-[9px] text-gray-400">{String(d.date).slice(5)}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
 export default function AdminOverviewPage() {
-    const [stats, setStats] = useState({
-        totalStudents: 0,
-        totalProjects: 0,
-        totalClubs: 0,
-        recentRegistrations: 0,
-        activeProjects: 0,
-        totalRegistrations: 0
-    });
-    const [domainStats, setDomainStats] = useState({
-        total: 0,
-        tec: 0,
-        lch: 0,
-        eso: 0,
-        iie: 0,
-        hwb: 0
-    });
-    const [clubStats, setClubStats] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showAllClubs, setShowAllClubs] = useState(false);
-    const [filters, setFilters] = useState({
-        domain: 'all',
-        year: 'all',
-        branch: 'all',
-        dateRange: 'all' // Changed default to 'all'
-    });
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [domainStats, setDomainStats] = useState<DomainStats>({ total: 0, tec: 0, lch: 0, eso: 0, iie: 0, hwb: 0 });
+  const [clubStats, setClubStats] = useState<ClubStat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAllClubs, setShowAllClubs] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState({ domain: "all", year: "all", branch: "all", dateRange: "all" });
 
-    const fetchStats = useCallback(async () => {
-        try {
-            setLoading(true);
+  const fetchStats = useCallback(async () => {
+    try {
+      setLoading(true);
+      const q = new URLSearchParams();
+      if (filters.domain    !== "all") q.append("domain",    filters.domain);
+      if (filters.year      !== "all") q.append("year",      filters.year);
+      if (filters.branch    !== "all") q.append("branch",    filters.branch);
+      if (filters.dateRange !== "all") q.append("dateRange", filters.dateRange);
 
-            // Build query parameters from filters
-            const queryParams = new URLSearchParams();
-            if (filters.domain && filters.domain !== 'all') queryParams.append('domain', filters.domain);
-            if (filters.year && filters.year !== 'all') queryParams.append('year', filters.year);
-            if (filters.branch && filters.branch !== 'all') queryParams.append('branch', filters.branch);
-            if (filters.dateRange && filters.dateRange !== 'all') queryParams.append('dateRange', filters.dateRange);
+      const [statsRes, studentsRes] = await Promise.all([
+        fetch(`/api/dashboard/admin/stats?${q}`),
+        fetch(`/api/dashboard/admin/students?limit=1&${q}`),
+      ]);
 
-            // Fetch main stats
-            const statsResponse = await fetch(`/api/dashboard/admin/stats?${queryParams}`);
-            if (await handleApiError(statsResponse)) {
-                return; // Error was handled
-            }
+      if (await handleApiError(statsRes))    return;
+      if (await handleApiError(studentsRes)) return;
 
-            if (statsResponse.ok) {
-                const statsData = await statsResponse.json();
-                setStats(statsData);
-            }
-
-            // Fetch domain and club stats from students API (with filters)
-            const studentsResponse = await fetch(`/api/dashboard/admin/students?limit=1&${queryParams}`);
-            if (await handleApiError(studentsResponse)) {
-                return; // Error was handled
-            }
-
-            if (studentsResponse.ok) {
-                const studentsData = await studentsResponse.json();
-                if (studentsData.success && studentsData.data) {
-                    setDomainStats(studentsData.data.stats);
-                    setClubStats(studentsData.data.clubStats || []);
-                }
-            }
-        } catch (error) {
-            console.error('Failed to fetch dashboard stats:', error);
-        } finally {
-            setLoading(false);
+      if (statsRes.ok)    setStats(await statsRes.json());
+      if (studentsRes.ok) {
+        const d = await studentsRes.json();
+        if (d.success && d.data) {
+          setDomainStats(d.data.stats);
+          setClubStats(d.data.clubStats || []);
         }
-    }, [filters]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters]);
 
-    useEffect(() => {
-        fetchStats();
-    }, [filters, fetchStats]);
+  useEffect(() => { fetchStats(); }, [fetchStats]);
 
-    const statCards = [
-        {
-            title: 'Total Registrations',
-            value: stats.totalRegistrations,
-            icon: FiCalendar,
-            color: 'red',
-            href: '/dashboard/admin/students'
-        },
-        {
-            title: 'Total Clubs',
-            value: stats.totalClubs,
-            icon: FiBarChart,
-            color: 'purple',
-            href: '/dashboard/admin/clubs'
-        },
-        {
-            title: 'Total Students',
-            value: stats.totalStudents,
-            icon: FiUsers,
-            color: 'blue',
-            href: '/dashboard/admin/students'
-        },
-       
-    ];
+  const activeFiltersCount = Object.values(filters).filter((v) => v !== "all").length;
+  const totalDomain = domainMeta.reduce((acc, d) => acc + (domainStats[d.key as keyof DomainStats] as number || 0), 0) || 1;
 
-    const getColorClasses = (color) => {
-        switch (color) {
-            case 'blue':
-                return 'border-blue-500 text-blue-600 bg-blue-50';
-            case 'green':
-                return 'border-green-500 text-green-600 bg-green-50';
-            case 'purple':
-                return 'border-purple-500 text-purple-600 bg-purple-50';
-            case 'red':
-                return 'border-red-500 text-red-600 bg-red-50';
-            case 'yellow':
-                return 'border-yellow-500 text-yellow-600 bg-yellow-50';
-            default:
-                return 'border-gray-500 text-gray-600 bg-gray-50';
-        }
-    };
+  // ── Derived submission stats ─────────────────────────────────────────────────
+  const sub = stats?.submissionStats;
+  const subTotal = Math.max(sub?.total ?? 0, 1);
+  const subRows = [
+    { label: "Approved",      value: sub?.approved      ?? 0, color: "#059669", icon: <FiCheckCircle size={12} /> },
+    { label: "Pending",       value: sub?.pending        ?? 0, color: "#D97706", icon: <FiClock       size={12} /> },
+    { label: "Rejected",      value: sub?.rejected       ?? 0, color: BRAND,     icon: <FiXCircle     size={12} /> },
+    { label: "Not Submitted", value: sub?.not_submitted  ?? 0, color: "#9CA3AF", icon: <FiBookOpen    size={12} /> },
+  ];
 
-    return (
-        <div className="p-6">
-            <div className="mb-8">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                        <p className="mt-2 text-gray-600">Welcome to the administrative control panel</p>
-                    </div>
-                </div>
-            </div>
+  // ── Year breakdown ────────────────────────────────────────────────────────────
+  const yearOrder = ["1st", "2nd", "3rd", "4th"];
+  const yearColors = ["#2563EB", "#7C3AED", "#059669", "#D97706"];
+  const yearMap: Record<string, number> = {};
+  (stats?.yearBreakdown ?? []).forEach((r) => { yearMap[String(r.year)] = Number(r.count); });
+  const maxYear = Math.max(...yearOrder.map((y) => yearMap[y] ?? 0), 1);
 
+  // ── Gender breakdown ──────────────────────────────────────────────────────────
+  const genderMap: Record<string, number> = {};
+  (stats?.genderBreakdown ?? []).forEach((r) => { genderMap[String(r.gender)] = Number(r.count); });
+  const totalGender = Math.max(Object.values(genderMap).reduce((a, b) => a + b, 0), 1);
+  const genderRows = [
+    { label: "Male",   color: "#2563EB", emoji: "👨" },
+    { label: "Female", color: "#E11D48", emoji: "👩" },
+    { label: "Other",  color: "#7C3AED", emoji: "🧑" },
+  ];
 
-            {/* Filters */}
-            <Card className="mb-8">
-                <CardHeader>
-                    <CardTitle className="flex items-center">
-                        <FiFilter className="mr-2" />
-                        Filters
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="domain">Domain</Label>
-                            <Select
-                                value={filters.domain}
-                                onValueChange={(value) => setFilters({ ...filters, domain: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All Domains" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Domains</SelectItem>
-                                    <SelectItem value="TEC">Technical (TEC)</SelectItem>
-                                    <SelectItem value="LCH">Liberal Arts, Creative Arts and Hobby (LCH)</SelectItem>
-                                    <SelectItem value="ESO">Extension & Society Outreach (ESO)</SelectItem>
-                                    <SelectItem value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</SelectItem>
-                                    <SelectItem value="HWB">Health & Well-being (HWB)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+  // ── Residence breakdown ───────────────────────────────────────────────────────
+  const resMap: Record<string, number> = {};
+  (stats?.residenceBreakdown ?? []).forEach((r) => { resMap[String(r.residenceType)] = Number(r.count); });
+  const totalRes = Math.max(Object.values(resMap).reduce((a, b) => a + b, 0), 1);
+  const hostelPct  = Math.round(((resMap["Hostel"]     ?? 0) / totalRes) * 100);
+  const dayPct     = Math.round(((resMap["Day Scholar"] ?? 0) / totalRes) * 100);
 
-                        <div className="space-y-2">
-                            <Label htmlFor="year">Year</Label>
-                            <Select
-                                value={filters.year}
-                                onValueChange={(value) => setFilters({ ...filters, year: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All Years" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Years</SelectItem>
-                                    <SelectItem value="1st">1st Year</SelectItem>
-                                    <SelectItem value="2nd">2nd Year</SelectItem>
-                                    <SelectItem value="3rd">3rd Year</SelectItem>
-                                    <SelectItem value="4th">4th Year</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+  // ── Top branches ──────────────────────────────────────────────────────────────
+  const maxBranch = Math.max(...(stats?.topBranches ?? []).map((b) => Number(b.count)), 1);
 
-                        <div className="space-y-2">
-                            <Label htmlFor="branch">Branch</Label>
-                            <Select
-                                value={filters.branch}
-                                onValueChange={(value) => setFilters({ ...filters, branch: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All Branches" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Branches</SelectItem>
-                                    {branchNames.map((branch) => (
-                                        <SelectItem key={branch.id} value={branch.name}>
-                                            {branch.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+  return (
+    <div className="space-y-5 max-w-7xl mx-auto">
 
-                        <div className="space-y-2">
-                            <Label htmlFor="dateRange">Date Range</Label>
-                            <Select
-                                value={filters.dateRange}
-                                onValueChange={(value) => setFilters({ ...filters, dateRange: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="7">Last 7 days</SelectItem>
-                                    <SelectItem value="30">Last 30 days</SelectItem>
-                                    <SelectItem value="90">Last 90 days</SelectItem>
-                                    <SelectItem value="365">Last year</SelectItem>
-                                    <SelectItem value="all">All time</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 flex gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => setFilters({ domain: 'all', year: 'all', branch: 'all', dateRange: 'all' })}
-                        >
-                            Clear Filters
-                        </Button>
-                        <Button
-                            onClick={fetchStats}
-                            className="bg-red-800 hover:bg-red-900"
-                        >
-                            Apply Filters
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-                {statCards.map((stat, index) => {
-                    const Icon = stat.icon;
-                    const colorClasses = getColorClasses(stat.color);
-
-                    return (
-                        <Card
-                            key={index}
-                            className={`cursor-pointer hover:shadow-lg transition-shadow border-l-4 ${colorClasses}`}
-                            onClick={() => window.location.href = stat.href}
-                        >
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                                        <p className="text-3xl font-bold text-gray-900">
-                                            {loading ? '...' : stat.value.toLocaleString()}
-                                        </p>
-                                    </div>
-                                    <Icon className={`h-8 w-8 ${stat.color === 'blue' ? 'text-blue-500' :
-                                        stat.color === 'green' ? 'text-green-500' :
-                                        stat.color === 'purple' ? 'text-purple-500' :
-                                        stat.color === 'red' ? 'text-red-500' :
-                                        stat.color === 'yellow' ? 'text-yellow-500' : 'text-gray-500'}`} />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    );
-                })}
-            </div>
-
-            {/* Domain Statistics */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Domain Distribution</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <Card className="border border-green-200 bg-green-50">
-                        <CardContent className="p-4 text-center">
-                            <div className="text-sm font-medium text-green-700 mb-1">TEC</div>
-                            <div className="text-2xl font-bold text-green-800">
-                                {loading ? '...' : domainStats.tec || 0}
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border border-purple-200 bg-purple-50">
-                        <CardContent className="p-4 text-center">
-                            <div className="text-sm font-medium text-purple-700 mb-1">LCH</div>
-                            <div className="text-2xl font-bold text-purple-800">
-                                {loading ? '...' : domainStats.lch || 0}
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border border-yellow-200 bg-yellow-50">
-                        <CardContent className="p-4 text-center">
-                            <div className="text-sm font-medium text-yellow-700 mb-1">ESO</div>
-                            <div className="text-2xl font-bold text-yellow-800">
-                                {loading ? '...' : domainStats.eso || 0}
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border border-orange-200 bg-orange-50">
-                        <CardContent className="p-4 text-center">
-                            <div className="text-sm font-medium text-orange-700 mb-1">IIE</div>
-                            <div className="text-2xl font-bold text-orange-800">
-                                {loading ? '...' : domainStats.iie || 0}
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border border-pink-200 bg-pink-50">
-                        <CardContent className="p-4 text-center">
-                            <div className="text-sm font-medium text-pink-700 mb-1">HWB</div>
-                            <div className="text-2xl font-bold text-pink-800">
-                                {loading ? '...' : domainStats.hwb || 0}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-
-            {/* Club Statistics */}
-            {clubStats.length > 0 && (
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Club Membership</h2>
-                    <Card>
-                        <CardContent className="p-6">
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                                {(showAllClubs ? clubStats : clubStats.slice(0, 12)).map((club) => (
-                                    <div key={club.clubId || club.clubName} className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
-                                        <div className="text-sm font-medium text-gray-600 truncate mb-2">{club.clubName || 'No Club'}</div>
-                                        <div className="text-2xl font-bold text-gray-800">{club.memberCount || 0}</div>
-                                        <div className="text-xs text-gray-500">members</div>
-                                    </div>
-                                ))}
-                            </div>
-                            {clubStats.length > 12 && (
-                                <div className="mt-4 text-center">
-                                    {!showAllClubs ? (
-                                        <div className="flex flex-col items-center gap-2">
-                                            <p className="text-sm text-gray-500">
-                                                Showing 12 of {clubStats.length} clubs
-                                            </p>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => setShowAllClubs(true)}
-                                                className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
-                                            >
-                                                Show All Clubs
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center gap-2">
-                                            <p className="text-sm text-gray-500">
-                                                Showing all {clubStats.length} clubs
-                                            </p>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => setShowAllClubs(false)}
-                                                className="bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
-                                            >
-                                                Show Less
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
+      {/* ═══ Header ════════════════════════════════════════════════════════════ */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="h-1" style={{ backgroundColor: BRAND }} />
+        <div className="p-5 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Admin Overview</h1>
+            <p className="text-xs text-gray-500 mt-0.5">KL University SAC · Administrative Control Panel</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {activeFiltersCount > 0 && (
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: `${BRAND}15`, color: BRAND }}>
+                {activeFiltersCount} filter{activeFiltersCount > 1 ? "s" : ""} active
+              </span>
             )}
-
+            <button
+              onClick={() => setFiltersOpen((p) => !p)}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors text-gray-700"
+            >
+              <FiFilter size={13} />
+              Filters
+              {activeFiltersCount > 0 && (
+                <span className="w-4 h-4 rounded-full text-white flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: BRAND }}>
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={fetchStats}
+              disabled={loading}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg text-white transition-colors disabled:opacity-60"
+              style={{ backgroundColor: BRAND }}
+            >
+              <FiRefreshCw size={13} className={loading ? "animate-spin" : ""} />
+              {loading ? "Loading…" : "Refresh"}
+            </button>
+          </div>
         </div>
-    );
+
+        {/* Collapsible filters */}
+        {filtersOpen && (
+          <div className="border-t border-gray-100 px-5 py-4 bg-gray-50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Domain */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600">Domain</label>
+                <select
+                  value={filters.domain}
+                  onChange={(e) => setFilters({ ...filters, domain: e.target.value })}
+                  className="w-full h-8 px-2 text-xs rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                >
+                  <option value="all">All Domains</option>
+                  <option value="TEC">Technical (TEC)</option>
+                  <option value="LCH">Liberal Arts, Creative Arts and Hobby (LCH)</option>
+                  <option value="ESO">Extension &amp; Society Outreach (ESO)</option>
+                  <option value="IIE">Innovation, Incubation &amp; Entrepreneurship (IIE)</option>
+                  <option value="HWB">Health &amp; Well-being (HWB)</option>
+                </select>
+              </div>
+              {/* Year */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600">Year</label>
+                <select
+                  value={filters.year}
+                  onChange={(e) => setFilters({ ...filters, year: e.target.value })}
+                  className="w-full h-8 px-2 text-xs rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                >
+                  <option value="all">All Years</option>
+                  <option value="1st">1st Year</option>
+                  <option value="2nd">2nd Year</option>
+                  <option value="3rd">3rd Year</option>
+                  <option value="4th">4th Year</option>
+                </select>
+              </div>
+              {/* Branch */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600">Branch</label>
+                <select
+                  value={filters.branch}
+                  onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
+                  className="w-full h-8 px-2 text-xs rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                >
+                  <option value="all">All Branches</option>
+                  {branchNames.map((b) => (
+                    <option key={b.id} value={b.name}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Date range */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600">Date Range</label>
+                <select
+                  value={filters.dateRange}
+                  onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
+                  className="w-full h-8 px-2 text-xs rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                >
+                  <option value="7">Last 7 days</option>
+                  <option value="30">Last 30 days</option>
+                  <option value="90">Last 90 days</option>
+                  <option value="365">Last year</option>
+                  <option value="all">All time</option>
+                </select>
+              </div>
+            </div>
+            {activeFiltersCount > 0 && (
+              <div className="mt-3 flex justify-end">
+                <button
+                  onClick={() => setFilters({ domain: "all", year: "all", branch: "all", dateRange: "all" })}
+                  className="text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
+                >
+                  Clear all filters
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ═══ Stat tiles ════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <StatCard
+          icon={<FiCalendar size={16} />}
+          label="Total Registrations"
+          value={loading ? "—" : (stats?.totalRegistrations ?? 0).toLocaleString()}
+          trend={undefined} trendUp={false}
+          accent={BRAND}
+        />
+        <StatCard
+          icon={<FiUsers size={16} />}
+          label="Filtered Students"
+          value={loading ? "—" : (stats?.totalStudents ?? 0).toLocaleString()}
+          trend={undefined} trendUp={false}
+          accent="#2563EB"
+        />
+        <StatCard
+          icon={<FiGrid size={16} />}
+          label="Active Clubs"
+          value={loading ? "—" : (stats?.totalClubs ?? 0).toLocaleString()}
+          trend={undefined} trendUp={false}
+          accent="#7C3AED"
+        />
+        <StatCard
+          icon={<FiTrendingUp size={16} />}
+          label="Recent (7 days)"
+          value={loading ? "—" : (stats?.recentRegistrations ?? 0).toLocaleString()}
+          trend="new registrations"
+          trendUp={(stats?.recentRegistrations ?? 0) > 0}
+          accent="#059669"
+        />
+        <StatCard
+          icon={<FiClock size={16} />}
+          label="Pending Reviews"
+          value={loading ? "—" : (stats?.submissionStats?.pending ?? 0).toLocaleString()}
+          trend={sub && sub.total > 0 ? `of ${sub.total} total` : undefined}
+          trendUp={false}
+          accent="#D97706"
+        />
+      </div>
+
+      {/* ═══ Middle row: Submissions + Year distribution ════════════════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+        {/* Submission status */}
+        <DashboardCard
+          title="Submission Status"
+          subtitle="Internal activity submissions breakdown"
+          action={
+            <Link href="/dashboard/admin/reports" className="text-xs font-medium hover:underline flex items-center gap-0.5" style={{ color: BRAND }}>
+              View all <FiChevronRight size={12} />
+            </Link>
+          }
+        >
+          {loading ? (
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-6 bg-gray-100 rounded" />)}
+            </div>
+          ) : sub && sub.total > 0 ? (
+            <div className="space-y-3">
+              {subRows.map((r) => (
+                <div key={r.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                      <span style={{ color: r.color }}>{r.icon}</span>
+                      {r.label}
+                    </span>
+                    <span className="text-xs font-bold text-gray-900">
+                      {r.value.toLocaleString()} <span className="text-gray-400 font-normal">({Math.round((r.value / subTotal) * 100)}%)</span>
+                    </span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${Math.round((r.value / subTotal) * 100)}%`, backgroundColor: r.color }}
+                    />
+                  </div>
+                </div>
+              ))}
+              {/* Total pill */}
+              <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                <span className="text-xs text-gray-500">Total submissions</span>
+                <span className="text-sm font-bold text-gray-900">{sub.total.toLocaleString()}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic py-4 text-center">No submission data available</p>
+          )}
+        </DashboardCard>
+
+        {/* Year distribution */}
+        <DashboardCard
+          title="Year Distribution"
+          subtitle="Students by academic year"
+          action={
+            <Link href="/dashboard/admin/students" className="text-xs font-medium hover:underline flex items-center gap-0.5" style={{ color: BRAND }}>
+              View students <FiChevronRight size={12} />
+            </Link>
+          }
+        >
+          {loading ? (
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-6 bg-gray-100 rounded" />)}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {yearOrder.map((y, i) => {
+                const count = yearMap[y] ?? 0;
+                const pct   = Math.round((count / maxYear) * 100);
+                return (
+                  <div key={y}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-700">{y} Year</span>
+                      <span className="text-xs font-bold text-gray-900">{count.toLocaleString()}</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${pct}%`, backgroundColor: yearColors[i] }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DashboardCard>
+      </div>
+
+      {/* ═══ Third row: Trend + Gender + Residence ═════════════════════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        {/* 7-day registration trend */}
+        <DashboardCard
+          title="Registration Trend"
+          subtitle="New sign-ups in the last 7 days"
+        >
+          {loading ? (
+            <div className="h-16 bg-gray-100 rounded animate-pulse" />
+          ) : (
+            <Sparkline trend={stats?.recentTrend ?? []} />
+          )}
+        </DashboardCard>
+
+        {/* Gender breakdown */}
+        <DashboardCard title="Gender Breakdown" subtitle="Registered student demographics">
+          {loading ? (
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3].map((i) => <div key={i} className="h-5 bg-gray-100 rounded" />)}
+            </div>
+          ) : totalGender > 1 ? (
+            <div className="space-y-3">
+              {genderRows.map((g) => {
+                const count = genderMap[g.label] ?? 0;
+                const pct   = Math.round((count / totalGender) * 100);
+                return (
+                  <div key={g.label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-700">{g.emoji} {g.label}</span>
+                      <span className="text-xs font-bold text-gray-900">{count.toLocaleString()} <span className="text-gray-400 font-normal">({pct}%)</span></span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: g.color }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic text-center py-4">No data</p>
+          )}
+        </DashboardCard>
+
+        {/* Hostel vs Day Scholar */}
+        <DashboardCard title="Residence Type" subtitle="Hostel vs Day Scholar split">
+          {loading ? (
+            <div className="h-16 bg-gray-100 rounded animate-pulse" />
+          ) : totalRes > 1 ? (
+            <div className="space-y-4">
+              {/* Split bar */}
+              <div className="h-5 rounded-full overflow-hidden flex">
+                <div
+                  className="h-full transition-all duration-700"
+                  style={{ width: `${hostelPct}%`, backgroundColor: "#2563EB" }}
+                  title={`Hostel: ${hostelPct}%`}
+                />
+                <div
+                  className="h-full transition-all duration-700"
+                  style={{ width: `${dayPct}%`, backgroundColor: "#059669" }}
+                  title={`Day Scholar: ${dayPct}%`}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center rounded-lg p-3" style={{ backgroundColor: "#2563EB10" }}>
+                  <FiHome size={16} className="mx-auto mb-1" style={{ color: "#2563EB" }} />
+                  <div className="text-lg font-bold text-gray-900">{(resMap["Hostel"] ?? 0).toLocaleString()}</div>
+                  <div className="text-xs text-gray-500">Hostel ({hostelPct}%)</div>
+                </div>
+                <div className="text-center rounded-lg p-3" style={{ backgroundColor: "#05966910" }}>
+                  <FiUsers size={16} className="mx-auto mb-1" style={{ color: "#059669" }} />
+                  <div className="text-lg font-bold text-gray-900">{(resMap["Day Scholar"] ?? 0).toLocaleString()}</div>
+                  <div className="text-xs text-gray-500">Day Scholar ({dayPct}%)</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic text-center py-4">No data</p>
+          )}
+        </DashboardCard>
+      </div>
+
+      {/* ═══ Domain distribution ═══════════════════════════════════════════════ */}
+      <DashboardCard
+        title="Domain Distribution"
+        subtitle="Registrations across all 5 SAMAM domains"
+        action={
+          <Link href="/dashboard/admin/students" className="text-xs font-medium hover:underline flex items-center gap-0.5" style={{ color: BRAND }}>
+            View students <FiChevronRight size={12} />
+          </Link>
+        }
+      >
+        {/* Progress bar rows */}
+        <div className="space-y-3">
+          {domainMeta.map((d) => {
+            const count = domainStats[d.key as keyof DomainStats] as number || 0;
+            const pct   = Math.round((count / totalDomain) * 100);
+            return (
+              <div key={d.key} className="flex items-center gap-3">
+                <div className="w-32 flex items-center gap-2 flex-shrink-0">
+                  <span className="text-base leading-none">{d.icon}</span>
+                  <span className="text-xs font-semibold text-gray-600">{d.key.toUpperCase()}</span>
+                </div>
+                <div className="flex-1">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: d.color }} />
+                  </div>
+                </div>
+                <div className="w-20 flex items-center justify-end gap-1.5 flex-shrink-0">
+                  <span className="text-xs font-bold text-gray-900">{loading ? "—" : count.toLocaleString()}</span>
+                  <span className="text-xs text-gray-400">({pct}%)</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Domain mini-cards */}
+        <div className="grid grid-cols-5 gap-2 mt-5">
+          {domainMeta.map((d) => (
+            <div key={d.key} className="rounded-lg p-3 text-center border" style={{ backgroundColor: `${d.color}10`, borderColor: `${d.color}30` }}>
+              <div className="text-sm mb-0.5">{d.icon}</div>
+              <div className="text-xs font-semibold" style={{ color: d.color }}>{d.key.toUpperCase()}</div>
+              <div className="text-lg font-bold text-gray-900 leading-tight mt-0.5">
+                {loading ? "—" : (domainStats[d.key as keyof DomainStats] as number || 0).toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      </DashboardCard>
+
+      {/* ═══ Top branches + Club membership ════════════════════════════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+        {/* Top 5 branches */}
+        <DashboardCard
+          title="Top Branches"
+          subtitle="Top 5 branches by student count"
+          action={
+            <Link href="/dashboard/admin/students" className="text-xs font-medium hover:underline flex items-center gap-0.5" style={{ color: BRAND }}>
+              All students <FiChevronRight size={12} />
+            </Link>
+          }
+        >
+          {loading ? (
+            <div className="space-y-3 animate-pulse">{[1,2,3,4,5].map((i) => <div key={i} className="h-6 bg-gray-100 rounded" />)}</div>
+          ) : (stats?.topBranches ?? []).length > 0 ? (
+            <div className="space-y-2.5">
+              {(stats?.topBranches ?? []).map((b, i) => (
+                <ProgressCard
+                  key={String(b.branch)}
+                  label={`${i + 1}. ${b.branch}`}
+                  value={Number(b.count)}
+                  max={maxBranch}
+                  showPercentage={false}
+                  suffix=" students"
+                  color={["#2563EB","#7C3AED","#059669","#D97706",BRAND][i % 5]}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic text-center py-4">No data</p>
+          )}
+        </DashboardCard>
+
+        {/* Club membership */}
+        <DashboardCard
+          title="Club Membership"
+          subtitle={clubStats.length > 0 ? `${clubStats.length} clubs with registered members` : "Loading clubs…"}
+          action={
+            <Link href="/dashboard/admin/clubs" className="text-xs font-medium hover:underline flex items-center gap-0.5" style={{ color: BRAND }}>
+              Manage clubs <FiChevronRight size={12} />
+            </Link>
+          }
+        >
+          {loading ? (
+            <div className="grid grid-cols-3 gap-2 animate-pulse">
+              {[1,2,3,4,5,6].map((i) => <div key={i} className="h-20 bg-gray-100 rounded-xl" />)}
+            </div>
+          ) : clubStats.length > 0 ? (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {(showAllClubs ? clubStats : clubStats.slice(0, 6)).map((club) => (
+                  <div key={club.clubId || club.clubName} className="bg-gray-50 hover:bg-gray-100 transition-colors rounded-xl p-2.5 border border-gray-200 text-center">
+                    <div className="w-7 h-7 rounded-lg mx-auto mb-1.5 flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: BRAND }}>
+                      {(club.clubName || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <div className="text-[10px] font-medium text-gray-600 truncate leading-tight">{club.clubName || "No Club"}</div>
+                    <div className="text-base font-bold text-gray-900 mt-0.5">{club.memberCount || 0}</div>
+                  </div>
+                ))}
+              </div>
+              {clubStats.length > 6 && (
+                <button
+                  onClick={() => setShowAllClubs((p) => !p)}
+                  className="mt-3 w-full text-xs font-semibold py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-gray-600"
+                >
+                  {showAllClubs ? "Show less" : `Show all ${clubStats.length} clubs`}
+                </button>
+              )}
+            </>
+          ) : (
+            <p className="text-xs text-gray-400 italic text-center py-4">No club data</p>
+          )}
+        </DashboardCard>
+      </div>
+
+      {/* ═══ Quick actions ══════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Manage Students",  icon: <FiUsers      size={18} />, href: "/dashboard/admin/students", color: "#2563EB" },
+          { label: "Manage Clubs",     icon: <FiFolder     size={18} />, href: "/dashboard/admin/clubs",    color: "#7C3AED" },
+          { label: "Submissions",      icon: <FiBookOpen   size={18} />, href: "/dashboard/admin/reports",  color: "#059669" },
+          { label: "Controls",         icon: <FiTrendingUp size={18} />, href: "/dashboard/admin/controls", color: BRAND    },
+        ].map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-4 flex flex-col items-center gap-2 text-center group"
+          >
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110"
+              style={{ backgroundColor: `${item.color}15`, color: item.color }}
+            >
+              {item.icon}
+            </div>
+            <span className="text-xs font-semibold text-gray-700 group-hover:text-gray-900">{item.label}</span>
+          </Link>
+        ))}
+      </div>
+
+    </div>
+  );
 }
