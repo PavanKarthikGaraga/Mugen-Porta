@@ -1,22 +1,46 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { cookies } from 'next/headers';
+import { verifyToken } from '@/lib/jwt';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const domain = searchParams.get('domain');
 
-    let query = `SELECT * FROM activity_catalogue`;
+    let query = `
+      SELECT ac.*, 
+             (SELECT COUNT(*) FROM activity_registrations ar WHERE ar.catalogue_id = ac.id) as real_enrolled_count 
+      FROM activity_catalogue ac
+    `;
     const params: any[] = [];
 
     if (domain && domain !== 'all') {
-      query += ` WHERE domain = ?`;
+      query += ` WHERE ac.domain = ?`;
       params.push(domain);
     }
     
-    query += ` ORDER BY id ASC`;
+    query += ` ORDER BY ac.id ASC`;
 
     const [rows]: any = await pool.query(query, params);
+
+    let enrolledCodes = new Set<string>();
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get('tck')?.value;
+      if (token) {
+        const decoded = await verifyToken(token);
+        if (decoded && decoded.role === 'student') {
+          const [enrollments]: any = await pool.query(
+            `SELECT activity_code FROM activity_enrollments WHERE username = ?`,
+            [decoded.username]
+          );
+          enrollments.forEach((e: any) => enrolledCodes.add(e.activity_code));
+        }
+      }
+    } catch (e) {
+      console.error("Token decode error in activities list:", e);
+    }
 
     // Parse JSON columns back to objects for the frontend
     const activities = rows.map((row: any) => ({
@@ -29,6 +53,8 @@ export async function GET(request: Request) {
       career: row.career || [],
       sdgs: row.sdgs || [],
       ga: row.ga || [],
+      enrolledCount: row.real_enrolled_count || 0,
+      isEnrolled: enrolledCodes.has(row.code)
     }));
 
     return NextResponse.json({ success: true, data: activities });

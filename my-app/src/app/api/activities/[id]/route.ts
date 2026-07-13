@@ -7,9 +7,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     
     // We try querying by 'code' first since the frontend uses code (e.g. 'TECH-AI-001') in the URL
     const [rows]: any = await pool.query(
-      `SELECT ac.*, bd.name as badgeName, bd.icon as badgeIcon 
+      `SELECT ac.*, bd.name as badgeName, bd.icon as badgeIcon,
+              (SELECT COUNT(*) FROM activity_registrations ar WHERE ar.catalogue_id = ac.id) as real_enrolled_count
        FROM activity_catalogue ac 
-       LEFT JOIN badge_definitions bd ON ac.code = bd.activity_code 
+       LEFT JOIN badge_definitions bd ON ac.badge_id = bd.id 
        WHERE ac.code = ? OR ac.id = ? LIMIT 1`, 
       [id, id]
     );
@@ -50,7 +51,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       career: safeParse(row.career),
       sdgs: safeParse(row.sdgs),
       ga: safeParse(row.ga),
-      enrolledCount: 0, // Force fake data out
+      enrolledCount: row.real_enrolled_count || 0,
     };
 
     return NextResponse.json({ success: true, data: activity });

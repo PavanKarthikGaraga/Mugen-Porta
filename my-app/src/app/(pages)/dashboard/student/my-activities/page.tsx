@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { FiDownload, FiRefreshCw } from "react-icons/fi";
+import { FiDownload, FiRefreshCw, FiClipboard, FiSettings, FiCheckCircle, FiClock, FiAward, FiArchive, FiStar } from "react-icons/fi";
 // Removed mock data import
 import MyActivityRow from "@/app/components/dashboard/MyActivityRow";
 import SearchBar    from "@/app/components/dashboard/SearchBar";
@@ -8,12 +8,12 @@ import SearchBar    from "@/app/components/dashboard/SearchBar";
 const BRAND = "rgb(151,0,3)";
 
 const TABS = [
-  { key: "registered",     label: "Registered",       emoji: "📋", color: "#2563EB" },
-  { key: "ongoing",        label: "Ongoing",           emoji: "⚙️", color: "#D97706" },
-  { key: "completed",      label: "Completed",         emoji: "✅", color: "#059669" },
-  { key: "pending_review", label: "Pending Review",    emoji: "🕐", color: "#7C3AED" },
-  { key: "certificates",   label: "Certificates Ready",emoji: "🎓", color: "#059669" },
-  { key: "archived",       label: "Archived",          emoji: "📦", color: "#6B7280" },
+  { key: "registered",     label: "Registered",       icon: FiClipboard, color: "#2563EB" },
+  { key: "ongoing",        label: "Ongoing",          icon: FiSettings,  color: "#D97706" },
+  { key: "completed",      label: "Completed",        icon: FiCheckCircle,color: "#059669" },
+  { key: "pending_review", label: "Pending Review",   icon: FiClock,     color: "#7C3AED" },
+  { key: "certificates",   label: "Certificates Ready",icon: FiAward,     color: "#059669" },
+  { key: "archived",       label: "Archived",         icon: FiArchive,   color: "#6B7280" },
 ];
 
 const MY_ACTIVITIES: Record<string, any[]> = {
@@ -55,14 +55,14 @@ export default function MyActivitiesPage() {
             </div>
             {/* Summary pills */}
             <div className="flex flex-wrap gap-2">
-              <span className="text-xs font-medium px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                ✅ {MY_ACTIVITIES.completed.length} Completed
+              <span className="text-xs font-medium px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <FiCheckCircle size={12} /> {MY_ACTIVITIES.completed.length} Completed
               </span>
-              <span className="text-xs font-medium px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                ⚙️ {MY_ACTIVITIES.ongoing.length} Ongoing
+              <span className="text-xs font-medium px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                <FiSettings size={12} /> {MY_ACTIVITIES.ongoing.length} Ongoing
               </span>
-              <span className="text-xs font-medium px-3 py-1 rounded-full border" style={{ backgroundColor: "rgba(151,0,3,0.08)", color: BRAND, borderColor: "rgba(151,0,3,0.2)" }}>
-                ⭐ {totalCreditsEarned} SAMAM Points earned
+              <span className="text-xs font-medium px-3 py-1 rounded-full bg-gray-50 text-gray-700 border border-gray-200 flex items-center gap-1">
+                <FiStar size={12} /> {totalCreditsEarned} SAMAM Earned
               </span>
             </div>
           </div>
@@ -76,22 +76,24 @@ export default function MyActivitiesPage() {
             {TABS.map((tab) => {
               const count = MY_ACTIVITIES[tab.key]?.length || 0;
               const isActive = activeTab === tab.key;
+              const Icon = tab.icon;
               return (
                 <button
                   key={tab.key}
                   onClick={() => { setActiveTab(tab.key); setSearch(""); }}
-                  className={`flex items-center gap-2 px-4 py-3.5 text-xs font-medium border-b-2 whitespace-nowrap transition-all ${
-                    isActive ? "border-current" : "border-transparent text-gray-500 hover:text-gray-800"
+                  className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors border-b-2 font-medium ${
+                    isActive
+                      ? "border-current text-gray-900"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
                   style={isActive ? { color: tab.color, borderColor: tab.color } : {}}
                 >
-                  <span>{tab.emoji}</span>
+                  <Icon size={14} />
                   {tab.label}
-                  <span
-                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                      isActive ? "text-white" : "text-gray-500 bg-gray-100"
-                    }`}
-                    style={isActive ? { backgroundColor: tab.color } : {}}
+                  <span className={`ml-1 text-[10px] px-2 py-0.5 rounded-full ${
+                    isActive ? "text-white" : "text-gray-500 bg-gray-100"
+                  }`}
+                  style={isActive ? { backgroundColor: tab.color } : {}}
                   >
                     {count}
                   </span>

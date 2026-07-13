@@ -49,8 +49,9 @@ export default function ActivityCataloguePage() {
             name: a.title, // Map title to name for the frontend
             credits: a.sdc_credits, // Map sdc_credits to credits
             hours: a.sdc_credits * 10, // Approximate hours
-            enrolledCount: 0, // Force fake data out
+            enrolledCount: a.enrolledCount || 0,
             maxEnrollment: a.max_seats || 0,
+            isEnrolled: a.isEnrolled || false,
           }));
           setActivities(mapped);
         }
@@ -270,6 +271,7 @@ export default function ActivityCataloguePage() {
                 <CatalogueCard
                   key={a.id}
                   activity={a}
+                  isEnrolled={a.isEnrolled}
                   bookmarked={bookmarks.has(a.id)}
                   onBookmark={toggleBookmark}
                 />

@@ -6,9 +6,9 @@ import {
   FiArrowLeft, FiStar, FiClock, FiUser, FiCheckCircle,
   FiBookOpen, FiFileText, FiMessageSquare, FiEdit3,
   FiCalendar, FiAward, FiTarget, FiGlobe, FiTrendingUp,
-  FiDownload, FiExternalLink, FiZap, FiFlag,
+  FiDownload, FiExternalLink, FiZap, FiFlag, FiVideo, FiLink
 } from "react-icons/fi";
-import { ACTIVITIES, DOMAINS, LEVELS } from "@/app/Data/activities-mock";
+import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";
 import ProgressCard from "@/app/components/dashboard/ProgressCard";
 import EnrollModal from "@/app/components/dashboard/EnrollModal";
 
@@ -32,6 +32,15 @@ const DIFFICULTY_COLOR = {
   Advanced:     { bg: "#FEF2F2", color: "#DC2626" },
 };
 
+function Section({ title, children }: { title: string, children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
 export default function ActivityDetailPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
   const [activity, setActivity] = useState<any>(null);
@@ -54,7 +63,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             hours: data.data.sdc_credits * 10
           };
           setActivity(mapped);
-          setEnrolledCount(data.data.enrolled_count || 0);
           setReflectionText(mapped.reflection || "");
         }
         setLoading(false);
@@ -64,7 +72,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
         setLoading(false);
       });
 
-    // Check enrollment status
     fetch(`/api/activities/${code}/enroll`)
       .then(r => r.json())
       .then(d => { if (d.enrolled) setEnrolled(true); })
@@ -127,8 +134,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
-
-      {/* ── Back link ── */}
       <Link
         href="/dashboard/student/activity-catalogue"
         className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
@@ -136,12 +141,10 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
         <FiArrowLeft size={13} /> Back to Catalogue
       </Link>
 
-      {/* ── Hero Card ── */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="h-1.5" style={{ backgroundColor: domain.color }} />
         <div className="p-6">
           <div className="flex items-start gap-4 flex-wrap">
-            {/* Domain icon */}
             <div
               className="w-16 h-16 rounded-xl flex items-center justify-center text-white text-2xl font-bold flex-shrink-0"
               style={{ backgroundColor: domain.color }}
@@ -150,7 +153,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             </div>
 
             <div className="flex-1 min-w-0">
-              {/* Badges */}
               <div className="flex flex-wrap gap-1.5 mb-2">
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: domain.bg, color: domain.color }}>
                   {domain.name}
@@ -166,7 +168,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
               <p className="text-sm text-gray-500">{activity.purpose}</p>
             </div>
 
-            {/* Enroll CTA */}
             <div className="flex-shrink-0 flex flex-col items-end gap-2">
               {enrolled ? (
                 <>
@@ -206,7 +207,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             loading={enrollLoading}
           />
 
-          {/* Stats strip */}
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: "SAMAM Points", value: activity.credits, icon: <FiStar size={14} style={{ color: BRAND }} /> },
@@ -224,16 +224,13 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             ))}
           </div>
 
-          {/* Enrollment progress */}
           <div className="mt-4">
             <ProgressCard label="Seats filled" value={fillPct} color={domain.color} />
           </div>
         </div>
       </div>
 
-      {/* ── Tabs ── */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Tab bar */}
         <div className="border-b border-gray-100 overflow-x-auto">
           <div className="flex min-w-max">
             {TABS.map((tab) => (
@@ -254,10 +251,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
           </div>
         </div>
 
-        {/* Tab content */}
         <div className="p-6">
-
-          {/* OVERVIEW */}
           {activeTab === "overview" && (
             <div className="space-y-5">
               <Section title="Purpose">
@@ -296,10 +290,11 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                 </Section>
               </div>
               <Section title="Sustainable Development Goals">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-2">
                   {activity.sdgs.map((sdg) => (
-                    <span key={sdg} className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      🌍 SDG {sdg}
+                    <span key={sdg} className="text-sm font-semibold px-4 py-2 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-2 w-fit">
+                      <FiGlobe size={14} className="text-emerald-500" />
+                      SDG {sdg}: <span className="font-medium">{SDG_MAP[sdg] || "Sustainable Goal"}</span>
                     </span>
                   ))}
                 </div>
@@ -312,18 +307,19 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             </div>
           )}
 
-          {/* RESOURCES */}
           {activeTab === "resources" && (
             <div className="space-y-3">
               {activity.resources.map((r) => {
-                const iconMap = { pdf: "📄", video: "🎬", link: "🔗" };
+                const IconComponent = r.type === "pdf" ? FiFileText : r.type === "video" ? FiVideo : FiLink;
                 return (
                   <div
                     key={r.id}
                     className="flex items-center justify-between p-3.5 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{iconMap[r.type] || "📎"}</span>
+                      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500">
+                        <IconComponent size={18} />
+                      </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">{r.title}</p>
                         <p className="text-xs text-gray-400 capitalize">{r.type} resource</p>

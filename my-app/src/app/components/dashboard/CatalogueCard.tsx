@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { FiBookmark, FiClock, FiStar, FiUser, FiZap } from "react-icons/fi";
-import { DOMAINS } from "@/app/Data/activities-mock";
+import { FiBookmark, FiClock, FiStar, FiUser, FiZap, FiTarget, FiActivity, FiAward, FiSettings, FiFeather, FiTrendingUp, FiGlobe } from "react-icons/fi";
+import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";
 import EnrollModal from "./EnrollModal";
 
 const DIFFICULTY_COLOR = {
@@ -18,18 +18,18 @@ const STATUS_COLOR = {
   Ongoing:  "bg-amber-500",
 };
 
-const LEVEL_EMOJI = {
-  explorer: "🔭", foundation: "🌱", practitioner: "⚙️",
-  leader: "🏅", mentor: "🎓", innovator: "🚀",
+const LEVEL_ICON: Record<string, React.ElementType> = {
+  explorer: FiTarget, foundation: FiFeather, practitioner: FiSettings,
+  leader: FiAward, mentor: FiUser, innovator: FiTrendingUp,
 };
 
-export default function CatalogueCard({ activity, bookmarked = false, onBookmark }: any) {
+export default function CatalogueCard({ activity, bookmarked = false, onBookmark, isEnrolled = false }: any) {
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [enrollLoading, setEnrollLoading] = useState(false);
-  const [localEnrolled, setLocalEnrolled] = useState(false);
+  const [localEnrolled, setLocalEnrolled] = useState(isEnrolled);
 
   const domain = DOMAINS[activity.domain] || DOMAINS.TEC;
-  const enrolled = (activity.enrolledCount || 0) + (localEnrolled ? 1 : 0);
+  const enrolled = (activity.enrolledCount || 0) + (localEnrolled && !isEnrolled ? 1 : 0);
   const max = activity.maxEnrollment;
   const fillPct = Math.round((enrolled / max) * 100);
   const isFull = enrolled >= max;
@@ -78,8 +78,9 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
               {activity.difficulty}
             </span>
             {/* Level */}
-            <span className="text-[10px] text-gray-500">
-              {LEVEL_EMOJI[activity.level]} {activity.level.charAt(0).toUpperCase() + activity.level.slice(1)}
+            <span className="text-[10px] text-gray-500 flex items-center gap-1">
+              {LEVEL_ICON[activity.level] && React.createElement(LEVEL_ICON[activity.level], { size: 10 })}
+              {activity.level.charAt(0).toUpperCase() + activity.level.slice(1)}
             </span>
           </div>
           {/* Bookmark */}
@@ -133,14 +134,15 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
         </p>
 
         {/* SDGs */}
-        <div className="flex flex-wrap gap-1">
-          {activity.sdgs.slice(0, 4).map((sdg) => (
-            <span key={sdg} className="text-[9px] font-medium bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded">
-              SDG {sdg}
+        <div className="flex flex-col gap-1.5 mt-1">
+          {activity.sdgs.slice(0, 3).map((sdg: number) => (
+            <span key={sdg} className="text-[10px] font-medium text-gray-600 flex items-center gap-1.5">
+              <FiGlobe size={11} className="text-blue-500" />
+              <span className="font-semibold">SDG {sdg}:</span> {SDG_MAP[sdg] || "Sustainable Goal"}
             </span>
           ))}
-          {activity.sdgs.length > 4 && (
-            <span className="text-[9px] text-gray-400">+{activity.sdgs.length - 4}</span>
+          {activity.sdgs.length > 3 && (
+            <span className="text-[10px] text-gray-400 italic">+{activity.sdgs.length - 3} more goals...</span>
           )}
         </div>
 
