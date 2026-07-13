@@ -81,6 +81,9 @@ export async function PUT(request: Request) {
         await conn.beginTransaction();
 
         try {
+            // Helper to prevent MySQL strict mode errors with empty strings on numerical columns
+            const cleanNum = (val: any) => (val === "" || val === undefined) ? null : val;
+
             // 1. Update Profile & Timeline
             if (profile || timeline !== undefined) {
                 const sp_profile = profile || {};
@@ -97,8 +100,8 @@ export async function PUT(request: Request) {
                         banner_url = VALUES(banner_url), avatar_url = VALUES(avatar_url), timeline = COALESCE(VALUES(timeline), timeline)
                 `, [
                     username, sp_profile.tagline || null, sp_profile.about || null, sp_profile.linkedin_url || null,
-                    sp_profile.github_url || null, sp_profile.portfolio_url || null, sp_profile.cgpa || null,
-                    sp_profile.graduation_year || null, skillsJson, sp_profile.banner_url || null, sp_profile.avatar_url || null, timelineJson
+                    sp_profile.github_url || null, sp_profile.portfolio_url || null, cleanNum(sp_profile.cgpa),
+                    cleanNum(sp_profile.graduation_year), skillsJson, sp_profile.banner_url || null, sp_profile.avatar_url || null, timelineJson
                 ] as string[]);
             }
 
@@ -114,7 +117,7 @@ export async function PUT(request: Request) {
             if (projects) {
                 await syncTable('passport_projects', projects, 
                     'INSERT INTO passport_projects (username, name, description, tech_stack, github_url, demo_url, project_year, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    (p, i) => [username, p.name, p.description, JSON.stringify(p.tech_stack || []), p.github_url, p.demo_url, p.project_year, p.status || 'ongoing', i]
+                    (p, i) => [username, p.name, p.description, JSON.stringify(p.tech_stack || []), p.github_url, p.demo_url, cleanNum(p.project_year), p.status || 'ongoing', i]
                 );
             }
 
@@ -130,7 +133,7 @@ export async function PUT(request: Request) {
             if (research) {
                 await syncTable('passport_research', research,
                     'INSERT INTO passport_research (username, title, journal, publication_year, co_authors, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    (r, i) => [username, r.title, r.journal, r.publication_year, JSON.stringify(r.co_authors || []), r.status || 'under_review', i]
+                    (r, i) => [username, r.title, r.journal, cleanNum(r.publication_year), JSON.stringify(r.co_authors || []), r.status || 'under_review', i]
                 );
             }
 
@@ -146,7 +149,7 @@ export async function PUT(request: Request) {
             if (community) {
                 await syncTable('passport_community', community,
                     'INSERT INTO passport_community (username, activity, hours_spent, impact, sort_order) VALUES (?, ?, ?, ?, ?)',
-                    (c, i) => [username, c.activity, c.hours_spent || 0, c.impact, i]
+                    (c, i) => [username, c.activity, cleanNum(c.hours_spent) || 0, c.impact, i]
                 );
             }
 
@@ -154,7 +157,7 @@ export async function PUT(request: Request) {
             if (achievements) {
                 await syncTable('passport_achievements', achievements,
                     'INSERT INTO passport_achievements (username, title, organisation, achievement_year, sort_order) VALUES (?, ?, ?, ?, ?)',
-                    (a, i) => [username, a.title, a.organisation, a.achievement_year, i]
+                    (a, i) => [username, a.title, a.organisation, cleanNum(a.achievement_year), i]
                 );
             }
 
