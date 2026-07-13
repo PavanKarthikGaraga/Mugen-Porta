@@ -168,9 +168,9 @@ export default function PassportPage() {
             {/* Stats */}
             <div className="flex gap-4">
               {[
-                { label: "SAMAM Points", value: mockSDC.total   },
-                { label: "Activities",  value: mockStats.activitiesCompleted },
-                { label: "Badges",      value: BADGES.length   },
+                { label: "SAMAM Points", value: 0 },
+                { label: "Activities",  value: 0 },
+                { label: "Badges",      value: 0 },
               ].map((s) => (
                 <div key={s.label} className="text-center">
                   <p className="text-xl font-bold text-gray-900">{s.value}</p>

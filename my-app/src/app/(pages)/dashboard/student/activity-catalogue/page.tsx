@@ -49,7 +49,7 @@ export default function ActivityCataloguePage() {
             name: a.title, // Map title to name for the frontend
             credits: a.sdc_credits, // Map sdc_credits to credits
             hours: a.sdc_credits * 10, // Approximate hours
-            enrolledCount: a.enrolled_count || 0,
+            enrolledCount: 0, // Force fake data out
             maxEnrollment: a.max_seats || 0,
           }));
           setActivities(mapped);

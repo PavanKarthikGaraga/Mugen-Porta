@@ -50,6 +50,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       career: safeParse(row.career),
       sdgs: safeParse(row.sdgs),
       ga: safeParse(row.ga),
+      enrolledCount: 0, // Force fake data out
     };
 
     return NextResponse.json({ success: true, data: activity });
