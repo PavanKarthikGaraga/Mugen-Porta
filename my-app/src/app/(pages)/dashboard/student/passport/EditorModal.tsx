@@ -181,8 +181,120 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                             ))}
                         </div>
                     </div>
-                    
-                    {/* Add sections for Leadership, Achievements, etc. as needed... */}
+                    {/* Research */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm font-bold text-gray-900">Research</h3>
+                            <button onClick={() => addArrayItem('research', { title: '', journal: '', publication_year: '', co_authors: [], status: 'under_review' })} className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"><FiPlus /> Add</button>
+                        </div>
+                        <div className="space-y-4">
+                            {(data.research || []).map((res: any, i: number) => (
+                                <div key={i} className="p-4 border border-gray-200 rounded-lg relative bg-gray-50">
+                                    <button onClick={() => removeArrayItem('research', i)} className="absolute top-3 right-3 text-red-500 hover:text-red-700 p-1"><FiTrash2 size={14}/></button>
+                                    <div className="grid grid-cols-2 gap-3 pr-8">
+                                        <input required placeholder="Title *" value={res.title} onChange={e => updateArray('research', i, 'title', e.target.value)} className="col-span-2 h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input placeholder="Journal/Conference" value={res.journal} onChange={e => updateArray('research', i, 'journal', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input placeholder="Year" value={res.publication_year} onChange={e => updateArray('research', i, 'publication_year', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input placeholder="Co-authors (comma separated)" value={(res.co_authors || []).join(', ')} onChange={e => updateArray('research', i, 'co_authors', e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <select value={res.status} onChange={e => updateArray('research', i, 'status', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg bg-white">
+                                            <option value="Under Review">Under Review</option>
+                                            <option value="Published">Published</option>
+                                            <option value="Ongoing">Ongoing</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Leadership */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm font-bold text-gray-900">Leadership</h3>
+                            <button onClick={() => addArrayItem('leadership', { role: '', organisation: '', period: '', impact: '' })} className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"><FiPlus /> Add</button>
+                        </div>
+                        <div className="space-y-4">
+                            {(data.leadership || []).map((l: any, i: number) => (
+                                <div key={i} className="p-4 border border-gray-200 rounded-lg relative bg-gray-50">
+                                    <button onClick={() => removeArrayItem('leadership', i)} className="absolute top-3 right-3 text-red-500 hover:text-red-700 p-1"><FiTrash2 size={14}/></button>
+                                    <div className="grid grid-cols-2 gap-3 pr-8">
+                                        <input required placeholder="Role *" value={l.role} onChange={e => updateArray('leadership', i, 'role', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input required placeholder="Organisation *" value={l.organisation} onChange={e => updateArray('leadership', i, 'organisation', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input placeholder="Period (e.g. 2023 - Present)" value={l.period} onChange={e => updateArray('leadership', i, 'period', e.target.value)} className="col-span-2 h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <textarea placeholder="Impact/Description" value={l.impact} onChange={e => updateArray('leadership', i, 'impact', e.target.value)} rows={2} className="col-span-2 w-full mt-1 p-3 text-sm border border-gray-200 rounded-lg" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Community */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm font-bold text-gray-900">Community Service</h3>
+                            <button onClick={() => addArrayItem('community', { activity: '', hours_spent: 0, impact: '' })} className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"><FiPlus /> Add</button>
+                        </div>
+                        <div className="space-y-4">
+                            {(data.community || []).map((c: any, i: number) => (
+                                <div key={i} className="p-4 border border-gray-200 rounded-lg relative bg-gray-50">
+                                    <button onClick={() => removeArrayItem('community', i)} className="absolute top-3 right-3 text-red-500 hover:text-red-700 p-1"><FiTrash2 size={14}/></button>
+                                    <div className="grid grid-cols-2 gap-3 pr-8">
+                                        <input required placeholder="Activity Name *" value={c.activity} onChange={e => updateArray('community', i, 'activity', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input type="number" placeholder="Hours Spent" value={c.hours_spent} onChange={e => updateArray('community', i, 'hours_spent', parseInt(e.target.value) || 0)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input placeholder="Impact / Outcome" value={c.impact} onChange={e => updateArray('community', i, 'impact', e.target.value)} className="col-span-2 h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Achievements */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm font-bold text-gray-900">Achievements</h3>
+                            <button onClick={() => addArrayItem('achievements', { title: '', organisation: '', achievement_year: '' })} className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"><FiPlus /> Add</button>
+                        </div>
+                        <div className="space-y-4">
+                            {(data.achievements || []).map((a: any, i: number) => (
+                                <div key={i} className="p-4 border border-gray-200 rounded-lg relative bg-gray-50">
+                                    <button onClick={() => removeArrayItem('achievements', i)} className="absolute top-3 right-3 text-red-500 hover:text-red-700 p-1"><FiTrash2 size={14}/></button>
+                                    <div className="grid grid-cols-2 gap-3 pr-8">
+                                        <input required placeholder="Title *" value={a.title} onChange={e => updateArray('achievements', i, 'title', e.target.value)} className="col-span-2 h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input placeholder="Organisation / Event" value={a.organisation} onChange={e => updateArray('achievements', i, 'organisation', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input placeholder="Year" value={a.achievement_year} onChange={e => updateArray('achievements', i, 'achievement_year', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm font-bold text-gray-900">My Journey (Timeline)</h3>
+                            <button onClick={() => addArrayItem('timeline', { year: '', events: [] })} className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"><FiPlus /> Add Year</button>
+                        </div>
+                        <div className="space-y-4">
+                            {(data.timeline || []).map((t: any, i: number) => (
+                                <div key={i} className="p-4 border border-gray-200 rounded-lg relative bg-gray-50">
+                                    <button onClick={() => removeArrayItem('timeline', i)} className="absolute top-3 right-3 text-red-500 hover:text-red-700 p-1"><FiTrash2 size={14}/></button>
+                                    <div className="pr-8 space-y-3">
+                                        <input required placeholder="Year (e.g. 2024) *" value={t.year} onChange={e => updateArray('timeline', i, 'year', e.target.value)} className="w-1/3 h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-600 mb-1">Events (one per line)</label>
+                                            <textarea 
+                                                rows={4}
+                                                value={(t.events || []).join('\n')}
+                                                onChange={e => updateArray('timeline', i, 'events', e.target.value.split('\n').map((s: string) => s.trim()).filter(Boolean))}
+                                                className="w-full p-3 text-sm border border-gray-200 rounded-lg"
+                                                placeholder="Built an app...&#10;Won a hackathon..."
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
                 </div>
                 

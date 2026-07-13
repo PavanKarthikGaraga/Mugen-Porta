@@ -23,7 +23,7 @@ export default function ResumePage() {
     if (loading) return <div className="p-10 text-center">Loading Resume...</div>;
     if (!data || !data.profile) return <div className="p-10 text-center text-red-500">Failed to load resume data</div>;
 
-    const { profile, projects, internships, leadership, achievements } = data;
+    const { profile, projects, internships, research, leadership, community, achievements, timeline } = data;
     // For a traditional ATS resume, we usually format Name, Contact, Summary, Experience, Projects, Education, Skills
     
     return (
@@ -136,22 +136,57 @@ export default function ResumePage() {
                     </section>
                 )}
 
-                {/* Leadership & Activities */}
-                {(leadership && leadership.length > 0 || achievements && achievements.length > 0) && (
+                {/* Research Section */}
+                {research && research.length > 0 && (
                     <section className="mb-6">
-                        <h2 className="text-sm font-bold uppercase border-b border-gray-400 mb-2 pb-1 text-black">Leadership & Achievements</h2>
+                        <h2 className="text-sm font-bold uppercase border-b border-gray-400 mb-2 pb-1 text-black">Research & Publications</h2>
                         <ul className="list-disc list-outside ml-4 space-y-1">
-                            {leadership?.map((l: any) => (
-                                <li key={`l-${l.id}`} className="text-sm text-gray-800">
-                                    <span className="font-bold">{l.role}</span>, {l.organisation} ({l.period}) - {l.impact}
-                                </li>
-                            ))}
-                            {achievements?.map((a: any) => (
-                                <li key={`a-${a.id}`} className="text-sm text-gray-800">
-                                    <span className="font-bold">{a.title}</span>, {a.organisation} ({a.achievement_year})
+                            {research.map((r: any) => (
+                                <li key={`r-${r.id}`} className="text-sm text-gray-800">
+                                    <span className="font-bold">{r.title}</span> - {r.journal} ({r.publication_year}) 
+                                    <span className="italic"> [{r.status}]</span>
                                 </li>
                             ))}
                         </ul>
+                    </section>
+                )}
+
+                {/* Leadership & Activities */}
+                {(leadership?.length > 0 || achievements?.length > 0 || community?.length > 0) && (
+                    <section className="mb-6">
+                        <h2 className="text-sm font-bold uppercase border-b border-gray-400 mb-2 pb-1 text-black">Leadership & Extracurriculars</h2>
+                        <ul className="list-disc list-outside ml-4 space-y-1">
+                            {leadership?.map((l: any, idx: number) => (
+                                <li key={`l-${idx}`} className="text-sm text-gray-800">
+                                    <span className="font-bold">{l.role}</span>, {l.organisation} ({l.period}) - {l.impact}
+                                </li>
+                            ))}
+                            {achievements?.map((a: any, idx: number) => (
+                                <li key={`a-${idx}`} className="text-sm text-gray-800">
+                                    <span className="font-bold">{a.title}</span>, {a.organisation} ({a.achievement_year})
+                                </li>
+                            ))}
+                            {community?.map((c: any, idx: number) => (
+                                <li key={`c-${idx}`} className="text-sm text-gray-800">
+                                    <span className="font-bold">Volunteer: {c.activity}</span> - {c.impact} ({c.hours_spent} hours)
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
+                {/* My Journey (Timeline) */}
+                {timeline && timeline.length > 0 && (
+                    <section className="mb-6">
+                        <h2 className="text-sm font-bold uppercase border-b border-gray-400 mb-2 pb-1 text-black">My Journey</h2>
+                        <div className="space-y-3">
+                            {timeline.map((t: any, idx: number) => (
+                                <div key={`t-${idx}`} className="text-sm text-gray-800">
+                                    <span className="font-bold">{t.year}: </span>
+                                    <span>{(t.events || []).join(" | ")}</span>
+                                </div>
+                            ))}
+                        </div>
                     </section>
                 )}
             </div>

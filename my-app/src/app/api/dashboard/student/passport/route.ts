@@ -18,17 +18,27 @@ export async function GET(request: Request) {
         if (!student) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         const username = student.username;
 
-        // Fetch basic profile
-        const [profiles] = await pool.execute('SELECT * FROM student_profiles WHERE username = ?', [username] as any[]);
+        // Fetch basic profile and real name
+        const [profiles] = await pool.execute(`
+            SELECT sp.*, s.name 
+            FROM student_profiles sp 
+            LEFT JOIN students s ON sp.username = s.username 
+            WHERE sp.username = ?
+        `, [username] as string[]);
         const profile = (profiles as any)[0] || { username };
 
+        if (!profile.name) {
+            const [studentRows] = await pool.execute('SELECT name FROM students WHERE username = ?', [username] as string[]);
+            profile.name = (studentRows as any)[0]?.name || username;
+        }
+
         // Fetch other sections
-        const [projects] = await pool.execute('SELECT * FROM passport_projects WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as any[]);
-        const [internships] = await pool.execute('SELECT * FROM passport_internships WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as any[]);
-        const [research] = await pool.execute('SELECT * FROM passport_research WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as any[]);
-        const [leadership] = await pool.execute('SELECT * FROM passport_leadership WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as any[]);
-        const [community] = await pool.execute('SELECT * FROM passport_community WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as any[]);
-        const [achievements] = await pool.execute('SELECT * FROM passport_achievements WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as any[]);
+        const [projects] = await pool.execute('SELECT * FROM passport_projects WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
+        const [internships] = await pool.execute('SELECT * FROM passport_internships WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
+        const [research] = await pool.execute('SELECT * FROM passport_research WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
+        const [leadership] = await pool.execute('SELECT * FROM passport_leadership WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
+        const [community] = await pool.execute('SELECT * FROM passport_community WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
+        const [achievements] = await pool.execute('SELECT * FROM passport_achievements WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
 
         return NextResponse.json({
             profile: {
@@ -41,7 +51,7 @@ export async function GET(request: Request) {
             leadership,
             community,
             achievements,
-            timeline: [] // Timeline can be assembled dynamically from other tables if needed, or left empty
+            timeline: profile.timeline ? JSON.parse(profile.timeline) : []
         });
 
     } catch (error: any) {
@@ -57,34 +67,36 @@ export async function PUT(request: Request) {
         const username = student.username;
 
         const body = await request.json();
-        const { profile, projects, internships, research, leadership, community, achievements } = body;
+        const { profile, projects, internships, research, leadership, community, achievements, timeline } = body;
 
         const conn = await pool.getConnection();
         await conn.beginTransaction();
 
         try {
-            // 1. Update Profile
-            if (profile) {
-                const skillsJson = profile.skills ? JSON.stringify(profile.skills) : null;
-                // We use INSERT ON DUPLICATE KEY UPDATE in case row doesn't exist
+            // 1. Update Profile & Timeline
+            if (profile || timeline !== undefined) {
+                const sp_profile = profile || {};
+                const skillsJson = sp_profile.skills ? JSON.stringify(sp_profile.skills) : null;
+                const timelineJson = timeline !== undefined ? JSON.stringify(timeline) : null;
+                
                 await conn.execute(`
-                    INSERT INTO student_profiles (username, tagline, about, linkedin_url, github_url, portfolio_url, cgpa, graduation_year, skills, banner_url, avatar_url)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO student_profiles (username, tagline, about, linkedin_url, github_url, portfolio_url, cgpa, graduation_year, skills, banner_url, avatar_url, timeline)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE 
                         tagline = VALUES(tagline), about = VALUES(about), linkedin_url = VALUES(linkedin_url),
                         github_url = VALUES(github_url), portfolio_url = VALUES(portfolio_url), cgpa = VALUES(cgpa),
                         graduation_year = VALUES(graduation_year), skills = VALUES(skills),
-                        banner_url = VALUES(banner_url), avatar_url = VALUES(avatar_url)
+                        banner_url = VALUES(banner_url), avatar_url = VALUES(avatar_url), timeline = COALESCE(VALUES(timeline), timeline)
                 `, [
-                    username, profile.tagline || null, profile.about || null, profile.linkedin_url || null,
-                    profile.github_url || null, profile.portfolio_url || null, profile.cgpa || null,
-                    profile.graduation_year || null, skillsJson, profile.banner_url || null, profile.avatar_url || null
-                ]);
+                    username, sp_profile.tagline || null, sp_profile.about || null, sp_profile.linkedin_url || null,
+                    sp_profile.github_url || null, sp_profile.portfolio_url || null, sp_profile.cgpa || null,
+                    sp_profile.graduation_year || null, skillsJson, sp_profile.banner_url || null, sp_profile.avatar_url || null, timelineJson
+                ] as string[]);
             }
 
             // A helper to sync arrays: delete existing and insert new
             const syncTable = async (tableName: string, items: any[], insertQuery: string, mapFn: (item: any, idx: number) => any[]) => {
-                await conn.execute(`DELETE FROM ${tableName} WHERE username = ?`, [username] as any[]);
+                await conn.execute(`DELETE FROM ${tableName} WHERE username = ?`, [username] as string[]);
                 for (let i = 0; i < items.length; i++) {
                     await conn.execute(insertQuery, mapFn(items[i], i));
                 }
