@@ -21,7 +21,7 @@ export async function GET(request, { params }) {
              LEFT JOIN clubs c ON s.clubId = c.id
              WHERE s.username = ?`,
             [username]
-        );
+        ) as any[];
 
         if (studentData.length === 0) {
             return NextResponse.json(
@@ -58,7 +58,7 @@ export async function PATCH(request, { params }) {
         const [result] = await pool.execute(
             'UPDATE students SET careerChoice = ? WHERE username = ?',
             [careerChoice, username]
-        );
+        ) as any;
 
         if (result.affectedRows === 0) {
             return NextResponse.json(
