@@ -18,7 +18,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             ORDER BY sb.issued_on DESC
         `, [username]) as any[];
 
-        const earnedBadges = earnedRows.map(row => ({
+        const earnedBadges = earnedRows.map((row: any) => ({
             id: row.student_badge_id,
             code: row.code,
             name: row.name,
@@ -35,35 +35,92 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             shareUrl: row.share_url
         }));
 
-        // Get array of earned badge IDs to filter out of the locked list
-        const earnedBadgeIds = earnedRows.map(row => row.badge_id);
-        let lockedBadges = [];
+        const earnedBadgeIds = earnedRows.map((row: any) => row.badge_id);
+        let lockedRows: any[] = [];
 
-        // 2. Fetch locked badges (badges not earned yet)
+        // 2. Fetch locked badges
         if (earnedBadgeIds.length > 0) {
             const placeholders = earnedBadgeIds.map(() => '?').join(',');
-            const [lockedRows] = await pool.execute(`
-                SELECT id, code, name, icon, rarity, requirement 
-                FROM badge_definitions 
+            const [rows] = await pool.execute(`
+                SELECT * FROM badge_definitions 
                 WHERE is_active = 1 AND id NOT IN (${placeholders})
             `, earnedBadgeIds) as any[];
-            lockedBadges = lockedRows;
+            lockedRows = rows;
         } else {
-            const [lockedRows] = await pool.execute(`
-                SELECT id, code, name, icon, rarity, requirement 
-                FROM badge_definitions 
-                WHERE is_active = 1
-            `) as any[];
-            lockedBadges = lockedRows;
+            const [rows] = await pool.execute(`SELECT * FROM badge_definitions WHERE is_active = 1`) as any[];
+            lockedRows = rows;
         }
 
-        const formattedLockedBadges = lockedBadges.map(row => ({
-            id: row.id,
-            name: row.name,
-            icon: row.icon || '🔒',
-            rarity: row.rarity,
-            requirement: row.requirement || `Complete requirements for ${row.name}`
-        }));
+        // 3. Pre-compute user stats to calculate progress
+        const [statsRows] = await pool.execute(`
+            SELECT 
+                (SELECT COUNT(*) FROM student_activities WHERE username = ? AND status = 'approved') as total_completed,
+                (SELECT SUM(credits) FROM sdc_transactions WHERE username = ?) as samam_points,
+                (SELECT COUNT(*) FROM student_activities WHERE username = ? AND status = 'approved' AND domain = 'TEC') as tec_completed,
+                (SELECT COUNT(*) FROM student_activities WHERE username = ? AND status = 'approved' AND domain = 'LCH') as lch_completed,
+                (SELECT COUNT(*) FROM student_activities WHERE username = ? AND status = 'approved' AND domain = 'ESO') as eso_completed,
+                (SELECT COUNT(*) FROM student_activities WHERE username = ? AND status = 'approved' AND domain = 'IIE') as iie_completed,
+                (SELECT COUNT(*) FROM student_activities WHERE username = ? AND status = 'approved' AND domain = 'HWB') as hwb_completed
+        `, [username, username, username, username, username, username, username]) as any[];
+
+        const stats = statsRows[0];
+        const samamPoints = stats.samam_points || 0;
+
+        // Fetch enrolled activities for activity badges
+        const [enrollRows] = await pool.execute(`
+            SELECT catalogue_id FROM activity_registrations WHERE username = ?
+        `, [username]) as any[];
+        const enrolledCatalogueIds = new Set(enrollRows.map((r: any) => r.catalogue_id));
+
+        // Get catalogue code to id mapping
+        const [catRows] = await pool.execute(`SELECT id, code FROM activity_catalogue`) as any[];
+        const catMap = new Map();
+        for (const row of catRows) {
+            catMap.set(row.code, row.id);
+        }
+
+        const formattedLockedBadges = lockedRows.map(row => {
+            let progress = 0;
+            let current = 0;
+            const target = row.target_value || 1;
+            const metric = row.metric || 'completion';
+            const type = row.type || 'activity';
+
+            if (type === 'milestone') {
+                if (metric === 'activities_completed') current = stats.total_completed;
+                else if (metric === 'samam_points') current = samamPoints;
+                else if (metric === 'domain_tec') current = stats.tec_completed;
+                else if (metric === 'domain_lch') current = stats.lch_completed;
+                else if (metric === 'domain_eso') current = stats.eso_completed;
+                else if (metric === 'domain_iie') current = stats.iie_completed;
+                else if (metric === 'domain_hwb') current = stats.hwb_completed;
+            } else if (type === 'activity') {
+                // If enrolled in this activity, 50%
+                const activityCode = row.code.replace('B-', '');
+                const catalogueId = catMap.get(activityCode);
+                if (catalogueId && enrolledCatalogueIds.has(catalogueId)) {
+                    current = 1;
+                    progress = 50; 
+                }
+            }
+
+            if (type === 'milestone') {
+                progress = Math.min(100, Math.round((current / target) * 100));
+            }
+
+            return {
+                id: row.id,
+                name: row.name,
+                icon: row.icon || '🔒',
+                rarity: row.rarity,
+                type: type,
+                requirement: row.requirement || `Complete requirements for ${row.name}`,
+                progress: progress,
+                currentValue: current,
+                targetValue: target,
+                metric: metric
+            };
+        });
 
         return NextResponse.json({
             earned: earnedBadges,

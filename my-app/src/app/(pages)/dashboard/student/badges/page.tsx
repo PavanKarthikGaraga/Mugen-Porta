@@ -313,13 +313,34 @@ export default function BadgesPage() {
                 key={badge.id}
                 className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col items-center gap-2 text-center opacity-70"
               >
-                <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl bg-gray-200 border-2 border-gray-300 grayscale">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl bg-gray-200 border-2 border-gray-300 grayscale relative">
                   {badge.icon}
+                  {badge.progress > 0 && badge.progress < 100 && (
+                    <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full ring-2 ring-white">
+                      {badge.progress}%
+                    </div>
+                  )}
                 </div>
-                <FiLock size={12} className="text-gray-400 -mt-1" />
-                <p className="text-xs font-bold text-gray-500">{badge.name}</p>
-                <span className="text-[9px] font-semibold" style={{ color: rarity.ring }}>{"★".repeat(rarity.stars)} {badge.rarity}</span>
-                <p className="text-[9px] text-gray-400 leading-snug">{badge.requirement}</p>
+                <div className="flex flex-col items-center gap-0.5 w-full mt-1">
+                  <p className="text-xs font-bold text-gray-500 leading-tight line-clamp-1 w-full">{badge.name}</p>
+                  <span className="text-[9px] font-semibold" style={{ color: rarity.ring }}>{"★".repeat(rarity.stars)} {badge.rarity}</span>
+                </div>
+                <div className="w-full text-center mt-1">
+                  <p className="text-[9px] text-gray-400 leading-snug line-clamp-2">{badge.requirement}</p>
+                  
+                  {/* Progress Bar */}
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2 overflow-hidden">
+                    <div 
+                      className="bg-blue-500 h-1.5 rounded-full transition-all duration-500" 
+                      style={{ width: `${badge.progress || 0}%` }}
+                    />
+                  </div>
+                  {badge.type === 'milestone' && (
+                    <p className="text-[8px] text-gray-400 mt-0.5 font-medium">
+                      {badge.currentValue || 0} / {badge.targetValue || 1}
+                    </p>
+                  )}
+                </div>
               </div>
             );
           })}
