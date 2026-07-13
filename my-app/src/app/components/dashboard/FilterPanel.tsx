@@ -24,7 +24,7 @@ export default function FilterPanel({ filters, activeFilters, onChange, onClear 
               value={activeFilters[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
               className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-1 text-gray-700"
-              style={{ "--tw-ring-color": "rgb(151,0,3)" }}
+              style={{ "--tw-ring-color": "rgb(151,0,3)" } as React.CSSProperties}
             >
               <option value="">All</option>
               {filter.options.map((opt) => (

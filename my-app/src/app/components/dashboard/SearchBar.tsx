@@ -12,7 +12,7 @@ export default function SearchBar({ value, onChange, placeholder = "Search activ
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="w-full pl-9 pr-9 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-        style={{ "--tw-ring-color": "rgb(151,0,3)" }}
+        style={{ "--tw-ring-color": "rgb(151,0,3)" } as React.CSSProperties}
       />
       {value && (
         <button
