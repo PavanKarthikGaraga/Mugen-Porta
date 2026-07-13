@@ -25,7 +25,7 @@ export async function GET(
 
         const [rows] = await pool.execute(
             `SELECT id, status FROM activity_enrollments WHERE activity_code = ? AND username = ?`,
-            [id, user.username]
+            [id, user.username] as string[]
         ) as any[];
 
         if (rows.length > 0) {
@@ -67,7 +67,7 @@ export async function POST(
         // Check already enrolled
         const [existing] = await pool.execute(
             `SELECT id FROM activity_enrollments WHERE activity_code = ? AND username = ?`,
-            [activityCode, user.username]
+            [activityCode, user.username] as string[]
         ) as any[];
 
         if ((existing as any[]).length > 0) {
@@ -77,7 +77,7 @@ export async function POST(
         // Check seats available
         const [countRows] = await pool.execute(
             `SELECT COUNT(*) as cnt FROM activity_enrollments WHERE activity_code = ?`,
-            [activityCode]
+            [activityCode] as string[]
         ) as any[];
 
         const enrolled = (countRows as any[])[0]?.cnt || 0;
@@ -88,7 +88,7 @@ export async function POST(
         // Enroll
         await pool.execute(
             `INSERT INTO activity_enrollments (activity_code, username, status, enrolled_at) VALUES (?, ?, 'active', NOW())`,
-            [activityCode, user.username]
+            [activityCode, user.username] as string[]
         );
 
         return NextResponse.json({
@@ -128,7 +128,7 @@ export async function DELETE(
         const { id } = await params;
         await pool.execute(
             `DELETE FROM activity_enrollments WHERE activity_code = ? AND username = ?`,
-            [id, user.username]
+            [id, user.username] as string[]
         );
         return NextResponse.json({ success: true, message: 'Unenrolled successfully' });
     } catch (error: any) {
