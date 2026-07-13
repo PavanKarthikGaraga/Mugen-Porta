@@ -70,6 +70,9 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   }, [code]);
 
   const handleEnroll = async () => {
+    const isConfirmed = window.confirm("I acknowledge the terms, conditions, and commitments required for this activity. Do you want to proceed with enrollment?");
+    if (!isConfirmed) return;
+
     setEnrollLoading(true);
     try {
       const res = await fetch(`/api/activities/${code}/enroll`, { method: "POST" });
