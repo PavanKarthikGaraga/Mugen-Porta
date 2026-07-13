@@ -35,13 +35,15 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   const { code } = use(params);
   const [activity, setActivity] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [enrolled, setEnrolled] = useState(false);
+  const [enrollLoading, setEnrollLoading] = useState(false);
+  const [enrolledCount, setEnrolledCount] = useState(0);
 
   useEffect(() => {
     fetch(`/api/activities/${code}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          // Map DB keys to frontend keys
           const mapped = {
             ...data.data,
             name: data.data.title,
@@ -50,6 +52,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             hours: data.data.sdc_credits * 10
           };
           setActivity(mapped);
+          setEnrolledCount(data.data.enrolled_count || 0);
           setReflectionText(mapped.reflection || "");
         }
         setLoading(false);
@@ -58,7 +61,47 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
         console.error("Error fetching activity:", err);
         setLoading(false);
       });
+
+    // Check enrollment status
+    fetch(`/api/activities/${code}/enroll`)
+      .then(r => r.json())
+      .then(d => { if (d.enrolled) setEnrolled(true); })
+      .catch(() => {});
   }, [code]);
+
+  const handleEnroll = async () => {
+    setEnrollLoading(true);
+    try {
+      const res = await fetch(`/api/activities/${code}/enroll`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setEnrolled(true);
+        setEnrolledCount(c => c + 1);
+        alert(data.message);
+      } else {
+        alert(data.message || "Enrollment failed");
+      }
+    } catch {
+      alert("Network error. Please try again.");
+    }
+    setEnrollLoading(false);
+  };
+
+  const handleUnenroll = async () => {
+    if (!confirm("Are you sure you want to unenroll from this activity?")) return;
+    setEnrollLoading(true);
+    try {
+      const res = await fetch(`/api/activities/${code}/enroll`, { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok) {
+        setEnrolled(false);
+        setEnrolledCount(c => Math.max(0, c - 1));
+      } else alert(data.message || "Failed");
+    } catch {
+      alert("Network error.");
+    }
+    setEnrollLoading(false);
+  };
 
   const [activeTab, setActiveTab] = useState("overview");
   const [reflectionText, setReflectionText] = useState("");
@@ -69,7 +112,10 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
 
   const domain = DOMAINS[activity.domain] || DOMAINS.TEC;
   const diff   = DIFFICULTY_COLOR[activity.difficulty] || DIFFICULTY_COLOR.Beginner;
-  const fillPct = Math.round((activity.enrolledCount / activity.maxEnrollment) * 100);
+  const currentEnrolled = enrolledCount || activity.enrolledCount || 0;
+  const maxSeats = activity.maxEnrollment || activity.max_seats || 0;
+  const isFull = maxSeats > 0 && currentEnrolled >= maxSeats;
+  const fillPct = maxSeats > 0 ? Math.round((currentEnrolled / maxSeats) * 100) : 0;
 
   const handleSaveReflection = () => {
     setReflectionSaved(true);
@@ -118,18 +164,34 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             </div>
 
             {/* Enroll CTA */}
-            <div className="flex-shrink-0">
-              <button
-                className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm"
-                style={{ backgroundColor: activity.enrolledCount >= activity.maxEnrollment ? "#9CA3AF" : BRAND }}
-                disabled={activity.enrolledCount >= activity.maxEnrollment}
-              >
-                {activity.userStatus === "not_enrolled"
-                  ? "Enroll Now"
-                  : activity.userStatus === "completed"
-                  ? "✓ Completed"
-                  : "View Progress"}
-              </button>
+            <div className="flex-shrink-0 flex flex-col items-end gap-2">
+              {enrolled ? (
+                <>
+                  <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700">
+                    <FiCheckCircle size={15} /> Enrolled
+                  </span>
+                  <button
+                    onClick={handleUnenroll}
+                    disabled={enrollLoading}
+                    className="text-xs text-gray-500 underline hover:text-red-600 transition-colors"
+                  >
+                    {enrollLoading ? "Please wait..." : "Unenroll"}
+                  </button>
+                </>
+              ) : isFull ? (
+                <button disabled className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg bg-gray-400 cursor-not-allowed">
+                  Activity Full
+                </button>
+              ) : (
+                <button
+                  onClick={handleEnroll}
+                  disabled={enrollLoading}
+                  className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm hover:opacity-90 disabled:opacity-60"
+                  style={{ backgroundColor: BRAND }}
+                >
+                  {enrollLoading ? "Enrolling..." : "Enroll Now"}
+                </button>
+              )}
             </div>
           </div>
 
@@ -138,7 +200,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             {[
               { label: "SAMAM Points", value: activity.credits, icon: <FiStar size={14} style={{ color: BRAND }} /> },
               { label: "Duration",    value: `${activity.hours}h`, icon: <FiClock size={14} className="text-blue-500" /> },
-              { label: "Enrolled",    value: `${activity.enrolledCount}/${activity.maxEnrollment}`, icon: <FiUser size={14} className="text-gray-400" /> },
+              { label: "Enrolled",    value: `${currentEnrolled}/${maxSeats || "∞"}`, icon: <FiUser size={14} className="text-gray-400" /> },
               { label: "Badge",       value: activity.badge, icon: <FiAward size={14} className="text-amber-500" /> },
             ].map((s) => (
               <div key={s.label} className="flex items-center gap-2.5 p-3 bg-gray-50 rounded-xl">

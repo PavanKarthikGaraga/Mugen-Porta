@@ -144,7 +144,8 @@ export default function AdminOverviewPage() {
 
   // ── Year breakdown ────────────────────────────────────────────────────────────
   const yearOrder = ["1st", "2nd", "3rd", "4th"];
-  const yearColors = ["#2563EB", "#7C3AED", "#059669", "#D97706"];
+  // 1st=dark yellow, 2nd=green, 3rd=blue, 4th=red
+  const yearColors = ["#B45309", "#059669", "#2563EB", "#DC2626"];
   const yearMap: Record<string, number> = {};
   (stats?.yearBreakdown ?? []).forEach((r) => { yearMap[String(r.year)] = Number(r.count); });
   const maxYear = Math.max(...yearOrder.map((y) => yearMap[y] ?? 0), 1);
@@ -474,23 +475,23 @@ export default function AdminOverviewPage() {
               <div className="h-5 rounded-full overflow-hidden flex">
                 <div
                   className="h-full transition-all duration-700"
-                  style={{ width: `${hostelPct}%`, backgroundColor: "#2563EB" }}
+                  style={{ width: `${hostelPct}%`, backgroundColor: "#DC2626" }}
                   title={`Hostel: ${hostelPct}%`}
                 />
                 <div
                   className="h-full transition-all duration-700"
-                  style={{ width: `${dayPct}%`, backgroundColor: "#059669" }}
+                  style={{ width: `${dayPct}%`, backgroundColor: "#2563EB" }}
                   title={`Day Scholar: ${dayPct}%`}
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="text-center rounded-lg p-3" style={{ backgroundColor: "#2563EB10" }}>
-                  <FiHome size={16} className="mx-auto mb-1" style={{ color: "#2563EB" }} />
+                <div className="text-center rounded-lg p-3" style={{ backgroundColor: "#DC262610" }}>
+                  <FiHome size={16} className="mx-auto mb-1" style={{ color: "#DC2626" }} />
                   <div className="text-lg font-bold text-gray-900">{(resMap["Hostel"] ?? 0).toLocaleString()}</div>
                   <div className="text-xs text-gray-500">Hostel ({hostelPct}%)</div>
                 </div>
-                <div className="text-center rounded-lg p-3" style={{ backgroundColor: "#05966910" }}>
-                  <FiUsers size={16} className="mx-auto mb-1" style={{ color: "#059669" }} />
+                <div className="text-center rounded-lg p-3" style={{ backgroundColor: "#2563EB10" }}>
+                  <FiUsers size={16} className="mx-auto mb-1" style={{ color: "#2563EB" }} />
                   <div className="text-lg font-bold text-gray-900">{(resMap["Day Scholar"] ?? 0).toLocaleString()}</div>
                   <div className="text-xs text-gray-500">Day Scholar ({dayPct}%)</div>
                 </div>
