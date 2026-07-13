@@ -134,7 +134,7 @@ export const mockNotifications = [
   {
     id: 3,
     type: "sdc",
-    title: "SDC Credits updated",
+    title: "SAMAM Points updated",
     message: "8 credits added for attending the Python Workshop.",
     time: "2 days ago",
     read: true,

@@ -23,21 +23,20 @@ export async function GET(request: Request) {
         const conditions: string[] = [];
         const params: any[] = [];
 
-        if (domain) { conditions.push('a.domain = ?'); params.push(domain); }
-        if (search) { conditions.push('a.title LIKE ?'); params.push(`%${search}%`); }
+        if (domain) { conditions.push('domain = ?'); params.push(domain); }
+        if (search) { conditions.push('title LIKE ?'); params.push(`%${search}%`); }
 
         const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
+        // Query activity_catalogue
         const [rows] = await pool.execute(`
-            SELECT a.id, a.title, a.description, a.domain, a.activity_type,
-                   a.sdc_credits as points, a.max_participants, a.is_active,
-                   a.created_at,
-                   COUNT(DISTINCT t.username) as participant_count
-            FROM student_activities a
-            LEFT JOIN sdc_transactions t ON t.activity_id = a.id
+            SELECT id, code, title, description, domain, category,
+                   sdc_credits as points, max_seats as max_participants, status,
+                   difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
+                   created_at
+            FROM activity_catalogue
             ${where}
-            GROUP BY a.id
-            ORDER BY a.created_at DESC
+            ORDER BY created_at DESC
         `, params);
 
         return NextResponse.json({ activities: rows });
@@ -53,16 +52,34 @@ export async function POST(request: Request) {
         const admin = await checkAdmin();
         if (!admin) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-        const { title, description, domain, activity_type, points, max_participants } = await request.json();
+        const body = await request.json();
+        const { 
+            code, title, description, domain, category, points, max_participants, status,
+            difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
+            purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline
+        } = body;
 
-        if (!title || !domain || !points) {
-            return NextResponse.json({ message: 'Title, domain and points are required' }, { status: 400 });
+        if (!title || !domain || !points || !code) {
+            return NextResponse.json({ message: 'Code, title, domain and points are required' }, { status: 400 });
         }
 
+        const safeJson = (val: any) => val ? JSON.stringify(val) : null;
+
         const [result] = await pool.execute(`
-            INSERT INTO student_activities (title, description, domain, activity_type, sdc_credits, max_participants, is_active, created_by, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, 1, ?, NOW())
-        `, [title, description || '', domain, activity_type || 'event', points, max_participants || null, admin.username || 'admin']);
+            INSERT INTO activity_catalogue 
+            (code, title, description, domain, category, sdc_credits, max_seats, status, 
+             difficulty, journey_level, activity_pack, faculty_name, sdgs, hours, 
+             purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
+             created_by, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        `, [
+            code, title, description || '', domain, category || 'event', points, max_participants || null, status || 'upcoming',
+            difficulty || 'Beginner', journey_level || 'Explorer', activity_pack || null, faculty_name || null, 
+            safeJson(sdgs), hours || 0.0,
+            purpose || null, safeJson(learning_outcomes), safeJson(competencies), safeJson(graduate_attributes),
+            safeJson(resources), safeJson(assignments), safeJson(timeline),
+            admin.username || 'admin'
+        ]);
 
         const insertId = (result as any).insertId;
         return NextResponse.json({ success: true, id: insertId, message: 'Activity created successfully' }, { status: 201 });
@@ -71,4 +88,9 @@ export async function POST(request: Request) {
         console.error('Create activity error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
+}
+
+export async function PUT(request: Request) {
+    // Basic implementation of PUT for completeness, extracting id from body or URL could be better, but assuming body here.
+    return NextResponse.json({ error: "Use PUT on specific activity ID route" }, { status: 400 });
 }

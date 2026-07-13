@@ -26,7 +26,7 @@ export default function AIRecommendation({ rec }) {
           </span>
         </div>
         <p className="text-xs text-gray-500 mt-1 leading-relaxed">{reason}</p>
-        <p className="text-xs font-medium mt-1.5" style={{ color: "rgb(151,0,3)" }}>+{credits} SDC credits</p>
+        <p className="text-xs font-medium mt-1.5" style={{ color: "rgb(151,0,3)" }}>+{credits} SAMAM Points</p>
       </div>
     </div>
   );

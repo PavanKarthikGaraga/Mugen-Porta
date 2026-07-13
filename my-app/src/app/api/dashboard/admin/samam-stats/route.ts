@@ -30,7 +30,7 @@ export async function GET(request: Request) {
                 ORDER BY count DESC
             `),
 
-            // 2. Total SDC credits distributed
+            // 2. Total SAMAM Points distributed
             pool.execute(`
                 SELECT
                     SUM(credits) as total_credits,
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
                 FROM student_badges
             `),
 
-            // 4. Top 5 students by SDC credits
+            // 4. Top 5 students by SAMAM Points
             pool.execute(`
                 SELECT s.username, s.name, s.branch, COALESCE(SUM(t.credits), 0) as total_credits
                 FROM students s

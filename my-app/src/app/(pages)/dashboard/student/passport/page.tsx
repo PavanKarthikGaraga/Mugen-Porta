@@ -51,17 +51,45 @@ function StatusBadge({ status }) {
   );
 }
 
+import EditorModal from "./EditorModal";
+import { useEffect } from "react";
+
 export default function PassportPage() {
   const [activeSection, setActiveSection] = useState("about");
-  const { about, tagline, links, academic, projects, internships, research,
-          leadership, community, achievements, timeline } = PASSPORT;
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/dashboard/student/passport")
+      .then(res => res.json())
+      .then(json => {
+         // Fallback to mock for academic data since it's not in the DB schema for passport
+         json.academic = PASSPORT.academic; 
+         json.timeline = PASSPORT.timeline; // Also fallback timeline
+         setData(json);
+         setLoading(false);
+      })
+      .catch(err => {
+         console.error(err);
+         setLoading(false);
+      });
+  }, []);
 
   const scrollTo = (id) => {
     setActiveSection(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  if (loading) return <div className="p-10 text-center">Loading Passport...</div>;
+  if (!data || !data.profile) return <div className="p-10 text-center text-red-500">Failed to load passport.</div>;
+
+  const { profile, academic, projects, internships, research, leadership, community, achievements, timeline } = data;
+
   return (
+    <>
+      <EditorModal isOpen={isEditing} onClose={() => setIsEditing(false)} initialData={data} onSave={(newData) => setData(newData)} />
+
     <div className="max-w-5xl mx-auto">
 
       {/* ── Profile Hero ── */}
@@ -70,7 +98,7 @@ export default function PassportPage() {
         <div
           className="h-24 w-full relative"
           style={{
-            background: `linear-gradient(135deg, rgb(151,0,3) 0%, #7C3AED 50%, #2563EB 100%)`,
+            background: profile.banner_url ? `url(${profile.banner_url}) center/cover` : `linear-gradient(135deg, rgb(151,0,3) 0%, #7C3AED 50%, #2563EB 100%)`,
           }}
         >
           {/* Grid texture overlay */}
@@ -80,21 +108,29 @@ export default function PassportPage() {
         </div>
 
         <div className="px-5 pb-5">
-          <div className="flex items-end justify-between -mt-10 mb-4 flex-wrap gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between -mt-12 sm:-mt-10 mb-4 gap-4 relative z-10">
             {/* Avatar */}
-            <div
-              className="w-20 h-20 rounded-2xl border-4 border-white flex items-center justify-center text-3xl font-bold text-white shadow-md"
-              style={{ backgroundColor: BRAND }}
-            >
-              AS
+            <div className="relative group">
+              <div
+                className="w-24 h-24 rounded-2xl border-4 border-white flex items-center justify-center text-3xl font-bold text-white shadow-md bg-white overflow-hidden relative"
+                style={{ backgroundColor: BRAND, backgroundImage: profile.avatar_url ? `url(${profile.avatar_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}
+              >
+                {profile.avatar_url ? '' : (profile.name || profile.username)?.charAt(0).toUpperCase()}
+              </div>
             </div>
             {/* Actions */}
             <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl text-gray-700 bg-gray-100 shadow-sm hover:shadow-md transition-all border border-gray-200"
+              >
+                <FiUser size={13} /> Edit Profile
+              </button>
               {/* Social links */}
               {[
-                { Icon: FiGithub,   href: links.github,    label: "GitHub",    color: "#111827" },
-                { Icon: FiLinkedin, href: links.linkedin,  label: "LinkedIn",  color: "#0077B5" },
-                { Icon: FiGlobe,    href: links.portfolio, label: "Portfolio", color: "#059669" },
+                { Icon: FiGithub,   href: profile?.github_url,    label: "GitHub",    color: "#111827" },
+                { Icon: FiLinkedin, href: profile?.linkedin_url,  label: "LinkedIn",  color: "#0077B5" },
+                { Icon: FiGlobe,    href: profile?.portfolio_url, label: "Portfolio", color: "#059669" },
               ].map(({ Icon, href, label, color }) => (
                 <a
                   key={label}
@@ -107,20 +143,22 @@ export default function PassportPage() {
                   <Icon size={13} /> {label}
                 </a>
               ))}
-              <button
+              <Link
+                href="/dashboard/student/passport/resume"
+                target="_blank"
                 className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl text-white shadow-sm hover:shadow-md transition-all"
                 style={{ backgroundColor: BRAND }}
               >
                 <FiDownload size={13} /> Export PDF
-              </button>
+              </Link>
             </div>
           </div>
 
           {/* Name + meta */}
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Nischal Singana</h1>
-              <p className="text-sm font-medium text-gray-500 mt-0.5">{tagline}</p>
+              <h1 className="text-2xl font-bold text-gray-900">{profile.name || profile.username}</h1>
+              <p className="text-sm font-medium text-gray-500 mt-0.5">{profile.tagline}</p>
               <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
                 <span>📍 {academic.campus}</span>
                 <span>🎓 {academic.year}</span>
@@ -130,7 +168,7 @@ export default function PassportPage() {
             {/* Stats */}
             <div className="flex gap-4">
               {[
-                { label: "SDC Credits", value: mockSDC.total   },
+                { label: "SAMAM Points", value: mockSDC.total   },
                 { label: "Activities",  value: mockStats.activitiesCompleted },
                 { label: "Badges",      value: BADGES.length   },
               ].map((s) => (
@@ -168,7 +206,17 @@ export default function PassportPage() {
 
           {/* About */}
           <Section id="about" title="About" icon={FiUser}>
-            <p className="text-sm text-gray-700 leading-relaxed">{about}</p>
+            <p className="text-sm text-gray-700 leading-relaxed mb-4">{profile.about}</p>
+            {profile.skills && profile.skills.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold text-gray-900 mb-2">Core Skills</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.skills.map(s => (
+                    <span key={s} className="px-2 py-1 bg-gray-100 text-gray-700 text-[10px] font-semibold rounded-md border border-gray-200">{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </Section>
 
           {/* Academic Profile */}
@@ -200,11 +248,11 @@ export default function PassportPage() {
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <h3 className="text-sm font-bold text-gray-900">{p.name}</h3>
                         <StatusBadge status={p.status} />
-                        <span className="text-[10px] text-gray-400">{p.year}</span>
+                        <span className="text-[10px] text-gray-400">{p.project_year}</span>
                       </div>
                       <p className="text-xs text-gray-600 leading-relaxed mb-2">{p.description}</p>
                       <div className="flex flex-wrap gap-1">
-                        {p.tech.map((t, i) => (
+                        {(p.tech_stack || []).map((t, i) => (
                           <span key={t} className="text-[10px] font-medium px-2 py-0.5 rounded text-white" style={{ backgroundColor: TECH_COLORS[i % TECH_COLORS.length] }}>
                             {t}
                           </span>
@@ -212,11 +260,11 @@ export default function PassportPage() {
                       </div>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
-                      <a href={p.github} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 flex items-center gap-1 hover:bg-gray-50">
+                      <a href={p.github_url} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 flex items-center gap-1 hover:bg-gray-50">
                         <FiGithub size={11} /> Code
                       </a>
-                      {p.demo && (
-                        <a href={p.demo} className="text-xs font-medium px-3 py-1.5 rounded-lg border flex items-center gap-1" style={{ borderColor: BRAND, color: BRAND }}>
+                      {p.demo_url && (
+                        <a href={p.demo_url} className="text-xs font-medium px-3 py-1.5 rounded-lg border flex items-center gap-1" style={{ borderColor: BRAND, color: BRAND }}>
                           <FiExternalLink size={11} /> Demo
                         </a>
                       )}
@@ -230,25 +278,25 @@ export default function PassportPage() {
           {/* Internships */}
           <Section id="internships" title="Internships" icon={FiBriefcase}>
             <div className="space-y-4">
-              {internships.map((item) => (
-                <div key={item.id} className="flex items-start gap-4">
+              {internships.map((i) => (
+                <div key={i.id} className="flex items-start gap-4">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-base font-bold flex-shrink-0"
                     style={{ backgroundColor: BRAND }}
                   >
-                    {item.company[0]}
+                    {i.company[0]}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-start justify-between flex-wrap gap-1">
                       <div>
-                        <p className="text-sm font-bold text-gray-900">{item.role}</p>
-                        <p className="text-xs text-gray-600">{item.company} · {item.location}</p>
-                        <p className="text-xs text-gray-400">{item.duration}</p>
+                        <p className="text-sm font-bold text-gray-900">{i.role}</p>
+                        <p className="text-xs text-gray-600">{i.company} · {i.location}</p>
+                        <p className="text-xs text-gray-400">{i.duration}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-700 mt-1.5 leading-relaxed">{item.description}</p>
+                    <p className="text-xs text-gray-700 mt-1.5 leading-relaxed">{i.description}</p>
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {item.skills.map((s) => (
+                      {(i.skills || []).map((s) => (
                         <span key={s} className="text-[10px] font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-700">{s}</span>
                       ))}
                     </div>
@@ -267,7 +315,7 @@ export default function PassportPage() {
                     <div>
                       <p className="text-sm font-bold text-gray-900">{r.title}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{r.journal}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Co-authors: {r.coAuthors.join(", ")} · {r.year}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Co-authors: {(r.co_authors || []).join(", ")} · {r.publication_year}</p>
                     </div>
                     <StatusBadge status={r.status} />
                   </div>
@@ -284,7 +332,7 @@ export default function PassportPage() {
                   <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: BRAND }} />
                   <div>
                     <p className="text-sm font-bold text-gray-900">{l.role}</p>
-                    <p className="text-xs text-gray-500">{l.org} · {l.year}</p>
+                    <p className="text-xs text-gray-500">{l.organisation} · {l.period}</p>
                     <p className="text-xs text-gray-700 mt-0.5">{l.impact}</p>
                   </div>
                 </div>
@@ -299,7 +347,7 @@ export default function PassportPage() {
                 <div key={c.id} className="p-3.5 border border-gray-100 rounded-xl">
                   <p className="text-xs font-semibold text-gray-900">{c.activity}</p>
                   <div className="flex items-center gap-3 mt-1.5 text-[10px] text-gray-500">
-                    <span>⏱ {c.hours}h</span>
+                    <span>⏱ {c.hours_spent}h</span>
                     <span className="flex items-center gap-1"><FiCheckCircle size={9} className="text-emerald-500" />{c.impact}</span>
                   </div>
                 </div>
@@ -315,7 +363,7 @@ export default function PassportPage() {
                   <span className="text-xl">{a.icon}</span>
                   <div className="flex-1">
                     <p className="text-xs font-bold text-gray-900">{a.title}</p>
-                    <p className="text-[10px] text-gray-500">{a.org} · {a.year}</p>
+                    <p className="text-[10px] text-gray-500">{a.organisation} · {a.achievement_year}</p>
                   </div>
                 </div>
               ))}
@@ -355,5 +403,6 @@ export default function PassportPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

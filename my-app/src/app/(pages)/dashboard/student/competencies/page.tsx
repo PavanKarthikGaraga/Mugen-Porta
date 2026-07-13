@@ -250,7 +250,7 @@ export default function CompetenciesPage() {
                   {[
                     { icon: "📚", label: "Activity to try",    text: `Enroll in ${cat.id === "technical" ? "System Design Sprint" : cat.id === "leadership" ? "Youth Leadership Congress" : "Advanced Research Methods"} to jump your weakest competency.` },
                     { icon: "⚡", label: "Quick win",          text: `Your ${[...cat.competencies].sort((a,b)=>a.score-b.score)[0].name} score is lowest. One workshop can add +15% in 2 weeks.` },
-                    { icon: "🎯", label: "Next milestone",     text: `Reach ${cat.title} Practitioner level by earning 10 more SDC credits in this domain.` },
+                    { icon: "🎯", label: "Next milestone",     text: `Reach ${cat.title} Practitioner level by earning 10 more SAMAM Points in this domain.` },
                   ].map((r) => (
                     <div key={r.label} className="p-3.5 rounded-xl border border-gray-100 bg-gray-50">
                       <div className="flex items-center gap-2 mb-1.5">

@@ -28,6 +28,17 @@ export default function PersonalDetails({ formData, updateFormData }) {
 
         if (name === "username") {
             if (value && !validateUsernameForTyping(value)) return;
+            
+            let prefix = "";
+            if (formData.year === "1st") prefix = "26";
+            else if (formData.year === "2nd") prefix = "25";
+            else if (formData.year === "3rd") prefix = "24";
+            else if (formData.year === "4th") prefix = "23";
+
+            // Prevent deleting or modifying the enforced prefix
+            if (prefix && value.length < prefix.length) return;
+            if (prefix && !value.startsWith(prefix)) return;
+
             const email = value ? `${value}@kluniversity.in` : "";
             updateFormData({ [name]: value, email });
         } else if (name === "countryCode") {

@@ -110,7 +110,7 @@ export default function ActivityDetailPage({ params }) {
           {/* Stats strip */}
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "SDC Credits", value: activity.credits, icon: <FiStar size={14} style={{ color: BRAND }} /> },
+              { label: "SAMAM Points", value: activity.credits, icon: <FiStar size={14} style={{ color: BRAND }} /> },
               { label: "Duration",    value: `${activity.hours}h`, icon: <FiClock size={14} className="text-blue-500" /> },
               { label: "Enrolled",    value: `${activity.enrolledCount}/${activity.maxEnrollment}`, icon: <FiUser size={14} className="text-gray-400" /> },
               { label: "Badge",       value: activity.badge, icon: <FiAward size={14} className="text-amber-500" /> },

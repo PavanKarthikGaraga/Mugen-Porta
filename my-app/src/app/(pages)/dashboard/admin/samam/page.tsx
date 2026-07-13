@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   FiUsers, FiAward, FiStar, FiBarChart2, FiSearch, FiPlus,
   FiEdit2, FiTrash2, FiX, FiCheck, FiChevronRight, FiRefreshCw,
@@ -658,11 +659,11 @@ export default function SamamAdminPage() {
               className="h-9 px-3 text-xs font-medium border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 flex items-center gap-1.5">
               <FiRefreshCw size={13} /> Refresh
             </button>
-            <button
-              onClick={() => { setEditingActivity(null); setActivityForm({ title:"",description:"",domain:"TEC",activity_type:"event",points:"",max_participants:"",is_active:true }); setShowActivityModal(true); }}
+            <Link
+              href="/dashboard/admin/samam/activities/new"
               className="h-9 px-4 text-xs font-semibold rounded-lg text-white flex items-center gap-1.5" style={{ backgroundColor: BRAND }}>
               <FiPlus size={13} /> New Activity
-            </button>
+            </Link>
           </div>
 
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -708,15 +709,11 @@ export default function SamamAdminPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => {
-                                setEditingActivity(a);
-                                setActivityForm({ title: a.title, description: a.description || "", domain: a.domain, activity_type: a.activity_type, points: String(a.points), max_participants: String(a.max_participants || ""), is_active: !!a.is_active });
-                                setShowActivityModal(true);
-                              }}
+                            <Link
+                              href={`/dashboard/admin/samam/activities/${a.id}/edit`}
                               className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-50">
                               <FiEdit2 size={13} />
-                            </button>
+                            </Link>
                             <button onClick={() => deleteActivity(a.id)}
                               className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50">
                               <FiTrash2 size={13} />
@@ -733,71 +730,6 @@ export default function SamamAdminPage() {
         </div>
       )}
 
-
-
-      {/* Activity Create/Edit Modal */}
-      {showActivityModal && (
-        <Modal title={editingActivity ? "Edit Activity" : "Create New Activity"} onClose={() => setShowActivityModal(false)}>
-          <div className="space-y-3">
-            <Field label="Title *">
-              <input value={activityForm.title} onChange={e => setActivityForm(p => ({ ...p, title: e.target.value }))}
-                className={inputCls} placeholder="e.g. National Hackathon Participation" />
-            </Field>
-            <Field label="Description">
-              <textarea value={activityForm.description} onChange={e => setActivityForm(p => ({ ...p, description: e.target.value }))}
-                className={textareaCls} rows={3} placeholder="Brief description of the activity…" />
-            </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Domain *">
-                <select value={activityForm.domain} onChange={e => setActivityForm(p => ({ ...p, domain: e.target.value }))} className={inputCls}>
-                  {["TEC","LCH","ESO","IIE","HWB"].map(d => <option key={d}>{d}</option>)}
-                </select>
-              </Field>
-              <Field label="Type *">
-                <select value={activityForm.activity_type} onChange={e => setActivityForm(p => ({ ...p, activity_type: e.target.value }))} className={inputCls}>
-                  {["event","workshop","project","competition","volunteer","seminar","course","other"].map(t => (
-                    <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="SAMAM Points *">
-                <input type="number" min="1" max="500" value={activityForm.points}
-                  onChange={e => setActivityForm(p => ({ ...p, points: e.target.value }))}
-                  className={inputCls} placeholder="e.g. 15" />
-              </Field>
-              <Field label="Max Participants">
-                <input type="number" min="1" value={activityForm.max_participants}
-                  onChange={e => setActivityForm(p => ({ ...p, max_participants: e.target.value }))}
-                  className={inputCls} placeholder="Leave blank = unlimited" />
-              </Field>
-            </div>
-            {editingActivity && (
-              <Field label="Status">
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="is_active" checked={activityForm.is_active}
-                    onChange={e => setActivityForm(p => ({ ...p, is_active: e.target.checked }))}
-                    className="w-4 h-4 rounded" />
-                  <label htmlFor="is_active" className="text-sm text-gray-700">Active (visible to students)</label>
-                </div>
-              </Field>
-            )}
-            <div className="flex gap-2 pt-2">
-              <button onClick={() => setShowActivityModal(false)}
-                className="flex-1 py-2.5 text-xs font-semibold border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
-                Cancel
-              </button>
-              <button onClick={saveActivity}
-                disabled={!activityForm.title || !activityForm.points}
-                className="flex-1 py-2.5 text-xs font-semibold rounded-xl text-white disabled:opacity-50"
-                style={{ backgroundColor: BRAND }}>
-                {editingActivity ? "Save Changes" : "Create Activity"}
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }

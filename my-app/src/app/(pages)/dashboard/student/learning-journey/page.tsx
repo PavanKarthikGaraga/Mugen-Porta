@@ -28,13 +28,13 @@ export default function LearningJourneyPage() {
             <div>
               <h1 className="text-xl font-bold text-gray-900">Your Learning Journey</h1>
               <p className="text-sm text-gray-500 mt-0.5">
-                Progress through 6 stages of holistic development. Earn SDC credits to unlock the next level.
+                Progress through 6 stages of holistic development. Earn SAMAM Points to unlock the next level.
               </p>
             </div>
             <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2">
               <FiZap className="text-amber-500" size={18} />
               <div>
-                <p className="text-xs text-gray-500 leading-none">Total SDC Credits</p>
+                <p className="text-xs text-gray-500 leading-none">Total SAMAM Points</p>
                 <p className="text-xl font-bold text-gray-900 leading-tight">{STUDENT_CREDITS}</p>
               </div>
             </div>
