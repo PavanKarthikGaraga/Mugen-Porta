@@ -66,7 +66,8 @@ export default function PassportPage() {
       .then(json => {
          // Fallback to mock for academic data since it's not in the DB schema for passport
          json.academic = PASSPORT.academic; 
-         json.timeline = PASSPORT.timeline; // Also fallback timeline
+         // Allow timeline from DB, but default to empty array if missing
+         json.timeline = json.timeline || [];
          setData(json);
          setLoading(false);
       })
