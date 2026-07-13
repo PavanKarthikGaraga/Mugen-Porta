@@ -17,7 +17,7 @@ const FILTERS = [
   { key: "pack",       label: "Activity Pack",     type: "select", options: ACTIVITY_PACKS },
   { key: "faculty",    label: "Faculty",           type: "select", options: FACULTIES },
   { key: "maxCredits", label: "Max Credits",       type: "range",  min: 4, max: 25, step: 1, unit: " SDC" },
-  { key: "maxHours",   label: "Max Duration",      type: "range",  min: 4, max: 50, step: 2, unit: "h" },
+  { key: "maxHours",   label: "Max Duration",      type: "range",  min: 4, max: 150, step: 5, unit: "h" },
   { key: "sdg",        label: "SDG",               type: "select", options: Array.from({ length: 17 }, (_, i) => `SDG ${i + 1}`) },
   { key: "status",     label: "Status",            type: "chips",  options: ["Open","Full","Upcoming"] },
   { key: "career",     label: "Career Path",       type: "chips",  options: ["Placement","Higher Education","Entrepreneurship","Research & Development"] },
@@ -25,7 +25,7 @@ const FILTERS = [
 
 const EMPTY_FILTERS = {
   domain: "", difficulty: "", level: "", pack: "", faculty: "",
-  maxCredits: 25, maxHours: 50, sdg: "", status: "", career: "",
+  maxCredits: 25, maxHours: 150, sdg: "", status: "", career: "",
 };
 
 export default function ActivityCataloguePage() {
