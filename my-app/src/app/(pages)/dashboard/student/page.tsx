@@ -14,14 +14,7 @@ import BadgeCard      from "@/app/components/dashboard/BadgeCard";
 import WeeklyChart    from "@/app/components/dashboard/WeeklyChart";
 import CompetencyRadar from "@/app/components/dashboard/CompetencyRadar";
 import AIRecommendation from "@/app/components/dashboard/AIRecommendation";
-import {
-  mockStats,
-  mockWeeklyHours,
-  mockUpcomingActivities,
-  mockNotifications,
-  mockAIRecommendations,
-  mockGraduateAttributes,
-} from "@/app/Data/samam-mock";
+// Removed mock data imports
 
 const BRAND = "rgb(151,0,3)";
 
@@ -84,7 +77,7 @@ export default function SAMAMDashboardPage() {
   const levelStr      = profileData.samam?.level || "Explorer";
   const level         = levelConfig[levelStr] || levelConfig.Explorer;
   const sdcPct        = sdcData.target > 0 ? Math.round((sdcData.total / sdcData.target) * 100) : 0;
-  const hourThisWeek  = mockWeeklyHours.reduce((s, d) => s + d.hours, 0).toFixed(1);
+  const hourThisWeek  = "0.0";
 
   // Flatten competencies for the radar chart
   const flatCompetencies = competenciesData.flatMap((cat: any) => cat.competencies);
@@ -196,8 +189,8 @@ export default function SAMAMDashboardPage() {
         <StatCard
           icon={<FiBookOpen size={16} />}
           label="Activities Completed"
-          value={mockStats.activitiesCompleted}
-          trend="3 this week"
+          value={0}
+          trend=""
           trendUp={true}
           accent={BRAND}
         />
@@ -205,7 +198,7 @@ export default function SAMAMDashboardPage() {
           icon={<FiZap size={16} />}
           label="Competencies"
           value={flatCompetencies.filter(c => c.score > 0).length || 0}
-          trend="+2 this term"
+          trend=""
           trendUp={true}
           accent="#2563EB"
         />
@@ -213,29 +206,29 @@ export default function SAMAMDashboardPage() {
           icon={<FiAward size={16} />}
           label="Badges Earned"
           value={badgesData.earned.length}
-          trend="1 new"
+          trend=""
           trendUp={true}
           accent="#D97706"
         />
         <StatCard
           icon={<FiTrendingUp size={16} />}
           label="GA Score"
-          value={`${mockStats.graduateAttributeScore}%`}
-          trend="+5% this month"
+          value="0%"
+          trend=""
           trendUp={true}
           accent="#059669"
         />
         <StatCard
           icon={<FiBriefcase size={16} />}
           label="Career Readiness"
-          value={`${mockStats.careerReadinessScore}%`}
+          value="0%"
           accent="#7C3AED"
         />
         <StatCard
           icon={<FiClock size={16} />}
           label="Learning Hours"
           value={`${hourThisWeek}h`}
-          trend="this week"
+          trend=""
           trendUp={true}
           accent="#0891B2"
         />
@@ -254,7 +247,7 @@ export default function SAMAMDashboardPage() {
             </Link>
           }
         >
-          <WeeklyChart data={mockWeeklyHours} accentColor={BRAND} />
+          <WeeklyChart data={[]} accentColor={BRAND} />
         </DashboardCard>
 
         {/* Competency Radar */}
@@ -286,35 +279,31 @@ export default function SAMAMDashboardPage() {
         {/* Upcoming Activities */}
         <DashboardCard
           title="Upcoming Activities"
-          subtitle={`${mockUpcomingActivities.length} scheduled`}
+          subtitle="0 scheduled"
           action={
             <Link href="/dashboard/student/activity-catalogue" className="text-xs font-medium hover:underline" style={{ color: BRAND }}>
               Browse all →
             </Link>
           }
         >
-          <div>
-            {mockUpcomingActivities.map((a) => (
-              <ActivityCard key={a.id} activity={a} />
-            ))}
+          <div className="flex flex-col items-center justify-center h-full py-8 text-gray-500 italic text-sm">
+            No upcoming activities.
           </div>
         </DashboardCard>
       </div>
 
       {/* ═══ AI Recommendations ════════════════════════════════════════════════ */}
       <DashboardCard
-        title="🤖 AI Mentor Recommendations"
-        subtitle="Personalised suggestions based on your profile and goals"
+        title="AI Recommendations"
+        subtitle="Personalized for you"
         action={
           <Link href="/dashboard/student/ai-mentor" className="text-xs font-medium hover:underline" style={{ color: BRAND }}>
             Talk to AI Mentor →
           </Link>
         }
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {mockAIRecommendations.map((rec) => (
-            <AIRecommendation key={rec.id} rec={rec} />
-          ))}
+        <div className="space-y-3">
+          <p className="text-sm text-gray-500 italic">No recommendations available yet.</p>
         </div>
       </DashboardCard>
 
@@ -332,21 +321,14 @@ export default function SAMAMDashboardPage() {
           }
         >
           <div className="space-y-3">
-            {mockGraduateAttributes.map((a) => (
-              <ProgressCard
-                key={a.name}
-                label={a.name}
-                value={a.score}
-                color={a.score >= 70 ? "#059669" : a.score >= 50 ? "#D97706" : BRAND}
-              />
-            ))}
+            <p className="text-sm text-gray-500 italic">No score data available.</p>
           </div>
         </DashboardCard>
 
         {/* Recent Badges */}
         <DashboardCard
           title="Recent Badges"
-          subtitle={`${badgesData.earned.length} badges earned total`}
+          subtitle="0 badges earned total"
           action={
             <Link href="/dashboard/student/badges" className="text-xs font-medium hover:underline" style={{ color: BRAND }}>
               View wallet →
@@ -354,29 +336,14 @@ export default function SAMAMDashboardPage() {
           }
         >
           <div className="grid grid-cols-2 gap-2">
-            {badgesData.earned.slice(0, 4).map((b: any) => (
-              <BadgeCard key={b.id} badge={b} />
-            ))}
-            {badgesData.earned.length === 0 && (
-              <p className="text-xs text-gray-500 italic col-span-2">No badges earned yet.</p>
-            )}
+            <p className="text-xs text-gray-500 italic col-span-2">No badges earned yet.</p>
           </div>
         </DashboardCard>
 
         {/* Notifications feed */}
-        <DashboardCard
-          title="Recent Notifications"
-          subtitle={`${mockNotifications.filter((n) => !n.read).length} unread`}
-          action={
-            <Link href="/dashboard/student/notifications" className="text-xs font-medium hover:underline" style={{ color: BRAND }}>
-              View all →
-            </Link>
-          }
-        >
-          <div>
-            {mockNotifications.slice(0, 4).map((n) => (
-              <NotificationCard key={n.id} notification={n} />
-            ))}
+        <DashboardCard title="Recent Notifications">
+          <div className="space-y-3">
+            <p className="text-sm text-gray-500 italic">No new notifications.</p>
           </div>
         </DashboardCard>
       </div>

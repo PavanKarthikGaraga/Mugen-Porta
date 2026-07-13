@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { FiDownload, FiRefreshCw } from "react-icons/fi";
-import { MY_ACTIVITIES } from "@/app/Data/activities-mock";
+// Removed mock data import
 import MyActivityRow from "@/app/components/dashboard/MyActivityRow";
 import SearchBar    from "@/app/components/dashboard/SearchBar";
 
@@ -15,6 +15,15 @@ const TABS = [
   { key: "certificates",   label: "Certificates Ready",emoji: "🎓", color: "#059669" },
   { key: "archived",       label: "Archived",          emoji: "📦", color: "#6B7280" },
 ];
+
+const MY_ACTIVITIES: Record<string, any[]> = {
+  registered: [],
+  ongoing: [],
+  completed: [],
+  pending_review: [],
+  certificates: [],
+  archived: [],
+};
 
 export default function MyActivitiesPage() {
   const [activeTab, setActiveTab] = useState("ongoing");

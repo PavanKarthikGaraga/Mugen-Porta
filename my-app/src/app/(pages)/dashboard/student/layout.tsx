@@ -433,9 +433,24 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             <div className="bg-white border-b border-gray-100 px-4 sm:px-6">
               <Breadcrumbs />
             </div>
-            <div className="px-4 py-5 sm:px-6 lg:px-8 text-black">
-              {children}
-            </div>
+            {userData.username !== "230003299" && userData.username !== "2400000000" && userData.username !== "" ? (
+              <div className="px-4 py-16 sm:px-6 lg:px-8 flex items-center justify-center">
+                 <div className="text-center space-y-4 max-w-md">
+                   <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <FiZap size={24} />
+                   </div>
+                   <h2 className="text-2xl font-bold text-gray-900">Under Development</h2>
+                   <p className="text-gray-500 text-sm leading-relaxed">
+                     The Student Dashboard is currently undergoing active development. We are rolling out features progressively. 
+                     Please check back later or contact administration.
+                   </p>
+                 </div>
+              </div>
+            ) : (
+              <div className="px-4 py-5 sm:px-6 lg:px-8 text-black">
+                {children}
+              </div>
+            )}
           </main>
         </div>
       </div>

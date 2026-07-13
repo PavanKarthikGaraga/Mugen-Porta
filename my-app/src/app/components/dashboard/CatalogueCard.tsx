@@ -147,7 +147,7 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
             className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: isFull ? "#9CA3AF" : "rgb(151,0,3)" }}
           >
-            {isFull ? "Full" : activity.userStatus === "not_enrolled" ? "Enroll" : "Enrolled ✓"}
+            {isFull ? "Full" : "Enroll"}
           </button>
         </div>
       </div>
