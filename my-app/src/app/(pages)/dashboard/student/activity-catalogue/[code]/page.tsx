@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 import { ACTIVITIES, DOMAINS, LEVELS } from "@/app/Data/activities-mock";
 import ProgressCard from "@/app/components/dashboard/ProgressCard";
+import EnrollModal from "@/app/components/dashboard/EnrollModal";
 
 const BRAND = "rgb(151,0,3)";
 
@@ -38,7 +39,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   const [enrolled, setEnrolled] = useState(false);
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [enrolledCount, setEnrolledCount] = useState(0);
-  const [ackChecked, setAckChecked] = useState(false);
+  const [enrollModalOpen, setEnrollModalOpen] = useState(false);
 
   useEffect(() => {
     fetch(`/api/activities/${code}`)
@@ -71,7 +72,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   }, [code]);
 
   const handleEnroll = async () => {
-    if (!ackChecked) return;
     setEnrollLoading(true);
     try {
       const res = await fetch(`/api/activities/${code}/enroll`, { method: "POST" });
@@ -87,6 +87,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
       alert("Network error. Please try again.");
     }
     setEnrollLoading(false);
+    setEnrollModalOpen(false);
   };
 
   const handleUnenroll = async () => {
@@ -185,30 +186,25 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                   Activity Full
                 </button>
               ) : (
-                <div className="flex flex-col items-end gap-2">
-                  <label className="flex items-start gap-2 text-[10px] text-gray-500 max-w-[200px] text-right cursor-pointer group">
-                    <span className="flex-1">I acknowledge the terms and commitments required.</span>
-                    <input 
-                      type="checkbox" 
-                      className="mt-0.5 rounded border-gray-300 text-[rgb(151,0,3)] focus:ring-[rgb(151,0,3)] cursor-pointer"
-                      checked={ackChecked}
-                      onChange={(e) => setAckChecked(e.target.checked)}
-                    />
-                  </label>
-                  <button
-                    onClick={handleEnroll}
-                    disabled={enrollLoading || !ackChecked}
-                    className={`px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm ${
-                      ackChecked ? "hover:opacity-90 cursor-pointer" : "opacity-50 cursor-not-allowed"
-                    }`}
-                    style={{ backgroundColor: BRAND }}
-                  >
-                    {enrollLoading ? "Enrolling..." : "Enroll Now"}
-                  </button>
-                </div>
+                <button
+                  onClick={() => setEnrollModalOpen(true)}
+                  disabled={enrollLoading}
+                  className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm hover:opacity-90 disabled:opacity-60"
+                  style={{ backgroundColor: BRAND }}
+                >
+                  {enrollLoading ? "Enrolling..." : "Enroll Now"}
+                </button>
               )}
             </div>
           </div>
+
+          <EnrollModal
+            isOpen={enrollModalOpen}
+            onClose={() => setEnrollModalOpen(false)}
+            onConfirm={handleEnroll}
+            activityName={activity.name}
+            loading={enrollLoading}
+          />
 
           {/* Stats strip */}
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
