@@ -139,27 +139,7 @@ export default function LearningJourneyPage() {
                         </div>
                         <p className="text-xs text-gray-500">{stage.description}</p>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-lg font-bold text-gray-900">{completedActivities}/{totalActivities}</p>
-                        <p className="text-[10px] text-gray-400">Activities done</p>
-                      </div>
                     </div>
-
-                    {/* Progress bar */}
-                    {unlocked && (
-                      <div className="mt-3">
-                        <div className="flex items-center justify-between text-[10px] mb-1">
-                          <span className="text-gray-400">Stage completion</span>
-                          <span className="font-semibold" style={{ color: stage.color }}>{stagePct}%</span>
-                        </div>
-                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{ width: `${stagePct}%`, backgroundColor: stage.color }}
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
 
