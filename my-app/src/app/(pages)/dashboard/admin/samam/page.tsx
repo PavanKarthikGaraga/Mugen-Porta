@@ -158,82 +158,79 @@ export default function SamamAdminPage() {
   );
 
   return (
-    <div className="max-w-[1400px] mx-auto min-h-[calc(100vh-6rem)]">
-      <div className="flex flex-col lg:flex-row gap-6 h-full">
-        
-        {/* SIDEBAR NAVIGATION */}
-        <div className="w-full lg:w-60 flex-shrink-0">
-          <div className="bg-white rounded-md border border-gray-200 shadow-sm overflow-hidden sticky top-6">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50">
-              <h1 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
-                SAMAM Control
-              </h1>
-              <p className="text-[12px] text-gray-500 mt-1">Management Console</p>
-            </div>
-            
-            <nav className="p-3 space-y-0.5">
-              {TABS.map(t => (
-                <button
-                  key={t.key}
-                  disabled={t.disabled}
-                  onClick={() => setTab(t.key)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-colors ${
-                    tab === t.key 
-                      ? "bg-gray-900 text-white" 
-                      : t.disabled 
-                        ? "opacity-50 cursor-not-allowed text-gray-400"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                >
-                  <span className={`flex items-center justify-center ${tab === t.key ? "text-white" : "text-gray-400"}`}>
-                    {t.icon}
-                  </span>
-                  <span className="flex-1 text-left">{t.label}</span>
-                  {t.disabled && <span className="text-[10px] bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-sm text-gray-500 font-semibold tracking-wider">SOON</span>}
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
+    <div className="max-w-[1400px] mx-auto">
 
-        {/* MAIN CONTENT AREA */}
-        <div className="flex-1 min-w-0">
-          <div className="bg-white rounded-md p-6 min-h-full border border-gray-200 shadow-sm">
-            {tab === "analytics" && (
-              <AnalyticsView 
-                analytics={analytics} 
-                analyticsLoading={analyticsLoading} 
-                setTab={setTab} 
-                openStudent={openStudent} 
-              />
-            )}
-            
-            {tab === "students" && (
-              <StudentManager 
-                students={students} studentsTotal={studentsTotal} studentsPage={studentsPage} studentsLoading={studentsLoading}
-                search={search} setSearch={setSearch} filterLevel={filterLevel} setFilterLevel={setFilterLevel} filterYear={filterYear} setFilterYear={setFilterYear} fetchStudents={fetchStudents}
-                selectedStudent={selectedStudent} setSelectedStudent={setSelectedStudent} studentDetail={studentDetail} setStudentDetail={setStudentDetail} detailLoading={detailLoading} openStudent={openStudent}
-                setTab={setTab} setPointsForm={setPointsForm} setBadgeForm={setBadgeForm}
-              />
-            )}
-            
-            {tab === "activities" && (
-              <ActivityManager 
-                actSearchStr={actSearchStr} setActSearchStr={setActSearchStr} fetchActivities={fetchActivities} 
-                activitiesLoading={activitiesLoading} filteredActivities={filteredActivities} deleteActivity={deleteActivity}
-              />
-            )}
-            
-            {tab === "awards" && (
-              <BadgeManager 
-                badgeCatalog={badgeCatalog} pointsForm={pointsForm} setPointsForm={setPointsForm} badgeForm={badgeForm} setBadgeForm={setBadgeForm}
-                awardPoints={awardPoints} awardBadge={awardBadge} awardHistory={awardHistory} awardLoading={awardLoading}
-              />
-            )}
-          </div>
-        </div>
-        
+      {/* Page header */}
+      <div className="mb-4">
+        <h1 className="text-[16px] font-semibold text-gray-900">SAMAM Control</h1>
+        <p className="text-[12px] text-gray-500 mt-0.5">Student Activity Management · Admin Console</p>
       </div>
+
+      {/* HORIZONTAL TAB BAR */}
+      <div className="bg-white border border-gray-200 rounded-md shadow-sm mb-4 overflow-x-auto">
+        <nav className="flex items-center gap-0.5 px-3 py-1.5 min-w-max">
+          {TABS.map(t => (
+            <button
+              key={t.key}
+              disabled={t.disabled}
+              onClick={() => setTab(t.key)}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-[13px] font-medium whitespace-nowrap transition-colors ${
+                tab === t.key
+                  ? "bg-gray-900 text-white"
+                  : t.disabled
+                    ? "opacity-40 cursor-not-allowed text-gray-400"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              }`}
+            >
+              <span className={tab === t.key ? "text-white" : "text-gray-400"}>
+                {t.icon}
+              </span>
+              {t.label}
+              {t.disabled && (
+                <span className="text-[9px] bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-sm text-gray-500 font-bold tracking-wider ml-0.5">
+                  SOON
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* CONTENT AREA */}
+      <div className="bg-white rounded-md border border-gray-200 shadow-sm p-6">
+        {tab === "analytics" && (
+          <AnalyticsView
+            analytics={analytics}
+            analyticsLoading={analyticsLoading}
+            setTab={setTab}
+            openStudent={openStudent}
+          />
+        )}
+
+        {tab === "students" && (
+          <StudentManager
+            students={students} studentsTotal={studentsTotal} studentsPage={studentsPage} studentsLoading={studentsLoading}
+            search={search} setSearch={setSearch} filterLevel={filterLevel} setFilterLevel={setFilterLevel} filterYear={filterYear} setFilterYear={setFilterYear} fetchStudents={fetchStudents}
+            selectedStudent={selectedStudent} setSelectedStudent={setSelectedStudent} studentDetail={studentDetail} setStudentDetail={setStudentDetail} detailLoading={detailLoading} openStudent={openStudent}
+            setTab={setTab} setPointsForm={setPointsForm} setBadgeForm={setBadgeForm}
+          />
+        )}
+
+        {tab === "activities" && (
+          <ActivityManager
+            actSearchStr={actSearchStr} setActSearchStr={setActSearchStr} fetchActivities={fetchActivities}
+            activitiesLoading={activitiesLoading} filteredActivities={filteredActivities} deleteActivity={deleteActivity}
+          />
+        )}
+
+        {tab === "awards" && (
+          <BadgeManager
+            badgeCatalog={badgeCatalog} pointsForm={pointsForm} setPointsForm={setPointsForm} badgeForm={badgeForm} setBadgeForm={setBadgeForm}
+            awardPoints={awardPoints} awardBadge={awardBadge} awardHistory={awardHistory} awardLoading={awardLoading}
+          />
+        )}
+      </div>
+
     </div>
   );
 }
