@@ -7,7 +7,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     
     // We try querying by 'code' first since the frontend uses code (e.g. 'TECH-AI-001') in the URL
     const [rows]: any = await pool.query(
-      `SELECT * FROM activity_catalogue WHERE code = ? OR id = ? LIMIT 1`, 
+      `SELECT ac.*, bd.name as badgeName, bd.icon as badgeIcon 
+       FROM activity_catalogue ac 
+       LEFT JOIN badge_definitions bd ON ac.code = bd.activity_code 
+       WHERE ac.code = ? OR ac.id = ? LIMIT 1`, 
       [id, id]
     );
 
@@ -24,8 +27,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return val;
     };
 
+    const getNationalMission = (domain: string, category: string) => {
+      const cat = category || '';
+      if (domain === 'TEC' && (cat.includes('AI') || cat.includes('Cyber'))) return 'Digital India';
+      if (domain === 'IIE') return 'Make in India';
+      if (domain === 'ESO') return 'Swachh Bharat';
+      if (domain === 'HWB') return 'Fit India';
+      if (domain === 'LCH') return 'Ek Bharat Shreshtha Bharat';
+      if (cat.includes('Agriculture')) return 'National Mission for Sustainable Agriculture';
+      return 'Skill India';
+    };
+
     const activity = {
       ...row,
+      nationalMission: row.national_mission || getNationalMission(row.domain, row.category),
+      badge: row.badgeName ? `${row.badgeIcon} ${row.badgeName}` : 'No Badge Assigned',
       outcomes: safeParse(row.outcomes),
       timeline: safeParse(row.timeline),
       resources: safeParse(row.resources),
