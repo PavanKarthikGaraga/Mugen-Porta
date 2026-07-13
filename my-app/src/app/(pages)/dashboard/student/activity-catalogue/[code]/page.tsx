@@ -38,6 +38,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   const [enrolled, setEnrolled] = useState(false);
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [enrolledCount, setEnrolledCount] = useState(0);
+  const [ackChecked, setAckChecked] = useState(false);
 
   useEffect(() => {
     fetch(`/api/activities/${code}`)
@@ -70,9 +71,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   }, [code]);
 
   const handleEnroll = async () => {
-    const isConfirmed = window.confirm("I acknowledge the terms, conditions, and commitments required for this activity. Do you want to proceed with enrollment?");
-    if (!isConfirmed) return;
-
+    if (!ackChecked) return;
     setEnrollLoading(true);
     try {
       const res = await fetch(`/api/activities/${code}/enroll`, { method: "POST" });
@@ -186,14 +185,27 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                   Activity Full
                 </button>
               ) : (
-                <button
-                  onClick={handleEnroll}
-                  disabled={enrollLoading}
-                  className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm hover:opacity-90 disabled:opacity-60"
-                  style={{ backgroundColor: BRAND }}
-                >
-                  {enrollLoading ? "Enrolling..." : "Enroll Now"}
-                </button>
+                <div className="flex flex-col items-end gap-2">
+                  <label className="flex items-start gap-2 text-[10px] text-gray-500 max-w-[200px] text-right cursor-pointer group">
+                    <span className="flex-1">I acknowledge the terms and commitments required.</span>
+                    <input 
+                      type="checkbox" 
+                      className="mt-0.5 rounded border-gray-300 text-[rgb(151,0,3)] focus:ring-[rgb(151,0,3)] cursor-pointer"
+                      checked={ackChecked}
+                      onChange={(e) => setAckChecked(e.target.checked)}
+                    />
+                  </label>
+                  <button
+                    onClick={handleEnroll}
+                    disabled={enrollLoading || !ackChecked}
+                    className={`px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm ${
+                      ackChecked ? "hover:opacity-90 cursor-pointer" : "opacity-50 cursor-not-allowed"
+                    }`}
+                    style={{ backgroundColor: BRAND }}
+                  >
+                    {enrollLoading ? "Enrolling..." : "Enroll Now"}
+                  </button>
+                </div>
               )}
             </div>
           </div>
