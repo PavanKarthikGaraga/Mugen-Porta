@@ -71,9 +71,9 @@ export default function AnalyticsView({ analytics, analyticsLoading, setTab, ope
           <h3 className="text-[14px] font-semibold text-gray-900 mb-5">Top Performers</h3>
           {analyticsLoading ? (
             <div className="space-y-3">{[1,2,3,4,5].map(i => <div key={i} className="h-10 bg-gray-100 rounded-sm animate-pulse" />)}</div>
-          ) : (analytics?.topSdcStudents ?? []).length > 0 ? (
+          ) : (analytics?.topSdcStudents ?? []).filter((s: any) => Number(s.total_credits) > 0).length > 0 ? (
             <div className="space-y-2">
-              {analytics.topSdcStudents.map((s: any, i: number) => (
+              {analytics.topSdcStudents.filter((s: any) => Number(s.total_credits) > 0).map((s: any, i: number) => (
                 <div key={s.username} className="flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 border border-transparent hover:border-gray-200 cursor-pointer transition-colors"
                   onClick={() => { setTab("students"); openStudent(s); }}>
                   <div className="text-[12px] font-semibold text-gray-500 w-4 text-center">
@@ -89,7 +89,7 @@ export default function AnalyticsView({ analytics, analyticsLoading, setTab, ope
                 </div>
               ))}
             </div>
-          ) : <p className="text-[13px] text-gray-500 italic text-center py-6">No activity records found</p>}
+          ) : <p className="text-[13px] text-gray-500 italic text-center py-6">No points awarded yet</p>}
         </div>
 
         {/* Recent badges */}

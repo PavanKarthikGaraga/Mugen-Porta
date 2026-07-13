@@ -1,11 +1,51 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { FiBarChart2, FiPieChart, FiTrendingUp, FiClock, FiStar, FiAward } from "react-icons/fi";
 import LineChart from "@/app/components/dashboard/LineChart";
 import { mockSDC } from "@/app/Data/samam-mock";
 import { COMPETENCY_GROWTH } from "@/app/Data/development-mock";
 
 const BRAND = "rgb(151,0,3)";
+
+function LeaderboardSection() {
+  const [leaders, setLeaders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/dashboard/admin/samam-stats")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const top = (data?.topSdcStudents ?? []).filter((s: any) => Number(s.total_credits) > 0);
+        setLeaders(top.slice(0, 5));
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return null; // don't flash empty state
+  if (leaders.length === 0) return null; // hide entirely when no one has pts
+
+  return (
+    <div className="bg-white dark:bg-zinc-950 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm">
+      <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4">Department Leaderboard (Top 5)</h2>
+      <div className="space-y-2">
+        {leaders.map((s: any, i: number) => (
+          <div key={s.username} className="flex items-center justify-between p-3 rounded-xl border border-gray-50 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900">
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-bold text-gray-400 dark:text-zinc-500">#{i + 1}</span>
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{s.name}</p>
+                <p className="text-xs text-gray-500">{s.username}</p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-gray-700 dark:text-zinc-300">{Number(s.total_credits).toLocaleString()} pts</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const STATS = [
   { label: "Learning Hours", value: "142h", icon: <FiClock />, color: "#2563EB" },
@@ -87,20 +127,7 @@ export default function AnalyticsPage() {
       </div>
       
       {/* Leaderboard snippet */}
-      <div className="bg-white dark:bg-zinc-950 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm">
-         <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4">Department Leaderboard (Top 5)</h2>
-         <div className="space-y-2">
-            {["Priya Sharma", "Rahul Verma", "Nischal Singana (You)", "Sneha Reddy", "Karthik Nair"].map((name, i) => (
-              <div key={name} className={`flex items-center justify-between p-3 rounded-xl border ${i === 2 ? 'border-red-200 bg-red-50 dark:bg-red-900/10' : 'border-gray-50 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900'}`}>
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold text-gray-400 dark:text-zinc-500">#{i + 1}</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{name}</span>
-                </div>
-                <span className="text-xs font-bold text-gray-600 dark:text-zinc-400">{2500 - (i * 120)} pts</span>
-              </div>
-            ))}
-         </div>
-      </div>
+      <LeaderboardSection />
     </div>
   );
 }
