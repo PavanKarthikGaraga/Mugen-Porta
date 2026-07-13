@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { FiBookmark, FiClock, FiStar, FiUser, FiZap, FiTarget, FiActivity, FiAward, FiSettings, FiFeather, FiTrendingUp, FiGlobe } from "react-icons/fi";
 import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";

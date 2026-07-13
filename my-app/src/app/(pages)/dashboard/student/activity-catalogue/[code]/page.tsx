@@ -533,12 +533,4 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   );
 }
 
-// ── Local helper ──────────────────────────────────────────────────────────────
-function Section({ title, children }) {
-  return (
-    <div>
-      <h3 className="text-sm font-semibold text-gray-900 mb-2">{title}</h3>
-      {children}
-    </div>
-  );
-}
+// End of file

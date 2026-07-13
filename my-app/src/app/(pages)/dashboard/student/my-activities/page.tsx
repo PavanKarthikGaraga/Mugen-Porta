@@ -132,7 +132,9 @@ export default function MyActivitiesPage() {
           {/* Empty state */}
           {filtered.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-4xl mb-3">{activeConf?.emoji || "📋"}</p>
+              <div className="flex justify-center text-4xl mb-3 text-gray-300">
+                {activeConf?.icon ? <activeConf.icon /> : <FiClipboard />}
+              </div>
               <p className="text-sm font-medium text-gray-600">
                 {search ? "No activities match your search" : `No ${activeConf?.label} activities yet`}
               </p>

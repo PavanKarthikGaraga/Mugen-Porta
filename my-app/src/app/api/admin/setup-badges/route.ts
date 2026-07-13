@@ -3,24 +3,24 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const activities = await pool.query('SELECT id, code, title FROM activity_catalogue');
-    if (!activities[0] || activities[0].length === 0) {
+    const [activities]: any = await pool.query('SELECT id, code, title FROM activity_catalogue');
+    if (!activities || activities.length === 0) {
       return NextResponse.json({ message: "No activities found in DB." });
     }
 
     let logs = [];
-    for (const activity of activities[0]) {
+    for (const activity of activities) {
       // Create a badge for this activity
       const badgeCode = 'B-' + activity.code;
       const badgeName = activity.title + ' Badge';
       
       // Check if badge exists
-      const [existing] = await pool.query('SELECT id FROM badge_definitions WHERE name = ?', [badgeName]);
+      const [existing]: any = await pool.query('SELECT id FROM badge_definitions WHERE name = ?', [badgeName]);
       let badgeId = null;
       if (existing.length > 0) {
         badgeId = existing[0].id;
       } else {
-        const [res] = await pool.query(
+        const [res]: any = await pool.query(
           'INSERT INTO badge_definitions (name, description, icon, criteria, type) VALUES (?, ?, ?, ?, ?)',
           [badgeName, 'Awarded for completing ' + activity.title, '🏆', 'Complete ' + activity.code, 'activity']
         );
