@@ -62,7 +62,7 @@ export default function MyActivitiesPage() {
                 ⚙️ {MY_ACTIVITIES.ongoing.length} Ongoing
               </span>
               <span className="text-xs font-medium px-3 py-1 rounded-full border" style={{ backgroundColor: "rgba(151,0,3,0.08)", color: BRAND, borderColor: "rgba(151,0,3,0.2)" }}>
-                ⭐ {totalCreditsEarned} SDC earned
+                ⭐ {totalCreditsEarned} SAMAM Points earned
               </span>
             </div>
           </div>
