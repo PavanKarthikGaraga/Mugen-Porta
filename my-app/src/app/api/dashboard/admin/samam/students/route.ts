@@ -55,8 +55,8 @@ export async function GET(request: Request) {
             ${where}
             GROUP BY s.username, s.name, s.branch, s.year, s.email, sp.level, sp.level_progress
             ORDER BY total_points DESC
-            LIMIT ? OFFSET ?
-        `, [...params, limit, offset]) as any[];
+            LIMIT ${limit} OFFSET ${offset}
+        `, params) as any[];
 
         const [countResult] = await pool.execute(`
             SELECT COUNT(DISTINCT s.username) as total
@@ -74,6 +74,6 @@ export async function GET(request: Request) {
 
     } catch (error: any) {
         console.error('SAMAM students list error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
     }
 }

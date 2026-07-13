@@ -9,13 +9,13 @@ import ActivityManager from "@/app/components/admin/samam/ActivityManager";
 import BadgeManager from "@/app/components/admin/samam/BadgeManager";
 
 const TABS = [
-  { key: "analytics", label: "Overview", icon: <FiBarChart2 size={16} /> },
-  { key: "students",  label: "Students",  icon: <FiUsers size={16} />     },
-  { key: "activities",label: "Activities",icon: <FiActivity size={16} />  },
-  { key: "awards",    label: "Awards",    icon: <FiStar size={16} />      },
-  { key: "submissions",label: "Submissions",icon: <FiFileText size={16} />, disabled: true },
-  { key: "careers",   label: "Careers",   icon: <FiBriefcase size={16} />, disabled: true },
-  { key: "competencies",label: "Competencies",icon: <FiTarget size={16} />, disabled: true },
+  { key: "analytics", label: "Overview", icon: <FiBarChart2 size={15} /> },
+  { key: "students",  label: "Students",  icon: <FiUsers size={15} />     },
+  { key: "activities",label: "Activities",icon: <FiActivity size={15} />  },
+  { key: "awards",    label: "Recognitions", icon: <FiAward size={15} />      },
+  { key: "submissions",label: "Submissions",icon: <FiFileText size={15} />, disabled: true },
+  { key: "careers",   label: "Careers",   icon: <FiBriefcase size={15} />, disabled: true },
+  { key: "competencies",label: "Competencies",icon: <FiTarget size={15} />, disabled: true },
 ];
 
 export default function SamamAdminPage() {
@@ -162,36 +162,34 @@ export default function SamamAdminPage() {
       <div className="flex flex-col lg:flex-row gap-6 h-full">
         
         {/* SIDEBAR NAVIGATION */}
-        <div className="w-full lg:w-64 flex-shrink-0">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden sticky top-6">
-            <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${BRAND}, #7C3AED, #2563EB, #D97706)` }} />
-            <div className="p-5 border-b border-gray-100">
-              <h1 className="text-lg font-extrabold text-gray-900 flex items-center gap-2">
-                <FiAward style={{ color: BRAND }} /> SAMAM Control
+        <div className="w-full lg:w-60 flex-shrink-0">
+          <div className="bg-white rounded-md border border-gray-200 shadow-sm overflow-hidden sticky top-6">
+            <div className="p-5 border-b border-gray-100 bg-gray-50/50">
+              <h1 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
+                SAMAM Control
               </h1>
-              <p className="text-[11px] font-medium text-gray-500 mt-1 leading-relaxed">Full management & analytics for the student activity program</p>
+              <p className="text-[12px] text-gray-500 mt-1">Management Console</p>
             </div>
             
-            <nav className="p-3 space-y-1">
+            <nav className="p-3 space-y-0.5">
               {TABS.map(t => (
                 <button
                   key={t.key}
                   disabled={t.disabled}
                   onClick={() => setTab(t.key)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-colors ${
                     tab === t.key 
-                      ? "bg-red-50 text-red-700 shadow-sm" 
+                      ? "bg-gray-900 text-white" 
                       : t.disabled 
                         ? "opacity-50 cursor-not-allowed text-gray-400"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                   }`}
-                  style={tab === t.key ? { color: BRAND } : {}}
                 >
-                  <span className={`flex items-center justify-center ${tab === t.key ? "text-red-600" : "text-gray-400"}`}>
+                  <span className={`flex items-center justify-center ${tab === t.key ? "text-white" : "text-gray-400"}`}>
                     {t.icon}
                   </span>
                   <span className="flex-1 text-left">{t.label}</span>
-                  {t.disabled && <span className="text-[9px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 font-bold uppercase tracking-wide">Soon</span>}
+                  {t.disabled && <span className="text-[10px] bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-sm text-gray-500 font-semibold tracking-wider">SOON</span>}
                 </button>
               ))}
             </nav>
@@ -200,7 +198,7 @@ export default function SamamAdminPage() {
 
         {/* MAIN CONTENT AREA */}
         <div className="flex-1 min-w-0">
-          <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 min-h-full border border-gray-100/50 shadow-sm">
+          <div className="bg-white rounded-md p-6 min-h-full border border-gray-200 shadow-sm">
             {tab === "analytics" && (
               <AnalyticsView 
                 analytics={analytics} 

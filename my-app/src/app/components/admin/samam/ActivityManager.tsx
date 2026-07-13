@@ -8,85 +8,82 @@ export default function ActivityManager({
 }: any) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-48">
-          <FiSearch size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input value={actSearchStr} onChange={e => setActSearchStr(e.target.value)}
-            placeholder="Search activities by title or code…"
-            className="w-full h-10 pl-9 pr-4 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm" />
+            placeholder="Search activities by title or code..."
+            className="w-full h-9 pl-9 pr-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm" />
         </div>
         <button onClick={fetchActivities}
-          className="h-10 px-4 text-xs font-bold border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors shadow-sm">
+          className="h-9 px-4 text-[13px] font-medium border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors shadow-sm">
           <FiRefreshCw size={14} className={activitiesLoading ? "animate-spin" : ""} /> Refresh
         </button>
         <Link
           href="/dashboard/admin/samam/activities/new"
-          className="h-10 px-5 text-xs font-bold rounded-xl text-white flex items-center gap-2 hover:opacity-90 transition-all shadow-sm hover:shadow" style={{ backgroundColor: BRAND }}>
+          className="h-9 px-4 text-[13px] font-medium rounded-md text-white flex items-center gap-2 hover:opacity-90 transition-opacity shadow-sm" style={{ backgroundColor: BRAND }}>
           <FiPlus size={14} /> New Activity
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-md border border-gray-200 flex-1 flex flex-col">
         <div className="overflow-x-auto">
           {activitiesLoading ? (
-            <div className="p-4 space-y-3">{[...Array(6)].map((_,i) => <div key={i} className="h-12 bg-gray-50 rounded-lg animate-pulse" />)}</div>
+            <div className="p-5 space-y-4">{[...Array(6)].map((_,i) => <div key={i} className="h-8 bg-gray-100 rounded-sm animate-pulse" />)}</div>
           ) : filteredActivities.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
-                <FiActivity size={24} className="text-gray-400" />
-              </div>
-              <p className="text-sm font-semibold text-gray-700">No activities found</p>
-              <p className="text-xs text-gray-400 mt-1">Try adjusting your search or create a new one.</p>
+              <p className="text-[13px] font-medium text-gray-900">No activities found</p>
+              <p className="text-[12px] text-gray-500 mt-1">Try adjusting your search criteria or create a new activity.</p>
             </div>
           ) : (
-            <table className="w-full text-xs">
-              <thead className="bg-gray-50/80 border-b border-gray-100">
+            <table className="w-full text-[13px]">
+              <thead className="bg-gray-50/50 border-b border-gray-100">
                 <tr>
-                  {["Code", "Title", "Domain", "Type", "Points", "Participants", "Status", "Actions"].map(h => (
-                    <th key={h} className="px-5 py-3.5 text-left font-bold text-gray-600 whitespace-nowrap">{h}</th>
+                  {["Code", "Title", "Domain", "Type", "Points", "Enrollment", "Status", ""].map((h, i) => (
+                    <th key={i} className="px-5 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-100">
                 {filteredActivities.map((a: any) => (
-                  <tr key={a.id} className="hover:bg-gray-50/80 transition-colors group">
-                    <td className="px-5 py-3.5">
-                      <span className="font-mono text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md">{a.code}</span>
+                  <tr key={a.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-5 py-3">
+                      <span className="font-mono text-[11px] text-gray-600">{a.code}</span>
                     </td>
-                    <td className="px-5 py-3.5">
-                      <p className="font-bold text-gray-900 group-hover:text-[rgb(151,0,3)] transition-colors">{a.title}</p>
-                      {a.description && <p className="text-gray-400 truncate max-w-[200px] mt-0.5">{a.description}</p>}
+                    <td className="px-5 py-3">
+                      <p className="font-medium text-gray-900">{a.title}</p>
+                      {a.description && <p className="text-[11px] text-gray-500 truncate max-w-[250px] mt-0.5">{a.description}</p>}
                     </td>
-                    <td className="px-5 py-3.5">
-                      <span className="px-2.5 py-1 rounded-full font-bold text-white text-[10px] tracking-wide"
-                        style={{ backgroundColor: DOMAIN_COLORS[a.domain] || "#6B7280" }}>
+                    <td className="px-5 py-3">
+                      <span className="px-2 py-0.5 rounded text-[11px] font-medium border"
+                        style={{ backgroundColor: `${DOMAIN_COLORS[a.domain] || "#6B7280"}10`, color: DOMAIN_COLORS[a.domain] || "#6B7280", borderColor: `${DOMAIN_COLORS[a.domain] || "#6B7280"}30` }}>
                         {a.domain}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 capitalize font-medium text-gray-700">{a.activity_type || a.category || "General"}</td>
-                    <td className="px-5 py-3.5 font-bold text-gray-900">{a.points || a.sdc_credits}</td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-gray-700">{a.enrolledCount || 0}</span>
-                        <span className="text-gray-400 font-medium">/ {a.max_participants || a.max_seats || "∞"}</span>
+                    <td className="px-5 py-3 capitalize text-gray-600">{a.activity_type || a.category || "General"}</td>
+                    <td className="px-5 py-3 font-medium text-gray-900">{a.points || a.sdc_credits}</td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-1.5 text-gray-600">
+                        <span>{a.enrolledCount || 0}</span>
+                        <span className="text-gray-400">/ {a.max_participants || a.max_seats || "∞"}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-md w-fit ${a.status === 'active' || a.is_active ? "text-emerald-700 bg-emerald-50" : "text-gray-500 bg-gray-100"}`}>
+                    <td className="px-5 py-3">
+                      <span className={`flex items-center gap-1.5 text-[11px] font-medium ${a.status === 'active' || a.is_active ? "text-emerald-700" : "text-gray-500"}`}>
                         {a.status === 'active' || a.is_active ? <FiCheckCircle size={12} /> : <FiAlertCircle size={12} />}
                         {a.status === 'active' || a.is_active ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
                         <Link
                           href={`/dashboard/admin/samam/activities/${a.code}/edit`}
-                          className="text-blue-600 hover:text-white hover:bg-blue-600 p-1.5 rounded-lg border border-blue-100 hover:border-blue-600 transition-colors">
-                          <FiEdit2 size={13} />
+                          className="text-gray-400 hover:text-gray-900 transition-colors">
+                          <FiEdit2 size={14} />
                         </Link>
                         <button onClick={() => deleteActivity(a.code || a.id)}
-                          className="text-red-500 hover:text-white hover:bg-red-500 p-1.5 rounded-lg border border-red-100 hover:border-red-500 transition-colors">
-                          <FiTrash2 size={13} />
+                          className="text-gray-400 hover:text-red-600 transition-colors">
+                          <FiTrash2 size={14} />
                         </button>
                       </div>
                     </td>

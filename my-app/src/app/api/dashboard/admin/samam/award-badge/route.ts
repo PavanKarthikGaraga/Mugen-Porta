@@ -61,9 +61,11 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'Student already has this badge' }, { status: 409 });
         }
 
-        // Generate verification ID
-        const verificationId = `SAMAM-${Date.now()}-${username.slice(-4)}`.toUpperCase();
-        const shareUrl = `/verify/${verificationId}`;
+        // Generate cryptographically unique verification ID
+        const crypto = await import('crypto');
+        const verificationId = `SAMAM-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const shareUrl = `${appUrl}/verify/${verificationId}`;
 
         await pool.execute(`
             INSERT INTO student_badges (username, badge_id, earned_from, verification_id, share_url, issued_on)
@@ -72,7 +74,9 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             success: true,
-            message: `Badge "${(badgeRows as any[])[0].name}" awarded to ${(studentRows as any[])[0].name}`
+            message: `Badge "${(badgeRows as any[])[0].name}" awarded to ${(studentRows as any[])[0].name}`,
+            verificationId,
+            shareUrl,
         }, { status: 201 });
 
     } catch (error: any) {
