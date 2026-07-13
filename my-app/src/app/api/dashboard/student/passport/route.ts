@@ -40,18 +40,26 @@ export async function GET(request: Request) {
         const [community] = await pool.execute('SELECT * FROM passport_community WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
         const [achievements] = await pool.execute('SELECT * FROM passport_achievements WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
 
+        const safeParse = (val: any) => {
+            if (!val) return [];
+            if (typeof val === 'string') {
+                try { return JSON.parse(val); } catch (e) { return []; }
+            }
+            return val;
+        };
+
         return NextResponse.json({
             profile: {
                 ...profile,
-                skills: profile.skills ? JSON.parse(profile.skills) : [],
+                skills: safeParse(profile.skills),
             },
             projects,
-            internships: (internships as any).map((i: any) => ({ ...i, skills: i.skills ? JSON.parse(i.skills) : [] })),
-            research: (research as any).map((r: any) => ({ ...r, co_authors: r.co_authors ? JSON.parse(r.co_authors) : [] })),
+            internships: (internships as any).map((i: any) => ({ ...i, skills: safeParse(i.skills) })),
+            research: (research as any).map((r: any) => ({ ...r, co_authors: safeParse(r.co_authors) })),
             leadership,
             community,
             achievements,
-            timeline: profile.timeline ? JSON.parse(profile.timeline) : []
+            timeline: safeParse(profile.timeline)
         });
 
     } catch (error: any) {

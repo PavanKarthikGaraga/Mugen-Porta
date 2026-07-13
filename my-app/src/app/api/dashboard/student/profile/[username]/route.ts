@@ -15,26 +15,7 @@ export async function GET(request, { params }) {
         // Fetch student profile data
         const [studentData] = await pool.execute(
             `SELECT
-                s.username,
-                s.clubId,
-                s.name,
-                s.email,
-                s.branch,
-                s.gender,
-                s.cluster,
-                s.year,
-                s.phoneNumber,
-                s.residenceType,
-                s.hostelName,
-                s.busRoute,
-                s.country,
-                s.state,
-                s.district,
-                s.pincode,
-                s.selectedDomain,
-                s.pathway,
-                s.careerChoice,
-                s.created_at,
+                s.*,
                 c.name as clubName
              FROM students s
              LEFT JOIN clubs c ON s.clubId = c.id

@@ -1,21 +1,42 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FiLock, FiCheckCircle, FiArrowRight, FiZap } from "react-icons/fi";
 import { JOURNEY_STAGES, DOMAINS } from "@/app/Data/activities-mock";
-import { mockSDC } from "@/app/Data/samam-mock";
 
 const BRAND = "rgb(151,0,3)";
-
-// Student's current credits — determines unlocked stages
-const STUDENT_CREDITS = mockSDC.total; // 247
 
 export default function LearningJourneyPage() {
   const [activeStage, setActiveStage] = useState("practitioner");
   const [activeTab, setActiveTab]   = useState("activities");
+  const [studentCredits, setStudentCredits] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) throw new Error("Not auth");
+        const authData = await res.json();
+        const sdcRes = await fetch(`/api/dashboard/student/samam/sdc/${authData.user.username}`);
+        if (sdcRes.ok) {
+          const sdcData = await sdcRes.json();
+          setStudentCredits(sdcData.total || 0);
+        }
+      } catch (err) {
+        console.error("Failed to load credits", err);
+      }
+      setLoading(false);
+    };
+    fetchCredits();
+  }, []);
 
   const activeStageData = JOURNEY_STAGES.find((s) => s.id === activeStage);
-  const isUnlocked = (stage) => STUDENT_CREDITS >= stage.credits_required;
+  const isUnlocked = (stage: any) => studentCredits >= stage.credits_required;
+
+  if (loading) {
+    return <div className="p-8 text-center text-gray-500">Loading learning journey...</div>;
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -35,7 +56,7 @@ export default function LearningJourneyPage() {
               <FiZap className="text-amber-500" size={18} />
               <div>
                 <p className="text-xs text-gray-500 leading-none">Total SAMAM Points</p>
-                <p className="text-xl font-bold text-gray-900 leading-tight">{STUDENT_CREDITS}</p>
+                <p className="text-xl font-bold text-gray-900 leading-tight">{studentCredits}</p>
               </div>
             </div>
           </div>
