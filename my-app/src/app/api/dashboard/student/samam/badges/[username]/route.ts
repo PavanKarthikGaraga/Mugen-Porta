@@ -1,6 +1,8 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request, { params }: { params: Promise<{ username: string }> }) {
     try {
         const { username } = await params;
