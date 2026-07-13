@@ -16,16 +16,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const row = rows[0];
+    const safeParse = (val: any) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try { return JSON.parse(val); } catch (e) { return []; }
+      }
+      return val;
+    };
+
     const activity = {
       ...row,
-      outcomes: row.outcomes || [],
-      timeline: row.timeline || [],
-      resources: row.resources || [],
-      assignments: row.assignments || [],
-      competencies: row.competencies || [],
-      career: row.career || [],
-      sdgs: row.sdgs || [],
-      ga: row.ga || [],
+      outcomes: safeParse(row.outcomes),
+      timeline: safeParse(row.timeline),
+      resources: safeParse(row.resources),
+      assignments: safeParse(row.assignments),
+      competencies: safeParse(row.competencies),
+      career: safeParse(row.career),
+      sdgs: safeParse(row.sdgs),
+      ga: safeParse(row.ga),
     };
 
     return NextResponse.json({ success: true, data: activity });

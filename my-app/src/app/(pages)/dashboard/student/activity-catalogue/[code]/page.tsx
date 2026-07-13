@@ -21,7 +21,7 @@ const TABS = [
   { id: "discussion",  label: "Discussion",  icon: FiMessageSquare },
   { id: "reflection",  label: "Reflection",  icon: FiEdit3 },
   { id: "timeline",    label: "Timeline",    icon: FiCalendar },
-  { id: "faculty",     label: "Faculty",     icon: FiUser },
+  { id: "mentor",      label: "Mentor",      icon: FiUser },
   { id: "impact",      label: "Impact",      icon: FiTrendingUp },
 ];
 
@@ -386,7 +386,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                 sublabel={activity.userAttendance < 75 ? "⚠️ Minimum 75% required for certificate" : "✅ Eligible for certificate"}
               />
               <p className="text-xs text-gray-400 text-center">
-                Attendance is recorded by the faculty at each session.
+                Attendance is recorded by the mentor at each session.
               </p>
             </div>
           )}
@@ -397,7 +397,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
               {[
                 { user:"Ananya K.", time:"2 days ago", message:"Has anyone tried the additional resource links? The 3rd one is really helpful for understanding the concepts." },
                 { user:"Rahul M.",  time:"1 day ago",  message:"Yes! I found the handbook especially useful. Also, does anyone know if the final submission needs to be in a specific format?" },
-                { user:"Priya S.", time:"5 hours ago", message:"Faculty mentioned it should be a PDF with max 5 pages. Check the announcement section." },
+                { user:"Priya S.", time:"5 hours ago", message:"Mentor mentioned it should be a PDF with max 5 pages. Check the announcement section." },
               ].map((msg, i) => (
                 <div key={i} className="flex items-start gap-3 p-3.5 bg-gray-50 rounded-xl">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: BRAND }}>
@@ -457,8 +457,8 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                 </div>
               </div>
               {activity.facultyFeedback && (
-                <div className="p-4 rounded-xl border border-blue-200 bg-blue-50">
-                  <p className="text-xs font-semibold text-blue-800 mb-1">Faculty Feedback</p>
+                <div className="p-4 rounded-xl border border-blue-100 bg-blue-50">
+                  <p className="text-xs font-semibold text-blue-800 mb-1">Mentor Feedback</p>
                   <p className="text-sm text-blue-900 leading-relaxed">{activity.facultyFeedback}</p>
                 </div>
               )}
@@ -488,23 +488,16 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             </div>
           )}
 
-          {/* FACULTY */}
-          {activeTab === "faculty" && (
-            <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-2xl text-white text-xl font-bold flex items-center justify-center flex-shrink-0" style={{ backgroundColor: BRAND }}>
-                {activity.faculty.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+          {/* MENTOR */}
+          {activeTab === "mentor" && (
+            <div className="p-10 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <FiUser size={24} className="text-gray-400" />
               </div>
-              <div>
-                <h3 className="text-base font-bold text-gray-900">{activity.faculty}</h3>
-                <p className="text-xs text-gray-500">{domain.name} Faculty · {activity.semester}</p>
-                <p className="text-sm text-gray-700 mt-3 leading-relaxed">
-                  An experienced faculty member specialising in {domain.name.split(" ")[0].toLowerCase()} education with over 8 years of teaching and research experience.
-                </p>
-                <div className="flex gap-3 mt-3">
-                  <span className="text-xs text-gray-500 bg-gray-50 border px-3 py-1 rounded-full">{activity.credits} SDC activities taught</span>
-                  <span className="text-xs text-gray-500 bg-gray-50 border px-3 py-1 rounded-full">⭐ {activity.rating} rating</span>
-                </div>
-              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Mentor Not Assigned Yet</h3>
+              <p className="text-sm text-gray-500 max-w-sm">
+                A mentor will be assigned soon. Please check back later when the administration updates the event details.
+              </p>
             </div>
           )}
 
