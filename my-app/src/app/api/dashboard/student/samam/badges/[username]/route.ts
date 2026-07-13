@@ -46,7 +46,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
                 SELECT id, code, name, icon, rarity, requirement 
                 FROM badge_definitions 
                 WHERE is_active = 1 AND id NOT IN (${placeholders})
-                LIMIT 10
             `, earnedBadgeIds) as any[];
             lockedBadges = lockedRows;
         } else {
@@ -54,7 +53,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
                 SELECT id, code, name, icon, rarity, requirement 
                 FROM badge_definitions 
                 WHERE is_active = 1
-                LIMIT 10
             `) as any[];
             lockedBadges = lockedRows;
         }

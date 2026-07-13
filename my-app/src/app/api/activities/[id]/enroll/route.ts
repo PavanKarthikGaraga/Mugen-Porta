@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
+import { awardBadge } from '@/lib/badgeHelper';
 
 async function getStudentUser() {
     const cookieStore = await cookies();
@@ -91,9 +92,38 @@ export async function POST(
             [activityCode, user.username] as string[]
         );
 
+        // Milestone Badges Logic
+        const newEnrolledCount = enrolled + 1; 
+
+        // Let's get the user's total enrollments (across all activities) to award milestone badges
+        const [totalEnrollRows] = await pool.execute(
+            `SELECT COUNT(*) as total FROM activity_enrollments WHERE username = ?`,
+            [user.username]
+        ) as any[];
+
+        const totalEnrolled = totalEnrollRows[0].total;
+
+        let badgesAwarded = [];
+
+        if (totalEnrolled === 1) {
+            const awarded = await awardBadge(user.username, 'BDG-MILE-001', 'First Activity Enrollment');
+            if (awarded) badgesAwarded.push('First Step');
+        } else if (totalEnrolled === 3) {
+            const awarded = await awardBadge(user.username, 'BDG-MILE-002', '3 Activities Enrollment');
+            if (awarded) badgesAwarded.push('Active Learner');
+        } else if (totalEnrolled === 5) {
+            const awarded = await awardBadge(user.username, 'BDG-MILE-003', '5 Activities Enrollment');
+            if (awarded) badgesAwarded.push('Power User');
+        }
+
+        let msg = `Successfully enrolled in "${activity.title}".`;
+        if (badgesAwarded.length > 0) {
+            msg += ` You also earned a new badge: ${badgesAwarded.join(', ')}!`;
+        }
+
         return NextResponse.json({
             success: true,
-            message: `Successfully enrolled in "${activity.title}"`
+            message: msg
         }, { status: 201 });
 
     } catch (error: any) {
