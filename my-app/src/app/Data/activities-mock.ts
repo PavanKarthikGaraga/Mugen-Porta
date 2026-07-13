@@ -1047,11 +1047,28 @@ export const ACTIVITIES = rawActivities.map((a, idx) => ({
     { event: "Orientation", date: "Jan 25, 2024" },
     { event: "Project Submission", date: "Apr 15, 2024" },
   ],
-  resources: a.resources || ["Course Manual", "Lab Access", "Online Portal"],
+  resources: a.resources || [
+    { id: 1, type: "pdf",   title: "Activity Handbook", url: "#" },
+    { id: 2, type: "video", title: "Intro Video",        url: "#" },
+    { id: 3, type: "link",  title: "Reading Material",   url: "#" },
+  ],
+  assignments: a.assignments || [
+    { id: 1, title: "Pre-Activity Reflection", dueDate: "2025-07-18", submitted: idx % 3 !== 0, grade: idx % 3 === 1 ? "A" : null },
+    { id: 2, title: "Mid-Activity Report", dueDate: "2025-07-25", submitted: idx % 6 >= 3, grade: idx % 6 === 3 ? "A+" : null },
+    { id: 3, title: "Final Submission", dueDate: "2025-08-05", submitted: idx % 6 === 4, grade: idx % 6 === 4 ? "A" : null },
+  ],
   nationalMission: a.nationalMission || "Digital India",
   competencies: a.competencies || ["Analytical Thinking", "Technical Communication"],
   career: a.career || ["Core Engineering", "Research & Development"],
   facultyFeedback: a.facultyFeedback || (idx % 3 === 0 ? "Excellent understanding of core concepts. Ready for the next level." : null),
+  userStatus: a.userStatus || ["not_enrolled","registered","ongoing","completed","pending_review","archived"][idx % 6],
+  userProgress: typeof a.userProgress === "number" ? a.userProgress : [0, 20, 45, 100, 100, 0][idx % 6],
+  userAttendance: typeof a.userAttendance === "number" ? a.userAttendance : [0, 60, 75, 90, 100, 0][idx % 6],
+  certificateReady: a.certificateReady !== undefined ? a.certificateReady : (idx % 6 === 4),
+  badgeEarned: a.badgeEarned !== undefined ? a.badgeEarned : (idx % 6 === 3 || idx % 6 === 4),
+  credits_earned: a.credits_earned !== undefined ? a.credits_earned : (idx % 6 >= 3 ? a.credits : 0),
+  submittedOn: a.submittedOn !== undefined ? a.submittedOn : (idx % 6 === 4 ? "2025-06-15" : null),
+  reflection: a.reflection !== undefined ? a.reflection : (idx % 6 === 3 ? "This activity transformed my perspective on the subject." : null),
 }));
 
 export const ACTIVITY_PACKS = [

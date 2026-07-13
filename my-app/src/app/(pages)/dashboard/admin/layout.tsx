@@ -67,6 +67,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Clubs',             href: '/dashboard/admin/clubs',    icon: FiFolder  },
         { name: 'Students',          href: '/dashboard/admin/students', icon: FiFolder  },
         { name: 'SAMAM Dashboard',   href: '/dashboard/admin/samam',    icon: FiAward   },
+        { name: 'SAMAM Activities',  href: '/dashboard/admin/activities', icon: FiDatabase },
         // { name: 'Final Submissions', href: '/dashboard/admin/final-reports', icon: FiFileText },
         { name: 'Controls',          href: '/dashboard/admin/controls', icon: FiSettings }
     ];

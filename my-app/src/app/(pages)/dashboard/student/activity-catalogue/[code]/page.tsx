@@ -1,5 +1,5 @@
 "use client";
-import { useState, use } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -31,15 +31,41 @@ const DIFFICULTY_COLOR = {
   Advanced:     { bg: "#FEF2F2", color: "#DC2626" },
 };
 
-export default function ActivityDetailPage({ params }) {
+export default function ActivityDetailPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
-  const activity = ACTIVITIES.find((a) => a.code === code);
+  const [activity, setActivity] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!activity) return notFound();
+  useEffect(() => {
+    fetch(`/api/activities/${code}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // Map DB keys to frontend keys
+          const mapped = {
+            ...data.data,
+            name: data.data.title,
+            maxEnrollment: data.data.max_seats,
+            credits: data.data.sdc_credits,
+            hours: data.data.sdc_credits * 10
+          };
+          setActivity(mapped);
+          setReflectionText(mapped.reflection || "");
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching activity:", err);
+        setLoading(false);
+      });
+  }, [code]);
 
   const [activeTab, setActiveTab] = useState("overview");
-  const [reflectionText, setReflectionText] = useState(activity.reflection || "");
+  const [reflectionText, setReflectionText] = useState("");
   const [reflectionSaved, setReflectionSaved] = useState(false);
+
+  if (loading) return <div className="p-8 text-center text-gray-500">Loading activity details...</div>;
+  if (!activity) return notFound();
 
   const domain = DOMAINS[activity.domain] || DOMAINS.TEC;
   const diff   = DIFFICULTY_COLOR[activity.difficulty] || DIFFICULTY_COLOR.Beginner;
@@ -326,7 +352,7 @@ export default function ActivityDetailPage({ params }) {
                   type="text"
                   placeholder="Add to discussion…"
                   className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-1"
-                  style={{ "--tw-ring-color": BRAND }}
+                  style={{ "--tw-ring-color": BRAND } as React.CSSProperties}
                 />
                 <button className="px-4 text-xs font-medium text-white rounded-lg" style={{ backgroundColor: BRAND }}>
                   Post
@@ -352,7 +378,7 @@ export default function ActivityDetailPage({ params }) {
                   onChange={(e) => setReflectionText(e.target.value)}
                   placeholder="Share your thoughts, learnings, and how this activity impacted you…"
                   className="w-full border border-gray-200 rounded-xl p-3.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 resize-none leading-relaxed"
-                  style={{ "--tw-ring-color": BRAND }}
+                  style={{ "--tw-ring-color": BRAND } as React.CSSProperties}
                 />
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-gray-400">{reflectionText.length} characters</span>

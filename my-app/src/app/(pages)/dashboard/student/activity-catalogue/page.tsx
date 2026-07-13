@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiFilter, FiGrid, FiList, FiX, FiSliders } from "react-icons/fi";
 import { ACTIVITIES, DOMAINS, LEVELS, ACTIVITY_PACKS, FACULTIES } from "@/app/Data/activities-mock";
 import CatalogueCard from "@/app/components/dashboard/CatalogueCard";
@@ -29,12 +29,36 @@ const EMPTY_FILTERS = {
 };
 
 export default function ActivityCataloguePage() {
+  const [activities, setActivities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search,       setSearch]       = useState("");
   const [activeFilters,setActiveFilters]= useState({ ...EMPTY_FILTERS });
   const [bookmarks,    setBookmarks]    = useState(new Set());
   const [view,         setView]         = useState("grid"); // grid | list
   const [page,         setPage]         = useState(1);
   const [filterOpen,   setFilterOpen]   = useState(false);
+
+  useEffect(() => {
+    fetch('/api/activities')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // Map DB keys to match existing frontend expectations if needed
+          const mapped = data.data.map((a: any) => ({
+            ...a,
+            name: a.title, // Map title to name for the frontend
+            credits: a.sdc_credits, // Map sdc_credits to credits
+            hours: a.sdc_credits * 10, // Approximate hours
+          }));
+          setActivities(mapped);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch activities", err);
+        setLoading(false);
+      });
+  }, []);
 
   // ── Toggle bookmark ──────────────────────────────────────────────────────
   const toggleBookmark = (id) => {
@@ -48,31 +72,29 @@ export default function ActivityCataloguePage() {
   // ── Filter + search ──────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return ACTIVITIES.filter((a) => {
-      if (q && !a.name.toLowerCase().includes(q) &&
-          !a.code.toLowerCase().includes(q) &&
-          !a.purpose.toLowerCase().includes(q) &&
-          !a.faculty.toLowerCase().includes(q)) return false;
+    return activities.filter((a) => {
+      if (q && !a.name?.toLowerCase().includes(q) &&
+          !a.code?.toLowerCase().includes(q) &&
+          !a.purpose?.toLowerCase().includes(q)) return false;
       if (activeFilters.domain     && a.domain !== activeFilters.domain) return false;
       if (activeFilters.difficulty && a.difficulty !== activeFilters.difficulty) return false;
       if (activeFilters.level      && a.level !== activeFilters.level.toLowerCase()) return false;
-      if (activeFilters.pack       && a.pack !== activeFilters.pack) return false;
-      if (activeFilters.faculty    && a.faculty !== activeFilters.faculty) return false;
+      if (activeFilters.pack       && a.category !== activeFilters.pack) return false;
       if (a.credits > activeFilters.maxCredits) return false;
       if (a.hours   > activeFilters.maxHours)   return false;
       if (activeFilters.sdg) {
         const sdgNum = parseInt(activeFilters.sdg.replace("SDG ", ""));
-        if (!a.sdgs.includes(sdgNum)) return false;
+        if (!a.sdgs?.includes(sdgNum)) return false;
       }
       if (activeFilters.status) {
-        const isFull = a.enrolledCount >= a.maxEnrollment;
+        const isFull = a.enrolledCount >= a.max_seats;
         if (activeFilters.status === "Full" && !isFull) return false;
         if (activeFilters.status === "Open" && isFull)  return false;
       }
-      if (activeFilters.career && !a.career.includes(activeFilters.career)) return false;
+      if (activeFilters.career && !a.career?.includes(activeFilters.career)) return false;
       return true;
     });
-  }, [search, activeFilters]);
+  }, [search, activeFilters, activities]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
