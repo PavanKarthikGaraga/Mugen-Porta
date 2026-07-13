@@ -98,21 +98,21 @@ export async function POST(
         // Let's get the user's total enrollments (across all activities) to award milestone badges
         const [totalEnrollRows] = await pool.execute(
             `SELECT COUNT(*) as total FROM activity_enrollments WHERE username = ?`,
-            [user.username]
+            [user.username as string] as string[]
         ) as any[];
 
         const totalEnrolled = totalEnrollRows[0].total;
 
-        let badgesAwarded = [];
+        let badgesAwarded: string[] = [];
 
         if (totalEnrolled === 1) {
-            const awarded = await awardBadge(user.username, 'BDG-MILE-001', 'First Activity Enrollment');
+            const awarded = await awardBadge(user.username as string, 'BDG-MILE-001', 'First Activity Enrollment');
             if (awarded) badgesAwarded.push('First Step');
         } else if (totalEnrolled === 3) {
-            const awarded = await awardBadge(user.username, 'BDG-MILE-002', '3 Activities Enrollment');
+            const awarded = await awardBadge(user.username as string, 'BDG-MILE-002', '3 Activities Enrollment');
             if (awarded) badgesAwarded.push('Active Learner');
         } else if (totalEnrolled === 5) {
-            const awarded = await awardBadge(user.username, 'BDG-MILE-003', '5 Activities Enrollment');
+            const awarded = await awardBadge(user.username as string, 'BDG-MILE-003', '5 Activities Enrollment');
             if (awarded) badgesAwarded.push('Power User');
         }
 
