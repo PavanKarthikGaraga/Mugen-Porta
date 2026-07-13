@@ -267,3 +267,94 @@ export const ACTIVITIES = [
     competencies: ["Enterprise Software Architecture", "Cloud Computing", "DevOps", "API Ecosystems", "Software Security", "Product Engineering", "System Integration", "Technology Leadership", "Product Strategy", "Startup Management", "Research Communication", "Innovation Management", "Visionary Leadership", "Entrepreneurial Thinking", "Global Collaboration", "Ethical Decision-Making", "Lifelong Learning"]
   }
 ];
+
+export const ACTIVITY_PACKS = [
+  "Core Skills Pack", "Leadership Pack", "Tech Frontier Pack",
+  "Social Impact Pack", "Wellness Pack", "Creative Arts Pack",
+  "Innovation Pack", "Research Pack", "Career Readiness Pack",
+  "Global Citizenship Pack",
+];
+
+export const FACULTIES = [
+  "Dr. Ramesh Kumar",   "Prof. Anitha Reddy",  "Dr. Suresh Babu",
+  "Dr. Priya Sharma",   "Prof. Venkat Rao",    "Dr. Lavanya Devi",
+  "Prof. Kiran Patel",  "Dr. Mohan Das",       "Dr. Sunitha Nair",
+  "Prof. Arun Menon",
+];
+
+export const SDGS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
+
+export const GRADUATE_ATTRIBUTES = [
+  "Domain Knowledge","Problem Solving","Communication",
+  "Leadership","Ethics & Values","Industry Exposure",
+  "Global Awareness","Research Aptitude",
+];
+
+export const JOURNEY_STAGES = LEVELS.map((level) => ({
+  ...level,
+  activities: ACTIVITIES.filter((a) => a.level === level.id),
+  completed_activities: ACTIVITIES.filter(
+    (a) => a.level === level.id && (a.userStatus === "completed" || a.userStatus === "certificates_ready")
+  ).length,
+}));
+
+// ─── My Activities split ───────────────────────────────────────────────────────
+export const MY_ACTIVITIES = {
+  registered:      ACTIVITIES.filter((a) => a.userStatus === "registered"),
+  ongoing:         ACTIVITIES.filter((a) => a.userStatus === "ongoing"),
+  completed:       ACTIVITIES.filter((a) => a.userStatus === "completed"),
+  pending_review:  ACTIVITIES.filter((a) => a.userStatus === "pending_review"),
+  certificates:    ACTIVITIES.filter((a) => a.certificateReady),
+  archived:        ACTIVITIES.filter((a) => a.userStatus === "archived"),
+};
+
+// ─── Journal entries ───────────────────────────────────────────────────────────
+export const JOURNAL_ENTRIES = [
+  {
+    id: 1,
+    activityCode: "TEC-003",
+    activityName: "Web Development Bootcamp",
+    date: "2025-06-20",
+    mood: "🔥",
+    prompt: "What was the most significant thing you learned today?",
+    content: "Today I finally understood how REST APIs work. Building the backend connected so many dots I had been missing. The moment the frontend fetched my own data — that was genuinely exciting. I also realised I learn best by building, not just watching tutorials.",
+    facultyFeedback: "Excellent reflection, Arjun. Your observation about learning by building shows real metacognitive awareness. Consider also reflecting on where you struggled and what that taught you.",
+    tags: ["web","backend","learning style"],
+    wordCount: 68,
+  },
+  {
+    id: 2,
+    activityCode: "ESO-005",
+    activityName: "School Mentorship Programme",
+    date: "2025-06-10",
+    mood: "💙",
+    prompt: "How did this experience change your perspective?",
+    content: "Mentoring 10th-grade students showed me how much potential goes unrealised because of lack of guidance. One student, Ravi, hadn't considered engineering until I explained how it solves real problems. Seeing his eyes light up reminded me why we do this work.",
+    facultyFeedback: "A moving reflection. Your empathy is evident. Try to also document concrete outcomes — did Ravi's grades improve? This makes your impact measurable.",
+    tags: ["mentorship","social impact","empathy"],
+    wordCount: 75,
+  },
+  {
+    id: 3,
+    activityCode: "IIE-015",
+    activityName: "Innovation Bootcamp (48-Hour Hackathon)",
+    date: "2025-05-15",
+    mood: "😤",
+    prompt: "Describe a challenge you faced and how you overcame it.",
+    content: "At hour 36, our idea hit a wall — the API we relied on was rate-limited and our product broke. The team almost gave up. I convinced us to pivot: instead of fetching live data, we pre-loaded it. The constraint became a feature. We won 2nd place.",
+    facultyFeedback: "This is exactly what innovation looks like — pivoting under pressure. Document this decision-making process in your passport. It speaks to your problem-solving competency.",
+    tags: ["hackathon","problem-solving","resilience"],
+    wordCount: 71,
+  },
+];
+
+export const REFLECTION_PROMPTS = [
+  "What was the most significant thing you learned from this activity?",
+  "How did this experience change or challenge your existing perspectives?",
+  "Describe a challenge you faced and how you overcame it.",
+  "What competencies did you develop, and how will you apply them?",
+  "How does this activity connect to your career goals?",
+  "What would you do differently if you participated again?",
+  "How has this activity contributed to your personal growth?",
+  "What impact did you observe on those around you or in the community?",
+];
