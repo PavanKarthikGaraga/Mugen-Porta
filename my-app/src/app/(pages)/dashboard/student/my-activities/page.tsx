@@ -157,7 +157,7 @@ export default function MyActivitiesPage() {
               <div>
                 <p className="text-sm font-semibold text-emerald-800">Your certificates are ready!</p>
                 <p className="text-xs text-emerald-700 mt-0.5">
-                  {filtered.length} certificate{filtered.length > 1 ? "s" : ""} available. Click "Download All" or individual certificates from each activity.
+                  {filtered.length} certificate{filtered.length > 1 ? "s" : ""} available. Click &quot;Download All&quot; or individual certificates from each activity.
                 </p>
               </div>
             </div>

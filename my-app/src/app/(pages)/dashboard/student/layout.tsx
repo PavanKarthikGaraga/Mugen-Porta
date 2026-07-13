@@ -433,7 +433,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             <div className="bg-white border-b border-gray-100 px-4 sm:px-6">
               <Breadcrumbs />
             </div>
-            {userData.username !== "230003299" && userData.username !== "2400000000" && userData.username !== "" ? (
+            {userData.username !== "2400000000" && userData.username !== "" ? (
               <div className="px-4 py-16 sm:px-6 lg:px-8 flex items-center justify-center">
                  <div className="text-center space-y-4 max-w-md">
                    <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">

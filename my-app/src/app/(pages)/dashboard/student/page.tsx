@@ -341,7 +341,7 @@ export default function SAMAMDashboardPage() {
         </DashboardCard>
 
         {/* Notifications feed */}
-        <DashboardCard title="Recent Notifications">
+        <DashboardCard title="Recent Notifications" subtitle="0 unread">
           <div className="space-y-3">
             <p className="text-sm text-gray-500 italic">No new notifications.</p>
           </div>
