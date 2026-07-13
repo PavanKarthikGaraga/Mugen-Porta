@@ -35,7 +35,7 @@ export default function ActivityCard({ activity }) {
         <p className="text-xs text-gray-500 truncate">{time} · {venue}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full">{category}</span>
-          <span className="text-xs font-medium" style={{ color: "rgb(151,0,3)" }}>+{credits} SDC</span>
+          <span className="text-xs font-medium" style={{ color: "rgb(151,0,3)" }}>+{credits} SAMAM Points</span>
         </div>
       </div>
 

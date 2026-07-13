@@ -87,7 +87,7 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
         <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
           <span className="flex items-center gap-1">
             <FiStar size={11} style={{ color: "rgb(151,0,3)" }} />
-            <span className="font-semibold text-gray-700">{activity.credits}</span> SDC
+            <span className="font-semibold text-gray-700">{activity.credits}</span> SAMAM Points
           </span>
           <span className="flex items-center gap-1">
             <FiClock size={11} className="text-gray-400" />

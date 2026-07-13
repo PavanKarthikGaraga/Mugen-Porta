@@ -7,32 +7,33 @@ import Link from "next/link";
 
 interface ActivityEditorProps {
   activityId?: string; // If undefined, it's a new activity
+  initialData?: any; // To populate data immediately
 }
 
-export default function ActivityEditor({ activityId }: ActivityEditorProps) {
+export default function ActivityEditor({ activityId, initialData }: ActivityEditorProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(!!activityId);
+  const [loading, setLoading] = useState(!!activityId && !initialData);
   const [saving, setSaving] = useState(false);
-  const isNew = !activityId;
+  const isNew = !activityId && !initialData;
 
   const [formData, setFormData] = useState({
-    code: "",
-    title: "",
-    description: "",
-    domain: "TEC",
-    category: "General",
-    sdc_credits: 0,
-    max_seats: 50,
-    difficulty: "Beginner",
-    level: "explorer",
-    assignments: [] as any[],
-    resources: [] as any[],
-    outcomes: [] as string[],
-    competencies: [] as string[]
+    code: initialData?.code || "",
+    title: initialData?.title || initialData?.name || "",
+    description: initialData?.description || "",
+    domain: initialData?.domain || "TEC",
+    category: initialData?.category || "General",
+    sdc_credits: initialData?.sdc_credits || initialData?.credits || 0,
+    max_seats: initialData?.max_seats || initialData?.maxEnrollment || 50,
+    difficulty: initialData?.difficulty || "Beginner",
+    level: initialData?.level || "explorer",
+    assignments: initialData?.assignments || [] as any[],
+    resources: initialData?.resources || [] as any[],
+    outcomes: initialData?.outcomes || [] as string[],
+    competencies: initialData?.competencies || [] as string[]
   });
 
   useEffect(() => {
-    if (activityId) {
+    if (activityId && !initialData) {
       fetch(`/api/activities/${activityId}`)
         .then(r => r.json())
         .then(d => {
@@ -45,7 +46,7 @@ export default function ActivityEditor({ activityId }: ActivityEditorProps) {
           setLoading(false);
         });
     }
-  }, [activityId]);
+  }, [activityId, initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -183,7 +184,7 @@ export default function ActivityEditor({ activityId }: ActivityEditorProps) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Credits (SDC)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">SAMAM Points</label>
             <input type="number" name="sdc_credits" value={formData.sdc_credits} onChange={handleChange} className="w-full p-2 border rounded" />
           </div>
           <div>

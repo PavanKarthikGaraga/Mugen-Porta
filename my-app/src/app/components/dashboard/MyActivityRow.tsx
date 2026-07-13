@@ -45,7 +45,7 @@ export default function MyActivityRow({ activity, tabKey }) {
           <div className="flex items-center gap-4 mt-2.5 text-xs text-gray-500 flex-wrap">
             <span className="flex items-center gap-1">
               <FiStar size={11} style={{ color: "rgb(151,0,3)" }} />
-              <span className="font-semibold text-gray-700">{activity.credits_earned || activity.credits}</span> SDC
+              <span className="font-semibold text-gray-700">{activity.credits_earned || activity.credits}</span> SAMAM Points
             </span>
             <span className="flex items-center gap-1">
               <FiClock size={11} /> {activity.hours}h

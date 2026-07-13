@@ -1,39 +1,51 @@
-require('dotenv').config({ path: '.env.local' });
 const mysql = require('mysql2/promise');
+const fs = require('fs');
 
-async function run() {
-    const pool = mysql.createPool(process.env.DATABASE_URL);
-    try {
-        console.log("Running migration...");
-        
-        const queries = [
-            "ALTER TABLE activity_catalogue ADD COLUMN purpose TEXT",
-            "ALTER TABLE activity_catalogue ADD COLUMN learning_outcomes JSON",
-            "ALTER TABLE activity_catalogue ADD COLUMN competencies JSON",
-            "ALTER TABLE activity_catalogue ADD COLUMN graduate_attributes JSON",
-            "ALTER TABLE activity_catalogue ADD COLUMN resources JSON",
-            "ALTER TABLE activity_catalogue ADD COLUMN assignments JSON",
-            "ALTER TABLE activity_catalogue ADD COLUMN timeline JSON"
-        ];
-
-        for (const q of queries) {
-            try {
-                await pool.execute(q);
-                console.log("Success:", q);
-            } catch (err) {
-                if (err.code === 'ER_DUP_FIELDNAME') {
-                    console.log("Column already exists, skipping:", q);
-                } else {
-                    console.error("Error on:", q, err.message);
-                }
-            }
-        }
-        
-        console.log("Migration complete!");
-    } catch (error) {
-        console.error("Connection failed:", error);
-    } finally {
-        await pool.end();
+function parseEnv(path) {
+  if(!fs.existsSync(path)) return {};
+  const content = fs.readFileSync(path, 'utf-8');
+  const env = {};
+  content.split('\n').forEach(line => {
+    if (line.includes('=')) {
+      const [k, ...v] = line.split('=');
+      env[k.trim()] = v.join('=').trim();
     }
+  });
+  return env;
 }
-run();
+
+const env = parseEnv('.env.local');
+
+async function main() {
+  const pool = mysql.createPool({
+    host: env.DB_HOST || 'localhost',
+    user: env.DB_USER || 'root',
+    password: env.DB_PASSWORD || '',
+    database: env.DB_NAME || 'mugen_porta'
+  });
+
+  try {
+    const [result] = await pool.execute(`
+      ALTER TABLE activity_catalogue
+      ADD COLUMN outcomes JSON DEFAULT NULL,
+      ADD COLUMN timeline JSON DEFAULT NULL,
+      ADD COLUMN resources JSON DEFAULT NULL,
+      ADD COLUMN assignments JSON DEFAULT NULL,
+      ADD COLUMN competencies JSON DEFAULT NULL,
+      ADD COLUMN career JSON DEFAULT NULL,
+      ADD COLUMN ga JSON DEFAULT NULL,
+      ADD COLUMN facultyFeedback TEXT DEFAULT NULL,
+      ADD COLUMN reflection TEXT DEFAULT NULL,
+      ADD COLUMN purpose TEXT DEFAULT NULL,
+      ADD COLUMN level VARCHAR(50) DEFAULT 'explorer',
+      ADD COLUMN enrolledCount INT DEFAULT 0;
+    `);
+    console.log("Migration successful: added JSON and text columns to activity_catalogue");
+  } catch(err) {
+    console.error("Error running migration:", err);
+  } finally {
+    await pool.end();
+  }
+}
+
+main();
