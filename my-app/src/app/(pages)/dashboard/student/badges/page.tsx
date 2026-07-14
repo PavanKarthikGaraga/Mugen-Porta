@@ -146,14 +146,44 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
 
           {/* Actions */}
           <div className="flex gap-2">
-            <button className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={() => {
+                  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+                    <rect width="100%" height="100%" fill="${badge.bg || '#EFF6FF'}" rx="20" />
+                    <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-size="120">${badge.icon || '🏅'}</text>
+                    <text x="50%" y="75%" dominant-baseline="middle" text-anchor="middle" font-size="24" font-family="sans-serif" font-weight="bold" fill="#111827">${badge.name}</text>
+                    <text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" font-size="16" font-family="sans-serif" fill="#4B5563">KL University • SAMAM</text>
+                  </svg>`;
+                  const blob = new Blob([svg], { type: 'image/svg+xml' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${badge.name.replace(/\\s+/g, '_')}_Badge.svg`;
+                  a.click();
+              }}
+              className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
               <FiDownload size={13} /> Download
             </button>
-            <button className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={async () => {
+                  if (navigator.share) {
+                      await navigator.share({
+                          title: `I earned the ${badge.name} badge!`,
+                          text: `Check out my new verified digital badge from KL University!`,
+                          url: badge.shareUrl
+                      }).catch(() => {});
+                  } else {
+                      navigator.clipboard.writeText(badge.shareUrl);
+                      alert("Verification link copied to clipboard!");
+                  }
+              }}
+              className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
               <FiShare2 size={13} /> Share
             </button>
             <a
-              href={`https://www.linkedin.com/profile/add?certId=${badge.verificationId}`}
+              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(badge.shareUrl)}&summary=${encodeURIComponent(`🎖️ I'm proud to share that I've earned the "${badge.name}" digital badge from KL University's SAMAM Activity Management Program!\n\n📌 ${badge.description}\n\n🔒 Verify this credential: ${badge.shareUrl}\n\n#SAMAM #KLUniversity #DigitalBadge #Achievement`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-colors"
               style={{ backgroundColor: "#0077B5" }}
             >
