@@ -65,9 +65,18 @@ export default function PassportPage() {
       .then(res => res.json())
       .then(json => {
          // Fallback to mock for academic data since it's not in the DB schema for passport
-         json.academic = { ...PASSPORT.academic };
+         json.academic = { ...PASSPORT.academic, campus: "Vijayawada", institution: "KL University" };
          if (json.profile?.cgpa) json.academic.cgpa = json.profile.cgpa;
          if (json.profile?.username) json.academic.rollNo = json.profile.username;
+         if (json.profile?.branch) json.academic.degree = `B.Tech ${json.profile.branch}`;
+         
+         if (json.profile?.student_year) {
+             const y = json.profile.student_year;
+             const grad = json.profile.graduation_year || (new Date().getFullYear() + (4 - y));
+             const start = grad - 4;
+             const suffix = y === 1 ? 'st' : y === 2 ? 'nd' : y === 3 ? 'rd' : 'th';
+             json.academic.year = `${y}${suffix} Year (${start}–${grad})`;
+         }
          json.timeline = json.timeline || [];
          setData(json);
          setLoading(false);

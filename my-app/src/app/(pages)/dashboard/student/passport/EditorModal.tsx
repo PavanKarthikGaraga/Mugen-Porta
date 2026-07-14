@@ -121,8 +121,7 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                         <div className="grid grid-cols-2 gap-4">
                             <div><label className="text-xs font-semibold text-gray-600">Tagline *</label><input required value={data.profile?.tagline || ""} onChange={e => updateProfile("tagline", e.target.value)} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg mt-1" /></div>
                             <div><label className="text-xs font-semibold text-gray-600">CGPA</label><input type="number" step="0.01" value={data.profile?.cgpa || ""} onChange={e => updateProfile("cgpa", e.target.value)} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg mt-1" /></div>
-                            <div><label className="text-xs font-semibold text-gray-600">Expected Graduation Year</label><input type="number" value={data.profile?.graduation_year || ""} onChange={e => updateProfile("graduation_year", e.target.value)} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg mt-1" /></div>
-                            <div>
+                            <div className="col-span-2">
                                 <label className="text-xs font-semibold text-gray-600">Skills (comma separated) *</label>
                                 <input required value={(data.profile?.skills || []).join(", ")} onChange={e => updateProfile("skills", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg mt-1" placeholder="e.g. React, Node, Python" />
                             </div>

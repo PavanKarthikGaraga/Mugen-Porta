@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
         // Fetch basic profile and real name
         const [profiles] = await pool.execute(`
-            SELECT sp.*, s.name 
+            SELECT sp.*, s.name, s.branch, s.year as student_year, s.email 
             FROM student_profiles sp 
             LEFT JOIN students s ON sp.username = s.username 
             WHERE sp.username = ?
