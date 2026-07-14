@@ -124,10 +124,89 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             };
         });
 
-        return NextResponse.json({
+        const responsePayload = {
             earned: earnedBadges,
             locked: formattedLockedBadges
-        });
+        };
+
+        if (username === '2400000000') {
+            const demoBadges = [
+                {
+                    id: 901,
+                    code: 'B-HWB-MA',
+                    name: 'Mindful Achiever',
+                    icon: '🧘',
+                    domain: 'HWB',
+                    rarity: 'Epic',
+                    color: '#DC2626',
+                    bg: '#FEF2F2',
+                    issuedOn: 'Jul 14, 2026',
+                    earnedFrom: 'SAMAM Program Milestones',
+                    competencies: ['Mindfulness', 'Emotional Regulation', 'Resilience'],
+                    description: 'Awarded for consistently demonstrating mindfulness practices, supporting peers, and maintaining a balanced approach to academic and personal challenges.',
+                    verificationId: 'v-demo-hwb-ma',
+                    shareUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify/v-demo-hwb-ma`
+                },
+                {
+                    id: 902,
+                    code: 'B-ESO-YM',
+                    name: 'Young Mentor',
+                    icon: '🤝',
+                    domain: 'ESO',
+                    rarity: 'Rare',
+                    color: '#059669',
+                    bg: '#ECFDF5',
+                    issuedOn: 'Jul 14, 2026',
+                    earnedFrom: 'SAMAM Program Milestones',
+                    competencies: ['Leadership', 'Communication', 'Empathy', 'Guidance'],
+                    description: 'Recognized for outstanding peer-to-peer mentoring, guiding fellow students in academic and co-curricular activities, and fostering a supportive community.',
+                    verificationId: 'v-demo-eso-ym',
+                    shareUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify/v-demo-eso-ym`
+                },
+                {
+                    id: 903,
+                    code: 'B-ESO-EW',
+                    name: 'Eco Warrior',
+                    icon: '🌍',
+                    domain: 'ESO',
+                    rarity: 'Epic',
+                    color: '#059669',
+                    bg: '#ECFDF5',
+                    issuedOn: 'Jul 14, 2026',
+                    earnedFrom: 'SAMAM Program Milestones',
+                    competencies: ['Sustainability', 'Environmental Awareness', 'Project Management'],
+                    description: 'Awarded for significant contributions to campus sustainability, leading environmental campaigns, and promoting eco-friendly practices.',
+                    verificationId: 'v-demo-eso-ew',
+                    shareUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify/v-demo-eso-ew`
+                },
+                {
+                    id: 904,
+                    code: 'B-HWB-MHA',
+                    name: 'Mental Health Ally',
+                    icon: '🧠',
+                    domain: 'HWB',
+                    rarity: 'Legendary',
+                    color: '#DC2626',
+                    bg: '#FEF2F2',
+                    issuedOn: 'Jul 14, 2026',
+                    earnedFrom: 'SAMAM Program Milestones',
+                    competencies: ['Advocacy', 'Active Listening', 'Mental Health First Aid'],
+                    description: 'Honored for exceptional advocacy for mental health awareness, organizing support workshops, and actively contributing to a stigma-free campus environment.',
+                    verificationId: 'v-demo-hwb-mha',
+                    shareUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify/v-demo-hwb-mha`
+                }
+            ];
+            
+            // Check if already in earned, if not push them
+            const existingIds = new Set(responsePayload.earned.map((b: any) => b.code));
+            demoBadges.forEach(db => {
+                if (!existingIds.has(db.code)) {
+                    responsePayload.earned.unshift(db);
+                }
+            });
+        }
+
+        return NextResponse.json(responsePayload);
 
     } catch (error: any) {
         console.error('Database error fetching badges:', error);

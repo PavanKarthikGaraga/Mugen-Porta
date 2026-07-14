@@ -2,12 +2,13 @@ import { branchNames } from "../../../../Data/branches";
 import { countryCodes } from "../../../../Data/coutries";
 
 export default function PersonalDetails({ formData, updateFormData }) {
+    const isCDOEBranch = formData.branch === "KL CDOE Management (OL) BBA" || formData.branch === "KL CDOE Humanities (OL) BCA";
 
     const validateUsername = (username) => {
         if (!username) return false;
         if (username.length !== 10) return false;
         if (!/^\d{10}$/.test(username)) return false;
-        if (!username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false;
+        if (!isCDOEBranch && !username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false;
         return true;
     };
 
@@ -15,7 +16,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
         if (!username) return true;
         if (username.length > 10) return false;
         if (!/^\d*$/.test(username)) return false;
-        if (username.length >= 2) {
+        if (!isCDOEBranch && username.length >= 2) {
             if (!username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false;
         }
         return true;
@@ -30,10 +31,12 @@ export default function PersonalDetails({ formData, updateFormData }) {
             if (value && !validateUsernameForTyping(value)) return;
             
             let prefix = "";
-            if (formData.year === "1st") prefix = "26";
-            else if (formData.year === "2nd") prefix = "25";
-            else if (formData.year === "3rd") prefix = "24";
-            else if (formData.year === "4th") prefix = "23";
+            if (!isCDOEBranch) {
+                if (formData.year === "1st") prefix = "26";
+                else if (formData.year === "2nd") prefix = "25";
+                else if (formData.year === "3rd") prefix = "24";
+                else if (formData.year === "4th") prefix = "23";
+            }
 
             // Prevent deleting or modifying the enforced prefix
             if (prefix && value.length < prefix.length) return;
@@ -46,14 +49,32 @@ export default function PersonalDetails({ formData, updateFormData }) {
             updateFormData({ [name]: value, countryName: selectedCountry ? selectedCountry.name : "" });
         } else if (name === "year") {
             let currentUsername = formData.username || "";
-            if (value === "1st" && !currentUsername.startsWith("26")) {
-                currentUsername = currentUsername.length >= 2 ? "26" + currentUsername.substring(2) : "26" + currentUsername;
-            } else if (value === "2nd" && !currentUsername.startsWith("25")) {
-                currentUsername = currentUsername.length >= 2 ? "25" + currentUsername.substring(2) : "25" + currentUsername;
-            } else if (value === "3rd" && !currentUsername.startsWith("24")) {
-                currentUsername = currentUsername.length >= 2 ? "24" + currentUsername.substring(2) : "24" + currentUsername;
-            } else if (value === "4th" && !currentUsername.startsWith("23")) {
-                currentUsername = currentUsername.length >= 2 ? "23" + currentUsername.substring(2) : "23" + currentUsername;
+            if (!isCDOEBranch) {
+                if (value === "1st" && !currentUsername.startsWith("26")) {
+                    currentUsername = currentUsername.length >= 2 ? "26" + currentUsername.substring(2) : "26" + currentUsername;
+                } else if (value === "2nd" && !currentUsername.startsWith("25")) {
+                    currentUsername = currentUsername.length >= 2 ? "25" + currentUsername.substring(2) : "25" + currentUsername;
+                } else if (value === "3rd" && !currentUsername.startsWith("24")) {
+                    currentUsername = currentUsername.length >= 2 ? "24" + currentUsername.substring(2) : "24" + currentUsername;
+                } else if (value === "4th" && !currentUsername.startsWith("23")) {
+                    currentUsername = currentUsername.length >= 2 ? "23" + currentUsername.substring(2) : "23" + currentUsername;
+                }
+            }
+            const email = currentUsername ? `${currentUsername}@kluniversity.in` : "";
+            updateFormData({ [name]: value, username: currentUsername, email });
+        } else if (name === "branch") {
+            const newIsCDOE = value === "KL CDOE Management (OL) BBA" || value === "KL CDOE Humanities (OL) BCA";
+            let currentUsername = formData.username || "";
+            if (!newIsCDOE && formData.year) {
+                let prefix = "";
+                if (formData.year === "1st") prefix = "26";
+                else if (formData.year === "2nd") prefix = "25";
+                else if (formData.year === "3rd") prefix = "24";
+                else if (formData.year === "4th") prefix = "23";
+                
+                if (prefix && !currentUsername.startsWith(prefix)) {
+                    currentUsername = currentUsername.length >= 2 ? prefix + currentUsername.substring(2) : prefix + currentUsername;
+                }
             }
             const email = currentUsername ? `${currentUsername}@kluniversity.in` : "";
             updateFormData({ [name]: value, username: currentUsername, email });
@@ -68,7 +89,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
 
             <div className="grid gap-6 lg:grid-cols-3 md:grid-cols-2">
 
-                {/* Campus - mandatory, before Academic Year */}
+                {/* Campus - mandatory */}
                 <div>
                     <label htmlFor="campus" className="block text-sm font-medium text-gray-700 mb-2">
                         Campus *
@@ -86,6 +107,46 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         <option value="KLH - Bachupally">KLH - Bachupally</option>
                         <option value="KLH - Aziz Nagar">KLH - Aziz Nagar</option>
                         <option value="KLH - GBS">KLH - GBS</option>
+                    </select>
+                </div>
+
+                {/* Branch */}
+                <div>
+                    <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">
+                        Branch *
+                    </label>
+                    <select
+                        id="branch"
+                        name="branch"
+                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                        value={formData.branch || ""}
+                        onChange={handleInputChange}
+                        required
+                    >
+                        <option value="">Select Branch</option>
+                        {branchNames.map((branch) => (
+                            <option key={branch.id} value={branch.name}>{branch.name}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Gender */}
+                <div>
+                    <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
+                        Gender *
+                    </label>
+                    <select
+                        id="gender"
+                        name="gender"
+                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                        value={formData.gender || ""}
+                        onChange={handleInputChange}
+                        required
+                    >
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
 
@@ -110,26 +171,6 @@ export default function PersonalDetails({ formData, updateFormData }) {
                     </select>
                 </div>
 
-                {/* Gender */}
-                <div>
-                    <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
-                        Gender *
-                    </label>
-                    <select
-                        id="gender"
-                        name="gender"
-                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
-                        value={formData.gender || ""}
-                        onChange={handleInputChange}
-                        required
-                    >
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-
                 {/* Username */}
                 <div className="lg:col-span-2">
                     <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
@@ -139,7 +180,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         type="text"
                         id="username"
                         name="username"
-                        placeholder="Enter username (must start with 23, 24, 25, or 26)"
+                        placeholder={isCDOEBranch ? "Enter 10-digit username" : "Enter username (must start with 23, 24, 25, or 26)"}
                         className={`w-full h-12 px-4 border rounded-lg focus:ring-2 focus:border-blue-500 outline-none ${
                             formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username)
                                 ? 'border-red-500 focus:ring-red-500'
@@ -147,22 +188,24 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         }`}
                         value={formData.username || ""}
                         onChange={handleInputChange}
-                        pattern="^(23|24|25|26)\d{8}$"
+                        pattern={isCDOEBranch ? "^\\d{10}$" : "^(23|24|25|26)\\d{8}$"}
                         maxLength={10}
                         minLength={10}
-                        title="Username must start with 23, 24, 25, or 26 and be exactly 10 characters long"
+                        title={isCDOEBranch ? "Username must be exactly 10 digits long" : "Username must start with 23, 24, 25, or 26 and be exactly 10 characters long"}
                         required
                     />
                     {formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username) ? (
                         <p className="text-xs text-red-500 mt-1">
-                            {!formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25') && !formData.username.startsWith('26')
+                            {!isCDOEBranch && !formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25') && !formData.username.startsWith('26')
                                 ? 'Username must start with 23, 24, 25, or 26'
                                 : formData.username.length !== 10
                                 ? `Username must be exactly 10 digits (currently ${formData.username.length})`
                                 : 'Username must contain only digits'}
                         </p>
                     ) : (
-                        <p className="text-xs text-gray-500 mt-1">Must start with 23, 24, 25, or 26 and be exactly 10 digits long</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                            {isCDOEBranch ? "Must be exactly 10 digits long" : "Must start with 23, 24, 25, or 26 and be exactly 10 digits long"}
+                        </p>
                     )}
                 </div>
 
@@ -181,26 +224,6 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         onChange={handleInputChange}
                         required
                     />
-                </div>
-
-                {/* Branch */}
-                <div>
-                    <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">
-                        Branch *
-                    </label>
-                    <select
-                        id="branch"
-                        name="branch"
-                        className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
-                        value={formData.branch || ""}
-                        onChange={handleInputChange}
-                        required
-                    >
-                        <option value="">Select Branch</option>
-                        {branchNames.map((branch) => (
-                            <option key={branch.id} value={branch.name}>{branch.name}</option>
-                        ))}
-                    </select>
                 </div>
 
                 {/* Career Choice */}

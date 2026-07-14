@@ -13,6 +13,51 @@ export async function GET(
             return NextResponse.json({ message: 'Verification ID is required' }, { status: 400 });
         }
 
+        // Demo badge interceptor
+        const demoMap: Record<string, any> = {
+            'v-demo-hwb-ma': { code: 'B-HWB-MA', name: 'Mindful Achiever', icon: '🧘', domain: 'HWB', rarity: 'Epic', color: '#DC2626', bg: '#FEF2F2', comp: ['Mindfulness', 'Emotional Regulation', 'Resilience'], desc: 'Awarded for consistently demonstrating mindfulness practices, supporting peers, and maintaining a balanced approach to academic and personal challenges.' },
+            'v-demo-eso-ym': { code: 'B-ESO-YM', name: 'Young Mentor', icon: '🤝', domain: 'ESO', rarity: 'Rare', color: '#059669', bg: '#ECFDF5', comp: ['Leadership', 'Communication', 'Empathy', 'Guidance'], desc: 'Recognized for outstanding peer-to-peer mentoring, guiding fellow students in academic and co-curricular activities, and fostering a supportive community.' },
+            'v-demo-eso-ew': { code: 'B-ESO-EW', name: 'Eco Warrior', icon: '🌍', domain: 'ESO', rarity: 'Epic', color: '#059669', bg: '#ECFDF5', comp: ['Sustainability', 'Environmental Awareness', 'Project Management'], desc: 'Awarded for significant contributions to campus sustainability, leading environmental campaigns, and promoting eco-friendly practices.' },
+            'v-demo-hwb-mha': { code: 'B-HWB-MHA', name: 'Mental Health Ally', icon: '🧠', domain: 'HWB', rarity: 'Legendary', color: '#DC2626', bg: '#FEF2F2', comp: ['Advocacy', 'Active Listening', 'Mental Health First Aid'], desc: 'Honored for exceptional advocacy for mental health awareness, organizing support workshops, and actively contributing to a stigma-free campus environment.' }
+        };
+
+        if (demoMap[verificationId]) {
+            const db = demoMap[verificationId];
+            return NextResponse.json({
+                valid: true,
+                badge: {
+                    id: 900,
+                    verificationId,
+                    shareUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify/${verificationId}`,
+                    issuedOn: 'Jul 14, 2026',
+                    earnedFrom: 'SAMAM Program Milestones',
+                    awardedBy: 'SAMAM Administration',
+                    code: db.code,
+                    name: db.name,
+                    icon: db.icon,
+                    domain: db.domain,
+                    rarity: db.rarity,
+                    color: db.color,
+                    bgColor: db.bg,
+                    description: db.desc,
+                    competencies: db.comp,
+                    requirement: 'Successfully fulfilled all criteria for this milestone.'
+                },
+                recipient: {
+                    username: '2400000000',
+                    name: 'Demo Student',
+                    branch: 'CSE',
+                    year: '3rd',
+                    institution: 'KL University',
+                },
+                issuer: {
+                    name: 'SAMAM Activity Management Program',
+                    institution: 'KL University',
+                    website: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+                },
+            });
+        }
+
         const [rows] = await pool.execute(`
             SELECT
                 sb.id            AS student_badge_id,
