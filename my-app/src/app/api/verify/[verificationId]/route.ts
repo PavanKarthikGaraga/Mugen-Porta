@@ -28,7 +28,7 @@ export async function GET(
                 badge: {
                     id: 900,
                     verificationId,
-                    shareUrl: `https://samam.klu.ac.in/verify/${verificationId}`,
+                    shareUrl: `https://sacactivities.kluniversity.in/verify/${verificationId}`,
                     issuedOn: 'Jul 14, 2026',
                     earnedFrom: 'SAMAM Program Milestones',
                     awardedBy: 'SAMAM Administration',

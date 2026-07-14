@@ -145,7 +145,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
                     competencies: ['Mindfulness', 'Emotional Regulation', 'Resilience'],
                     description: 'Awarded for consistently demonstrating mindfulness practices, supporting peers, and maintaining a balanced approach to academic and personal challenges.',
                     verificationId: 'v-demo-hwb-ma',
-                    shareUrl: `https://samam.klu.ac.in/verify/v-demo-hwb-ma`
+                    shareUrl: `https://sacactivities.kluniversity.in/verify/v-demo-hwb-ma`
                 },
                 {
                     id: 902,
@@ -161,7 +161,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
                     competencies: ['Leadership', 'Communication', 'Empathy', 'Guidance'],
                     description: 'Recognized for outstanding peer-to-peer mentoring, guiding fellow students in academic and co-curricular activities, and fostering a supportive community.',
                     verificationId: 'v-demo-eso-ym',
-                    shareUrl: `https://samam.klu.ac.in/verify/v-demo-eso-ym`
+                    shareUrl: `https://sacactivities.kluniversity.in/verify/v-demo-eso-ym`
                 },
                 {
                     id: 903,
@@ -177,7 +177,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
                     competencies: ['Sustainability', 'Environmental Awareness', 'Project Management'],
                     description: 'Awarded for significant contributions to campus sustainability, leading environmental campaigns, and promoting eco-friendly practices.',
                     verificationId: 'v-demo-eso-ew',
-                    shareUrl: `https://samam.klu.ac.in/verify/v-demo-eso-ew`
+                    shareUrl: `https://sacactivities.kluniversity.in/verify/v-demo-eso-ew`
                 },
                 {
                     id: 904,
@@ -193,7 +193,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
                     competencies: ['Advocacy', 'Active Listening', 'Mental Health First Aid'],
                     description: 'Honored for exceptional advocacy for mental health awareness, organizing support workshops, and actively contributing to a stigma-free campus environment.',
                     verificationId: 'v-demo-hwb-mha',
-                    shareUrl: `https://samam.klu.ac.in/verify/v-demo-hwb-mha`
+                    shareUrl: `https://sacactivities.kluniversity.in/verify/v-demo-hwb-mha`
                 }
             ];
             
