@@ -47,7 +47,10 @@ export async function GET(request: Request) {
                 COALESCE(sp.level_progress, 0) as level_progress,
                 COALESCE(SUM(t.credits), 0) as total_points,
                 COUNT(DISTINCT sb.id) as badge_count,
-                MAX(t.granted_at) as last_activity
+                NULLIF(GREATEST(
+                    COALESCE(MAX(t.granted_at), '1000-01-01'), 
+                    COALESCE(MAX(sp.updated_at), '1000-01-01')
+                ), '1000-01-01') as last_activity
             FROM students s
             LEFT JOIN student_profiles sp ON s.username = sp.username
             LEFT JOIN sdc_transactions t ON s.username = t.username
