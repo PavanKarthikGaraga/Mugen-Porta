@@ -65,8 +65,9 @@ export default function PassportPage() {
       .then(res => res.json())
       .then(json => {
          // Fallback to mock for academic data since it's not in the DB schema for passport
-         json.academic = PASSPORT.academic; 
-         // Allow timeline from DB, but default to empty array if missing
+         json.academic = { ...PASSPORT.academic };
+         if (json.profile?.cgpa) json.academic.cgpa = json.profile.cgpa;
+         if (json.profile?.username) json.academic.rollNo = json.profile.username;
          json.timeline = json.timeline || [];
          setData(json);
          setLoading(false);
