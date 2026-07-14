@@ -1,6 +1,8 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
     _req: Request,
     { params }: { params: Promise<{ verificationId: string }> }
@@ -35,7 +37,7 @@ export async function GET(
                 bd.competencies,
                 bd.requirement
             FROM student_badges sb
-            JOIN students       s  ON sb.username  = s.username
+            LEFT JOIN students       s  ON sb.username  = s.username
             JOIN badge_definitions bd ON sb.badge_id = bd.id
             WHERE sb.verification_id = ?
         `, [verificationId]) as any[];
@@ -72,9 +74,9 @@ export async function GET(
             },
             recipient: {
                 username: row.username,
-                name: row.student_name,
-                branch: row.student_branch,
-                year: row.student_year,
+                name: row.student_name || 'Student',
+                branch: row.student_branch || 'N/A',
+                year: row.student_year || 'N/A',
                 institution: 'KL University',
             },
             issuer: {
