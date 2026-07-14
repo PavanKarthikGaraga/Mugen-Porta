@@ -302,9 +302,9 @@ export default function AdminOverviewPage() {
           accent={BRAND}
         />
         <StatCard
-          icon={<FiUsers size={16} />}
-          label="Filtered Students"
-          value={loading ? "—" : (stats?.totalStudents ?? 0).toLocaleString()}
+          icon={<FiBookOpen size={16} />}
+          label="Total Submissions"
+          value={loading ? "—" : (stats?.submissionStats?.total ?? 0).toLocaleString()}
           trend={undefined} trendUp={false}
           accent="#2563EB"
         />
