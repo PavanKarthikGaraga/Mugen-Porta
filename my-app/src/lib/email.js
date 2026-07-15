@@ -327,6 +327,11 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
     `;
 
     try {
+        // [TEMPORARILY DISABLED REGISTRATION EMAILS]
+        console.log('🔄 Registration emails are temporarily disabled. Simulating success...');
+        return { success: true, messageId: 'simulated_id' };
+
+        /*
         // Send email directly (not using Redis queue due to compatibility issues)
         console.log('🔄 Sending registration email directly...');
 
@@ -341,6 +346,7 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
         console.log(`✅ Registration email sent successfully to ${email}. Message ID: ${info.messageId}`);
 
         return { success: true, messageId: info.messageId };
+        */
     } catch (error) {
         console.error('Error sending registration email:', error);
         return { success: false, error: error.message };

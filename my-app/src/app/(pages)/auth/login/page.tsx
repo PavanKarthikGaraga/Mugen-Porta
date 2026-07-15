@@ -115,6 +115,34 @@ export default function Login() {
                 setLoading(false);
             }
     }
+    const loginEnabled = false;
+
+    if (!loginEnabled) {
+        return (
+            <div className="w-full h-screen flex flex-col justify-center items-center p-4 bg-gray-50">
+                <Card className="w-full max-w-md border-gray-200 shadow-sm">
+                    <CardHeader className="text-center pb-2">
+                        <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0h-2m-6 4h16a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <CardTitle className="text-2xl text-gray-900">Portal Closed</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-6">
+                        <p className="text-gray-600">
+                            The fest has ended long back. Login is currently disabled.
+                        </p>
+                        <Link href="/">
+                            <Button className="w-full bg-black text-white hover:bg-gray-800">
+                                Return to Home
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return(
         <>
