@@ -10,7 +10,7 @@ export default function WeeklyChart({ data, accentColor = "rgb(151,0,3)" }) {
   const chartH = 80;
   const barW = 24;
   const gap = 12;
-  const totalW = data.length * (barW + gap) - gap;
+  const totalW = Math.max(0, data.length * (barW + gap) - gap);
 
   return (
     <div className="flex flex-col gap-2">
