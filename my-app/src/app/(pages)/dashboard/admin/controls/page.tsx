@@ -1,7 +1,7 @@
 // @ts-nocheck
 "use client"
 import { useState, useEffect } from "react";
-import { FiToggleLeft, FiToggleRight, FiUser } from "react-icons/fi";
+import { FiToggleLeft, FiToggleRight, FiUser, FiMail } from "react-icons/fi";
 import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,8 @@ export default function ControlsPage() {
     const [saving, setSaving] = useState(false);
     const [proxyUsername, setProxyUsername] = useState('');
     const [proxyLoading, setProxyLoading] = useState(false);
+    const [testEmail, setTestEmail] = useState('');
+    const [emailLoading, setEmailLoading] = useState(false);
 
     useEffect(() => {
         fetchControls();
@@ -107,6 +109,37 @@ export default function ControlsPage() {
             toast.error('Proxy login failed. Please try again.');
         } finally {
             setProxyLoading(false);
+        }
+    };
+
+    const handleSendTestEmail = async () => {
+        if (!testEmail.trim()) {
+            toast.error('Please enter an email address');
+            return;
+        }
+
+        setEmailLoading(true);
+        try {
+            const response = await fetch('/api/dashboard/admin/test-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: testEmail.trim() }),
+            });
+
+            if (response.ok) {
+                toast.success(`Test email sent successfully to ${testEmail}`);
+                setTestEmail('');
+            } else {
+                const error = await response.json();
+                toast.error(`Failed to send test email: ${error.message || error.error}`);
+            }
+        } catch (error) {
+            console.error('Test email error:', error);
+            toast.error('Failed to send test email. Please try again.');
+        } finally {
+            setEmailLoading(false);
         }
     };
 
@@ -206,6 +239,42 @@ export default function ControlsPage() {
                             <p>Access student, lead, or faculty dashboards</p>
                             <p>Use logout to return to admin session</p>
                         </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Test Email Card */}
+            <Card className="bg-white shadow-sm">
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-center">
+                        <FiMail className="mr-2" />
+                        Test Welcome Email
+                    </CardTitle>
+                    <p className="text-center text-gray-600 mt-2">Send a test SAMAM welcome email</p>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <div>
+                            <Label htmlFor="testEmail" className="text-sm font-medium">
+                                Email Address
+                            </Label>
+                            <Input
+                                id="testEmail"
+                                type="email"
+                                placeholder="Enter email address"
+                                value={testEmail}
+                                onChange={(e) => setTestEmail(e.target.value)}
+                                className="mt-1"
+                            />
+                        </div>
+
+                        <Button
+                            onClick={handleSendTestEmail}
+                            disabled={emailLoading}
+                            className="w-full bg-blue-600 hover:bg-blue-700"
+                        >
+                            {emailLoading ? 'Sending...' : 'Send Test Email'}
+                        </Button>
                     </div>
                 </CardContent>
             </Card>

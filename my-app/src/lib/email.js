@@ -121,7 +121,7 @@ export const sendPasswordResetEmail = async (email, name, resetLink) => {
         console.log('🔄 Sending password reset email directly...');
 
         const mailOptions = {
-            from: process.env.SMTP_USER,
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
             to: email,
             subject: 'Password Reset Request - SAC Activities',
             html: htmlTemplate,
@@ -336,7 +336,7 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
         console.log('🔄 Sending registration email directly...');
 
         const mailOptions = {
-            from: process.env.SMTP_USER,
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
             to: email,
             subject: 'Welcome to SAC Activities - Registration Successful!',
             html: htmlTemplate,
@@ -349,6 +349,116 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
         */
     } catch (error) {
         console.error('Error sending registration email:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+export const sendTestWelcomeEmail = async (email) => {
+    const htmlTemplate = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome to SAMAM</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #2563eb;">Welcome to SAMAM – Your Journey Beyond the Classroom Begins Today!</h2>
+        
+        <p>Dear Students,</p>
+        
+        <p>Welcome to the <strong>Student Activity Management and Achievement Model (SAMAM)</strong> – an innovative student development ecosystem designed to help you discover your potential, develop future-ready competencies, and create a meaningful impact both within and beyond the University.</p>
+        
+        <p>At SAMAM, we believe that education extends beyond classrooms. Every activity you participate in, every challenge you undertake, every leadership role you accept, and every community you serve contributes to your personal, professional, and societal growth.</p>
+        
+        <h3 style="color: #1d4ed8; margin-top: 20px;">What is SAMAM?</h3>
+        <p>SAMAM is a competency-based student development framework that transforms traditional extracurricular activities into structured learning experiences. Every approved activity is designed to help you build valuable knowledge, practical skills, leadership abilities, innovation capabilities, and social responsibility.</p>
+        
+        <p>Whether you aspire to become a software engineer, entrepreneur, researcher, artist, sportsperson, innovator, or community leader, SAMAM provides opportunities to support your journey.</p>
+        
+        <h3 style="color: #1d4ed8; margin-top: 20px;">What You Can Expect</h3>
+        <p>Through SAMAM, you will have opportunities to:</p>
+        <ul>
+            <li>Participate in flagship technical, leadership, innovation, research, cultural, wellness, and community engagement programmes.</li>
+            <li>Join clubs and professional communities aligned with your interests.</li>
+            <li>Develop leadership through student-led initiatives and governance.</li>
+            <li>Earn Student Development Credits (SDCs) through meaningful participation.</li>
+            <li>Build competencies recognized by the University and industry.</li>
+            <li>Maintain a digital portfolio showcasing your achievements.</li>
+            <li>Contribute to innovation, research, entrepreneurship, and sustainable development.</li>
+            <li>Engage with faculty mentors, industry experts, alumni, and community partners.</li>
+        </ul>
+
+        <h3 style="color: #1d4ed8; margin-top: 20px;">Your Development Journey</h3>
+        <p>Your SAMAM journey is built on four simple principles:</p>
+        <ul style="list-style-type: none; padding-left: 0;">
+            <li>🚀 <strong>Learn</strong> – Gain new knowledge and perspectives.</li>
+            <li>🌟 <strong>Lead</strong> – Take responsibility and inspire others.</li>
+            <li>💡 <strong>Innovate</strong> – Solve real-world problems creatively.</li>
+            <li>🤝 <strong>Serve</strong> – Make a positive impact on society.</li>
+        </ul>
+        <p>Every experience becomes part of your growth story.</p>
+
+        <h3 style="color: #1d4ed8; margin-top: 20px;">Student-Centric. Faculty-Mentored.</h3>
+        <p>SAMAM is designed around a simple philosophy:</p>
+        <p style="font-style: italic; font-weight: bold; color: #4b5563;">Students lead. Faculty mentor. Learning never stops.</p>
+        <p>You are encouraged to explore new opportunities, collaborate across disciplines, take initiative, and challenge yourself to achieve excellence.</p>
+
+        <h3 style="color: #1d4ed8; margin-top: 20px;">Make Every Activity Count</h3>
+        <p>Each activity under SAMAM is more than an event—it is an opportunity to:</p>
+        <ul>
+            <li>Learn something new.</li>
+            <li>Build lifelong competencies.</li>
+            <li>Develop leadership and teamwork.</li>
+            <li>Strengthen communication and problem-solving skills.</li>
+            <li>Expand your professional network.</li>
+            <li>Create lasting memories and meaningful impact.</li>
+        </ul>
+
+        <h3 style="color: #1d4ed8; margin-top: 20px;">Begin Your Journey</h3>
+        <p>We encourage you to:</p>
+        <ul>
+            <li>Complete your SAMAM profile.</li>
+            <li>Explore available clubs and domains.</li>
+            <li>Register for activities that match your interests.</li>
+            <li>Connect with your faculty mentors and student leaders.</li>
+            <li>Participate actively and consistently.</li>
+            <li>Build your personal development portfolio from day one.</li>
+        </ul>
+
+        <p>Remember, your university life is not measured only by grades, but also by the experiences you embrace, the skills you develop, the people you inspire, and the difference you make.</p>
+        
+        <p>We are excited to be part of your journey and look forward to witnessing your growth, achievements, and contributions through SAMAM.</p>
+        
+        <p style="font-weight: bold;">Welcome to a future of learning, leadership, innovation, and impact.</p>
+        <p>We wish you a successful and fulfilling journey.</p>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0;">Warm regards,</p>
+            <p style="margin: 5px 0; font-weight: bold;">Student Activity Center (SAC)</p>
+            <p style="margin: 0; color: #4b5563;">SAMAM – Student Activity Management and Achievement Model</p>
+            <p style="margin: 0; font-style: italic; color: #6b7280; font-size: 0.9em;">Empowering Students. Inspiring Leadership. Creating Impact.</p>
+        </div>
+    </body>
+    </html>
+    `;
+
+    try {
+        console.log('🔄 Sending test welcome email directly...');
+
+        const mailOptions = {
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
+            to: email,
+            subject: 'Welcome to SAMAM – Your Journey Beyond the Classroom Begins Today!',
+            html: htmlTemplate,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`✅ Test welcome email sent successfully to ${email}. Message ID: ${info.messageId}`);
+
+        return { success: true, messageId: info.messageId };
+    } catch (error) {
+        console.error('Error sending test welcome email:', error);
         return { success: false, error: error.message };
     }
 };

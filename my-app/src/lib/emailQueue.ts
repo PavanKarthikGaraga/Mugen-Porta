@@ -69,7 +69,7 @@ const emailWorker = new Worker('mugenEmailQueue',
         }
 
         const mailOptions = {
-            from: process.env.SMTP_USER,
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
             to: email,
             subject: subject,
             html: html,

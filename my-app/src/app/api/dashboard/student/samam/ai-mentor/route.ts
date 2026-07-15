@@ -2,10 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import pool from '@/lib/db';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// Using Groq API with fallback
 
 async function checkStudent() {
     const cookieStore = await cookies();
@@ -85,29 +82,67 @@ Guidelines:
 5. Suggest realistic, university-appropriate activities (clubs, hackathons, workshops, volunteering).
 `;
 
-        if (!process.env.GEMINI_API_KEY) {
+        const GROQ_KEYS = [
+            process.env.GROQ_KEY_1,
+            process.env.GROQ_KEY_2,
+            process.env.GROQ_KEY_3,
+            process.env.GROQ_KEY_4,
+            process.env.GROQ_KEY_5,
+            process.env.GROQ_KEY_6,
+            process.env.GROQ_KEY_7,
+            process.env.GROQ_KEY_8,
+            process.env.GROQ_KEY_9,
+        ].filter(Boolean) as string[];
+
+        if (GROQ_KEYS.length === 0) {
             return NextResponse.json({ 
-                error: 'GEMINI_API_KEY is not set in the environment variables. Please add it to your .env file to enable the AI Mentor.'
+                error: 'No GROQ API keys are set in the environment variables. Please add GROQ_KEY_1 to GROQ_KEY_9 to your .env file to enable the AI Mentor.'
             }, { status: 500 });
         }
 
-        // Initialize model
-        const model = genAI.getGenerativeModel({ 
-            model: 'gemini-2.5-flash',
-            systemInstruction: systemPrompt 
-        });
+        const groqMessages = [
+            { role: 'system', content: systemPrompt },
+            ...messages.map((m: any) => ({
+                role: m.role === 'ai' ? 'assistant' : 'user',
+                content: m.text
+            }))
+        ];
 
-        // Map the chat history to Gemini's format
-        const history = messages.slice(0, -1).map((m: any) => ({
-            role: m.role === 'ai' ? 'model' : 'user',
-            parts: [{ text: m.text }]
-        }));
+        let responseText = '';
+        let success = false;
 
-        const chat = model.startChat({ history });
-        const latestMessage = messages[messages.length - 1].text;
+        for (let i = 0; i < GROQ_KEYS.length; i++) {
+            const key = GROQ_KEYS[i];
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'llama-3.3-70b-versatile',
+                        messages: groqMessages,
+                    })
+                });
 
-        const result = await chat.sendMessage(latestMessage);
-        const responseText = result.response.text();
+                if (response.ok) {
+                    const data = await response.json();
+                    responseText = data.choices[0].message.content;
+                    success = true;
+                    break;
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.warn(`Groq API key ${i + 1} failed:`, response.status, errorData);
+                }
+            } catch (error) {
+                console.warn(`Groq request with key ${i + 1} failed:`, error);
+            }
+        }
+
+        if (!success) {
+            return NextResponse.json({ error: 'All AI models are currently overloaded or unavailable. Please try again later.' }, { status: 500 });
+        }
 
         return NextResponse.json({ text: responseText });
 
