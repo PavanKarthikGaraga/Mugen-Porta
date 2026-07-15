@@ -115,7 +115,7 @@ export default function Login() {
                 setLoading(false);
             }
     }
-    const loginEnabled = false;
+    const loginEnabled = true;
 
     if (!loginEnabled) {
         return (
