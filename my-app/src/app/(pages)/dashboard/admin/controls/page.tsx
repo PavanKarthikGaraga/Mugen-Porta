@@ -134,8 +134,10 @@ export default function ControlsPage() {
             } else {
                 let errorMessage = 'Failed to send test email';
                 try {
-                    const error = await response.json();
-                    errorMessage = error.message || error.error || errorMessage;
+                    const errorObj = await response.json();
+                    errorMessage = errorObj.error 
+                        ? `${errorObj.message}: ${errorObj.error}` 
+                        : (errorObj.message || errorMessage);
                 } catch (e) {
                     errorMessage = `Server Error: ${response.statusText} (${response.status})`;
                 }
