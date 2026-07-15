@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client"
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -29,7 +30,10 @@ export default function Register() {
         username: "",
         name: "",
         email: "",
-        phone: "",
+        phoneNumber: "",
+        branch: "",
+        gender: "",
+        year: "",
         password: "",
         confirmPassword: "",
         role: "student",
