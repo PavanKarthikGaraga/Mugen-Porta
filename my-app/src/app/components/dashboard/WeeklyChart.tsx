@@ -24,7 +24,7 @@ export default function WeeklyChart({ data, accentColor = "rgb(151,0,3)" }) {
           const x = i * (barW + gap);
           const barH = Math.max(4, (d.hours / maxHours) * chartH);
           const y = chartH - barH;
-          const isToday = i === new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+          const isToday = i === (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
 
           return (
             <g key={d.day}>
