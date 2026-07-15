@@ -132,8 +132,14 @@ export default function ControlsPage() {
                 toast.success(`Test email sent successfully to ${testEmail}`);
                 setTestEmail('');
             } else {
-                const error = await response.json();
-                toast.error(`Failed to send test email: ${error.message || error.error}`);
+                let errorMessage = 'Failed to send test email';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.message || error.error || errorMessage;
+                } catch (e) {
+                    errorMessage = `Server Error: ${response.statusText} (${response.status})`;
+                }
+                toast.error(errorMessage);
             }
         } catch (error) {
             console.error('Test email error:', error);

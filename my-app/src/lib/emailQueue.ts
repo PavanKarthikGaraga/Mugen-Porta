@@ -53,6 +53,9 @@ const transporter = nodemailer.createTransport({
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
     },
+    connectionTimeout: 8000, // 8 seconds timeout to prevent 504 Gateway errors
+    greetingTimeout: 8000,
+    socketTimeout: 8000,
 });
 
 // Create worker to process email jobs using the same Redis connection config
