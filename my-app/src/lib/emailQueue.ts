@@ -125,7 +125,7 @@ emailWorker.on('ready', () => {
     console.log('🚀 Email worker is ready and processing jobs');
 });
 
-emailWorker.on('error', (error) => {
+emailWorker.on('error', (error: any) => {
     console.error('💥 Error in email worker:', error);
     console.error('Worker error details:', {
         message: error.message,
@@ -171,6 +171,7 @@ emailQueue.on('error', (error) => {
     console.error('💥 Queue error:', error);
 });
 
+// @ts-ignore
 emailQueue.on('waiting-children', (job) => {
     console.log(`👶 Job ${job.id} is waiting for children to complete`);
 });
