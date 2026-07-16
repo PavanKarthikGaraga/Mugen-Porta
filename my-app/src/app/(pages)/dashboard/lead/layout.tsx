@@ -122,8 +122,8 @@ export default function LeadDashboardLayout({ children }) {
                             <button
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
                                 className="lg:hidden p-2 rounded-md transition-colors"
-                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'}
                             >
                                 {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
                             </button>
@@ -144,8 +144,8 @@ export default function LeadDashboardLayout({ children }) {
                                     onClick={handleProxyLogin}
                                     className="flex items-center space-x-2 px-3 py-2 rounded-md transition-colors text-sm"
                                     style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-                                    onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-                                    onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                                    onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+                                    onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
                                 >
                                     <FiUserCheck size={16} />
                                     <span>Student Dashboard</span>
@@ -161,8 +161,8 @@ export default function LeadDashboardLayout({ children }) {
                                 onClick={handleLogout}
                                 className="flex items-center space-x-2 px-3 py-2 rounded-md transition-colors text-sm"
                                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                                onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+                                onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
                             >
                                 <FiLogOut size={16} />
                                 <span>{isProxySession ? 'Exit Student Mode' : 'Logout'}</span>
@@ -223,9 +223,9 @@ export default function LeadDashboardLayout({ children }) {
             {/* Footer - Fixed */}
             <footer className="text-white py-2 px-4 text-center text-sm flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
                 <div className="flex flex-col sm:flex-row justify-between items-center">
-                    <span>© 2025 KL University SAC Activities. All Rights Reserved.</span>
+                    <span>© 2026 KL University SAC Activities. All Rights Reserved.</span>
                     <span className="mt-1 sm:mt-0">
-                        Designed and Developed by Pavan Karthik Garaga | ZeroOne CodeClub
+                        Designed and Developed by ZeroOne CodeClub
                     </span>
                 </div>
             </footer>

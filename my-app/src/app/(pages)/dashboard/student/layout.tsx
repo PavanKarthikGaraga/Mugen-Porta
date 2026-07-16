@@ -461,8 +461,8 @@ export default function SAMAMStudentDashboardLayout({ children }) {
         style={{ backgroundColor: "rgb(151,0,3)" }}
       >
         <div className="flex flex-col sm:flex-row justify-between items-center gap-1">
-          <span>© 2025 KL University SAC Activities. All Rights Reserved.</span>
-          <span>Designed and Developed by Pavan Karthik Garaga | ZeroOne CodeClub</span>
+          <span>© 2026 KL University SAC Activities. All Rights Reserved.</span>
+          <span>Designed and Developed by ZeroOne CodeClub</span>
         </div>
       </footer>
 
