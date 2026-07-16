@@ -245,14 +245,14 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                             clubsToDisplay = availableClubs.filter(club => klhClubIds.includes(club.id));
                                         } else if (isVaddeswaramCampus && clubType === 'DEPARTMENT') {
                                             // Show only Department Clubs
-                                            clubsToDisplay = availableClubs.filter(club => club.domain === 'DEP' || club.id.startsWith('DEP'));
+                                            clubsToDisplay = availableClubs.filter(club => club.domain === 'DEPT. CLUBS' || club.id.startsWith('DEP'));
                                         } else {
                                             // Show regular SAC Clubs for the selected domain
                                             clubsToDisplay = availableClubs.filter(club => 
                                                 club.domain === selectedDomain && 
                                                 !klhClubIds.includes(club.id) && 
                                                 !club.id.startsWith('KLH') &&
-                                                club.domain !== 'DEP' &&
+                                                club.domain !== 'DEPT. CLUBS' &&
                                                 !club.id.startsWith('DEP')
                                             );
                                         }
