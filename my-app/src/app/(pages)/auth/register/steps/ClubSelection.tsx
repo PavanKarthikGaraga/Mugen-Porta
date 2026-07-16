@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { toast } from "sonner";
 
 export default function ClubSelection({ formData, updateFormData, onValidationChange }) {
+    const [clubType, setClubType] = useState(""); // "SAC" or "DEPARTMENT"
     const [selectedDomain, setSelectedDomain] = useState("");
     const [selectedClub, setSelectedClub] = useState("");
     const [availableClubs, setAvailableClubs] = useState([]);
@@ -18,6 +19,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
     ];
 
     const isKLHCampus = ["KLH - Bachupally", "KLH - Aziz Nagar", "KLH - GBS"].includes(formData.campus);
+    const isVaddeswaramCampus = formData.campus === "KLU - Vaddeswaram";
     const klhClubIds = ['KLH01', 'KLH02', 'KLH03', 'KLH04', 'KLH05', 'KLH06', 'KLH07', 'KLH08', 'KLH09'];
 
     // Fetch clubs from unified registration API
@@ -42,17 +44,26 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
         fetchRegistrationData();
     }, []);
 
+    const handleClubTypeChange = (type) => {
+        setClubType(type);
+        setSelectedDomain("");
+        setSelectedClub("");
+        
+        updateFormData({
+            selectedDomain: "",
+            selectedClub: "",
+            pathway: ""
+        });
+    };
+
     const handleDomainChange = (domainId) => {
         setSelectedDomain(domainId);
         setSelectedClub("");
 
-        // Get available clubs for this domain
-        let clubsForDomain = availableClubs.filter(club => club.domain === domainId);
-        setAvailableClubs(availableClubs); // Keep all clubs but filter for display
-
         updateFormData({
             selectedDomain: domainId,
             selectedClub: "",
+            pathway: ""
         });
     };
 
@@ -120,11 +131,15 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
 
     // Check if current selection meets constraints for proceeding
     const canProceed = React.useMemo(() => {
+        if (isVaddeswaramCampus && !clubType) return false;
         if (!selectedClub) return false;
-        if (!isKLHCampus && !selectedDomain) return false;
+        
+        if (isVaddeswaramCampus && clubType === "SAC" && !selectedDomain) return false;
+        if (!isKLHCampus && !isVaddeswaramCampus && !selectedDomain) return false;
+        
         if (selectedClub === "ESO01" && !formData.pathway) return false;
         return true;
-    }, [selectedClub, selectedDomain, formData.pathway, isKLHCampus]);
+    }, [selectedClub, selectedDomain, formData.pathway, isKLHCampus, isVaddeswaramCampus, clubType]);
 
     // Communicate validation status to parent component
     React.useEffect(() => {
@@ -145,10 +160,53 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                 </div>
             ) : (
                 <div className="space-y-6">
+                    {/* Club Type Selection for Vaddeswaram Campus */}
+                    {isVaddeswaramCampus && (
+                        <div className="mb-6">
+                            <label className="block text-lg font-semibold text-gray-800 mb-3">
+                                Select Club Type
+                            </label>
+                            <div className="flex space-x-4">
+                                <label className={`flex-1 border rounded-lg p-4 cursor-pointer transition-all ${clubType === 'SAC' ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'border-gray-300 hover:bg-gray-50'}`}>
+                                    <input 
+                                        type="radio" 
+                                        name="clubType" 
+                                        value="SAC" 
+                                        checked={clubType === 'SAC'} 
+                                        onChange={() => handleClubTypeChange('SAC')} 
+                                        className="sr-only"
+                                    />
+                                    <div className="flex items-center">
+                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${clubType === 'SAC' ? 'border-blue-500' : 'border-gray-400'}`}>
+                                            {clubType === 'SAC' && <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>}
+                                        </div>
+                                        <span className={`font-semibold ${clubType === 'SAC' ? 'text-blue-900' : 'text-gray-700'}`}>SAC - Clubs</span>
+                                    </div>
+                                </label>
+                                <label className={`flex-1 border rounded-lg p-4 cursor-pointer transition-all ${clubType === 'DEPARTMENT' ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'border-gray-300 hover:bg-gray-50'}`}>
+                                    <input 
+                                        type="radio" 
+                                        name="clubType" 
+                                        value="DEPARTMENT" 
+                                        checked={clubType === 'DEPARTMENT'} 
+                                        onChange={() => handleClubTypeChange('DEPARTMENT')} 
+                                        className="sr-only"
+                                    />
+                                    <div className="flex items-center">
+                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${clubType === 'DEPARTMENT' ? 'border-blue-500' : 'border-gray-400'}`}>
+                                            {clubType === 'DEPARTMENT' && <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>}
+                                        </div>
+                                        <span className={`font-semibold ${clubType === 'DEPARTMENT' ? 'text-blue-900' : 'text-gray-700'}`}>Department Clubs</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Domain and Club Selection - Side by Side */}
-                    <div className={`grid grid-cols-1 ${isKLHCampus ? '' : 'md:grid-cols-2'} gap-6`}>
-                        {/* Domain Selection (Hidden for KLH) */}
-                        {!isKLHCampus && (
+                    <div className={`grid grid-cols-1 ${isKLHCampus || (isVaddeswaramCampus && clubType === 'DEPARTMENT') ? '' : 'md:grid-cols-2'} gap-6`}>
+                        {/* Domain Selection (Hidden for KLH and Department Clubs) */}
+                        {!isKLHCampus && (!isVaddeswaramCampus || clubType === 'SAC') && (
                             <div>
                                 <label className="block text-lg font-semibold text-gray-800 mb-3">
                                     Select Domain
@@ -169,7 +227,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                         )}
 
                         {/* Club Selection */}
-                        {(selectedDomain || isKLHCampus) && (
+                        {(selectedDomain || isKLHCampus || (isVaddeswaramCampus && clubType === 'DEPARTMENT')) && (
                             <div>
                                 <label className="block text-lg font-semibold text-gray-800 mb-3">
                                     Select Club
@@ -181,9 +239,23 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                 >
                                     <option value="">Choose a club...</option>
                                     {(() => {
-                                        let clubsToDisplay = isKLHCampus 
-                                            ? availableClubs.filter(club => klhClubIds.includes(club.id))
-                                            : availableClubs.filter(club => club.domain === selectedDomain && !klhClubIds.includes(club.id) && !club.id.startsWith('KLH'));
+                                        let clubsToDisplay = [];
+                                        
+                                        if (isKLHCampus) {
+                                            clubsToDisplay = availableClubs.filter(club => klhClubIds.includes(club.id));
+                                        } else if (isVaddeswaramCampus && clubType === 'DEPARTMENT') {
+                                            // Show only Department Clubs
+                                            clubsToDisplay = availableClubs.filter(club => club.domain === 'DEP' || club.id.startsWith('DEP'));
+                                        } else {
+                                            // Show regular SAC Clubs for the selected domain
+                                            clubsToDisplay = availableClubs.filter(club => 
+                                                club.domain === selectedDomain && 
+                                                !klhClubIds.includes(club.id) && 
+                                                !club.id.startsWith('KLH') &&
+                                                club.domain !== 'DEP' &&
+                                                !club.id.startsWith('DEP')
+                                            );
+                                        }
                                             
                                         return clubsToDisplay.map((club) => {
                                             const isFull = club.isFull;
@@ -251,7 +323,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                     )}
 
                     {/* Selection Summary */}
-                    {(formData.selectedClub || selectedDomain) && (
+                    {(formData.selectedClub || selectedDomain || (isVaddeswaramCampus && clubType === 'DEPARTMENT' && formData.selectedClub)) && (
                         <div className={`mt-6 p-4 rounded-lg border ${
                             canProceed
                                 ? 'bg-green-50 border-green-200'
@@ -263,7 +335,10 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                 Selection Summary
                             </h3>
                             <div className="space-y-2 text-sm">
-                                {selectedDomain && (
+                                {isVaddeswaramCampus && clubType && (
+                                    <div><span className="font-medium">Club Type:</span> {clubType === 'SAC' ? 'SAC - Clubs' : 'Department Clubs'}</div>
+                                )}
+                                {selectedDomain && (!isVaddeswaramCampus || clubType === 'SAC') && (
                                     <div><span className="font-medium">Domain:</span> {allDomains.find(d => d.id === selectedDomain)?.name}</div>
                                 )}
                                 {formData.selectedClub && (
@@ -293,6 +368,8 @@ ClubSelection.propTypes = {
     formData: PropTypes.shape({
         selectedDomain: PropTypes.string,
         selectedClub: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        campus: PropTypes.string,
+        pathway: PropTypes.string
     }).isRequired,
     updateFormData: PropTypes.func.isRequired,
     onValidationChange: PropTypes.func
