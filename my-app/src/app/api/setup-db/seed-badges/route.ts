@@ -57,9 +57,8 @@ export async function GET() {
       logs.push("Added 'requirement' column");
     } catch (e: any) { if (e.code !== 'ER_DUP_FIELDNAME') console.log(e.message); }
 
-    // Clear existing activity badges from badge_definitions to avoid duplicates
-    // We only clear type='activity' to preserve milestones
-    await pool.query("DELETE FROM badge_definitions WHERE type = 'activity'");
+    // We won't delete rows, we will just upsert them
+    // await pool.query("DELETE FROM badge_definitions WHERE type = 'activity'");
     
     // Reset badge_id in catalogue
     await pool.query("UPDATE activity_catalogue SET badge_id = NULL");
@@ -72,12 +71,19 @@ export async function GET() {
       const description = `Awarded for completing the ${activity.name} pathway.`;
       const requirement = `Complete ${activity.code}`;
 
-      // Insert into badge_definitions
-      const [res]: any = await pool.query(
-        'INSERT INTO badge_definitions (code, name, description, icon, domain, type, rarity, target_value, metric, requirement) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      // Upsert into badge_definitions
+      await pool.query(
+        `INSERT INTO badge_definitions (code, name, description, icon, domain, type, rarity, target_value, metric, requirement) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE 
+         name = VALUES(name), description = VALUES(description), icon = VALUES(icon), domain = VALUES(domain), 
+         type = VALUES(type), rarity = VALUES(rarity), requirement = VALUES(requirement)`,
         [badgeCode, badgeName, description, icon, activity.domain || 'TEC', 'activity', rarity, 1, 'activity_completion', requirement]
       );
-      const badgeId = res.insertId;
+      
+      // Get the ID of the UPSERTED row
+      const [existing]: any = await pool.query('SELECT id FROM badge_definitions WHERE code = ?', [badgeCode]);
+      const badgeId = existing[0].id;
       
       // Update activity_catalogue
       await pool.query('UPDATE activity_catalogue SET badge_id = ? WHERE code = ?', [badgeId, activity.code]);
