@@ -52,7 +52,7 @@ export default function MyActivitiesPage() {
     a.code.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalCreditsEarned = myActivities.completed.reduce((s, a) => s + a.credits_earned, 0);
+  const totalCreditsEarned = (myActivities.completed || []).reduce((s, a) => s + (a.credits_earned || 0), 0);
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
