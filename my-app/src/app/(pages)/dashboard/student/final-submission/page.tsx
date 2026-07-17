@@ -187,18 +187,54 @@ export default function StudentFinalSubmission() {
                             <Label className="block text-sm font-medium mb-2">
                                 Final Report URL *
                             </Label>
-                            <Input
-                                type="url"
-                                value={submission.finalReportUrl}
-                                onChange={(e) => setSubmission(prev => ({
-                                    ...prev,
-                                    finalReportUrl: e.target.value
-                                }))}
-                                placeholder="Enter your final report URL (Google Docs, PDF link, etc.)"
-                                disabled={submission.evaluated}
-                            />
+                            <div className="flex gap-2">
+                                <Input
+                                    type="url"
+                                    value={submission.finalReportUrl}
+                                    onChange={(e) => setSubmission(prev => ({
+                                        ...prev,
+                                        finalReportUrl: e.target.value
+                                    }))}
+                                    placeholder="Enter your final report URL (Google Docs, PDF link, etc.)"
+                                    disabled={submission.evaluated}
+                                    className="flex-1"
+                                />
+                                <Label className="cursor-pointer bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg px-4 flex items-center justify-center transition-colors">
+                                    <input 
+                                        type="file" 
+                                        className="hidden" 
+                                        disabled={submission.evaluated || loading}
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            
+                                            setLoading(true);
+                                            setMessage({ type: 'info', text: 'Uploading file to R2...' });
+                                            
+                                            const formData = new FormData();
+                                            formData.append("file", file);
+                                            
+                                            try {
+                                                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                                                const data = await res.json();
+                                                if (res.ok && data.url) {
+                                                    setSubmission(prev => ({ ...prev, finalReportUrl: data.url }));
+                                                    setMessage({ type: 'success', text: 'File uploaded successfully!' });
+                                                } else {
+                                                    setMessage({ type: 'error', text: data.error || 'Upload failed' });
+                                                }
+                                            } catch (err) {
+                                                setMessage({ type: 'error', text: 'Network error during upload' });
+                                            } finally {
+                                                setLoading(false);
+                                            }
+                                        }} 
+                                    />
+                                    <FiUpload className="mr-2" /> Upload File
+                                </Label>
+                            </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            Provide a link to your final work report
+                            Provide a link to your final work report, or upload it directly.
                         </p>
                     </div>
                     </div>

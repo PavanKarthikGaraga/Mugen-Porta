@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
     let query = `
       SELECT ac.*, 
-             (SELECT COUNT(*) FROM activity_registrations ar WHERE ar.catalogue_id = ac.id) as real_enrolled_count 
+             (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count 
       FROM activity_catalogue ac
     `;
     const params: any[] = [];

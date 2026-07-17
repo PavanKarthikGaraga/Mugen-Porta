@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const handleSave = () => {
     setSaving(true);
@@ -13,6 +15,33 @@ export default function ProfilePage() {
       setSaving(false);
       toast.success("Profile updated successfully!");
     }, 1000);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setAvatarUrl(data.url);
+        toast.success("Avatar uploaded successfully!");
+      } else {
+        toast.error(data.error || "Upload failed");
+      }
+    } catch (err) {
+      toast.error("An error occurred during upload");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -34,10 +63,24 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Avatar & Quick Info */}
-        <div className="bg-white dark:bg-zinc-950 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col items-center text-center space-y-4 h-fit">
-          <div className="w-24 h-24 rounded-2xl bg-gray-100 dark:bg-zinc-900 flex items-center justify-center text-3xl font-bold text-gray-500 dark:text-zinc-400 border-4 border-white dark:border-zinc-950 shadow-md">
-            ST
-          </div>
+        <div className="bg-white dark:bg-zinc-950 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col items-center text-center space-y-4 h-fit relative">
+          <label className="cursor-pointer relative group">
+            <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
+            <div className={`w-24 h-24 rounded-2xl bg-gray-100 dark:bg-zinc-900 flex items-center justify-center text-3xl font-bold text-gray-500 dark:text-zinc-400 border-4 border-white dark:border-zinc-950 shadow-md overflow-hidden ${uploading ? 'opacity-50' : ''}`}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                "ST"
+              )}
+            </div>
+            {!uploading && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                <span className="text-white text-xs font-semibold">Change</span>
+              </div>
+            )}
+          </label>
+          {uploading && <p className="text-xs text-blue-500 animate-pulse mt-2">Uploading to R2...</p>}
+          
           <div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Nischal Singana</h2>
             <p className="text-xs text-gray-500 dark:text-zinc-400">Computer Science & Engineering</p>

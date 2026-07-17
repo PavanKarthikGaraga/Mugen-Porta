@@ -8,7 +8,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     // We try querying by 'code' first since the frontend uses code (e.g. 'TECH-AI-001') in the URL
     const [rows]: any = await pool.query(
       `SELECT ac.*, bd.name as badgeName, bd.icon as badgeIcon,
-              (SELECT COUNT(*) FROM activity_registrations ar WHERE ar.catalogue_id = ac.id) as real_enrolled_count
+              (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count
        FROM activity_catalogue ac 
        LEFT JOIN badge_definitions bd ON ac.badge_id = bd.id 
        WHERE ac.code = ? OR ac.id = ? LIMIT 1`, 

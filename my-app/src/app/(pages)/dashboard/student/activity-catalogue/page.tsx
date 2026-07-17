@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
 import { FiFilter, FiGrid, FiList, FiX, FiSliders } from "react-icons/fi";
-import { ACTIVITIES, DOMAINS, LEVELS, ACTIVITY_PACKS, FACULTIES } from "@/app/Data/activities-mock";
+import { DOMAINS, LEVELS, ACTIVITY_PACKS, FACULTIES } from "@/app/Data/activities-mock";
 import CatalogueCard from "@/app/components/dashboard/CatalogueCard";
 import FilterPanel  from "@/app/components/dashboard/FilterPanel";
 import SearchBar    from "@/app/components/dashboard/SearchBar";
@@ -121,7 +121,7 @@ export default function ActivityCataloguePage() {
             <div>
               <h1 className="text-xl font-bold text-gray-900">Activity Catalogue</h1>
               <p className="text-sm text-gray-500 mt-0.5">
-                {ACTIVITIES.length} activities across 5 domains. Discover, enroll, and grow.
+                {activities.length} activities across 5 domains. Discover, enroll, and grow.
               </p>
             </div>
             {/* Domain summary pills */}

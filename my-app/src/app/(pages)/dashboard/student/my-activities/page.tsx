@@ -16,20 +16,35 @@ const TABS = [
   { key: "archived",       label: "Archived",         icon: FiArchive,   color: "#6B7280" },
 ];
 
-const MY_ACTIVITIES: Record<string, any[]> = {
-  registered: [],
-  ongoing: [],
-  completed: [],
-  pending_review: [],
-  certificates: [],
-  archived: [],
-};
-
 export default function MyActivitiesPage() {
   const [activeTab, setActiveTab] = useState("ongoing");
   const [search,    setSearch]    = useState("");
+  const [loading,   setLoading]   = useState(true);
+  const [myActivities, setMyActivities] = useState<Record<string, any[]>>({
+    registered: [],
+    ongoing: [],
+    completed: [],
+    pending_review: [],
+    certificates: [],
+    archived: [],
+  });
 
-  const tabData   = MY_ACTIVITIES[activeTab] || [];
+  useEffect(() => {
+    fetch('/api/student/activities')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setMyActivities(data.data);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch my activities", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const tabData   = myActivities[activeTab] || [];
   const activeConf = TABS.find((t) => t.key === activeTab);
 
   const filtered = tabData.filter((a) =>
@@ -37,7 +52,7 @@ export default function MyActivitiesPage() {
     a.code.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalCreditsEarned = MY_ACTIVITIES.completed.reduce((s, a) => s + a.credits_earned, 0);
+  const totalCreditsEarned = myActivities.completed.reduce((s, a) => s + a.credits_earned, 0);
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
@@ -56,10 +71,10 @@ export default function MyActivitiesPage() {
             {/* Summary pills */}
             <div className="flex flex-wrap gap-2">
               <span className="text-xs font-medium px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                <FiCheckCircle size={12} /> {MY_ACTIVITIES.completed.length} Completed
+                <FiCheckCircle size={12} /> {myActivities.completed.length} Completed
               </span>
               <span className="text-xs font-medium px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
-                <FiSettings size={12} /> {MY_ACTIVITIES.ongoing.length} Ongoing
+                <FiSettings size={12} /> {myActivities.ongoing.length} Ongoing
               </span>
               <span className="text-xs font-medium px-3 py-1 rounded-full bg-gray-50 text-gray-700 border border-gray-200 flex items-center gap-1">
                 <FiStar size={12} /> {totalCreditsEarned} SAMAM Earned
@@ -74,7 +89,7 @@ export default function MyActivitiesPage() {
         <div className="border-b border-gray-100 overflow-x-auto">
           <div className="flex min-w-max">
             {TABS.map((tab) => {
-              const count = MY_ACTIVITIES[tab.key]?.length || 0;
+              const count = myActivities[tab.key]?.length || 0;
               const isActive = activeTab === tab.key;
               const Icon = tab.icon;
               return (
