@@ -31,6 +31,32 @@ export async function GET() {
   try {
     let logs = [];
     
+    // Add missing schema columns if they don't exist (Production fix)
+    try {
+      await pool.query("ALTER TABLE badge_definitions ADD COLUMN type ENUM('activity', 'milestone') DEFAULT 'activity'");
+      logs.push("Added 'type' column");
+    } catch (e: any) { if (e.code !== 'ER_DUP_FIELDNAME') console.log(e.message); }
+
+    try {
+      await pool.query("ALTER TABLE badge_definitions ADD COLUMN target_value INT DEFAULT 1");
+      logs.push("Added 'target_value' column");
+    } catch (e: any) { if (e.code !== 'ER_DUP_FIELDNAME') console.log(e.message); }
+
+    try {
+      await pool.query("ALTER TABLE badge_definitions ADD COLUMN metric VARCHAR(50) DEFAULT 'completion'");
+      logs.push("Added 'metric' column");
+    } catch (e: any) { if (e.code !== 'ER_DUP_FIELDNAME') console.log(e.message); }
+
+    try {
+      await pool.query("ALTER TABLE badge_definitions ADD COLUMN rarity VARCHAR(50) DEFAULT 'Common'");
+      logs.push("Added 'rarity' column");
+    } catch (e: any) { if (e.code !== 'ER_DUP_FIELDNAME') console.log(e.message); }
+
+    try {
+      await pool.query("ALTER TABLE badge_definitions ADD COLUMN requirement TEXT");
+      logs.push("Added 'requirement' column");
+    } catch (e: any) { if (e.code !== 'ER_DUP_FIELDNAME') console.log(e.message); }
+
     // Clear existing activity badges from badge_definitions to avoid duplicates
     // We only clear type='activity' to preserve milestones
     await pool.query("DELETE FROM badge_definitions WHERE type = 'activity'");
