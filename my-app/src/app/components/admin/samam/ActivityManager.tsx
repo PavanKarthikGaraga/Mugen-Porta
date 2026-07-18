@@ -1,4 +1,5 @@
 "use client";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { FiSearch, FiRefreshCw, FiPlus, FiActivity, FiCheckCircle, FiAlertCircle, FiEdit2, FiTrash2, FiUserCheck } from "react-icons/fi";
 import { BRAND, DOMAIN_COLORS } from "./SharedUI";
@@ -14,7 +15,18 @@ const DOMAIN_NAMES: Record<string, string> = {
 export default function ActivityManager({
   actSearchStr, setActSearchStr, fetchActivities, activitiesLoading, filteredActivities, deleteActivity
 }: any) {
-  const groupedActivities = filteredActivities.reduce((acc: any, curr: any) => {
+  const [selectedDomain, setSelectedDomain] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+
+  const displayActivities = useMemo(() => {
+    return filteredActivities.filter((a: any) => {
+      if (selectedDomain && a.domain !== selectedDomain) return false;
+      if (selectedCategory && (a.category || "General") !== selectedCategory) return false;
+      return true;
+    });
+  }, [filteredActivities, selectedDomain, selectedCategory]);
+
+  const groupedActivities = displayActivities.reduce((acc: any, curr: any) => {
     const domain = curr.domain || "Other";
     const category = curr.category || "General";
     
@@ -25,6 +37,14 @@ export default function ActivityManager({
     return acc;
   }, {});
 
+  // Extract unique domains and categories for dropdown options
+  const availableDomains = Array.from(new Set(filteredActivities.map((a: any) => a.domain || "Other"))) as string[];
+  const availableCategories = Array.from(new Set(
+    filteredActivities
+      .filter((a: any) => !selectedDomain || a.domain === selectedDomain)
+      .map((a: any) => a.category || "General")
+  )) as string[];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
@@ -34,6 +54,25 @@ export default function ActivityManager({
             placeholder="Search activities by title or code..."
             className="w-full h-9 pl-9 pr-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm" />
         </div>
+        
+        <select 
+          value={selectedDomain} 
+          onChange={(e) => { setSelectedDomain(e.target.value); setSelectedCategory(""); }}
+          className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32"
+        >
+          <option value="">All Domains</option>
+          {availableDomains.map(d => <option key={d} value={d}>{DOMAIN_NAMES[d] || d}</option>)}
+        </select>
+
+        <select 
+          value={selectedCategory} 
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32"
+          disabled={!selectedDomain && availableCategories.length > 20}
+        >
+          <option value="">All Categories</option>
+          {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
         <button onClick={fetchActivities}
           className="h-9 px-4 text-[13px] font-medium border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors shadow-sm">
           <FiRefreshCw size={14} className={activitiesLoading ? "animate-spin" : ""} /> Refresh

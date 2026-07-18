@@ -120,6 +120,13 @@ export default function ActivityCataloguePage() {
     }, {});
   }, [filtered]);
 
+  const availableDomains = useMemo(() => Array.from(new Set(activities.map((a: any) => a.domain || "Other"))) as string[], [activities]);
+  const availableCategories = useMemo(() => Array.from(new Set(
+    activities
+      .filter((a: any) => !activeFilters.domain || a.domain === activeFilters.domain)
+      .map((a: any) => a.category || a.pack || "General")
+  )) as string[], [activities, activeFilters.domain]);
+
   const handleFilterChange = (key, value) => {
     setActiveFilters((prev) => ({ ...prev, [key]: value }));
     setPage(1);
@@ -188,6 +195,28 @@ export default function ActivityCataloguePage() {
               placeholder="Search by name, code, faculty…"
               className="flex-1 min-w-48"
             />
+            
+            <select 
+              value={activeFilters.domain} 
+              onChange={(e) => {
+                setActiveFilters((prev: any) => ({ ...prev, domain: e.target.value, pack: "" }));
+              }}
+              className="h-10 px-3 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32"
+            >
+              <option value="">All Domains</option>
+              {availableDomains.map(d => <option key={d} value={d}>{DOMAIN_NAMES[d] || d}</option>)}
+            </select>
+
+            <select 
+              value={activeFilters.pack} 
+              onChange={(e) => handleFilterChange("pack", e.target.value)}
+              className="h-10 px-3 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32 hidden md:block"
+              disabled={!activeFilters.domain && availableCategories.length > 20}
+            >
+              <option value="">All Categories</option>
+              {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+
             {/* Mobile filter toggle */}
             <button
               onClick={() => setFilterOpen(!filterOpen)}
