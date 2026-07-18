@@ -279,7 +279,7 @@ export default function ActivityCataloguePage() {
                 if (val === def || val === "") return null;
                 const filterDef = FILTERS.find((f) => f.key === key);
                 const label = filterDef?.label || key;
-                const display = filterDef?.type === "range" ? `≤${val}${filterDef?.unit || ""}` : val;
+                const display = (filterDef as any)?.type === "range" ? `≤${val}${(filterDef as any)?.unit || ""}` : val;
                 return (
                   <span
                     key={key}
