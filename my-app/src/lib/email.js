@@ -362,83 +362,61 @@ export const sendTestWelcomeEmail = async (email) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Welcome to SAMAM</title>
     </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #2563eb;">Welcome to SAMAM – Your Journey Beyond the Classroom Begins Today!</h2>
+    <body style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px; color: #3f3f46;">
         
-        <p>Dear Students,</p>
-        
-        <p>Welcome to the <strong>Student Activity Management and Achievement Model (SAMAM)</strong> – an innovative student development ecosystem designed to help you discover your potential, develop future-ready competencies, and create a meaningful impact both within and beyond the University.</p>
-        
-        <p>At SAMAM, we believe that education extends beyond classrooms. Every activity you participate in, every challenge you undertake, every leadership role you accept, and every community you serve contributes to your personal, professional, and societal growth.</p>
-        
-        <h3 style="color: #1d4ed8; margin-top: 20px;">What is SAMAM?</h3>
-        <p>SAMAM is a competency-based student development framework that transforms traditional extracurricular activities into structured learning experiences. Every approved activity is designed to help you build valuable knowledge, practical skills, leadership abilities, innovation capabilities, and social responsibility.</p>
-        
-        <p>Whether you aspire to become a software engineer, entrepreneur, researcher, artist, sportsperson, innovator, or community leader, SAMAM provides opportunities to support your journey.</p>
-        
-        <h3 style="color: #1d4ed8; margin-top: 20px;">What You Can Expect</h3>
-        <p>Through SAMAM, you will have opportunities to:</p>
-        <ul>
-            <li>Participate in flagship technical, leadership, innovation, research, cultural, wellness, and community engagement programmes.</li>
-            <li>Join clubs and professional communities aligned with your interests.</li>
-            <li>Develop leadership through student-led initiatives and governance.</li>
-            <li>Earn Student Development Credits (SDCs) through meaningful participation.</li>
-            <li>Build competencies recognized by the University and industry.</li>
-            <li>Maintain a digital portfolio showcasing your achievements.</li>
-            <li>Contribute to innovation, research, entrepreneurship, and sustainable development.</li>
-            <li>Engage with faculty mentors, industry experts, alumni, and community partners.</li>
-        </ul>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            
+            <!-- Header -->
+            <tr>
+                <td style="background-color: #970003; padding: 40px 30px; text-align: center;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px;">SAMAM</h1>
+                    <p style="color: #fca5a5; margin: 8px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px;">Student Activity Center (SAC)</p>
+                </td>
+            </tr>
 
-        <h3 style="color: #1d4ed8; margin-top: 20px;">Your Development Journey</h3>
-        <p>Your SAMAM journey is built on four simple principles:</p>
-        <ul style="list-style-type: none; padding-left: 0;">
-            <li>🚀 <strong>Learn</strong> – Gain new knowledge and perspectives.</li>
-            <li>🌟 <strong>Lead</strong> – Take responsibility and inspire others.</li>
-            <li>💡 <strong>Innovate</strong> – Solve real-world problems creatively.</li>
-            <li>🤝 <strong>Serve</strong> – Make a positive impact on society.</li>
-        </ul>
-        <p>Every experience becomes part of your growth story.</p>
+            <!-- Body -->
+            <tr>
+                <td style="padding: 40px 30px;">
+                    <h2 style="margin: 0 0 20px 0; color: #18181b; font-size: 22px;">Your Journey Beyond the Classroom Begins Today!</h2>
+                    
+                    <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6;">Welcome to the <strong>Student Activity Management and Achievement Model (SAMAM)</strong>. We are thrilled to have you onboard.</p>
+                    
+                    <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6;">Education extends far beyond textbooks. Through SAMAM, every activity you participate in, every leadership role you accept, and every community you serve transforms into structured, measurable growth.</p>
 
-        <h3 style="color: #1d4ed8; margin-top: 20px;">Student-Centric. Faculty-Mentored.</h3>
-        <p>SAMAM is designed around a simple philosophy:</p>
-        <p style="font-style: italic; font-weight: bold; color: #4b5563;">Students lead. Faculty mentor. Learning never stops.</p>
-        <p>You are encouraged to explore new opportunities, collaborate across disciplines, take initiative, and challenge yourself to achieve excellence.</p>
+                    <!-- Core Pillars -->
+                    <div style="background-color: #fef2f2; border-left: 4px solid #970003; padding: 20px; margin-bottom: 24px; border-radius: 0 8px 8px 0;">
+                        <h3 style="margin: 0 0 12px 0; color: #970003; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">The 4 Pillars of SAMAM</h3>
+                        <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 15px; line-height: 1.6;">
+                            <tr><td style="padding-bottom: 8px;">🚀 <strong>Learn:</strong> Gain new knowledge and perspectives.</td></tr>
+                            <tr><td style="padding-bottom: 8px;">🌟 <strong>Lead:</strong> Take responsibility and inspire others.</td></tr>
+                            <tr><td style="padding-bottom: 8px;">💡 <strong>Innovate:</strong> Solve real-world problems creatively.</td></tr>
+                            <tr><td>🤝 <strong>Serve:</strong> Make a positive impact on society.</td></tr>
+                        </table>
+                    </div>
 
-        <h3 style="color: #1d4ed8; margin-top: 20px;">Make Every Activity Count</h3>
-        <p>Each activity under SAMAM is more than an event—it is an opportunity to:</p>
-        <ul>
-            <li>Learn something new.</li>
-            <li>Build lifelong competencies.</li>
-            <li>Develop leadership and teamwork.</li>
-            <li>Strengthen communication and problem-solving skills.</li>
-            <li>Expand your professional network.</li>
-            <li>Create lasting memories and meaningful impact.</li>
-        </ul>
+                    <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6;">Whether you aspire to be an engineer, an entrepreneur, an artist, or a community leader, SAMAM provides the ecosystem to build your digital portfolio, earn Student Development Credits (SDCs), and collaborate with faculty mentors.</p>
+                    
+                    <!-- CTA Button -->
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td align="center">
+                                <a href="https://sacactivities.kluniversity.in" style="background-color: #970003; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(151, 0, 3, 0.25);">Explore Your Dashboard</a>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
 
-        <h3 style="color: #1d4ed8; margin-top: 20px;">Begin Your Journey</h3>
-        <p>We encourage you to:</p>
-        <ul>
-            <li>Complete your SAMAM profile.</li>
-            <li>Explore available clubs and domains.</li>
-            <li>Register for activities that match your interests.</li>
-            <li>Connect with your faculty mentors and student leaders.</li>
-            <li>Participate actively and consistently.</li>
-            <li>Build your personal development portfolio from day one.</li>
-        </ul>
-
-        <p>Remember, your university life is not measured only by grades, but also by the experiences you embrace, the skills you develop, the people you inspire, and the difference you make.</p>
+            <!-- Footer -->
+            <tr>
+                <td style="background-color: #f4f4f5; padding: 30px; text-align: center; border-top: 1px solid #e4e4e7;">
+                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #71717a; font-weight: 600;">Student Activity Center (SAC)</p>
+                    <p style="margin: 0 0 16px 0; font-size: 13px; color: #a1a1aa; font-style: italic;">Empowering Students. Inspiring Leadership. Creating Impact.</p>
+                    <p style="margin: 0; font-size: 12px; color: #d4d4d8;">&copy; 2026 KL University SAC. All rights reserved.</p>
+                </td>
+            </tr>
+        </table>
         
-        <p>We are excited to be part of your journey and look forward to witnessing your growth, achievements, and contributions through SAMAM.</p>
-        
-        <p style="font-weight: bold;">Welcome to a future of learning, leadership, innovation, and impact.</p>
-        <p>We wish you a successful and fulfilling journey.</p>
-        
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-            <p style="margin: 0;">Warm regards,</p>
-            <p style="margin: 5px 0; font-weight: bold;">Student Activity Center (SAC)</p>
-            <p style="margin: 0; color: #4b5563;">SAMAM – Student Activity Management and Achievement Model</p>
-            <p style="margin: 0; font-style: italic; color: #6b7280; font-size: 0.9em;">Empowering Students. Inspiring Leadership. Creating Impact.</p>
-        </div>
     </body>
     </html>
     `;
