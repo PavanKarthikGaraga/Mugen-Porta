@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiDownload, FiRefreshCw, FiClipboard, FiSettings, FiCheckCircle, FiClock, FiAward, FiArchive, FiStar } from "react-icons/fi";
 // Removed mock data import
 import MyActivityRow from "@/app/components/dashboard/MyActivityRow";
