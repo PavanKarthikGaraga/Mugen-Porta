@@ -280,6 +280,7 @@ export default function ActivityCataloguePage() {
                 Clear all filters
               </button>
             </div>
+          ) : (
             <div className="space-y-16">
               {Object.entries(groupedActivities).map(([domain, categoriesObj]: [string, any]) => (
                 <div key={domain} className="space-y-8">
