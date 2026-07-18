@@ -398,7 +398,7 @@ export const sendTestWelcomeEmail = async (email) => {
                             <li style="margin-bottom: 8px;">Participate in flagship technical, leadership, innovation, research, cultural, wellness, and community engagement programmes.</li>
                             <li style="margin-bottom: 8px;">Join clubs and professional communities aligned with your interests.</li>
                             <li style="margin-bottom: 8px;">Develop leadership through student-led initiatives and governance.</li>
-                            <li style="margin-bottom: 8px;">Earn Student Development Credits (SDCs) through meaningful participation.</li>
+                            <li style="margin-bottom: 8px;">Earn SAMAM Points through meaningful participation.</li>
                             <li style="margin-bottom: 8px;">Build competencies recognized by the University and industry.</li>
                             <li style="margin-bottom: 8px;">Maintain a digital portfolio showcasing your achievements.</li>
                             <li style="margin-bottom: 8px;">Contribute to innovation, research, entrepreneurship, and sustainable development.</li>
