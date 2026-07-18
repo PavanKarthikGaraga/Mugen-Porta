@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { FiSearch, FiRefreshCw, FiPlus, FiActivity, FiCheckCircle, FiAlertCircle, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiSearch, FiRefreshCw, FiPlus, FiActivity, FiCheckCircle, FiAlertCircle, FiEdit2, FiTrash2, FiUserCheck } from "react-icons/fi";
 import { BRAND, DOMAIN_COLORS } from "./SharedUI";
 
 export default function ActivityManager({
@@ -77,11 +77,19 @@ export default function ActivityManager({
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
                         <Link
+                          href={`/dashboard/admin/activities/${a.code}/attendance`}
+                          title="Mark Attendance"
+                          className="text-gray-400 hover:text-brand-600 transition-colors">
+                          <FiUserCheck size={14} />
+                        </Link>
+                        <Link
                           href={`/dashboard/admin/samam/activities/${a.code}/edit`}
+                          title="Edit Activity"
                           className="text-gray-400 hover:text-gray-900 transition-colors">
                           <FiEdit2 size={14} />
                         </Link>
                         <button onClick={() => deleteActivity(a.code || a.id)}
+                          title="Delete"
                           className="text-gray-400 hover:text-red-600 transition-colors">
                           <FiTrash2 size={14} />
                         </button>

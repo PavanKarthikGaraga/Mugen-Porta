@@ -1,21 +1,24 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { FiAward, FiBarChart2, FiUsers, FiActivity, FiStar, FiSettings, FiBriefcase, FiTarget, FiFileText } from "react-icons/fi";
+import { FiAward, FiBarChart2, FiUsers, FiActivity, FiStar, FiSettings, FiBriefcase, FiTarget, FiFileText, FiBell } from "react-icons/fi";
 import { toast } from "sonner";
 import { BRAND } from "@/app/components/admin/samam/SharedUI";
 import AnalyticsView from "@/app/components/admin/samam/AnalyticsView";
 import StudentManager from "@/app/components/admin/samam/StudentManager";
 import ActivityManager from "@/app/components/admin/samam/ActivityManager";
 import BadgeManager from "@/app/components/admin/samam/BadgeManager";
+import SubmissionsManager from "@/app/components/admin/samam/SubmissionsManager";
+import NotificationsManager from "@/app/components/admin/samam/NotificationsManager";
+import SettingsManager from "@/app/components/admin/samam/SettingsManager";
 
-const TABS = [
+const TABS: { key: string, label: string, icon: React.ReactNode, disabled?: boolean }[] = [
   { key: "analytics", label: "Overview", icon: <FiBarChart2 size={15} /> },
   { key: "students",  label: "Students",  icon: <FiUsers size={15} />     },
   { key: "activities",label: "Activities",icon: <FiActivity size={15} />  },
   { key: "awards",    label: "Recognitions", icon: <FiAward size={15} />      },
-  { key: "submissions",label: "Submissions",icon: <FiFileText size={15} />, disabled: true },
-  { key: "careers",   label: "Careers",   icon: <FiBriefcase size={15} />, disabled: true },
-  { key: "competencies",label: "Competencies",icon: <FiTarget size={15} />, disabled: true },
+  { key: "submissions",label: "Submissions",icon: <FiFileText size={15} /> },
+  { key: "notifications",label: "Notifications",icon: <FiBell size={15} /> },
+  { key: "settings",label: "Settings",icon: <FiSettings size={15} /> },
 ];
 
 export default function SamamAdminPage() {
@@ -229,6 +232,10 @@ export default function SamamAdminPage() {
             awardPoints={awardPoints} awardBadge={awardBadge} awardHistory={awardHistory} awardLoading={awardLoading}
           />
         )}
+
+        {tab === "submissions" && <SubmissionsManager />}
+        {tab === "notifications" && <NotificationsManager />}
+        {tab === "settings" && <SettingsManager />}
       </div>
 
     </div>
