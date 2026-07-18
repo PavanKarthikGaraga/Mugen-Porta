@@ -11,16 +11,10 @@ const BRAND = "rgb(151,0,3)";
 const PAGE_SIZE = 12;
 
 const FILTERS = [
-  { key: "domain",     label: "Domain",           type: "chips",  options: Object.values(DOMAINS).map((d) => d.id) },
   { key: "difficulty", label: "Difficulty",        type: "chips",  options: ["Beginner","Intermediate","Advanced"] },
   { key: "level",      label: "Journey Level",     type: "select", options: LEVELS.map((l) => l.name) },
-  { key: "pack",       label: "Activity Pack",     type: "select", options: ACTIVITY_PACKS },
-  { key: "faculty",    label: "Faculty",           type: "select", options: FACULTIES },
-  { key: "maxCredits", label: "Max Points",       type: "range",  min: 4, max: 25, step: 1, unit: " SAMAM" },
-  { key: "maxHours",   label: "Max Duration",      type: "range",  min: 4, max: 150, step: 5, unit: "h" },
   { key: "sdg",        label: "SDG",               type: "select", options: Array.from({ length: 17 }, (_, i) => `SDG ${i + 1}`) },
   { key: "status",     label: "Status",            type: "chips",  options: ["Open","Full","Upcoming"] },
-  { key: "career",     label: "Career Path",       type: "chips",  options: ["Placement","Higher Education","Entrepreneurship","Research & Development"] },
 ];
 
 const EMPTY_FILTERS = {
