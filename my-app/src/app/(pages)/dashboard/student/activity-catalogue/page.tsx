@@ -156,7 +156,7 @@ export default function ActivityCataloguePage() {
                       : { backgroundColor: d.bg, color: d.color, borderColor: `${d.color}30` }
                   }
                 >
-                  {d.name.split(" ")[0]}
+                  {d.id}
                 </button>
               ))}
             </div>
@@ -181,39 +181,20 @@ export default function ActivityCataloguePage() {
         {/* ── Main area ── */}
         <div className="flex-1 min-w-0 space-y-4">
 
-          {/* Search + controls row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <SearchBar
-              value={search}
-              onChange={(v) => { setSearch(v); setPage(1); }}
-              placeholder="Search by name, code, faculty…"
-              className="flex-1 min-w-48"
-            />
-            
-            <select 
-              value={activeFilters.domain} 
-              onChange={(e) => {
-                setActiveFilters((prev: any) => ({ ...prev, domain: e.target.value, pack: "" }));
-              }}
-              className="h-10 px-3 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32"
-            >
-              <option value="">All Domains</option>
-              {availableDomains.map(d => <option key={d} value={d}>{DOMAIN_NAMES[d] || d}</option>)}
-            </select>
-
-            <select 
-              value={activeFilters.pack} 
-              onChange={(e) => handleFilterChange("pack", e.target.value)}
-              className="h-10 px-3 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32 hidden md:block"
-              disabled={!activeFilters.domain && availableCategories.length > 20}
-            >
-              <option value="">All Categories</option>
-              {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-
-            {/* Mobile filter toggle */}
-            <button
-              onClick={() => setFilterOpen(!filterOpen)}
+          {/* Search + controls container */}
+          <div className="space-y-3">
+            {/* Top row: Search, Filter toggle, View toggle */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <SearchBar
+                value={search}
+                onChange={(v) => { setSearch(v); setPage(1); }}
+                placeholder="Search by name, code, faculty…"
+                className="flex-1 min-w-48"
+              />
+              
+              {/* Mobile filter toggle */}
+              <button
+                onClick={() => setFilterOpen(!filterOpen)}
               className="lg:hidden flex items-center gap-1.5 text-xs font-medium px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <FiSliders size={14} />
@@ -247,7 +228,32 @@ export default function ActivityCataloguePage() {
             </span>
           </div>
 
-          {/* Mobile filter panel */}
+          {/* Bottom row: Dropdowns */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <select 
+              value={activeFilters.domain} 
+              onChange={(e) => {
+                setActiveFilters((prev: any) => ({ ...prev, domain: e.target.value, pack: "" }));
+              }}
+              className="h-10 px-3 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-48"
+            >
+              <option value="">All Domains</option>
+              {availableDomains.map(d => <option key={d} value={d}>{DOMAIN_NAMES[d] || d}</option>)}
+            </select>
+
+            <select 
+              value={activeFilters.pack} 
+              onChange={(e) => handleFilterChange("pack", e.target.value)}
+              className="h-10 px-3 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-48"
+              disabled={!activeFilters.domain && availableCategories.length > 20}
+            >
+              <option value="">All Categories</option>
+              {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Mobile filter panel */}
           {filterOpen && (
             <div className="lg:hidden bg-white rounded-xl border border-gray-200 shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
