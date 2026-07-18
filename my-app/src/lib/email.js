@@ -475,7 +475,7 @@ export const sendTestWelcomeEmail = async (email) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `zoho-enczapikey ${zeptoToken}`
+                'Authorization': zeptoToken.toLowerCase().startsWith('zoho-enczapikey') ? zeptoToken : `Zoho-enczapikey ${zeptoToken}`
             },
             body: JSON.stringify(payload)
         });
