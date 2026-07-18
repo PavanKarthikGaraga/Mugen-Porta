@@ -435,7 +435,7 @@ export const sendTestWelcomeEmail = async (email) => {
             from: {
                 // Must be a verified domain in ZeptoMail
                 address: process.env.SMTP_FROM || "noreply@samam.com",
-                name: "SAMAM Admin"
+                name: "SAC Activities"
             },
             to: [
                 {
