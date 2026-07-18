@@ -444,19 +444,51 @@ export const sendTestWelcomeEmail = async (email) => {
     `;
 
     try {
-        console.log('🔄 Sending test welcome email directly...');
+        console.log('🔄 Sending test welcome email via ZeptoMail API...');
 
-        const mailOptions = {
-            from: process.env.SMTP_FROM || process.env.SMTP_USER,
-            to: email,
+        const zeptoUrl = "https://api.zeptomail.in/v1.1/email";
+        const zeptoToken = process.env.ZEPTO_MAIL_TOKEN;
+
+        if (!zeptoToken) {
+            throw new Error("ZEPTO_MAIL_TOKEN is missing in environment variables. Please add it to your .env file.");
+        }
+
+        const payload = {
+            from: {
+                // Must be a verified domain in ZeptoMail
+                address: process.env.SMTP_FROM || "noreply@samam.com",
+                name: "SAMAM Admin"
+            },
+            to: [
+                {
+                    email_address: {
+                        address: email,
+                        name: "Student"
+                    }
+                }
+            ],
             subject: 'Welcome to SAMAM – Your Journey Beyond the Classroom Begins Today!',
-            html: htmlTemplate,
+            htmlbody: htmlTemplate,
         };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`✅ Test welcome email sent successfully to ${email}. Message ID: ${info.messageId}`);
+        const response = await fetch(zeptoUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `zoho-enczapikey ${zeptoToken}`
+            },
+            body: JSON.stringify(payload)
+        });
 
-        return { success: true, messageId: info.messageId };
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log(`✅ Test welcome email sent successfully via ZeptoMail. Response:`, data.message);
+            return { success: true, messageId: data.data?.[0]?.request_id || "zepto-success" };
+        } else {
+            console.error('❌ ZeptoMail Error:', data);
+            throw new Error(data.error?.message || "Failed to send email via ZeptoMail API");
+        }
     } catch (error) {
         console.error('Error sending test welcome email:', error);
         return { success: false, error: error.message };
