@@ -11,7 +11,6 @@ import {
 import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
 import Breadcrumbs from "@/app/components/dashboard/Breadcrumbs";
-import { mockNotifications } from "@/app/Data/samam-mock";
 import CommandPalette from "@/app/components/dashboard/CommandPalette";
 
 // ─── Navigation definition ────────────────────────────────────────────────────
@@ -57,7 +56,8 @@ export default function SAMAMStudentDashboardLayout({ children }) {
   const pathname = usePathname();
   const router   = useRouter();
 
-  const unreadCount = mockNotifications.filter((n) => !n.read).length;
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // ── Fetch user data ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -80,6 +80,13 @@ export default function SAMAMStudentDashboardLayout({ children }) {
               }
             }
           }
+        }
+        
+        // Fetch notifications
+        const notifRes = await fetch("/api/student/notifications");
+        if (notifRes.ok) {
+          const notifData = await notifRes.json();
+          if (Array.isArray(notifData)) setNotifications(notifData);
         }
       } catch (err) {
         console.error("Failed to fetch user data:", err);
@@ -270,7 +277,11 @@ export default function SAMAMStudentDashboardLayout({ children }) {
                       )}
                     </div>
                     <div className="max-h-72 overflow-y-auto">
-                      {mockNotifications.map((n) => {
+                      {notifications.length === 0 ? (
+                        <div className="py-8 text-center text-gray-500 text-xs">
+                          No notifications yet.
+                        </div>
+                      ) : notifications.slice(0, 5).map((n) => {
                         const icons = { activity: "📋", badge: "🏆", sdc: "⭐", reminder: "🔔", system: "ℹ️" };
                         return (
                           <div
@@ -284,7 +295,11 @@ export default function SAMAMStudentDashboardLayout({ children }) {
                                 {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-red-600" />}
                               </div>
                               <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
-                              <p className="text-xs text-gray-400 mt-0.5">{n.time}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {new Date(n.time || n.created_at).toLocaleString('en-US', {
+                                  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                })}
+                              </p>
                             </div>
                           </div>
                         );
