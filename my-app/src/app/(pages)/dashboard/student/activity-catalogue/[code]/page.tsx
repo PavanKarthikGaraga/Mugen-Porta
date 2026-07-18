@@ -49,6 +49,16 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [enrolledCount, setEnrolledCount] = useState(0);
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [reflectionText, setReflectionText] = useState("");
+  const [reflectionSaved, setReflectionSaved] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  
+  // Discussion state
+  const [discussions, setDiscussions] = useState<any[]>([]);
+  const [newDiscussion, setNewDiscussion] = useState("");
+  const [postingDiscussion, setPostingDiscussion] = useState(false);
+  const [submittingAssignment, setSubmittingAssignment] = useState(false);
 
   useEffect(() => {
     fetch(`/api/activities/${code}`)
@@ -74,9 +84,47 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
 
     fetch(`/api/activities/${code}/enroll`)
       .then(r => r.json())
-      .then(d => { if (d.enrolled) setEnrolled(true); })
+      .then(d => { 
+        if (d.enrolled) {
+          setEnrolled(true);
+          setActivity((prev: any) => prev ? { ...prev, userAttendance: d.userAttendance } : prev);
+        }
+      })
       .catch(() => {});
   }, [code]);
+
+  useEffect(() => {
+    if (activeTab === "discussion" && code) {
+      fetch(`/api/activities/${code}/discussion`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.success) setDiscussions(d.messages);
+        })
+        .catch(err => console.error("Error fetching discussions:", err));
+    }
+  }, [activeTab, code]);
+
+  const handlePostDiscussion = async () => {
+    if (!newDiscussion.trim()) return;
+    setPostingDiscussion(true);
+    try {
+      const res = await fetch(`/api/activities/${code}/discussion`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: newDiscussion })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNewDiscussion("");
+        // Re-fetch discussions
+        const updated = await fetch(`/api/activities/${code}/discussion`).then(r => r.json());
+        if (updated.success) setDiscussions(updated.messages);
+      }
+    } catch (err) {
+      console.error("Error posting discussion:", err);
+    }
+    setPostingDiscussion(false);
+  };
 
   const handleEnroll = async () => {
     setEnrollLoading(true);
@@ -113,9 +161,18 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
     setEnrollLoading(false);
   };
 
-  const [activeTab, setActiveTab] = useState("overview");
-  const [reflectionText, setReflectionText] = useState("");
-  const [reflectionSaved, setReflectionSaved] = useState(false);
+
+  const handleAssignmentSubmit = (id: string) => {
+    setSubmittingAssignment(true);
+    setTimeout(() => {
+      setSubmittingAssignment(false);
+      setSelectedTask(null);
+      setActivity((prev: any) => ({
+        ...prev,
+        assignments: prev.assignments.map((a: any) => a.id === id ? { ...a, submitted: true } : a)
+      }));
+    }, 1000);
+  };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading activity details...</div>;
   if (!activity) return notFound();
@@ -233,7 +290,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="border-b border-gray-100 overflow-x-auto">
           <div className="flex min-w-max">
-            {TABS.map((tab) => (
+            {TABS.filter(tab => enrolled || ["overview", "timeline", "mentor", "impact"].includes(tab.id)).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -363,10 +420,11 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                         </span>
                       ) : (
                         <button
+                          onClick={() => setSelectedTask(a)}
                           className="text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-colors"
                           style={{ backgroundColor: BRAND }}
                         >
-                          Submit
+                          View
                         </button>
                       )}
                     </div>
@@ -398,33 +456,44 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
           {/* DISCUSSION */}
           {activeTab === "discussion" && (
             <div className="space-y-3">
-              {[
-                { user:"Ananya K.", time:"2 days ago", message:"Has anyone tried the additional resource links? The 3rd one is really helpful for understanding the concepts." },
-                { user:"Rahul M.",  time:"1 day ago",  message:"Yes! I found the handbook especially useful. Also, does anyone know if the final submission needs to be in a specific format?" },
-                { user:"Priya S.", time:"5 hours ago", message:"Mentor mentioned it should be a PDF with max 5 pages. Check the announcement section." },
-              ].map((msg, i) => (
-                <div key={i} className="flex items-start gap-3 p-3.5 bg-gray-50 rounded-xl">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: BRAND }}>
-                    {msg.user[0]}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-xs font-semibold text-gray-900">{msg.user}</p>
-                      <p className="text-[10px] text-gray-400">{msg.time}</p>
-                    </div>
-                    <p className="text-xs text-gray-700 leading-relaxed">{msg.message}</p>
-                  </div>
+              {discussions.length === 0 ? (
+                <div className="p-4 text-center text-gray-500 text-sm bg-gray-50 rounded-xl">
+                  No discussions yet. Start the conversation!
                 </div>
-              ))}
+              ) : (
+                discussions.map((msg, i) => (
+                  <div key={msg.id || i} className="flex items-start gap-3 p-3.5 bg-gray-50 rounded-xl">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: BRAND }}>
+                      {msg.user[0]}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-xs font-semibold text-gray-900">{msg.user}</p>
+                        <p className="text-[10px] text-gray-400">{msg.time}</p>
+                      </div>
+                      <p className="text-xs text-gray-700 leading-relaxed">{msg.message}</p>
+                    </div>
+                  </div>
+                ))
+              )}
               <div className="flex gap-2 mt-2">
                 <input
                   type="text"
                   placeholder="Add to discussion…"
+                  value={newDiscussion}
+                  onChange={(e) => setNewDiscussion(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handlePostDiscussion()}
                   className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-1"
                   style={{ "--tw-ring-color": BRAND } as React.CSSProperties}
+                  disabled={postingDiscussion}
                 />
-                <button className="px-4 text-xs font-medium text-white rounded-lg" style={{ backgroundColor: BRAND }}>
-                  Post
+                <button 
+                  onClick={handlePostDiscussion}
+                  disabled={postingDiscussion || !newDiscussion.trim()}
+                  className="px-4 text-xs font-medium text-white rounded-lg disabled:opacity-50" 
+                  style={{ backgroundColor: BRAND }}
+                >
+                  {postingDiscussion ? "Posting..." : "Post"}
                 </button>
               </div>
             </div>
@@ -529,6 +598,41 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
           )}
         </div>
       </div>
+
+      {/* ASSIGNMENT MODAL */}
+      {selectedTask && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+            <div className="p-6 border-b flex justify-between items-start">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">{selectedTask.title}</h3>
+                <p className="text-sm text-gray-500 mt-1">Due: {selectedTask.dueDate}</p>
+              </div>
+              <button 
+                onClick={() => setSelectedTask(null)}
+                className="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 bg-gray-50">
+              <div className="bg-white p-4 rounded-xl border mb-6 shadow-sm">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  Please complete the task as described by your mentor and submit your work below. Ensure your submission is formatted correctly.
+                </p>
+              </div>
+              <button
+                onClick={() => handleAssignmentSubmit(selectedTask.id)}
+                disabled={submittingAssignment}
+                className="w-full py-3 rounded-xl text-white font-bold transition-all shadow-md flex justify-center items-center gap-2"
+                style={{ backgroundColor: BRAND }}
+              >
+                {submittingAssignment ? "Submitting..." : "Submit Task"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

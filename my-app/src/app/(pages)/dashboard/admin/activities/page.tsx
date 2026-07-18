@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiRefreshCw } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiRefreshCw, FiCheckSquare } from "react-icons/fi";
 import { toast } from "sonner";
 
 export default function AdminActivitiesPage() {
@@ -113,10 +113,13 @@ export default function AdminActivitiesPage() {
                     </td>
                     <td className="p-4 text-sm text-gray-600 capitalize">{activity.level}</td>
                     <td className="p-4 text-sm text-right space-x-2">
-                      <Link href={`/dashboard/admin/activities/${activity.id}`} className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                      <Link href={`/dashboard/admin/activities/${activity.id}/attendance`} className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors" title="Mark Attendance">
+                        <FiCheckSquare size={14} />
+                      </Link>
+                      <Link href={`/dashboard/admin/activities/${activity.id}`} className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Edit Activity">
                         <FiEdit2 size={14} />
                       </Link>
-                      <button onClick={() => handleDelete(activity.id, activity.title)} className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+                      <button onClick={() => handleDelete(activity.id, activity.title)} className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Delete Activity">
                         <FiTrash2 size={14} />
                       </button>
                     </td>

@@ -1,13 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiBell, FiCheck, FiFilter } from "react-icons/fi";
-import { mockNotifications } from "@/app/Data/samam-mock";
 
 export default function NotificationsPage() {
   const [filter, setFilter] = useState("all");
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockNotifications.filter((n) => {
+  useEffect(() => {
+    fetch("/api/student/notifications")
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) setNotifications(d.notifications);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      const res = await fetch(`/api/student/notifications/${id}/read`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+      }
+    } catch (err) {
+      console.error("Failed to mark as read");
+    }
+  };
+
+  const filtered = notifications.filter((n) => {
     if (filter === "unread") return !n.read;
     return true;
   });
@@ -35,11 +58,13 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
-        {filtered.length === 0 ? (
+      <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden min-h-[300px]">
+        {loading ? (
+          <div className="p-12 text-center text-gray-500 dark:text-zinc-400">Loading notifications...</div>
+        ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-gray-500 dark:text-zinc-400">
             <FiBell size={40} className="mx-auto mb-4 opacity-50" />
-            <p>You're all caught up!</p>
+            <p>You&apos;re all caught up!</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-zinc-800">
@@ -56,7 +81,11 @@ export default function NotificationsPage() {
                     <p className="text-sm text-gray-600 dark:text-zinc-300 mt-1 leading-relaxed">{n.message}</p>
                   </div>
                   {!n.read && (
-                    <button className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 transition-colors">
+                    <button 
+                      onClick={() => handleMarkAsRead(n.id)}
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 transition-colors"
+                      title="Mark as read"
+                    >
                       <FiCheck size={16} />
                     </button>
                   )}

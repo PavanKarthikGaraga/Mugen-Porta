@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { FiUser, FiMail, FiBookOpen, FiMapPin, FiGithub, FiLinkedin, FiGlobe, FiSave } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -68,7 +69,7 @@ export default function ProfilePage() {
             <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
             <div className={`w-24 h-24 rounded-2xl bg-gray-100 dark:bg-zinc-900 flex items-center justify-center text-3xl font-bold text-gray-500 dark:text-zinc-400 border-4 border-white dark:border-zinc-950 shadow-md overflow-hidden ${uploading ? 'opacity-50' : ''}`}>
               {avatarUrl ? (
-                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                <Image src={avatarUrl} alt="Avatar" width={96} height={96} className="w-full h-full object-cover" unoptimized />
               ) : (
                 "ST"
               )}

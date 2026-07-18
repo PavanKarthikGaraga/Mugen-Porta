@@ -25,12 +25,12 @@ export async function GET(
         const { id } = await params;
 
         const [rows] = await pool.execute(
-            `SELECT id, status FROM activity_enrollments WHERE activity_code = ? AND username = ?`,
+            `SELECT id, status, attendance_percentage FROM activity_enrollments WHERE activity_code = ? AND username = ?`,
             [id, user.username] as string[]
         ) as any[];
 
         if (rows.length > 0) {
-            return NextResponse.json({ enrolled: true, status: rows[0].status });
+            return NextResponse.json({ enrolled: true, status: rows[0].status, userAttendance: rows[0].attendance_percentage || 0 });
         }
         return NextResponse.json({ enrolled: false });
 
@@ -137,6 +137,8 @@ export async function POST(
   username VARCHAR(10) NOT NULL,
   status ENUM('active','completed','dropped') DEFAULT 'active',
   enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  attendance_percentage INT DEFAULT 0,
+  attendance_marked BOOLEAN DEFAULT FALSE,
   UNIQUE KEY uq_enroll (activity_code, username),
   FOREIGN KEY (username) REFERENCES students(username) ON DELETE CASCADE
 );`
