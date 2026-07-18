@@ -10,6 +10,7 @@ export default function LearningJourneyPage() {
   const [activeStage, setActiveStage] = useState("practitioner");
   const [activeTab, setActiveTab]   = useState("activities");
   const [studentCredits, setStudentCredits] = useState(0);
+  const [levelPoints, setLevelPoints] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +24,23 @@ export default function LearningJourneyPage() {
           const sdcData = await sdcRes.json();
           setStudentCredits(sdcData.total || 0);
         }
+        
+        const actRes = await fetch("/api/student/activities");
+        if (actRes.ok) {
+          const actData = await actRes.json();
+          if (actData.success) {
+            const allActivities = [...actData.data.ongoing, ...actData.data.completed];
+            const lp: Record<string, number> = {};
+            allActivities.forEach((a: any) => {
+               const l = (a.level || 'explorer').toLowerCase();
+               if (!lp[l]) lp[l] = 0;
+               if (a.enrollment_status === 'completed') {
+                 lp[l] += Number(a.sdc_credits || a.credits || 0);
+               }
+            });
+            setLevelPoints(lp);
+          }
+        }
       } catch (err) {
         console.error("Failed to load credits", err);
       }
@@ -32,7 +50,7 @@ export default function LearningJourneyPage() {
   }, []);
 
   const activeStageData = JOURNEY_STAGES.find((s) => s.id === activeStage);
-  const isUnlocked = (stage: any) => studentCredits >= stage.credits_required;
+  const isUnlocked = (stage: any) => true;
 
   if (loading) {
     return <div className="p-8 text-center text-gray-500">Loading learning journey...</div>;
@@ -85,26 +103,21 @@ export default function LearningJourneyPage() {
               >
                 {/* Stage orb */}
                 <button
-                  onClick={() => unlocked && setActiveStage(stage.id)}
-                  disabled={!unlocked}
+                  onClick={() => setActiveStage(stage.id)}
                   className={`relative z-10 flex-shrink-0 w-16 h-16 rounded-full flex flex-col items-center justify-center text-xl border-2 transition-all duration-300 ${
-                    unlocked
-                      ? isActive
-                        ? "shadow-lg scale-110 text-white"
-                        : "hover:scale-105 shadow-sm"
-                      : "opacity-40 cursor-not-allowed bg-gray-100"
+                    isActive
+                      ? "shadow-lg scale-110 text-white"
+                      : "hover:scale-105 shadow-sm"
                   }`}
                   style={
-                    unlocked
-                      ? isActive
-                        ? { backgroundColor: stage.color, borderColor: stage.color }
-                        : { backgroundColor: stage.bg, borderColor: stage.border }
-                      : { borderColor: "#E5E7EB" }
+                    isActive
+                      ? { backgroundColor: stage.color, borderColor: stage.color }
+                      : { backgroundColor: stage.bg, borderColor: stage.border }
                   }
                   aria-label={stage.name}
                 >
-                  {!unlocked ? <FiLock size={20} className="text-gray-400" /> : <span>{stage.icon}</span>}
-                  {unlocked && completedActivities === totalActivities && totalActivities > 0 && (
+                  <span>{stage.icon}</span>
+                  {completedActivities === totalActivities && totalActivities > 0 && (
                     <FiCheckCircle
                       className="absolute -top-1 -right-1 text-emerald-500 bg-white rounded-full"
                       size={16}
@@ -116,9 +129,9 @@ export default function LearningJourneyPage() {
                 <div
                   className={`flex-1 bg-white rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden ${
                     isActive ? "shadow-md" : "shadow-sm hover:shadow-md"
-                  } ${!unlocked ? "opacity-60 cursor-not-allowed" : ""}`}
+                  }`}
                   style={{ borderColor: isActive ? stage.color : "#E5E7EB" }}
-                  onClick={() => unlocked && setActiveStage(stage.id)}
+                  onClick={() => setActiveStage(stage.id)}
                 >
                   {isActive && <div className="h-1" style={{ backgroundColor: stage.color }} />}
                   <div className="p-4">
@@ -131,11 +144,9 @@ export default function LearningJourneyPage() {
                           >
                             {stage.name}
                           </span>
-                          {!unlocked && (
-                            <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                              <FiLock size={10} /> Requires {stage.credits_required} credits
-                            </span>
-                          )}
+                          <span className="text-[10px] font-semibold flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
+                            <FiZap size={10} /> {levelPoints[stage.id] || 0} Points
+                          </span>
                         </div>
                         <p className="text-xs text-gray-500">{stage.description}</p>
                       </div>
