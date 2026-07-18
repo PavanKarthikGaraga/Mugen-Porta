@@ -28,6 +28,14 @@ const EMPTY_FILTERS = {
   maxCredits: 25, maxHours: 150, sdg: "", status: "", career: "",
 };
 
+const DOMAIN_NAMES: Record<string, string> = {
+  TEC: "TEC (Technical)",
+  LCH: "LCH (Liberal Arts)",
+  ESO: "ESO (Extension & Society Outreach)",
+  IIE: "IIE (Innovation, Incubation and Entrepreneurship)",
+  HWB: "HWB (Health and Wellbeing)",
+};
+
 export default function ActivityCataloguePage() {
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,8 +107,18 @@ export default function ActivityCataloguePage() {
     });
   }, [search, activeFilters, activities]);
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const groupedActivities = useMemo(() => {
+    return filtered.reduce((acc: any, curr: any) => {
+      const domain = curr.domain || "Other";
+      const category = curr.category || curr.pack || "General";
+      
+      if (!acc[domain]) acc[domain] = {};
+      if (!acc[domain][category]) acc[domain][category] = [];
+      
+      acc[domain][category].push(curr);
+      return acc;
+    }, {});
+  }, [filtered]);
 
   const handleFilterChange = (key, value) => {
     setActiveFilters((prev) => ({ ...prev, [key]: value }));
@@ -249,8 +267,8 @@ export default function ActivityCataloguePage() {
             </div>
           )}
 
-          {/* Results grid */}
-          {paginated.length === 0 ? (
+          {/* Results grouped by category */}
+          {filtered.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <p className="text-3xl mb-3">🔍</p>
               <p className="text-sm font-medium text-gray-600">No activities match your filters</p>
@@ -262,56 +280,44 @@ export default function ActivityCataloguePage() {
                 Clear all filters
               </button>
             </div>
-          ) : (
-            <div className={view === "grid"
-              ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
-              : "space-y-3"
-            }>
-              {paginated.map((a) => (
-                <CatalogueCard
-                  key={a.id}
-                  activity={a}
-                  isEnrolled={a.isEnrolled}
-                  bookmarked={bookmarks.has(a.id)}
-                  onBookmark={toggleBookmark}
-                />
+            <div className="space-y-16">
+              {Object.entries(groupedActivities).map(([domain, categoriesObj]: [string, any]) => (
+                <div key={domain} className="space-y-8">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-3xl font-bold text-gray-900">{DOMAIN_NAMES[domain] || domain}</h2>
+                    <span className="text-[13px] font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+                      {Object.values(categoriesObj).flat().length} Activities
+                    </span>
+                    <div className="flex-1 border-b-2 border-gray-200"></div>
+                  </div>
+                  
+                  <div className="space-y-12 pl-2">
+                    {Object.entries(categoriesObj).map(([category, items]: [string, any]) => (
+                      <div key={category}>
+                        <div className="flex items-center gap-3 mb-6">
+                          <h3 className="text-xl font-bold text-gray-700">{category}</h3>
+                          <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full">{items.length} Activities</span>
+                          <div className="flex-1 border-b border-gray-200"></div>
+                        </div>
+                        <div className={view === "grid"
+                          ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
+                          : "space-y-3"
+                        }>
+                          {items.map((a: any) => (
+                            <CatalogueCard
+                              key={a.id}
+                              activity={a}
+                              isEnrolled={a.isEnrolled}
+                              bookmarked={bookmarks.has(a.id)}
+                              onBookmark={toggleBookmark}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ))}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1.5 text-xs font-medium border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
-              >
-                ← Prev
-              </button>
-              {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-                const pg = page <= 4 ? i + 1 : page - 3 + i;
-                if (pg < 1 || pg > totalPages) return null;
-                return (
-                  <button
-                    key={pg}
-                    onClick={() => setPage(pg)}
-                    className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${
-                      pg === page ? "text-white" : "border hover:bg-gray-50"
-                    }`}
-                    style={pg === page ? { backgroundColor: BRAND } : {}}
-                  >
-                    {pg}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1.5 text-xs font-medium border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
-              >
-                Next →
-              </button>
             </div>
           )}
         </div>
