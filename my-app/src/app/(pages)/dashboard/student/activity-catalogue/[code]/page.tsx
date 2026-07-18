@@ -65,12 +65,19 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
       .then(res => res.json())
       .then(data => {
         if (data.success) {
+          const l = data.data.level?.toLowerCase() || '';
+          const calcHours = l === 'explorer' ? 25 :
+                            l === 'foundation' ? 30 :
+                            l === 'practitioner' ? 35 :
+                            l === 'leader' ? 40 : 50;
+
           const mapped = {
             ...data.data,
             name: data.data.title,
+            enrolledCount: data.data.enrolledCount || 0,
             maxEnrollment: data.data.max_seats,
             credits: data.data.sdc_credits,
-            hours: data.data.sdc_credits * 10
+            hours: calcHours
           };
           setActivity(mapped);
           setReflectionText(mapped.reflection || "");

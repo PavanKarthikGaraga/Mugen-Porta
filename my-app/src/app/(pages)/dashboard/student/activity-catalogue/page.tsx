@@ -19,7 +19,7 @@ const FILTERS = [
 
 const EMPTY_FILTERS = {
   domain: "", difficulty: "", level: "", pack: "", faculty: "",
-  maxCredits: 100, maxHours: 500, sdg: "", status: "", career: "",
+  sdg: "", status: "", career: "",
 };
 
 const DOMAIN_NAMES: Record<string, string> = {
@@ -46,15 +46,22 @@ export default function ActivityCataloguePage() {
       .then(data => {
         if (data.success) {
           // Map DB keys to match existing frontend expectations if needed
-          const mapped = data.data.map((a: any) => ({
-            ...a,
-            name: a.title, // Map title to name for the frontend
-            credits: a.sdc_credits, // Map sdc_credits to credits
-            hours: a.sdc_credits * 10, // Approximate hours
-            enrolledCount: a.enrolledCount || 0,
-            maxEnrollment: a.max_seats || 0,
-            isEnrolled: a.isEnrolled || false,
-          }));
+          const mapped = data.data.map((a: any) => {
+            const l = a.level?.toLowerCase() || '';
+            const calcHours = l === 'explorer' ? 25 :
+                              l === 'foundation' ? 30 :
+                              l === 'practitioner' ? 35 :
+                              l === 'leader' ? 40 : 50;
+            return {
+              ...a,
+              name: a.title, // Map title to name for the frontend
+              credits: a.sdc_credits, // Map sdc_credits to credits
+              hours: calcHours, // Calculated based on level (max 50)
+              enrolledCount: a.enrolledCount || 0,
+              maxEnrollment: a.max_seats || 0,
+              isEnrolled: a.isEnrolled || false,
+            };
+          });
           setActivities(mapped);
         }
         setLoading(false);
@@ -85,8 +92,7 @@ export default function ActivityCataloguePage() {
       if (activeFilters.difficulty && a.difficulty !== activeFilters.difficulty) return false;
       if (activeFilters.level      && a.level !== activeFilters.level.toLowerCase()) return false;
       if (activeFilters.pack       && a.category !== activeFilters.pack) return false;
-      if (a.credits > activeFilters.maxCredits) return false;
-      if (a.hours   > activeFilters.maxHours)   return false;
+
       if (activeFilters.sdg) {
         const sdgNum = parseInt(activeFilters.sdg.replace("SDG ", ""));
         if (!a.sdgs?.includes(sdgNum)) return false;

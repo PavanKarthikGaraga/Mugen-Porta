@@ -97,31 +97,30 @@ export default function SDCPage() {
       {/* ── Top row: Rings + Semester ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-        {/* Overall ring */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col items-center gap-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Points</p>
-          <RingProgress
-            value={100}
-            size={140}
-            strokeWidth={12}
-            color={BRAND}
-            label={`${total} pts`}
-            sublabel="Overall progress"
-          />
-
+        {/* Overall Points */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col justify-center items-center gap-3">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: 'rgba(151,0,3,0.1)', color: BRAND }}>
+            <FiStar size={24} />
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Points</p>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-5xl font-black tracking-tighter" style={{ color: BRAND }}>{total}</span>
+            <span className="text-lg font-medium text-gray-400">pts</span>
+          </div>
+          <p className="text-xs text-gray-400">Overall earned</p>
         </div>
 
-        {/* Semester ring */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col items-center gap-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">This Semester</p>
-          <RingProgress
-            value={100}
-            size={140}
-            strokeWidth={12}
-            color="#2563EB"
-            label={`${semesterCurrent} pts`}
-            sublabel="Current semester"
-          />
+        {/* Semester Points */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col justify-center items-center gap-3">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 mb-2">
+            <FiTrendingUp size={24} />
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">This Semester</p>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-5xl font-black tracking-tighter text-blue-600">{semesterCurrent}</span>
+            <span className="text-lg font-medium text-blue-300">pts</span>
+          </div>
+          <p className="text-xs text-gray-400">Current active semester</p>
         </div>
 
         {/* Yearly breakdown */}
