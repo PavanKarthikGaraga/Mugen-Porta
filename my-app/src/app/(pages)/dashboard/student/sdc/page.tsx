@@ -99,51 +99,29 @@ export default function SDCPage() {
 
         {/* Overall ring */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col items-center gap-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Credits</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Points</p>
           <RingProgress
-            value={overallPct}
+            value={100}
             size={140}
             strokeWidth={12}
             color={BRAND}
-            label={`${total} / ${target} pts`}
+            label={`${total} pts`}
             sublabel="Overall progress"
           />
-          <div className="w-full space-y-1.5">
-            {[
-              { label: "Explorer threshold",     needed: 50,  pct: Math.min(100, Math.round((total/50)*100))  },
-              { label: "Foundation threshold",   needed: 120, pct: Math.min(100, Math.round((total/120)*100)) },
-              { label: "Practitioner threshold", needed: 220, pct: Math.min(100, Math.round((total/220)*100)) },
-              { label: "Leader threshold",       needed: 350, pct: Math.min(100, Math.round((total/350)*100)) },
-            ].map((t) => (
-              <div key={t.label} className="flex items-center gap-2 text-[10px]">
-                <FiCheckCircle
-                  size={10}
-                  className={total >= t.needed ? "text-emerald-500" : "text-gray-300"}
-                />
-                <span className="text-gray-500 flex-1">{t.label}</span>
-                <span className="font-semibold text-gray-700">{t.needed} pts</span>
-              </div>
-            ))}
-          </div>
+
         </div>
 
         {/* Semester ring */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col items-center gap-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">This Semester</p>
           <RingProgress
-            value={semPct}
+            value={100}
             size={140}
             strokeWidth={12}
             color="#2563EB"
-            label={`${semesterCurrent} / ${semesterTarget} pts`}
+            label={`${semesterCurrent} pts`}
             sublabel="Current semester"
           />
-          <div className="w-full p-3 bg-blue-50 rounded-xl border border-blue-100">
-            <p className="text-xs font-semibold text-blue-800 mb-1">On track?</p>
-            <p className="text-xs text-blue-700 leading-relaxed">
-              You need <span className="font-bold">{Math.max(0, semesterTarget - semesterCurrent)} more points</span> this semester.
-            </p>
-          </div>
         </div>
 
         {/* Yearly breakdown */}

@@ -19,7 +19,7 @@ const FILTERS = [
 
 const EMPTY_FILTERS = {
   domain: "", difficulty: "", level: "", pack: "", faculty: "",
-  maxCredits: 25, maxHours: 150, sdg: "", status: "", career: "",
+  maxCredits: 100, maxHours: 500, sdg: "", status: "", career: "",
 };
 
 const DOMAIN_NAMES: Record<string, string> = {

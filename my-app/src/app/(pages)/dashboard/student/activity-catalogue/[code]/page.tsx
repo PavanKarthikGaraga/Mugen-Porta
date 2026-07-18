@@ -273,9 +273,9 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             ].map((s) => (
               <div key={s.label} className="flex items-center gap-2.5 p-3 bg-gray-50 rounded-xl">
                 {s.icon}
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-500">{s.label}</p>
-                  <p className="text-sm font-bold text-gray-900 truncate">{s.value}</p>
+                  <p className="text-sm font-bold text-gray-900 break-words">{s.value}</p>
                 </div>
               </div>
             ))}
