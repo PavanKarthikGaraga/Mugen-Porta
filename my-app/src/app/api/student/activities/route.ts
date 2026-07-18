@@ -49,12 +49,8 @@ export async function GET(request: Request) {
 
     // Group activities for the MyActivities tab logic
     const grouped = {
-      registered: activities.filter((a: any) => a.enrollment_status === 'registered'),
-      ongoing: activities.filter((a: any) => a.enrollment_status === 'active' || a.enrollment_status === 'ongoing'),
+      ongoing: activities.filter((a: any) => ['registered', 'active', 'ongoing', 'pending_review'].includes(a.enrollment_status)),
       completed: activities.filter((a: any) => a.enrollment_status === 'completed'),
-      pending_review: activities.filter((a: any) => a.enrollment_status === 'pending_review'),
-      certificates: activities.filter((a: any) => a.enrollment_status === 'completed'), // completed usually means cert ready
-      archived: activities.filter((a: any) => a.enrollment_status === 'archived'),
     };
 
     return NextResponse.json({ success: true, data: grouped });

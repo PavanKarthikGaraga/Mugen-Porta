@@ -8,12 +8,8 @@ import SearchBar    from "@/app/components/dashboard/SearchBar";
 const BRAND = "rgb(151,0,3)";
 
 const TABS = [
-  { key: "registered",     label: "Registered",       icon: FiClipboard, color: "#2563EB" },
   { key: "ongoing",        label: "Ongoing",          icon: FiSettings,  color: "#D97706" },
   { key: "completed",      label: "Completed",        icon: FiCheckCircle,color: "#059669" },
-  { key: "pending_review", label: "Pending Review",   icon: FiClock,     color: "#7C3AED" },
-  { key: "certificates",   label: "Certificates Ready",icon: FiAward,     color: "#059669" },
-  { key: "archived",       label: "Archived",         icon: FiArchive,   color: "#6B7280" },
 ];
 
 export default function MyActivitiesPage() {
@@ -119,7 +115,6 @@ export default function MyActivitiesPage() {
         </div>
 
         <div className="p-5 space-y-4">
-          {/* Search + actions */}
           <div className="flex items-center gap-2 flex-wrap">
             <SearchBar
               value={search}
@@ -127,21 +122,6 @@ export default function MyActivitiesPage() {
               placeholder={`Search in ${activeConf?.label}…`}
               className="flex-1 min-w-48"
             />
-            {activeTab === "certificates" && (
-              <button
-                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2.5 rounded-lg text-white transition-colors"
-                style={{ backgroundColor: BRAND }}
-              >
-                <FiDownload size={13} />
-                Download All
-              </button>
-            )}
-            {activeTab === "pending_review" && (
-              <button className="flex items-center gap-1.5 text-xs font-medium px-3 py-2.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
-                <FiRefreshCw size={13} />
-                Refresh Status
-              </button>
-            )}
           </div>
 
           {/* Empty state */}
@@ -170,7 +150,7 @@ export default function MyActivitiesPage() {
           )}
 
           {/* Certificate tab — download CTA */}
-          {activeTab === "certificates" && filtered.length > 0 && (
+          {activeTab === "completed" && filtered.length > 0 && (
             <div className="mt-4 p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-start gap-3">
               <span className="text-2xl">🎓</span>
               <div>

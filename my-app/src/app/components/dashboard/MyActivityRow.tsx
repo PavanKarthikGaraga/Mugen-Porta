@@ -16,7 +16,8 @@ const STATUS_CONFIG = {
 export default function MyActivityRow({ activity, tabKey }) {
   const domainCode = activity?.domain || "TEC";
   const domain = DOMAINS[domainCode] || DOMAINS.TEC;
-  const config = STATUS_CONFIG[tabKey] || STATUS_CONFIG.registered;
+  const statusKey = activity?.enrollment_status || tabKey || "registered";
+  const config = STATUS_CONFIG[statusKey] || STATUS_CONFIG.registered;
   
   // Ensure assignments is always an array
   const assignments = Array.isArray(activity?.assignments) ? activity.assignments : 
