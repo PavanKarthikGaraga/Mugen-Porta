@@ -2,7 +2,7 @@
 import { useEffect, useState, use } from "react";
 import ActivityEditor from "@/app/components/admin/ActivityEditor";
 
-export default function EditActivityPage({ params }) {
+export default function EditActivityPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const [activity, setActivity] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -21,7 +21,7 @@ export default function EditActivityPage({ params }) {
     }, [id]);
 
     if (loading) return <div className="p-10 text-center text-gray-500">Loading...</div>;
-    if (!activity || activity.error) return <div className="p-10 text-center text-red-500">Activity not found</div>;
+    if (!activity || activity.error || activity.message) return <div className="p-10 text-center text-red-500">Activity not found</div>;
 
     return <ActivityEditor initialData={activity} />;
 }

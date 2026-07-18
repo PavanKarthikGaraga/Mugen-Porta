@@ -18,8 +18,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         const { id } = await params;
         
         const [rows] = await pool.execute(`
-            SELECT * FROM activity_catalogue WHERE id = ?
-        `, [id]);
+            SELECT * FROM activity_catalogue WHERE code = ? OR id = ?
+        `, [id, id]);
 
         if ((rows as any[]).length === 0) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
@@ -62,7 +62,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 faculty_name = ?, sdgs = ?, hours = ?,
                 purpose = ?, learning_outcomes = ?, competencies = ?,
                 graduate_attributes = ?, resources = ?, assignments = ?, timeline = ?
-            WHERE id = ?
+            WHERE code = ? OR id = ?
         `, [
             code, title, description, domain, category, 
             points, max_participants, status,
@@ -70,7 +70,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             faculty_name, safeJson(sdgs), hours, 
             purpose, safeJson(learning_outcomes), safeJson(competencies), 
             safeJson(graduate_attributes), safeJson(resources), safeJson(assignments), safeJson(timeline),
-            id
+            id, id
         ]);
 
         if ((result as any).affectedRows === 0) {
@@ -91,7 +91,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
         const { id } = await params;
 
-        const [result] = await pool.execute('DELETE FROM activity_catalogue WHERE id = ?', [id]);
+        const [result] = await pool.execute('DELETE FROM activity_catalogue WHERE code = ? OR id = ?', [id, id]);
 
         if ((result as any).affectedRows === 0) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
