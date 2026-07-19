@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
-    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText, FiAward
+    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText, FiAward, FiAlertCircle
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
 import { toast } from "sonner";
@@ -75,6 +75,7 @@ export default function AdminDashboardLayout({ children }) {
     const devNavigation = [
         { name: 'Email Queue', href: '/dashboard/admin/dev/email-queue', icon: FiMail },
         { name: 'Database Query', href: '/dashboard/admin/dev/db-query', icon: FiDatabase },
+        { name: 'AI Bans', href: '/dashboard/admin/dev/ai-bans', icon: FiAlertCircle },
     ];
 
     const handleLogout = async () => {
