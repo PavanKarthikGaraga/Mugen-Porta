@@ -2681,6 +2681,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Village Immersion & Community Orientation Programme to develop crucial skills in Smart Village Revolution (SVR) and contribute to society.",
     outcomes: ["Understand core concepts of Smart Village Revolution (SVR)", "Apply techniques learned in Village Immersion & Community Orientation Programme"],
+    competencies: ["Community Immersion", "Rural Engagement", "Communication", "Observation Skills", "Cultural Awareness"],
   syllabus: [
     "Module 1: Introduction to Village Immersion & Community Orientation and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -2706,6 +2707,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Village Resource Mapping & Community Profiling to develop crucial skills in Smart Village Revolution (SVR) and contribute to society.",
     outcomes: ["Understand core concepts of Smart Village Revolution (SVR)", "Apply techniques learned in Village Resource Mapping & Community Profiling"],
+    competencies: ["Resource Mapping", "Community Profiling", "Survey Design", "Data Collection", "GIS Awareness", "Documentation"],
   syllabus: [
     "Module 1: Introduction to Village Resource Mapping & Community Profiling and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -2731,6 +2733,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Smart Village Development Planning Programme to develop crucial skills in Smart Village Revolution (SVR) and contribute to society.",
     outcomes: ["Understand core concepts of Smart Village Revolution (SVR)", "Apply techniques learned in Smart Village Development Planning Programme"],
+    competencies: ["Village Development Planning", "Participatory Planning", "Community Mobilization", "Project Design", "Leadership", "Problem Solving", "Stakeholder Engagement"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Smart Village Development Planning",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -2757,6 +2760,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Smart Village Innovation Challenge to develop crucial skills in Smart Village Revolution (SVR) and contribute to society.",
     outcomes: ["Understand core concepts of Smart Village Revolution (SVR)", "Apply techniques learned in Smart Village Innovation Challenge"],
+    competencies: ["Rural Innovation", "Design Thinking", "Technology Adoption", "Project Leadership", "Innovation Management", "Communication", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Smart Village Innovation Challenge",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -2783,6 +2787,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Adopt-a-Village Transformation Project to develop crucial skills in Smart Village Revolution (SVR) and contribute to society.",
     outcomes: ["Understand core concepts of Smart Village Revolution (SVR)", "Apply techniques learned in Adopt-a-Village Transformation Project"],
+    competencies: ["Village Transformation", "Community Leadership", "Impact Assessment", "Strategic Planning", "Project Management", "Mentoring", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Adopt-a-Village Transformation",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -2937,6 +2942,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Environmental Awareness & Sustainability Foundation to develop crucial skills in Sustainable Development & Environment (SDE) and contribute to society.",
     outcomes: ["Understand core concepts of Sustainable Development & Environment (SDE)", "Apply techniques learned in Environmental Awareness & Sustainability Foundation"],
+    competencies: ["Environmental Awareness", "Sustainability", "Climate Responsibility", "Resource Conservation", "Teamwork"],
   syllabus: [
     "Module 1: Introduction to Environmental Awareness & Sustainability and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -2962,6 +2968,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Waste Management & Circular Economy Programme to develop crucial skills in Sustainable Development & Environment (SDE) and contribute to society.",
     outcomes: ["Understand core concepts of Sustainable Development & Environment (SDE)", "Apply techniques learned in Waste Management & Circular Economy Programme"],
+    competencies: ["Waste Management", "Circular Economy", "Recycling Practices", "Resource Optimization", "Community Awareness", "Project Implementation"],
   syllabus: [
     "Module 1: Introduction to Waste Management & Circular Economy and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -2987,6 +2994,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Biodiversity Conservation & Climate Action Programme to develop crucial skills in Sustainable Development & Environment (SDE) and contribute to society.",
     outcomes: ["Understand core concepts of Sustainable Development & Environment (SDE)", "Apply techniques learned in Biodiversity Conservation & Climate Action Programme"],
+    competencies: ["Biodiversity Conservation", "Climate Action", "Environmental Monitoring", "Ecological Restoration", "Data Collection", "Leadership", "Problem Solving"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Biodiversity Conservation & Climate Action",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3013,6 +3021,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Sustainable Campus & Green Community Initiative to develop crucial skills in Sustainable Development & Environment (SDE) and contribute to society.",
     outcomes: ["Understand core concepts of Sustainable Development & Environment (SDE)", "Apply techniques learned in Sustainable Campus & Green Community Initiative"],
+    competencies: ["Sustainability Leadership", "Green Campus Management", "Project Coordination", "Community Mobilization", "Environmental Auditing", "Strategic Planning", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Sustainable Campus & Green Community",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3039,6 +3048,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Sustainability Leadership & Environmental Impact Project to develop crucial skills in Sustainable Development & Environment (SDE) and contribute to society.",
     outcomes: ["Understand core concepts of Sustainable Development & Environment (SDE)", "Apply techniques learned in Sustainability Leadership & Environmental Impact Project"],
+    competencies: ["Environmental Leadership", "Impact Assessment", "Sustainability Strategy", "Innovation", "Policy Awareness", "Professional Ethics", "Mentoring", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Sustainability Leadership & Environmental Impact",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3065,6 +3075,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Community Health Awareness Programme to develop crucial skills in Health, Hygiene & Nutrition (HHN) and contribute to society.",
     outcomes: ["Understand core concepts of Health, Hygiene & Nutrition (HHN)", "Apply techniques learned in Community Health Awareness Programme"],
+    competencies: ["Health Education", "Health Communication", "Preventive Healthcare", "Community Engagement", "Empathy"],
   syllabus: [
     "Module 1: Introduction to Community Health Awareness and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3090,6 +3101,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Hygiene, Sanitation & Public Health Initiative to develop crucial skills in Health, Hygiene & Nutrition (HHN) and contribute to society.",
     outcomes: ["Understand core concepts of Health, Hygiene & Nutrition (HHN)", "Apply techniques learned in Hygiene, Sanitation & Public Health Initiative"],
+    competencies: ["Public Health", "Hygiene Promotion", "Sanitation Management", "Health Awareness Campaigns", "Community Mobilization", "Communication"],
   syllabus: [
     "Module 1: Introduction to Hygiene, Sanitation & Public Health and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3115,6 +3127,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Nutrition & Lifestyle Improvement Programme to develop crucial skills in Health, Hygiene & Nutrition (HHN) and contribute to society.",
     outcomes: ["Understand core concepts of Health, Hygiene & Nutrition (HHN)", "Apply techniques learned in Nutrition & Lifestyle Improvement Programme"],
+    competencies: ["Nutrition Education", "Healthy Lifestyle Promotion", "Health Counselling", "Community Outreach", "Program Implementation", "Problem Solving", "Leadership"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Nutrition & Lifestyle Improvement",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3141,6 +3154,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Community Health Camp Management to develop crucial skills in Health, Hygiene & Nutrition (HHN) and contribute to society.",
     outcomes: ["Understand core concepts of Health, Hygiene & Nutrition (HHN)", "Apply techniques learned in Community Health Camp Management"],
+    competencies: ["Health Camp Planning", "Volunteer Management", "Healthcare Coordination", "Leadership", "Stakeholder Engagement", "Project Management", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Community Health Camp Management",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3167,6 +3181,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Public Health Leadership Project to develop crucial skills in Health, Hygiene & Nutrition (HHN) and contribute to society.",
     outcomes: ["Understand core concepts of Health, Hygiene & Nutrition (HHN)", "Apply techniques learned in Public Health Leadership Project"],
+    competencies: ["Public Health Leadership", "Health Program Management", "Community Health Research", "Strategic Planning", "Policy Awareness", "Professional Ethics", "Mentoring", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Public Health Leadership",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3449,6 +3464,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Women Empowerment & Gender Equality Foundation to develop crucial skills in Women & Youth Empowerment (WYE) and contribute to society.",
     outcomes: ["Understand core concepts of Women & Youth Empowerment (WYE)", "Apply techniques learned in Women Empowerment & Gender Equality Foundation"],
+    competencies: ["Gender Equality", "Women's Empowerment", "Social Awareness", "Communication", "Empathy"],
   syllabus: [
     "Module 1: Introduction to Women Empowerment & Gender Equality and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3474,6 +3490,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Self-Help Group Development Programme to develop crucial skills in Women & Youth Empowerment (WYE) and contribute to society.",
     outcomes: ["Understand core concepts of Women & Youth Empowerment (WYE)", "Apply techniques learned in Self-Help Group Development Programme"],
+    competencies: ["Self-Help Group Facilitation", "Financial Inclusion", "Community Mobilization", "Leadership", "Capacity Building", "Communication"],
   syllabus: [
     "Module 1: Introduction to Self-Help Group Development and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3499,6 +3516,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Youth Leadership & Civic Engagement Camp to develop crucial skills in Women & Youth Empowerment (WYE) and contribute to society.",
     outcomes: ["Understand core concepts of Women & Youth Empowerment (WYE)", "Apply techniques learned in Youth Leadership & Civic Engagement Camp"],
+    competencies: ["Youth Leadership", "Civic Engagement", "Public Speaking", "Team Building", "Decision Making", "Collaboration", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Youth Leadership & Civic Engagement Camp",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3525,6 +3543,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Employability & Skill Development Initiative to develop crucial skills in Women & Youth Empowerment (WYE) and contribute to society.",
     outcomes: ["Understand core concepts of Women & Youth Empowerment (WYE)", "Apply techniques learned in Employability & Skill Development Initiative"],
+    competencies: ["Career Readiness", "Employability Skills", "Resume Development", "Interview Skills", "Professional Communication", "Leadership", "Self-Management"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Employability & Skill Development",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3551,6 +3570,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Women & Youth Social Innovation Project to develop crucial skills in Women & Youth Empowerment (WYE) and contribute to society.",
     outcomes: ["Understand core concepts of Women & Youth Empowerment (WYE)", "Apply techniques learned in Women & Youth Social Innovation Project"],
+    competencies: ["Social Innovation", "Community Leadership", "Project Management", "Entrepreneurship", "Strategic Planning", "Mentoring", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Women & Youth Social Innovation",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3833,6 +3853,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Social Innovation Foundation Programme to develop crucial skills in Social Innovation & Impact (SII) and contribute to society.",
     outcomes: ["Understand core concepts of Social Innovation & Impact (SII)", "Apply techniques learned in Social Innovation Foundation Programme"],
+    competencies: ["Social Innovation", "Design Thinking", "Problem Identification", "Creativity", "Community Engagement"],
   syllabus: [
     "Module 1: Introduction to Social Innovation and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3858,6 +3879,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the NGO Collaboration & Community Partnership Programme to develop crucial skills in Social Innovation & Impact (SII) and contribute to society.",
     outcomes: ["Understand core concepts of Social Innovation & Impact (SII)", "Apply techniques learned in NGO Collaboration & Community Partnership Programme"],
+    competencies: ["NGO Collaboration", "Partnership Development", "Stakeholder Communication", "Volunteer Coordination", "Community Outreach", "Leadership"],
   syllabus: [
     "Module 1: Introduction to NGO Collaboration & Community Partnership and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3883,6 +3905,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Sustainable Development Goals (SDG) Action Project to develop crucial skills in Social Innovation & Impact (SII) and contribute to society.",
     outcomes: ["Understand core concepts of Social Innovation & Impact (SII)", "Apply techniques learned in Sustainable Development Goals (SDG) Action Project"],
+    competencies: ["SDG Implementation", "Project Planning", "Impact Assessment", "Research", "Community Engagement", "Leadership", "Collaboration"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Sustainable Development Goals (SDG) Action",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3909,6 +3932,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Social Entrepreneurship & Innovation Challenge to develop crucial skills in Social Innovation & Impact (SII) and contribute to society.",
     outcomes: ["Understand core concepts of Social Innovation & Impact (SII)", "Apply techniques learned in Social Entrepreneurship & Innovation Challenge"],
+    competencies: ["Social Entrepreneurship", "Innovation Management", "Business Model Development", "Leadership", "Pitching", "Strategic Planning", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Social Entrepreneurship & Innovation Challenge",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3935,6 +3959,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Grand Community Impact Capstone Project to develop crucial skills in Social Innovation & Impact (SII) and contribute to society.",
     outcomes: ["Understand core concepts of Social Innovation & Impact (SII)", "Apply techniques learned in Grand Community Impact Capstone Project"],
+    competencies: ["Community Impact Assessment", "Social Innovation Leadership", "Project Management", "Research", "Mentoring", "Professional Ethics", "Strategic Thinking", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Grand Community Impact Capstone",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
