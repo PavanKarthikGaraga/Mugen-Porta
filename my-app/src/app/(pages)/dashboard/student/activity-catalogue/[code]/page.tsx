@@ -333,6 +333,25 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                   ))}
                 </ul>
               </Section>
+              
+              {activity.timeline && activity.timeline.length > 0 && (
+                <Section title="Activity Syllabus & Topics">
+                  <ul className="space-y-3">
+                    {activity.timeline.map((t: any, i: number) => {
+                      const topicText = typeof t === 'string' ? t : (t.topic || t.event);
+                      if (!topicText) return null;
+                      return (
+                        <li key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                          <div className="mt-0.5 w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-white border font-bold text-xs" style={{ borderColor: BRAND, color: BRAND }}>
+                            {i + 1}
+                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed font-medium">{topicText}</p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </Section>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Section title="Competencies Developed">
                   <div className="flex flex-wrap gap-2">
@@ -550,7 +569,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             <div className="relative">
               <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200" />
               <div className="space-y-4">
-                {activity.timeline.map((t, i) => (
+                {activity.timeline.map((t: any, i: number) => (
                   <div key={i} className="flex items-start gap-4 relative">
                     <div
                       className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-[10px] font-bold flex-shrink-0 bg-white z-10"
@@ -559,8 +578,9 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                       {i + 1}
                     </div>
                     <div className="pb-2">
-                      <p className="text-sm font-semibold text-gray-900">{t.event}</p>
-                      <p className="text-xs text-gray-400">{t.date}</p>
+                      <p className="text-sm font-semibold text-gray-900">{typeof t === 'string' ? t : (t.event || t.topic)}</p>
+                      {t.date && <p className="text-xs text-gray-400">{t.date}</p>}
+                      {t.week && <p className="text-xs text-gray-400">Week {t.week}</p>}
                     </div>
                   </div>
                 ))}
