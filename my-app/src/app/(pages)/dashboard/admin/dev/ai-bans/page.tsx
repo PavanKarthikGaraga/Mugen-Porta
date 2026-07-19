@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FiUnlock, FiAlertCircle } from "react-icons/fi";
 import { handleApiError } from '@/lib/apiErrorHandler';
 import { useRouter } from "next/navigation";
@@ -10,7 +10,7 @@ export default function AIBansPage() {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
-    const fetchBans = async () => {
+    const fetchBans = useCallback(async () => {
         try {
             setLoading(true);
             const res = await fetch("/api/dashboard/admin/dev/ai-bans");
@@ -26,11 +26,11 @@ export default function AIBansPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [router]);
 
     useEffect(() => {
         fetchBans();
-    }, []);
+    }, [fetchBans]);
 
     const handleUnlock = async (username: string) => {
         if (!confirm(`Are you sure you want to unlock ${username}?`)) return;
