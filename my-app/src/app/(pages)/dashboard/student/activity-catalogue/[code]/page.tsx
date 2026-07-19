@@ -77,13 +77,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             enrolledCount: data.data.enrolledCount || 0,
             maxEnrollment: data.data.max_seats,
             credits: data.data.sdc_credits,
-            hours: calcHours,
-            syllabus: data.data.syllabus || [
-              "Introduction to Core Concepts",
-              "Practical Applications and Workflows",
-              "Group Collaboration and Problem Solving",
-              "Final Assessment and Delivery"
-            ]
+            hours: calcHours
           };
           setActivity(mapped);
           setReflectionText(mapped.reflection || "");
@@ -335,16 +329,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                         {i + 1}
                       </span>
                       {o}
-                    </li>
-                  ))}
-                </ul>
-              </Section>
-              <Section title="Syllabus & Topics Covered">
-                <ul className="space-y-2">
-                  {activity.syllabus?.map((topic, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                      <span className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: BRAND }} />
-                      {topic}
                     </li>
                   ))}
                 </ul>
