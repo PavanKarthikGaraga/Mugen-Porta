@@ -2902,6 +2902,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Community Engagement & Service Learning Foundation Programme to develop crucial skills in Community Engagement & Service Learning (CES) and contribute to society.",
     outcomes: ["Understand core concepts of Community Engagement & Service Learning (CES)", "Apply techniques learned in Community Engagement & Service Learning Foundation Programme"],
+    competencies: ["Community Engagement", "Social Responsibility", "Communication", "Empathy", "Teamwork"],
   syllabus: [
     "Module 1: Introduction to Community Engagement & Service Learning and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -2927,6 +2928,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Community Needs Assessment, Participatory Rural Appraisal & Service Learning Programme to develop crucial skills in Community Engagement & Service Learning (CES) and contribute to society.",
     outcomes: ["Understand core concepts of Community Engagement & Service Learning (CES)", "Apply techniques learned in Community Needs Assessment, Participatory Rural Appraisal & Service Learning Programme"],
+    competencies: ["Community Needs Assessment", "Participatory Rural Appraisal", "Field Data Collection", "Community Communication", "Documentation", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to Community Needs Assessment, Participatory Rural Appraisal & Service Learning and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -2952,6 +2954,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Community Project Planning & Implementation Programme to develop crucial skills in Community Engagement & Service Learning (CES) and contribute to society.",
     outcomes: ["Understand core concepts of Community Engagement & Service Learning (CES)", "Apply techniques learned in Community Project Planning & Implementation Programme"],
+    competencies: ["Project Planning", "Volunteer Management", "Community Mobilization", "Resource Management", "Leadership", "Collaboration", "Monitoring & Evaluation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Community  Planning & Implementation",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -2978,6 +2981,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Community Leadership & Social Change Programme to develop crucial skills in Community Engagement & Service Learning (CES) and contribute to society.",
     outcomes: ["Understand core concepts of Community Engagement & Service Learning (CES)", "Apply techniques learned in Community Leadership & Social Change Programme"],
+    competencies: ["Community Leadership", "Social Change Management", "Stakeholder Engagement", "Conflict Resolution", "Strategic Planning", "Advocacy", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Community Leadership & Social Change",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3004,6 +3008,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Community Development Capstone Project to develop crucial skills in Community Engagement & Service Learning (CES) and contribute to society.",
     outcomes: ["Understand core concepts of Community Engagement & Service Learning (CES)", "Apply techniques learned in Community Development Capstone Project"],
+    competencies: ["Community Development", "Impact Assessment", "Project Leadership", "Research", "Innovation", "Mentoring", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Community Development Capstone",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3296,6 +3301,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Adult Literacy & Learning Support Programme to develop crucial skills in Education, Literacy & Digital Inclusion (EDI) and contribute to society.",
     outcomes: ["Understand core concepts of Education, Literacy & Digital Inclusion (EDI)", "Apply techniques learned in Adult Literacy & Learning Support Programme"],
+    competencies: ["Diversity Awareness", "Inclusion", "Respect for Diversity", "Communication", "Empathy"],
   syllabus: [
     "Module 1: Introduction to Adult Literacy & Learning Support and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3321,6 +3327,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the School Student Mentorship Programme to develop crucial skills in Education, Literacy & Digital Inclusion (EDI) and contribute to society.",
     outcomes: ["Understand core concepts of Education, Literacy & Digital Inclusion (EDI)", "Apply techniques learned in School Student Mentorship Programme"],
+    competencies: ["Inclusive Practices", "Accessibility", "Universal Design", "Community Awareness", "Communication", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to School Student Mentorship and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3346,6 +3353,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Digital Literacy for Rural Communities to develop crucial skills in Education, Literacy & Digital Inclusion (EDI) and contribute to society.",
     outcomes: ["Understand core concepts of Education, Literacy & Digital Inclusion (EDI)", "Apply techniques learned in Digital Literacy for Rural Communities"],
+    competencies: ["Equity Advocacy", "Policy Awareness", "Leadership", "Conflict Resolution", "Ethical Decision Making", "Collaboration", "Public Speaking"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Digital Literacy for Rural Communities",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3372,6 +3380,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Financial Literacy & Digital Banking Awareness Programme to develop crucial skills in Education, Literacy & Digital Inclusion (EDI) and contribute to society.",
     outcomes: ["Understand core concepts of Education, Literacy & Digital Inclusion (EDI)", "Apply techniques learned in Financial Literacy & Digital Banking Awareness Programme"],
+    competencies: ["Inclusive Leadership", "Stakeholder Management", "Social Justice", "Strategic Planning", "Policy Implementation", "Professional Ethics", "Change Management"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Financial Literacy & Digital Banking Awareness",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3398,6 +3407,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Career Guidance & Higher Education Awareness Programme to develop crucial skills in Education, Literacy & Digital Inclusion (EDI) and contribute to society.",
     outcomes: ["Understand core concepts of Education, Literacy & Digital Inclusion (EDI)", "Apply techniques learned in Career Guidance & Higher Education Awareness Programme"],
+    competencies: ["DEI Strategy", "Impact Assessment", "Research", "Leadership", "Innovation", "Professional Ethics", "Mentoring", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Career Guidance & Higher Education Awareness",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3424,6 +3434,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Sustainable Agriculture Awareness Programme to develop crucial skills in Agriculture & Rural Innovation (ARI) and contribute to society.",
     outcomes: ["Understand core concepts of Agriculture & Rural Innovation (ARI)", "Apply techniques learned in Sustainable Agriculture Awareness Programme"],
+    competencies: ["Research Fundamentals", "Problem Identification", "Observation", "Critical Thinking", "Communication"],
   syllabus: [
     "Module 1: Introduction to Sustainable Agriculture Awareness and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3449,6 +3460,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Smart Farming Technology Demonstration to develop crucial skills in Agriculture & Rural Innovation (ARI) and contribute to society.",
     outcomes: ["Understand core concepts of Agriculture & Rural Innovation (ARI)", "Apply techniques learned in Smart Farming Technology Demonstration"],
+    competencies: ["Field Research", "Survey Design", "Data Collection", "Data Recording", "Community Interaction", "Documentation"],
   syllabus: [
     "Module 1: Introduction to Smart Farming Technology Demonstration and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3474,6 +3486,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Water Conservation & Irrigation Management Project to develop crucial skills in Agriculture & Rural Innovation (ARI) and contribute to society.",
     outcomes: ["Understand core concepts of Agriculture & Rural Innovation (ARI)", "Apply techniques learned in Water Conservation & Irrigation Management Project"],
+    competencies: ["Action Research", "Impact Assessment", "Data Analysis", "Evidence-Based Decision Making", "Research Communication", "Leadership", "Problem Solving"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Water Conservation & Irrigation Management",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3500,6 +3513,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Farmer Capacity Building & Agricultural Extension Programme to develop crucial skills in Agriculture & Rural Innovation (ARI) and contribute to society.",
     outcomes: ["Understand core concepts of Agriculture & Rural Innovation (ARI)", "Apply techniques learned in Farmer Capacity Building & Agricultural Extension Programme"],
+    competencies: ["Research Leadership", "Innovation Management", "Strategic Planning", "Stakeholder Engagement", "Project Management", "Ethical Research", "Professional Communication"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Farmer Capacity Building & Agricultural Extension",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3526,6 +3540,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Rural Innovation & Agri-Entrepreneurship Project to develop crucial skills in Agriculture & Rural Innovation (ARI) and contribute to society.",
     outcomes: ["Understand core concepts of Agriculture & Rural Innovation (ARI)", "Apply techniques learned in Rural Innovation & Agri-Entrepreneurship Project"],
+    competencies: ["Research Methodology", "Innovation Leadership", "Community Impact", "Technology Adoption", "Research Publication", "Mentoring", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Rural Innovation & Agri-Entrepreneurship",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3685,6 +3700,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Disaster Preparedness Foundation Programme to develop crucial skills in Disaster Management & Public Safety (DPS) and contribute to society.",
     outcomes: ["Understand core concepts of Disaster Management & Public Safety (DPS)", "Apply techniques learned in Disaster Preparedness Foundation Programme"],
+    competencies: ["Disaster Awareness", "Emergency Preparedness", "Risk Identification", "Safety Awareness", "Teamwork"],
   syllabus: [
     "Module 1: Introduction to Disaster Preparedness and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3710,6 +3726,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the First Aid & Emergency Response Training to develop crucial skills in Disaster Management & Public Safety (DPS) and contribute to society.",
     outcomes: ["Understand core concepts of Disaster Management & Public Safety (DPS)", "Apply techniques learned in First Aid & Emergency Response Training"],
+    competencies: ["First Aid", "Emergency Response", "CPR Basics", "Communication", "Decision Making", "Team Coordination"],
   syllabus: [
     "Module 1: Introduction to First Aid & Emergency Response Training and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3735,6 +3752,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Fire Safety & Disaster Simulation Exercise to develop crucial skills in Disaster Management & Public Safety (DPS) and contribute to society.",
     outcomes: ["Understand core concepts of Disaster Management & Public Safety (DPS)", "Apply techniques learned in Fire Safety & Disaster Simulation Exercise"],
+    competencies: ["Risk Assessment", "Community Resilience", "Disaster Planning", "Incident Response", "Leadership", "Problem Solving", "Communication"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Fire Safety & Disaster Simulation Exercise",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3761,6 +3779,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Road Safety & Community Risk Reduction Programme to develop crucial skills in Disaster Management & Public Safety (DPS) and contribute to society.",
     outcomes: ["Understand core concepts of Disaster Management & Public Safety (DPS)", "Apply techniques learned in Road Safety & Community Risk Reduction Programme"],
+    competencies: ["Disaster Management", "Emergency Leadership", "Strategic Planning", "Stakeholder Coordination", "Resource Management", "Professional Ethics", "Decision Making"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Road Safety & Community Risk Reduction",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3787,6 +3806,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Community Disaster Management Leadership Project to develop crucial skills in Disaster Management & Public Safety (DPS) and contribute to society.",
     outcomes: ["Understand core concepts of Disaster Management & Public Safety (DPS)", "Apply techniques learned in Community Disaster Management Leadership Project"],
+    competencies: ["Disaster Leadership", "Community Preparedness", "Risk Governance", "Project Management", "Mentoring", "Professional Ethics", "Resilience", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Community Disaster Management Leadership",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3813,6 +3833,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Citizenship & Constitutional Values Programme to develop crucial skills in Civic Engagement & Good Governance (CGG) and contribute to society.",
     outcomes: ["Understand core concepts of Civic Engagement & Good Governance (CGG)", "Apply techniques learned in Citizenship & Constitutional Values Programme"],
+    competencies: ["Civic Awareness", "Responsible Citizenship", "Ethical Responsibility", "Communication", "Critical Thinking"],
   syllabus: [
     "Module 1: Introduction to Citizenship & Constitutional Values and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3838,6 +3859,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Government Schemes Awareness Programme to develop crucial skills in Civic Engagement & Good Governance (CGG) and contribute to society.",
     outcomes: ["Understand core concepts of Civic Engagement & Good Governance (CGG)", "Apply techniques learned in Government Schemes Awareness Programme"],
+    competencies: ["Public Policy Awareness", "Government Schemes", "Community Outreach", "Policy Communication", "Documentation", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to Government Schemes Awareness and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3863,6 +3885,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Electoral Literacy & Democratic Participation Programme to develop crucial skills in Civic Engagement & Good Governance (CGG) and contribute to society.",
     outcomes: ["Understand core concepts of Civic Engagement & Good Governance (CGG)", "Apply techniques learned in Electoral Literacy & Democratic Participation Programme"],
+    competencies: ["Democratic Participation", "Civic Innovation", "Public Speaking", "Community Mobilization", "Leadership", "Collaboration", "Ethical Decision Making"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Electoral Literacy & Democratic Participation",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3889,6 +3912,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Legal Literacy, RTI & Consumer Rights Programme to develop crucial skills in Civic Engagement & Good Governance (CGG) and contribute to society.",
     outcomes: ["Understand core concepts of Civic Engagement & Good Governance (CGG)", "Apply techniques learned in Legal Literacy, RTI & Consumer Rights Programme"],
+    competencies: ["Public Leadership", "Good Governance", "Policy Implementation", "Stakeholder Management", "Strategic Planning", "Professional Ethics", "Conflict Resolution"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Legal Literacy, RTI & Consumer Rights",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3915,6 +3939,7 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Good Governance & Civic Leadership Project to develop crucial skills in Civic Engagement & Good Governance (CGG) and contribute to society.",
     outcomes: ["Understand core concepts of Civic Engagement & Good Governance (CGG)", "Apply techniques learned in Good Governance & Civic Leadership Project"],
+    competencies: ["Governance Leadership", "Policy Innovation", "Community Development", "Research", "Strategic Thinking", "Professional Ethics", "Mentoring", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Good Governance & Civic Leadership",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
