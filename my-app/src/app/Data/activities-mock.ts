@@ -109,6 +109,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to basic AI tools to enhance productivity.",
     outcomes: ["Understand AI basics", "Use AI tools for writing", "Apply AI for productivity"],
+    competencies: ["AI Fundamentals", "Prompt Engineering", "Problem Solving", "Critical Thinking", "Technical Communication"],
   syllabus: [
     "Module 1: Introduction to AI Productivity and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -134,6 +135,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn effective prompt engineering to communicate with AI models.",
     outcomes: ["Write effective prompts", "Optimize AI outputs", "Automate basic tasks"],
+    competencies: ["Prompt Engineering", "Generative AI Applications", "AI Communication", "Workflow Automation", "Critical Thinking", "Documentation"],
   syllabus: [
     "Module 1: Introduction to Prompt Engineering & AI Communication and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -159,6 +161,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Build intelligent automation scripts and AI applications.",
     outcomes: ["Develop AI apps", "Automate workflows", "Deploy simple models"],
+    competencies: ["AI Application Development", "Machine Learning Applications", "Automation", "API Integration", "Model Evaluation", "Debugging", "Software Engineering"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of AI Application Development & Intelligent Automation",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -185,6 +188,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Solve real industry challenges using AI.",
     outcomes: ["Build industry solutions", "Lead an AI project team", "Present AI prototypes"],
+    competencies: ["AI Solution Design", "Innovation Management", "Project Management", "Industry Collaboration", "Leadership", "Ethical AI", "Presentation Skills"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of AI Innovation Challenge & Industry Solutions",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -221,7 +225,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Faculty Mentor",
-    competencies: ["Advanced AI Development", "Machine Learning Applications", "Research Methodology", "Product Engineering", "Technology Commercialization", "Innovation Leadership", "Entrepreneurship", "Global Collaboration"]
+    competencies: ["Advanced AI Development", "Machine Learning Applications", "Research Methodology", "Product Engineering", "Technology Commercialization", "Innovation Leadership", "Entrepreneurship", "Global Collaboration"],
   },
   {
     id: "TECH-SWD-001",
@@ -238,6 +242,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to web development basics.",
     outcomes: ["Understand HTML/CSS", "Build simple web pages", "Introduction to JavaScript"],
+    competencies: ["Programming Fundamentals", "Web Development", "Version Control", "Problem Solving", "Technical Communication"],
   syllabus: [
     "Module 1: Introduction to Full Stack Development and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -263,6 +268,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn frontend frameworks and UI/UX design principles.",
     outcomes: ["Build reactive UIs", "Apply UI/UX principles", "Consume REST APIs"],
+    competencies: ["Frontend Development", "Responsive Web Design", "UI/UX Principles", "JavaScript Frameworks", "Accessibility", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Modern Frontend Development & UI/UX Engineering and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -288,6 +294,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Develop full-stack applications with robust databases.",
     outcomes: ["Develop server-side logic", "Design databases", "Deploy full-stack apps"],
+    competencies: ["Backend Development", "Database Engineering", "REST API Development", "Authentication & Authorization", "Cloud Deployment", "System Integration", "Software Testing"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Full Stack Application Development & Database Engineering",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -314,6 +321,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engineer scalable enterprise digital products.",
     outcomes: ["Architect enterprise software", "Implement CI/CD pipelines", "Lead software teams"],
+    competencies: ["Software Architecture", "Enterprise Application Development", "Agile Project Management", "Product Engineering", "Software Quality Assurance", "Technical Leadership", "Stakeholder Management"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Enterprise Software Engineering & Digital Product Innovation",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -350,7 +358,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Software Mentor",
-    competencies: ["Enterprise Software Architecture", "Cloud-Native Development", "DevOps & CI/CD", "Technology Entrepreneurship", "Research & Innovation", "Product Strategy", "Professional Ethics", "Global Collaboration"]
+    competencies: ["Enterprise Software Architecture", "Cloud-Native Development", "DevOps & CI/CD", "Technology Entrepreneurship", "Research & Innovation", "Product Strategy", "Professional Ethics", "Global Collaboration"],
   },
   {
     id: "TECH-CYS-001",
@@ -367,6 +375,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to basic digital safety and cybersecurity concepts.",
     outcomes: ["Understand digital threats", "Practice safe browsing", "Secure personal devices"],
+    competencies: ["Cybersecurity Fundamentals", "Network Security", "Digital Safety", "Risk Awareness", "Technical Communication"],
   syllabus: [
     "Module 1: Introduction to Cybersecurity & Digital Safety and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -392,6 +401,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn foundational ethical hacking and vulnerability assessment.",
     outcomes: ["Conduct vulnerability scans", "Understand penetration testing", "Identify common exploits"],
+    competencies: ["Ethical Hacking", "Vulnerability Assessment", "Penetration Testing", "Network Security", "Cyber Ethics", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Ethical Hacking & Security Testing and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -417,6 +427,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Develop skills to defend systems and respond to cyber incidents.",
     outcomes: ["Implement network defense", "Perform digital forensics", "Execute incident response"],
+    competencies: ["Digital Forensics", "Incident Response", "Threat Analysis", "Malware Analysis", "Security Operations", "Critical Thinking", "Problem Solving"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Cyber Defense, Digital Forensics & Incident Response",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -443,6 +454,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Manage security operations and mitigate organizational cyber risks.",
     outcomes: ["Lead SOC teams", "Manage cyber risks", "Develop security policies"],
+    competencies: ["SOC Operations", "Cyber Risk Management", "Threat Intelligence", "Leadership", "Security Governance", "Decision Making", "Stakeholder Management"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Security Operations Centre (SOC) Leadership & Cyber Risk Management",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -479,7 +491,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Cybersecurity Mentor",
-    competencies: ["Advanced Cyber Defense", "Threat Intelligence", "Cloud Security", "Cybersecurity Research", "Innovation Leadership", "Technology Strategy", "Global Collaboration", "Professional Ethics"]
+    competencies: ["Advanced Cyber Defense", "Threat Intelligence", "Cloud Security", "Cybersecurity Research", "Innovation Leadership", "Technology Strategy", "Global Collaboration", "Professional Ethics"],
   },
   {
     id: "TECH-DSA-001",
@@ -496,6 +508,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to basic data science concepts, data collection, and elementary analysis.",
     outcomes: ["Understand data lifecycles", "Perform basic data cleaning", "Use spreadsheets for analysis"],
+    competencies: ["Data Analysis", "Statistics Fundamentals", "Data Visualization", "Critical Thinking", "Technical Communication"],
   syllabus: [
     "Module 1: Introduction to Data Science & Analytics and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -521,6 +534,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn to analyze datasets and create compelling data visualizations.",
     outcomes: ["Create dashboards", "Use BI tools like Tableau/PowerBI", "Communicate data insights"],
+    competencies: ["Data Wrangling", "Exploratory Data Analysis", "Data Visualization", "SQL", "Python for Analytics", "Reporting"],
   syllabus: [
     "Module 1: Introduction to Data Analysis & Visualization and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -546,6 +560,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Build predictive models and apply machine learning algorithms to real-world datasets.",
     outcomes: ["Train machine learning models", "Evaluate model accuracy", "Deploy predictive models"],
+    competencies: ["Machine Learning", "Predictive Analytics", "Feature Engineering", "Model Evaluation", "Python", "Critical Thinking", "Problem Solving"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Predictive Modeling & Machine Learning",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -582,7 +597,7 @@ const rawActivities: any[] = [
     enrolledCount: 15,
     maxEnrollment: 30,
     faculty: "Data Science Faculty Mentor",
-    competencies: ["Enterprise Analytics", "Decision Intelligence", "AI Governance", "Leadership", "Business Strategy", "Stakeholder Management", "Ethical Decision Making"]
+    competencies: ["Enterprise Analytics", "Decision Intelligence", "AI Governance", "Leadership", "Business Strategy", "Stakeholder Management", "Ethical Decision Making"],
   },
   {
     id: "TECH-DSA-005",
@@ -609,7 +624,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Analytics Mentor",
-    competencies: ["Advanced Data Science", "Research Methodology", "AI Innovation", "Technology Commercialization", "Innovation Leadership", "Global Collaboration", "Professional Ethics", "Lifelong Learning"]
+    competencies: ["Advanced Data Science", "Research Methodology", "AI Innovation", "Technology Commercialization", "Innovation Leadership", "Global Collaboration", "Professional Ethics", "Lifelong Learning"],
   },
   {
     id: "TECH-CLD-001",
@@ -626,6 +641,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to basic cloud computing models, infrastructure, and services.",
     outcomes: ["Understand cloud concepts (IaaS, PaaS, SaaS)", "Deploy basic resources", "Explore cloud security basics"],
+    competencies: ["Cloud Computing Fundamentals", "Virtualization", "Cloud Storage", "Networking Basics", "Technical Communication"],
   syllabus: [
     "Module 1: Introduction to Cloud Computing & Digital Infrastructure and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -651,6 +667,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn foundational cloud infrastructure provisioning and basic DevOps pipelines.",
     outcomes: ["Provision cloud servers", "Understand containerization", "Build basic CI/CD pipelines"],
+    competencies: ["Cloud Infrastructure", "Linux Administration", "DevOps Fundamentals", "CI/CD", "Containerization", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to Cloud Infrastructure & DevOps and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -676,6 +693,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Architect scalable cloud solutions and implement site reliability engineering practices.",
     outcomes: ["Design high-availability architectures", "Write Infrastructure as Code", "Implement SRE monitoring"],
+    competencies: ["Cloud Architecture", "Infrastructure as Code", "Site Reliability Engineering", "Automation", "Kubernetes", "Monitoring", "Cloud Security"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Cloud Architecture, Automation & Site Reliability Engineering",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -702,6 +720,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Lead enterprise cloud transformations and integrate security into DevOps pipelines.",
     outcomes: ["Lead DevSecOps implementations", "Manage multi-cloud strategies", "Govern enterprise cloud platforms"],
+    competencies: ["Enterprise Cloud Strategy", "DevSecOps", "Platform Engineering", "Technology Leadership", "Risk Management", "Strategic Planning", "Stakeholder Management"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Enterprise Cloud Strategy, DevSecOps & Platform Leadership",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -738,7 +757,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Cloud Mentor",
-    competencies: ["Cloud Native Computing", "Multi-Cloud Architecture", "Cloud Security Engineering", "AIOps", "Research Leadership", "Technology Entrepreneurship", "Global Collaboration", "Professional Ethics"]
+    competencies: ["Cloud Native Computing", "Multi-Cloud Architecture", "Cloud Security Engineering", "AIOps", "Research Leadership", "Technology Entrepreneurship", "Global Collaboration", "Professional Ethics"],
   },
   {
     id: "TECH-IOT-001",
@@ -764,7 +783,7 @@ const rawActivities: any[] = [
     enrolledCount: 60,
     maxEnrollment: 100,
     faculty: "IoT Faculty Mentor",
-    competencies: ["IoT Fundamentals", "Embedded Systems Basics", "Sensor Integration", "Wireless Communication", "Problem Solving"]
+    competencies: ["IoT Fundamentals", "Embedded Systems Basics", "Sensor Integration", "Wireless Communication", "Problem Solving"],
   },
   {
     id: "TECH-IOT-002",
@@ -781,6 +800,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Deepen knowledge in smart sensors, microcontrollers, and IoT network integration.",
     outcomes: ["Program microcontrollers", "Integrate advanced sensors", "Develop basic IoT networks"],
+    competencies: ["Embedded Systems", "Sensor Networks", "Microcontroller Programming", "IoT Communication Protocols", "Hardware Debugging", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Smart Sensors, Embedded Systems & IoT Networks and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -806,6 +826,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Design IoT network architectures and implement edge computing solutions for real-time processing.",
     outcomes: ["Design IoT networks", "Implement Edge processing", "Optimize IoT data transmission"],
+    competencies: ["Edge Computing", "IoT Network Architecture", "Cloud Integration", "Real-Time Data Processing", "IoT Security", "System Integration", "Performance Optimization"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of IoT Networks & Edge Computing",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -832,6 +853,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Develop scalable industrial IoT solutions and smart city infrastructure applications.",
     outcomes: ["Architect Industrial IoT systems", "Implement smart city solutions", "Lead IoT development teams"],
+    competencies: ["Industrial IoT", "Smart City Solutions", "System Architecture", "Leadership", "Project Management", "Innovation", "Strategic Planning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Smart Cities & Industrial IoT",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -868,7 +890,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal IoT Mentor",
-    competencies: ["Advanced IoT Architecture", "Industrial IoT Platforms", "Edge AI", "Technology Leadership", "Research & Development", "Product Innovation", "Global Collaboration", "Lifelong Learning"]
+    competencies: ["Advanced IoT Architecture", "Industrial IoT Platforms", "Edge AI", "Technology Leadership", "Research & Development", "Product Innovation", "Global Collaboration", "Lifelong Learning"],
   },
   {
     id: "TECH-ROB-001",
@@ -885,6 +907,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to the foundational concepts of robotics and automation.",
     outcomes: ["Understand basic robotic components", "Identify automation use cases", "Explore robotics ethics"],
+    competencies: ["Robotics Fundamentals", "Automation Basics", "Embedded Systems", "Programming Fundamentals", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to Robotics & Intelligent Automation and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -910,6 +933,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn to design, assemble, and program basic robotic systems.",
     outcomes: ["Design basic robots", "Program microcontrollers for robotics", "Implement simple control loops"],
+    competencies: ["Robot Design", "Robot Programming", "Control Systems", "Embedded Programming", "Sensor Integration", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Robot Design, Programming & Control Systems and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -935,6 +959,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Develop autonomous robots capable of computer vision and human-robot interaction.",
     outcomes: ["Integrate computer vision", "Program autonomous navigation", "Implement HRI principles"],
+    competencies: ["Autonomous Robotics", "Computer Vision", "Human-Robot Interaction", "AI for Robotics", "Sensor Fusion", "System Integration", "Innovation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Autonomous Robotics, Computer Vision & Human–Robot Interaction",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -961,6 +986,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Lead the implementation of industrial robots and cobots in smart manufacturing environments.",
     outcomes: ["Program industrial cobots", "Design smart manufacturing workflows", "Lead automation projects"],
+    competencies: ["Industrial Robotics", "Collaborative Robotics", "Automation Leadership", "Project Management", "Strategic Planning", "Manufacturing Innovation", "Stakeholder Management"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Industrial Robotics, Collaborative Robots (Cobots) & Intelligent Manufacturing Leadership",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -997,7 +1023,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Robotics Mentor",
-    competencies: ["Advanced Robotics", "Autonomous Systems", "Research & Development", "Technology Entrepreneurship", "Innovation Leadership", "Global Collaboration", "Professional Ethics", "Lifelong Learning"]
+    competencies: ["Advanced Robotics", "Autonomous Systems", "Research & Development", "Technology Entrepreneurship", "Innovation Leadership", "Global Collaboration", "Professional Ethics", "Lifelong Learning"],
   },
   {
     id: "TECH-DRN-001",
@@ -1014,6 +1040,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to the fundamentals of drone technology and basic geospatial concepts.",
     outcomes: ["Understand drone components", "Learn basic flight principles", "Explore geospatial mapping"],
+    competencies: ["Drone Fundamentals", "Flight Safety", "Geospatial Basics", "Navigation", "Technical Communication"],
   syllabus: [
     "Module 1: Introduction to Drone Technology & Geospatial Systems and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -1039,6 +1066,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn to operate drones safely, navigate flight paths, and capture mapping data.",
     outcomes: ["Operate drones safely", "Plan flight missions", "Capture aerial mapping data"],
+    competencies: ["Drone Operations", "Mission Planning", "GPS Navigation", "Mapping", "Surveying", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to Drone Operations, Navigation & Mapping and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1064,6 +1092,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Process aerial data using photogrammetry and apply computer vision to drone feeds.",
     outcomes: ["Process drone imagery", "Apply computer vision to aerial data", "Generate 3D models"],
+    competencies: ["Computer Vision", "Photogrammetry", "Autonomous Flight", "Image Processing", "Drone Analytics", "AI Integration", "System Optimization"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Drone Systems, Computer Vision & Photogrammetry",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1090,6 +1119,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Lead industrial drone deployments for sectors like agriculture, construction, and disaster management.",
     outcomes: ["Manage industrial drone fleets", "Lead geospatial data projects", "Implement industry-specific drone solutions"],
+    competencies: ["Industrial Drone Applications", "Geospatial Leadership", "Project Management", "Drone Regulations", "Strategic Planning", "Stakeholder Management", "Innovation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Industrial Drone Applications & Geospatial Leadership",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1126,7 +1156,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Aerospace Mentor",
-    competencies: ["Advanced UAV Design", "Autonomous Navigation", "Geospatial Analytics", "Aerospace Research", "Innovation Leadership", "Technology Entrepreneurship", "Global Collaboration", "Professional Ethics"]
+    competencies: ["Advanced UAV Design", "Autonomous Navigation", "Geospatial Analytics", "Aerospace Research", "Innovation Leadership", "Technology Entrepreneurship", "Global Collaboration", "Professional Ethics"],
   },
   {
     id: "TECH-BC-001",
@@ -1143,6 +1173,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to the fundamentals of blockchain technology and decentralized systems.",
     outcomes: ["Understand blockchain basics", "Explore Web3 concepts", "Identify decentralized use cases"],
+    competencies: ["Blockchain Fundamentals", "Distributed Ledger Technology", "Cryptography Basics", "Web3 Fundamentals", "Technical Communication"],
   syllabus: [
     "Module 1: Introduction to Blockchain, Web3 & Decentralized Digital Systems and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -1168,6 +1199,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn to write smart contracts and build decentralized applications (DApps).",
     outcomes: ["Write smart contracts", "Develop basic DApps", "Understand tokenomics"],
+    competencies: ["Smart Contract Development", "Solidity Programming", "Decentralized Applications", "Digital Assets", "Blockchain Testing", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to Smart Contracts, Digital Assets & Decentralized Applications and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1193,6 +1225,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Design enterprise blockchain solutions and decentralized identity platforms.",
     outcomes: ["Architect enterprise blockchain", "Implement decentralized identity", "Build Web3 systems"],
+    competencies: ["Enterprise Blockchain", "Decentralized Identity", "Cross-Chain Systems", "Blockchain Security", "System Integration", "Architecture Design", "Technical Leadership"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Enterprise Blockchain, Decentralized Identity & Web3 Systems",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1219,6 +1252,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Lead blockchain governance and FinTech digital trust initiatives.",
     outcomes: ["Manage blockchain governance", "Implement FinTech solutions", "Lead digital trust projects"],
+    competencies: ["Blockchain Governance", "Digital Trust", "FinTech Systems", "Strategic Leadership", "Risk Management", "Compliance", "Stakeholder Management"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Blockchain Governance, FinTech & Digital Trust Leadership",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1255,7 +1289,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Blockchain Mentor",
-    competencies: ["Enterprise Blockchain Engineering", "Advanced Smart Contracts", "Web3 Architecture", "Blockchain Research", "Technology Entrepreneurship", "Innovation Leadership", "Global Collaboration", "Professional Ethics"]
+    competencies: ["Enterprise Blockchain Engineering", "Advanced Smart Contracts", "Web3 Architecture", "Blockchain Research", "Technology Entrepreneurship", "Innovation Leadership", "Global Collaboration", "Professional Ethics"],
   },
   {
     id: "TECH-QC-001",
@@ -1272,6 +1306,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to the fundamental principles of quantum mechanics, quantum computing, and future computing paradigms.",
     outcomes: ["Understand quantum superposition and entanglement", "Explore future computing technologies", "Identify applications of quantum computing"],
+    competencies: ["Quantum Computing Fundamentals", "Linear Algebra for Quantum Systems", "Quantum Mechanics Basics", "Problem Solving", "Technical Communication"],
   syllabus: [
     "Module 1: Introduction to Quantum Computing & Future Computing Technologies and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -1297,6 +1332,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn to write quantum algorithms and run quantum simulations on cloud-based quantum platforms.",
     outcomes: ["Program quantum circuits", "Run quantum simulations", "Understand basic quantum algorithms like Shor's and Grover's"],
+    competencies: ["Quantum Programming", "Quantum Algorithms", "Quantum Circuit Design", "Quantum Simulation", "Python Programming", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Quantum Programming, Algorithms & Simulations and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1322,6 +1358,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Explore the intersection of quantum computing with machine learning and advanced cryptography.",
     outcomes: ["Develop hybrid AI-Quantum models", "Implement post-quantum cryptography concepts", "Optimize complex systems"],
+    competencies: ["Quantum Machine Learning", "Quantum Cryptography", "Hybrid Quantum-Classical Computing", "Quantum Optimization", "Research Skills", "Critical Thinking", "Innovation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Quantum Machine Learning, Quantum Cryptography & Hybrid Computing",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1348,6 +1385,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Lead the development of quantum system architectures and pioneer future computing initiatives.",
     outcomes: ["Architect quantum computing solutions", "Lead scientific computing projects", "Strategize enterprise quantum adoption"],
+    competencies: ["Quantum Systems Architecture", "Technology Leadership", "Future Computing Strategy", "Project Management", "Strategic Planning", "Innovation Leadership", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Quantum Systems Architecture & Future Computing Leadership",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1384,7 +1422,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Quantum Mentor",
-    competencies: ["Advanced Quantum Computing", "Quantum Research", "Deep Technology Innovation", "Technology Entrepreneurship", "Global Collaboration", "Research Leadership", "Professional Ethics", "Lifelong Learning"]
+    competencies: ["Advanced Quantum Computing", "Quantum Research", "Deep Technology Innovation", "Technology Entrepreneurship", "Global Collaboration", "Research Leadership", "Professional Ethics", "Lifelong Learning"],
   },
   {
     id: "TECH-SPC-001",
@@ -1401,6 +1439,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to the fundamentals of space science, satellite technology, NewSpace innovation, orbital mechanics, satellite communication, Earth observation, and space applications while developing awareness of how space technologies contribute to national development, scientific research, disaster management, agriculture, climate monitoring, and sustainable development.",
     outcomes: ["Explain the fundamentals of space technology", "Understand satellite systems and orbital mechanics", "Identify different types of satellites", "Explain satellite communication principles", "Understand Earth observation technologies", "Recognize India's achievements in space exploration", "Appreciate ethical and sustainable uses of space technology"],
+    competencies: ["Space Technology Fundamentals", "Satellite Systems", "Orbital Mechanics Basics", "Scientific Thinking", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to Space Technology, Satellite Systems & NewSpace Innovation and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -1426,6 +1465,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in satellite subsystem design, remote sensing, Earth observation, GIS integration, satellite communication fundamentals, and geospatial applications for solving real-world problems related to agriculture, water resources, infrastructure, climate, disaster management, and rural development.",
     outcomes: ["Understand satellite subsystem architecture", "Design conceptual satellite payloads", "Interpret satellite imagery", "Apply remote sensing principles", "Integrate satellite data with GIS", "Develop Earth observation applications", "Evaluate satellite mission requirements"],
+    competencies: ["Satellite Design", "Remote Sensing", "Space Mission Planning", "Earth Observation", "Geospatial Analysis", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Satellite Design, Remote Sensing & Space Applications and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1451,6 +1491,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate satellite data, artificial intelligence, robotics, remote sensing, and geospatial intelligence to develop advanced applications for agriculture, environmental monitoring, climate resilience, disaster management, infrastructure planning, and future space exploration.",
     outcomes: ["Analyze multi-source satellite datasets", "Develop AI-assisted Earth observation solutions", "Apply satellite analytics to real-world challenges", "Understand concepts of robotic systems used in space exploration", "Design intelligent geospatial decision-support systems", "Integrate remote sensing with AI and GIS", "Evaluate space technology solutions for sustainability"],
+    competencies: ["Space Robotics", "Satellite Data Analytics", "Earth Observation", "Computer Vision", "Scientific Computing", "Research Skills", "Innovation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Space Robotics, Earth Observation & Satellite Data Analytics",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1477,6 +1518,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead end-to-end space mission planning by integrating satellite engineering, mission analysis, aerospace systems, NewSpace entrepreneurship, Earth observation, artificial intelligence, and systems engineering while addressing global challenges through innovative space technologies.",
     outcomes: ["Design complete satellite mission architectures", "Develop satellite payload concepts", "Plan launch and mission operations", "Evaluate mission feasibility and risk", "Lead multidisciplinary aerospace projects", "Apply systems engineering principles", "Develop strategic NewSpace business opportunities"],
+    competencies: ["Space Mission Design", "Aerospace Systems", "Technology Leadership", "Strategic Planning", "Systems Engineering", "Project Management", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Space Mission Design, NewSpace Leadership & Aerospace Systems",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1503,6 +1545,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive aerospace innovators capable of designing satellite missions, conducting advanced space research, developing Earth observation solutions, publishing scientific papers, filing patents, launching NewSpace startups, and addressing global challenges through space technologies.",
     outcomes: ["Design complete space missions", "Develop advanced satellite systems", "Integrate AI, GIS, IoT, and satellite technologies", "Conduct publishable aerospace research", "Develop commercial NewSpace products", "File patents and technology disclosures", "Build aerospace startups", "Mentor future space innovators"],
+    competencies: ["Space Research", "Aerospace Innovation", "Technology Entrepreneurship", "Research Leadership", "Global Collaboration", "Technology Commercialization", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Global Space Innovation , Research & Aerospace Entrepreneurship",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1529,6 +1572,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to the fundamentals of biotechnology, molecular biology, genetics, bioinformatics, synthetic biology, and biotechnology innovation while developing awareness of how biological sciences contribute to healthcare, agriculture, environmental sustainability, food security, industrial biotechnology, and rural development.",
     outcomes: ["Explain the fundamentals of biotechnology", "Understand DNA, RNA, proteins, and genes", "Describe basic molecular biology techniques", "Understand bioinformatics and biological databases", "Explain synthetic biology concepts", "Identify biotechnology applications across multiple sectors", "Appreciate ethical, biosafety, and biosecurity considerations"],
+    competencies: ["Biotechnology Fundamentals", "Bioinformatics Basics", "Molecular Biology", "Scientific Thinking", "Laboratory Safety"],
   syllabus: [
     "Module 1: Introduction to Biotechnology, Bioinformatics & Synthetic Biology and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -1554,6 +1598,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to modern manufacturing systems, Industry 4.0 technologies, smart factories, automation, robotics, additive manufacturing, industrial Internet of Things (IIoT), digital twins, cyber-physical systems, and sustainable manufacturing while developing awareness of future industrial ecosystems.",
     outcomes: ["Explain Industry 4.0 concepts", "Understand smart factory architecture", "Describe modern manufacturing systems", "Identify Industry 4.0 technologies", "Understand digital manufacturing workflows", "Recognize sustainable manufacturing practices", "Appreciate ethical and environmental responsibilities in manufacturing"],
+    competencies: ["Manufacturing Fundamentals", "Industry 4.0", "Automation Basics", "Quality Awareness", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to Manufacturing, Industry 4.0 & Smart Factories and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -1579,6 +1624,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in digital product design, CAD/CAM technologies, CNC machining concepts, programmable logic controllers (PLCs), industrial automation, robotics integration, and smart manufacturing workflows that enhance productivity, quality, and operational efficiency.",
     outcomes: ["Design engineering components using CAD principles", "Understand CAM workflows", "Explain CNC machining operations", "Develop basic PLC logic", "Understand industrial automation architecture", "Integrate digital manufacturing concepts", "Evaluate manufacturing efficiency improvements"],
+    competencies: ["CAD/CAM", "CNC Programming", "Industrial Automation", "Manufacturing Processes", "Technical Drawing", "Documentation"],
   syllabus: [
     "Module 1: Introduction to Digital Manufacturing, CAD/CAM, CNC & Industrial Automation and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1604,6 +1650,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Industrial Internet of Things (IIoT), digital twins, artificial intelligence, cloud computing, robotics, sensor networks, and predictive analytics to design intelligent manufacturing systems capable of improving productivity, quality, efficiency, and sustainability.",
     outcomes: ["Design Industrial IoT architectures", "Integrate sensors with manufacturing systems", "Develop digital twin models", "Apply AI for predictive maintenance", "Analyze real-time manufacturing data", "Optimize industrial production processes", "Design intelligent manufacturing solutions"],
+    competencies: ["Industrial IoT", "Digital Twin Technology", "Manufacturing Analytics", "Predictive Maintenance", "System Integration", "Innovation", "Critical Thinking"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Industrial IoT, Digital Twins & Intelligent Manufacturing Systems",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1630,6 +1677,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead digital manufacturing transformation by integrating Lean Manufacturing, Industry 4.0 technologies, industrial automation, Industrial IoT, artificial intelligence, digital twins, sustainability, operational excellence, and Industry 5.0 principles into future-ready manufacturing enterprises.",
     outcomes: ["Lead smart factory transformation initiatives", "Apply Lean Manufacturing principles", "Understand Six Sigma quality improvement methodologies", "Design intelligent manufacturing ecosystems", "Optimize production using AI and analytics", "Lead multidisciplinary manufacturing innovation teams", "Develop sustainable industrial strategies"],
+    competencies: ["Lean Manufacturing", "Smart Factory Management", "Operational Excellence", "Leadership", "Strategic Planning", "Quality Management", "Stakeholder Coordination"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Smart Factory Leadership, Lean Manufacturing & Industrial Innovation",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1656,6 +1704,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive manufacturing innovators capable of designing intelligent factories, integrating AI, robotics, Industrial IoT, digital twins, additive manufacturing, and Industry 5.0 technologies while creating scalable industrial solutions, research outcomes, patents, and globally competitive manufacturing startups.",
     outcomes: ["Design Industry 5.0 manufacturing ecosystems", "Develop AI-enabled manufacturing solutions", "Integrate IIoT, robotics, and digital twins", "Conduct publishable manufacturing research", "Develop commercially viable manufacturing products", "File patents and technology disclosures", "Launch manufacturing technology startups", "Mentor future manufacturing innovators"],
+    competencies: ["Industry 5.0", "Manufacturing Research", "Innovation Leadership", "Technology Commercialization", "Entrepreneurship", "Global Collaboration", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Global  Manufacturing , Research & Industry 5.0 Entrepreneurship",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1682,6 +1731,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to renewable energy technologies, sustainable energy systems, smart grids, energy conservation, clean energy innovation, climate-resilient infrastructure, and the role of renewable energy in achieving energy security, environmental sustainability, and inclusive economic development.",
     outcomes: ["Explain the fundamentals of renewable energy", "Identify various renewable energy sources", "Understand smart grid concepts", "Explain sustainable energy practices", "Analyze energy consumption patterns", "Appreciate clean energy technologies", "Recognize the importance of climate action and energy conservation"],
+    competencies: ["Renewable Energy Fundamentals", "Smart Grid Basics", "Sustainability", "Energy Awareness", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to Renewable Energy, Smart Grids & Sustainable Energy Systems and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -1707,6 +1757,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in solar photovoltaic (PV) systems, wind energy technologies, bioenergy systems, battery energy storage systems (BESS), hybrid renewable energy systems, and clean-energy design for residential, commercial, industrial, and rural applications.",
     outcomes: ["Design basic solar PV systems", "Understand wind turbine operation", "Explain bioenergy conversion technologies", "Evaluate battery energy storage systems", "Design hybrid renewable energy systems", "Perform renewable energy feasibility studies", "Recommend sustainable energy solutions"],
+    competencies: ["Solar Energy Systems", "Wind Energy", "Bioenergy", "Energy Storage", "Energy System Design", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Solar, Wind, Bioenergy & Energy Storage Technologies and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1732,6 +1783,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate smart grids, IoT, artificial intelligence, digital twins, cloud computing, battery energy storage systems, renewable energy integration, and predictive analytics for designing intelligent, resilient, and sustainable power systems.",
     outcomes: ["Design smart grid architectures", "Integrate renewable energy into power systems", "Develop IoT-enabled energy monitoring systems", "Apply AI for energy forecasting and optimization", "Design intelligent microgrids", "Analyze energy consumption patterns", "Optimize power system performance"],
+    competencies: ["Smart Grid Technologies", "Energy Analytics", "Power System Automation", "Grid Optimization", "Data Analysis", "Innovation", "Critical Thinking"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Smart Grids, Energy Analytics & Intelligent Power Systems",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1758,6 +1810,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead clean energy transitions by integrating renewable energy technologies, smart grids, climate resilience, sustainable energy policy, carbon management, green entrepreneurship, and community energy planning into innovative solutions for industries and rural communities.",
     outcomes: ["Develop sustainable energy transition strategies", "Evaluate renewable energy policies", "Design climate-resilient energy systems", "Lead multidisciplinary green innovation projects", "Conduct carbon footprint assessments", "Develop clean energy business models", "Promote community participation in energy sustainability"],
+    competencies: ["Energy Leadership", "Energy Policy", "Green Innovation", "Strategic Planning", "Stakeholder Management", "Project Leadership", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Sustainable Energy Leadership, Energy Policy & Green Innovation",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1784,6 +1837,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive clean-energy innovators capable of designing next-generation renewable energy systems, integrating artificial intelligence with smart grids, conducting impactful research, creating commercially viable green technologies, filing patents, and launching clean-energy startups that accelerate sustainable development.",
     outcomes: ["Design integrated renewable energy systems", "Develop AI-enabled energy management platforms", "Build resilient microgrid solutions", "Conduct publishable renewable energy research", "Develop commercially viable clean-energy products", "File patents and technology disclosures", "Launch renewable energy startups", "Mentor future clean-energy innovators"],
+    competencies: ["Renewable Energy Research", "Clean Energy Innovation", "Energy Entrepreneurship", "Technology Commercialization", "Global Collaboration", "Leadership", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Global Renewable Energy Innovation , Research & Clean Energy Entrepreneurship",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1810,6 +1864,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to digital healthcare ecosystems, telemedicine, electronic health records, health informatics, wearable technologies, medical Internet of Things (IoMT), healthcare analytics, and digital public health while promoting technology-enabled, accessible, and patient-centered healthcare services.",
     outcomes: ["Explain digital health concepts", "Understand telemedicine systems", "Describe electronic health records", "Explain health informatics fundamentals", "Understand wearable healthcare technologies", "Appreciate digital public health initiatives", "Recognize ethical, legal, and privacy considerations in digital healthcare"],
+    competencies: ["Digital Health Fundamentals", "Health Informatics", "Telemedicine", "Healthcare Technology", "Ethical Practice"],
   syllabus: [
     "Module 1: Introduction to Digital Health, Telemedicine & Health Informatics and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -1835,6 +1890,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in electronic health records (EHR), healthcare information systems (HIS), hospital management systems (HMS), healthcare data analytics, medical Internet of Things (IoMT), interoperability standards, and digital healthcare workflows for improving patient care, operational efficiency, and evidence-based healthcare delivery.",
     outcomes: ["Understand electronic health record architecture", "Manage healthcare information securely", "Analyze healthcare datasets", "Understand medical IoT devices and sensors", "Explain healthcare interoperability concepts", "Design digital patient management workflows", "Apply healthcare analytics for decision-making"],
+    competencies: ["Electronic Health Records", "Healthcare Analytics", "Medical IoT", "Health Data Management", "Problem Solving", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Electronic Health Records, Healthcare Data Analytics & Medical IoT and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1860,6 +1916,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate artificial intelligence, machine learning, clinical decision support systems, healthcare analytics, wearable technologies, precision digital health, and predictive healthcare models to improve healthcare quality, accessibility, and evidence-based clinical decision-making.",
     outcomes: ["Understand AI applications in healthcare", "Design clinical decision support systems", "Analyze healthcare datasets using AI", "Develop predictive healthcare models", "Integrate wearable health monitoring devices", "Build precision digital health solutions", "Apply ethical principles in AI-enabled healthcare"],
+    competencies: ["AI in Healthcare", "Clinical Decision Support", "Precision Medicine", "Healthcare Analytics", "Machine Learning", "Research Skills", "Innovation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of AI in Healthcare, Clinical Decision Support & Precision Digital Health",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1886,6 +1943,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead digital healthcare transformation by integrating artificial intelligence, health informatics, telemedicine, medical IoT, hospital information systems, healthcare analytics, digital public health, healthcare quality improvement, and innovation management for resilient, patient-centered healthcare systems.",
     outcomes: ["Lead digital transformation initiatives in healthcare", "Design patient-centric digital healthcare systems", "Evaluate healthcare innovation strategies", "Improve hospital operational efficiency", "Develop digital public health programmes", "Lead multidisciplinary healthcare innovation teams", "Build sustainable HealthTech business models"],
+    competencies: ["Healthcare Leadership", "Digital Transformation", "Hospital Informatics", "Strategic Planning", "Innovation Management", "Stakeholder Management", "Ethical Leadership"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Digital Health Leadership, Healthcare Innovation & Hospital Transformation",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1912,6 +1970,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive digital health innovators capable of designing intelligent healthcare systems, integrating artificial intelligence with health informatics, conducting impactful research, filing patents, creating scalable HealthTech startups, and improving healthcare accessibility, quality, affordability, and public health outcomes.",
     outcomes: ["Design integrated digital healthcare ecosystems", "Develop AI-enabled healthcare platforms", "Build intelligent telemedicine solutions", "Conduct publishable digital health research", "Develop commercially viable HealthTech products", "File patents and technology disclosures", "Launch HealthTech startups", "Mentor future digital healthcare innovators"],
+    competencies: ["HealthTech Research", "Digital Health Innovation", "Healthcare Entrepreneurship", "Technology Commercialization", "Global Collaboration", "Research Leadership", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Global Digital Health Innovation , Research & HealthTech Entrepreneurship",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1938,6 +1997,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to modern agriculture technologies, precision farming, climate-smart agriculture, sustainable food systems, digital agriculture, smart irrigation, soil health management, and agricultural innovation while promoting food security, environmental sustainability, and rural prosperity.",
     outcomes: ["Explain AgriTech fundamentals", "Understand precision farming concepts", "Identify modern agricultural technologies", "Explain sustainable food systems", "Understand climate-smart agriculture", "Recognize digital agriculture applications", "Appreciate the importance of food security and sustainable farming"],
+    competencies: ["Agriculture Fundamentals", "Precision Farming", "Digital Agriculture", "Sustainability", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to AgriTech, Precision Farming & Food Systems and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -1963,6 +2023,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in Internet of Things (IoT)-enabled agriculture, GIS-based crop management, precision irrigation, environmental sensing, smart greenhouse technologies, farm automation, and digital farm management for improving agricultural productivity, sustainability, and climate resilience.",
     outcomes: ["Design IoT-enabled smart farming systems", "Understand GIS applications in agriculture", "Monitor crop and soil conditions using sensors", "Develop automated irrigation systems", "Analyze agricultural data for decision-making", "Design digital farm management solutions", "Apply sustainable precision farming techniques"],
+    competencies: ["IoT in Agriculture", "GIS Mapping", "Sensor Integration", "Crop Monitoring", "Agricultural Data Analysis", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Smart Agriculture, IoT Farming & GIS-Based Crop Management and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -1988,6 +2049,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Artificial Intelligence (AI), drone technology, remote sensing, GIS, IoT, machine learning, and precision farming analytics for designing intelligent agricultural systems that improve crop productivity, optimize resource utilization, reduce environmental impact, and strengthen food security.",
     outcomes: ["Develop AI-enabled crop monitoring systems", "Analyze drone imagery for agriculture", "Predict crop yield using AI models", "Detect crop diseases through computer vision", "Design precision farming decision-support systems", "Optimize irrigation and fertilizer application", "Build intelligent farm management solutions"],
+    competencies: ["AI in Agriculture", "Drone Operations", "Precision Agriculture", "Agricultural Data Analytics", "Machine Learning Applications", "Decision Support", "Innovation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of AI, Drone Agriculture & Precision Farming Analytics",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2014,6 +2076,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in emerging technology policy, digital ethics, artificial intelligence governance, cybersecurity regulation, data protection, intellectual property management, regulatory innovation, digital rights, and responsible technology governance for public institutions, industries, startups, and society.",
     outcomes: ["Analyze emerging technology policies", "Understand AI governance frameworks", "Apply digital ethics principles", "Interpret cybersecurity and privacy regulations", "Develop responsible technology governance models", "Design regulatory innovation strategies", "Evaluate technology risks and societal impacts"],
+    competencies: ["Technology Ethics", "Regulatory Frameworks", "Policy Analysis", "Governance", "Risk Assessment", "Technical Writing"],
   syllabus: [
     "Module 1: Introduction to Emerging Technology Policy, Ethics & Regulatory Innovation and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2039,6 +2102,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Artificial Intelligence governance, responsible innovation, strategic technology foresight, policy analytics, technology risk assessment, digital trust, ethical AI, and long-term innovation planning for governments, industries, universities, startups, and Smart Village ecosystems.",
     outcomes: ["Design AI governance frameworks", "Conduct strategic technology foresight studies", "Develop responsible innovation policies", "Analyze technology risks and societal impacts", "Create long-term technology roadmaps", "Integrate ethical AI into organizational governance", "Support evidence-based technology policymaking"],
+    competencies: ["AI Governance", "Responsible Innovation", "Technology Foresight", "Strategic Analysis", "Policy Development", "Research Skills", "Ethical Decision Making"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of AI Governance, Responsible Innovation & Strategic Technology Foresight",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2065,6 +2129,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to become strategic technology leaders capable of designing innovation strategies, technology policies, AI governance frameworks, digital public infrastructure initiatives, startup ecosystems, and national technology roadmaps while contributing to sustainable development and global digital transformation.",
     outcomes: ["Lead technology-driven public innovation", "Develop national and institutional technology strategies", "Design digital governance frameworks", "Formulate innovation policies", "Lead multidisciplinary technology teams", "Build sustainable innovation ecosystems", "Promote responsible technology leadership"],
+    competencies: ["Technology Leadership", "Innovation Strategy", "Public Policy", "Stakeholder Engagement", "Strategic Planning", "Global Governance", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Global Technology Leadership, Innovation Strategy & Public Policy",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2091,6 +2156,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive technology leaders capable of shaping future technology policies, leading responsible innovation ecosystems, influencing public policy, building sustainable startups, conducting internationally recognized research, and driving national and global digital transformation aligned with ethical governance and societal well-being.",
     outcomes: ["Develop national and international technology policies", "Lead responsible innovation ecosystems", "Design AI and emerging technology governance frameworks", "Conduct high-impact interdisciplinary research", "File patents and technology disclosures", "Build globally scalable technology ventures", "Advise governments and institutions on digital transformation", "Mentor future technology leaders"],
+    competencies: ["Technology Policy Research", "Innovation Leadership", "Global Technology Governance", "Strategic Consulting", "Technology Commercialization", "Research Communication", "Visionary Leadership", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Distinguished Global Technology Policy , Research & Innovation Leadership",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2117,6 +2183,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in genomics, DNA sequencing concepts, bioinformatics tools, molecular databases, computational biology, biological data analysis, and AI-assisted genomic interpretation for healthcare, agriculture, environmental science, and biotechnology innovation.",
     outcomes: ["Understand genome organization and sequencing technologies", "Explore biological and genomic databases", "Perform basic sequence analysis", "Apply bioinformatics tools to biological problems", "Interpret molecular and genomic datasets", "Understand AI-assisted genomic analysis", "Develop computational biology solutions"],
+    competencies: ["Genomics", "Bioinformatics", "Biological Data Analysis", "Sequence Analysis", "Research Skills", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Genomics, Bioinformatics & Molecular Data Analysis and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2142,6 +2209,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate synthetic biology, computational biotechnology, artificial intelligence, bioinformatics, and precision medicine concepts to develop innovative biological solutions for healthcare, agriculture, environmental sustainability, industrial biotechnology, and personalized medicine.",
     outcomes: ["Understand synthetic biology design principles", "Apply computational biotechnology tools", "Explore precision medicine concepts", "Analyze biological systems using AI-assisted methods", "Design synthetic biological solutions (conceptual and educational)", "Integrate genomics with healthcare applications", "Evaluate biotechnology innovations ethically and responsibly"],
+    competencies: ["Synthetic Biology", "Precision Medicine", "Computational Biology", "Biostatistics", "Research Methodology", "Innovation", "Critical Thinking"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Synthetic Biology, Precision Medicine & Computational Biotechnology",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2168,6 +2236,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead biotechnology innovation by integrating healthcare technologies, agricultural biotechnology, industrial biotechnology, bioinformatics, entrepreneurship, regulatory awareness, and sustainable biotechnology solutions for national and global challenges.",
     outcomes: ["Develop biotechnology-based innovations", "Design healthcare biotechnology solutions", "Understand biotechnology regulations and ethics", "Build biotechnology startup models", "Lead multidisciplinary biotechnology projects", "Evaluate commercialization opportunities", "Develop sustainable biotechnology products"],
+    competencies: ["Biotechnology Innovation", "Bioentrepreneurship", "Healthcare Leadership", "Strategic Planning", "Product Development", "Professional Ethics", "Stakeholder Management"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Biotechnology Innovation, Bioentrepreneurship & Healthcare Leadership",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2194,6 +2263,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive biotechnology innovators capable of conducting advanced biological research, integrating artificial intelligence with biotechnology, publishing high-impact scientific papers, filing patents, launching biotechnology startups, and developing sustainable healthcare, agricultural, environmental, and industrial biotechnology solutions.",
     outcomes: ["Design advanced biotechnology solutions", "Integrate AI, genomics, and bioinformatics", "Conduct publishable biotechnology research", "Develop biotechnology products and services", "File patents and technology disclosures", "Build biotechnology startups", "Lead multidisciplinary biotechnology innovation teams", "Mentor future biotechnology innovators"],
+    competencies: ["Biotechnology Research", "Synthetic Biology", "Innovation Leadership", "Technology Commercialization", "Bioentrepreneurship", "Global Collaboration", "Research Communication", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Global Biotechnology Innovation , Research & Bioentrepreneurship",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2220,6 +2290,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to become leaders in sustainable agriculture by integrating AgriTech, artificial intelligence, climate-smart farming, precision agriculture, agribusiness innovation, food value chains, rural entrepreneurship, and policy into scalable agricultural solutions that improve farmer income, food security, and environmental sustainability.",
     outcomes: ["Lead AgriTech transformation projects", "Design climate-smart farming systems", "Develop agribusiness strategies", "Evaluate agricultural value chains", "Apply sustainable farming practices", "Build farmer-centric innovation models", "Create scalable AgriTech enterprises"],
+    competencies: ["Climate-Smart Agriculture", "Agribusiness Management", "Technology Leadership", "Strategic Planning", "Stakeholder Management", "Sustainable Innovation", "Decision Making"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of AgriTech Leadership, Climate-Smart Agriculture & Agribusiness Innovation",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2246,6 +2317,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive AgriTech innovators capable of designing intelligent farming systems, integrating artificial intelligence, drones, IoT, GIS, robotics, and precision agriculture technologies while conducting impactful research, creating commercially viable agricultural innovations, filing patents, and launching sustainable AgriTech enterprises.",
     outcomes: ["Design integrated smart farming ecosystems", "Develop AI-powered agricultural solutions", "Build precision agriculture platforms", "Conduct publishable AgriTech research", "Develop commercially viable agricultural products", "File patents and technology disclosures", "Launch AgriTech startups", "Mentor future agricultural innovators"],
+    competencies: ["Agricultural Research", "Agri-Entrepreneurship", "Innovation Leadership", "Technology Commercialization", "Research Communication", "Global Collaboration", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Global AgriTech Innovation , Research & Agri-Entrepreneurship",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2272,6 +2344,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to digital banking, FinTech ecosystems, digital payments, financial inclusion, financial literacy, blockchain-based finance, personal finance management, digital lending, and emerging financial technologies while promoting responsible financial behavior, innovation, and inclusive economic development.",
     outcomes: ["Explain FinTech fundamentals", "Understand digital banking systems", "Describe digital payment ecosystems", "Understand financial inclusion concepts", "Explain digital lending and savings models", "Appreciate financial literacy and responsible finance", "Recognize emerging financial technologies"],
+    competencies: ["Financial Technology Fundamentals", "Digital Banking", "Financial Literacy", "Problem Solving", "Professional Ethics"],
   syllabus: [
     "Module 1: Introduction to FinTech, Digital Banking & Financial Innovation and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -2297,6 +2370,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in digital payment systems, blockchain-enabled financial services, financial analytics, fraud detection, digital wallets, payment gateways, financial data visualization, and secure digital financial transactions for businesses, banks, MSMEs, and rural communities.",
     outcomes: ["Understand digital payment architectures", "Explain blockchain applications in finance", "Analyze financial datasets", "Design digital payment workflows", "Understand fraud detection techniques", "Build financial dashboards", "Apply secure digital financial practices"],
+    competencies: ["Digital Payments", "Financial Analytics", "Blockchain Finance", "Data Analysis", "Regulatory Compliance", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to Digital Payments, Blockchain Finance & Financial Analytics and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2322,6 +2396,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Artificial Intelligence, Machine Learning, Big Data Analytics, Regulatory Technology (RegTech), intelligent automation, fraud analytics, and predictive financial intelligence for designing secure, intelligent, and inclusive financial systems.",
     outcomes: ["Develop AI-enabled financial applications", "Design fraud detection systems", "Build intelligent credit assessment models", "Analyze financial datasets using AI", "Develop RegTech compliance solutions", "Create predictive financial decision-support systems", "Apply ethical AI principles in financial technology"],
+    competencies: ["AI in Finance", "RegTech", "Financial Risk Analytics", "Machine Learning", "Fraud Detection", "Critical Thinking", "Innovation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of AI in Finance, RegTech & Intelligent Financial Systems",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2348,6 +2423,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead digital financial transformation by integrating FinTech, artificial intelligence, blockchain, digital banking, financial inclusion, digital public infrastructure, regulatory innovation, entrepreneurship, and sustainable finance into scalable financial solutions that empower individuals, businesses, and rural communities.",
     outcomes: ["Lead FinTech transformation initiatives", "Design inclusive digital financial ecosystems", "Develop financial inclusion strategies", "Evaluate digital economy policies", "Build sustainable FinTech business models", "Lead multidisciplinary innovation teams", "Promote responsible digital finance"],
+    competencies: ["FinTech Strategy", "Financial Inclusion", "Leadership", "Innovation Management", "Stakeholder Management", "Business Strategy", "Ethical Leadership"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of FinTech Leadership, Financial Inclusion & Digital Economy Innovation",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2374,6 +2450,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive FinTech innovators capable of designing next-generation digital financial systems by integrating Artificial Intelligence, Blockchain, Digital Banking, Open Banking, Embedded Finance, Digital Public Infrastructure, Regulatory Technology (RegTech), and Financial Analytics while creating scalable financial innovations, patents, startups, and impactful financial inclusion solutions.",
     outcomes: ["Design intelligent financial ecosystems", "Develop AI-powered FinTech platforms", "Build secure blockchain financial applications", "Conduct publishable FinTech research", "Develop commercially viable financial technology products", "File patents and technology disclosures", "Launch FinTech startups", "Mentor future financial technology innovators"],
+    competencies: ["FinTech Research", "Technology Commercialization", "Financial Innovation", "Entrepreneurship", "Global Collaboration", "Leadership", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Global FinTech Innovation , Research & Financial Technology Entrepreneurship",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2400,6 +2477,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to smart cities, sustainable urban development, intelligent infrastructure, digital governance, urban mobility, smart utilities, waste management, water systems, energy-efficient cities, climate resilience, and citizen-centric urban innovation while promoting sustainable and inclusive communities.",
     outcomes: ["Explain smart city concepts", "Understand sustainable urban planning", "Identify intelligent infrastructure technologies", "Describe digital governance systems", "Understand smart mobility and transportation", "Explain urban sustainability principles", "Recognize the role of citizens in smart city development"],
+    competencies: ["Smart City Fundamentals", "Urban Infrastructure", "Sustainability", "Digital Infrastructure", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to Smart Cities, Urban Innovation & Sustainable Infrastructure and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -2425,6 +2503,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in Internet of Things (IoT), intelligent transportation systems, smart utilities, GIS-enabled infrastructure management, urban digital infrastructure, smart street lighting, smart parking, environmental sensing, and connected public services for creating efficient, resilient, and sustainable cities.",
     outcomes: ["Design IoT-enabled smart city solutions", "Develop intelligent mobility systems", "Understand GIS-based infrastructure monitoring", "Build smart utility monitoring systems", "Integrate sensors into urban infrastructure", "Analyze urban data for decision-making", "Design connected public service platforms"],
+    competencies: ["IoT for Smart Cities", "Intelligent Mobility", "Urban Data Collection", "Sensor Networks", "GIS Applications", "Technical Documentation"],
   syllabus: [
     "Module 1: Introduction to IoT for Smart Cities, Intelligent Mobility & Urban Digital Infrastructure and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2450,6 +2529,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Artificial Intelligence (AI), Digital Twins, Geographic Information Systems (GIS), Internet of Things (IoT), predictive analytics, remote sensing, and urban intelligence platforms for designing resilient, sustainable, and citizen-centric smart cities and Smart Village–Smart City ecosystems.",
     outcomes: ["Design AI-enabled smart city solutions", "Develop digital twins for urban infrastructure", "Analyze urban datasets using AI", "Build predictive urban analytics models", "Integrate IoT with city management systems", "Optimize urban services using data-driven decision-making", "Apply ethical AI principles in urban governance"],
+    competencies: ["Digital Twin Technology", "Urban Analytics", "AI for Smart Cities", "Data Visualization", "Predictive Analytics", "System Integration", "Innovation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of AI, Digital Twins & Smart Urban Analytics",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2476,6 +2556,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to become leaders in smart urban transformation by integrating artificial intelligence, digital governance, GIS, IoT, digital twins, sustainable infrastructure, citizen engagement, public policy, climate resilience, and urban innovation into scalable solutions for future-ready cities and Smart Village–Smart City ecosystems.",
     outcomes: ["Lead Smart City transformation initiatives", "Design citizen-centric urban governance systems", "Develop sustainable urban development strategies", "Integrate AI and IoT into city governance", "Design resilient public infrastructure", "Develop digital governance frameworks", "Lead multidisciplinary urban innovation teams"],
+    competencies: ["Urban Governance", "Smart City Strategy", "Sustainable Development", "Leadership", "Stakeholder Management", "Strategic Planning", "Policy Implementation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Smart City Leadership, Urban Governance & Sustainable Development",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2502,6 +2583,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive urban innovators capable of designing next-generation smart cities by integrating Artificial Intelligence, Digital Twins, IoT, GIS, intelligent infrastructure, digital governance, climate resilience, sustainable mobility, and urban analytics while creating scalable technologies, patents, startups, and citizen-centric public solutions.",
     outcomes: ["Design integrated Smart City ecosystems", "Develop AI-powered urban intelligence platforms", "Build Digital Twin solutions for infrastructure", "Conduct publishable Smart City research", "Develop commercially viable urban technology products", "File patents and technology disclosures", "Launch UrbanTech startups", "Mentor future Smart City innovators"],
+    competencies: ["Urban Technology Research", "Smart Infrastructure Innovation", "Technology Entrepreneurship", "Innovation Leadership", "Global Collaboration", "Research Communication", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Global Smart City Innovation , Research & Urban Technology Entrepreneurship",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2528,6 +2610,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to Educational Technology (EdTech), digital learning ecosystems, learning management systems, learning analytics, virtual classrooms, artificial intelligence in education, personalized learning, digital content creation, and future-ready education while promoting lifelong learning and digital literacy.",
     outcomes: ["Explain the fundamentals of EdTech", "Understand digital learning ecosystems", "Use Learning Management Systems (LMS)", "Explain learning analytics concepts", "Understand personalized learning approaches", "Create basic digital educational resources", "Appreciate technology-enabled lifelong learning"],
+    competencies: ["Educational Technology Fundamentals", "Digital Learning", "Learning Management Systems", "Communication", "Problem Solving"],
   syllabus: [
     "Module 1: Introduction to EdTech, Learning Analytics & Digital Education and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -2553,6 +2636,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in Learning Management Systems (LMS), instructional design, digital content development, virtual laboratories, interactive multimedia, digital assessments, learning analytics, and educational media production for modern education ecosystems.",
     outcomes: ["Configure and manage Learning Management Systems", "Design engaging digital learning experiences", "Develop interactive multimedia educational content", "Create online assessments and quizzes", "Build virtual learning environments", "Apply instructional design principles", "Evaluate learner engagement using analytics"],
+    competencies: ["Learning Management Systems", "Instructional Design", "Digital Content Development", "Multimedia Production", "Assessment Design", "Technical Communication"],
   syllabus: [
     "Module 1: Introduction to Learning Management Systems, Digital Content Creation & Educational Technologies and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2578,6 +2662,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Artificial Intelligence (AI), Learning Analytics, Adaptive Learning Technologies, Natural Language Processing (NLP), intelligent tutoring systems, predictive analytics, and educational data mining to design personalized, inclusive, and evidence-based learning experiences.",
     outcomes: ["Develop AI-enabled educational applications", "Design adaptive learning environments", "Build intelligent tutoring systems", "Analyze learner performance using AI", "Develop predictive student success models", "Create personalized learning pathways", "Apply ethical AI principles in education"],
+    competencies: ["AI in Education", "Learning Analytics", "Adaptive Learning Systems", "Educational Data Analysis", "Research Skills", "Innovation", "Critical Thinking"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of AI in Education, Adaptive Learning & Learning Analytics",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2604,6 +2689,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to become leaders in educational transformation by integrating Artificial Intelligence, digital pedagogy, learning analytics, curriculum innovation, assessment technologies, educational leadership, academic quality assurance, and institutional transformation into scalable educational solutions.",
     outcomes: ["Lead educational transformation initiatives", "Design innovative digital learning ecosystems", "Develop learner-centered curriculum models", "Integrate AI into teaching and assessment", "Improve academic quality through learning analytics", "Lead institutional innovation projects", "Promote inclusive and future-ready education"],
+    competencies: ["Educational Leadership", "Digital Pedagogy", "Curriculum Innovation", "Strategic Planning", "Change Management", "Stakeholder Engagement", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Educational Leadership, Digital Pedagogy & Academic Innovation",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2630,6 +2716,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive educational technology innovators capable of designing next-generation learning ecosystems by integrating Artificial Intelligence, Learning Analytics, Adaptive Learning, Digital Pedagogy, Virtual Laboratories, Immersive Learning Technologies, Educational Data Intelligence, and Personalized Learning while creating scalable educational innovations, patents, startups, and transformative academic solutions.",
     outcomes: ["Design intelligent digital learning ecosystems", "Develop AI-powered educational platforms", "Build adaptive learning environments", "Conduct publishable EdTech research", "Develop commercially viable educational technology products", "File patents and technology disclosures", "Launch EdTech startups", "Mentor future educational innovators"],
+    competencies: ["EdTech Research", "Educational Innovation", "Technology Entrepreneurship", "Product Development", "Research Communication", "Global Collaboration", "Leadership", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Global EdTech Innovation , Research & Educational Technology Entrepreneurship",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -2656,6 +2743,7 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to technology policy, digital governance, innovation management, public policy, responsible innovation, emerging technologies, intellectual property, ethical technology development, and national innovation ecosystems while preparing them to become responsible technology leaders.",
     outcomes: ["Explain technology policy fundamentals", "Understand digital governance ecosystems", "Describe innovation management principles", "Explain technology regulations and standards", "Understand intellectual property fundamentals", "Appreciate responsible innovation", "Recognize the role of technology in national development"],
+    competencies: ["Technology Policy Fundamentals", "Digital Governance", "Innovation Awareness", "Critical Thinking", "Communication"],
   syllabus: [
     "Module 1: Introduction to Technology Policy, Innovation Management & Digital Governance and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
