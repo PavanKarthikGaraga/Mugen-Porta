@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { FiX, FiPlus, FiTrash2, FiUploadCloud } from "react-icons/fi";
 import { toast } from "sonner";
+import SkillInput from "./SkillInput";
 
 const BRAND = "rgb(151,0,3)";
 
@@ -122,8 +123,11 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                             <div><label className="text-xs font-semibold text-gray-600">Tagline *</label><input required value={data.profile?.tagline || ""} onChange={e => updateProfile("tagline", e.target.value)} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg mt-1" /></div>
                             <div><label className="text-xs font-semibold text-gray-600">CGPA</label><input type="number" step="0.01" value={data.profile?.cgpa || ""} onChange={e => updateProfile("cgpa", e.target.value)} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg mt-1" /></div>
                             <div className="col-span-2">
-                                <label className="text-xs font-semibold text-gray-600">Skills (comma separated) *</label>
-                                <input required value={(data.profile?.skills || []).join(", ")} onChange={e => updateProfile("skills", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg mt-1" placeholder="e.g. React, Node, Python" />
+                                <label className="text-xs font-semibold text-gray-600">Skills *</label>
+                                <SkillInput 
+                                    value={data.profile?.skills || []} 
+                                    onChange={(newSkills) => updateProfile("skills", newSkills)} 
+                                />
                             </div>
                         </div>
                         <div><label className="text-xs font-semibold text-gray-600">About Me *</label><textarea required value={data.profile?.about || ""} onChange={e => updateProfile("about", e.target.value)} rows={3} className="w-full p-3 text-sm border border-gray-200 rounded-lg mt-1" /></div>
@@ -171,7 +175,12 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                                     <div className="grid grid-cols-2 gap-3 pr-8">
                                         <input required placeholder="Project Name *" value={proj.name} onChange={e => updateArray('projects', i, 'name', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
                                         <input placeholder="Year" value={proj.project_year} onChange={e => updateArray('projects', i, 'project_year', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
-                                        <input placeholder="Tech Stack (comma separated)" value={(proj.tech_stack || []).join(', ')} onChange={e => updateArray('projects', i, 'tech_stack', e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} className="col-span-2 h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <div className="col-span-2">
+                                            <SkillInput 
+                                                value={proj.tech_stack || []} 
+                                                onChange={(newSkills) => updateArray('projects', i, 'tech_stack', newSkills)} 
+                                            />
+                                        </div>
                                         <input placeholder="GitHub URL" value={proj.github_url} onChange={e => updateArray('projects', i, 'github_url', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
                                         <input placeholder="Demo URL" value={proj.demo_url} onChange={e => updateArray('projects', i, 'demo_url', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
                                     </div>
