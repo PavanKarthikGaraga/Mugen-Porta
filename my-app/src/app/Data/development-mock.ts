@@ -372,7 +372,7 @@ export const PASSPORT = {
 // ── CAREER DATA ────────────────────────────────────────────────────────────────
 export const CAREER_PATHS = {
   "Software Engineer": {
-    icon: "💻", color: "#2563EB", bg: "#EFF6FF",
+    icon: "Terminal", color: "#2563EB", bg: "#EFF6FF",
     description: "Build, test and ship production software at top tech companies.",
     readinessScore: 68,
     keyCompetencies: [
@@ -396,10 +396,10 @@ export const CAREER_PATHS = {
       { milestone: "Apply to internships & PPOs",      dueMonths: 5, status: "upcoming"},
       { milestone: "Mock interviews × 10",             dueMonths: 6, status: "upcoming"},
     ],
-    activities: ["TEC-002","TEC-006","TEC-011","TEC-013","TEC-016"],
+    activities: ["TECH-SWD-001","TECH-SWD-002","TECH-SWD-003","TECH-CLD-001"],
   },
   "AI Engineer": {
-    icon: "🤖", color: "#7C3AED", bg: "#F5F3FF",
+    icon: "Brain", color: "#7C3AED", bg: "#F5F3FF",
     description: "Design and deploy AI/ML systems at the forefront of technology.",
     readinessScore: 52,
     keyCompetencies: [
@@ -422,10 +422,10 @@ export const CAREER_PATHS = {
       { milestone: "Win a Kaggle competition",          dueMonths: 6, status: "upcoming"},
       { milestone: "Build production ML pipeline",      dueMonths: 7, status: "upcoming"},
     ],
-    activities: ["TEC-004","TEC-012","TEC-016","TEC-017","TEC-020"],
+    activities: ["TECH-AI-001","TECH-AI-002","TECH-AI-003","TECH-DSA-001"],
   },
   "Researcher": {
-    icon: "🔬", color: "#059669", bg: "#ECFDF5",
+    icon: "Microscope", color: "#059669", bg: "#ECFDF5",
     description: "Contribute to cutting-edge knowledge through rigorous academic research.",
     readinessScore: 58,
     keyCompetencies: [
@@ -447,11 +447,11 @@ export const CAREER_PATHS = {
       { milestone: "Conference presentation",   dueMonths: 5, status: "upcoming"},
       { milestone: "Apply for PhD programmes",  dueMonths: 8, status: "upcoming"},
     ],
-    activities: ["TEC-012","TEC-016","TEC-017","LCH-011"],
+    activities: ["ESO-ARI-001","ESO-ARI-002","ESO-ARI-005","LCH-RES-001"],
   },
-  "Entrepreneur": {
-    icon: "🚀", color: "#D97706", bg: "#FFFBEB",
-    description: "Build ventures that create impact at scale.",
+  "Startup Founder": {
+    icon: "Rocket", color: "#D97706", bg: "#FFFBEB",
+    description: "Build ventures that create impact at scale and solve real-world problems.",
     readinessScore: 61,
     keyCompetencies: [
       { name: "Product Development",   required: 85, current: 58, gap: 27 },
@@ -472,10 +472,10 @@ export const CAREER_PATHS = {
       { milestone: "Apply to incubator/accelerator",  dueMonths: 3, status: "upcoming"},
       { milestone: "Raise pre-seed funding",          dueMonths: 6, status: "upcoming"},
     ],
-    activities: ["IIE-001","IIE-002","IIE-005","IIE-015","IIE-019"],
+    activities: ["IIE-001","IIE-002","IIE-003","IIE-007"],
   },
-  "IAS Officer": {
-    icon: "🏛️", color: "#DC2626", bg: "#FEF2F2",
+  "Public Administrator": {
+    icon: "Landmark", color: "#DC2626", bg: "#FEF2F2",
     description: "Serve the nation through administrative leadership in the civil services.",
     readinessScore: 44,
     keyCompetencies: [
@@ -498,10 +498,10 @@ export const CAREER_PATHS = {
       { milestone: "Mains preparation",           dueMonths: 18, status: "upcoming"},
       { milestone: "Interview preparation",       dueMonths: 22, status: "upcoming"},
     ],
-    activities: ["ESO-001","ESO-012","ESO-016","LCH-017"],
+    activities: ["ESO-CGG-001","ESO-CGG-002","ESO-CGG-004","LCH-LDR-001"],
   },
-  "Teacher / Educator": {
-    icon: "📚", color: "#0891B2", bg: "#ECFEFF",
+  "Educator": {
+    icon: "BookOpen", color: "#0891B2", bg: "#ECFEFF",
     description: "Inspire the next generation through transformative teaching.",
     readinessScore: 70,
     keyCompetencies: [
@@ -523,7 +523,57 @@ export const CAREER_PATHS = {
       { milestone: "Guest lecture at school",      dueMonths: 3,  status: "upcoming"},
       { milestone: "Design 1 course curriculum",   dueMonths: 5,  status: "upcoming"},
     ],
-    activities: ["ESO-003","ESO-005","ESO-019","LCH-015"],
+    activities: ["TECH-EDU-001","TECH-EDU-002","ESO-EDI-002","ESO-CES-002"],
+  },
+  "Wellness Coach": {
+    icon: "Heart", color: "#E11D48", bg: "#FFF1F2",
+    description: "Guide individuals and communities toward holistic health and well-being.",
+    readinessScore: 55,
+    keyCompetencies: [
+      { name: "Empathy & Active Listening", required: 90, current: 80, gap: 10 },
+      { name: "Nutrition Fundamentals",     required: 85, current: 45, gap: 40 },
+      { name: "Fitness Coaching",           required: 80, current: 50, gap: 30 },
+      { name: "Mental Health First Aid",    required: 85, current: 40, gap: 45 },
+      { name: "Communication",              required: 90, current: 85, gap: 5  },
+      { name: "Behavioral Change",          required: 80, current: 30, gap: 50 },
+    ],
+    missingCompetencies: ["Mental Health First Aid","Nutritional Planning","Coaching Psychology"],
+    recommendedCertifications: [
+      { name: "Certified Health & Wellness Coach", provider: "NBHWC", priority: "Critical", timeMonths: 6 },
+      { name: "Mental Health First Aid",           provider: "MHFA",  priority: "High",     timeMonths: 1 },
+      { name: "Yoga Instructor Certification",     provider: "RYT",   priority: "Medium",   timeMonths: 6 },
+    ],
+    roadmap: [
+      { milestone: "Complete MHFA Certification",  dueMonths: 1,  status: "active"  },
+      { milestone: "Lead 5 wellness workshops",    dueMonths: 3,  status: "upcoming"},
+      { milestone: "Complete NBHWC Exam",          dueMonths: 6,  status: "upcoming"},
+    ],
+    activities: ["HWB-SLF-006","HWB-YOG-001","HWB-YOG-006","ESO-HHN-001"],
+  },
+  "Social Development Officer": {
+    icon: "Users", color: "#16A34A", bg: "#F0FDF4",
+    description: "Drive positive social impact through community programs and NGOs.",
+    readinessScore: 64,
+    keyCompetencies: [
+      { name: "Community Mobilization",    required: 90, current: 70, gap: 20 },
+      { name: "Project Management",        required: 85, current: 65, gap: 20 },
+      { name: "Impact Assessment",         required: 85, current: 50, gap: 35 },
+      { name: "Stakeholder Engagement",    required: 80, current: 70, gap: 10 },
+      { name: "Fundraising",               required: 80, current: 30, gap: 50 },
+      { name: "Empathy",                   required: 90, current: 85, gap: 5  },
+    ],
+    missingCompetencies: ["Fundraising","Impact Assessment Frameworks","Grant Writing"],
+    recommendedCertifications: [
+      { name: "Social Impact Strategy", provider: "Penn/Coursera", priority: "High", timeMonths: 2 },
+      { name: "Grant Writing Masterclass",provider: "Udemy",       priority: "Medium", timeMonths: 1 },
+      { name: "Project Management for NGOs", provider: "PM4NGOs",  priority: "High", timeMonths: 3 },
+    ],
+    roadmap: [
+      { milestone: "Volunteer for 100 hours",       dueMonths: 3,  status: "active"  },
+      { milestone: "Write a mock grant proposal",   dueMonths: 4,  status: "upcoming"},
+      { milestone: "Lead a community project",      dueMonths: 6,  status: "upcoming"},
+    ],
+    activities: ["ESO-CES-003","ESO-CES-004","ESO-SII-002","ESO-WYE-002"],
   },
 };
 

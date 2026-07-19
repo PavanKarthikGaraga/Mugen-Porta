@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   FiTarget, FiChevronRight, FiClock, FiAlertCircle,
@@ -9,6 +9,21 @@ import RingProgress  from "@/app/components/dashboard/RingProgress";
 import SkillGapBar   from "@/app/components/dashboard/SkillGapBar";
 import DashboardCard from "@/app/components/dashboard/DashboardCard";
 import { CAREER_PATHS, CAREER_PATH_KEYS } from "@/app/Data/development-mock";
+import { Terminal, Brain, Microscope, Rocket, Landmark, BookOpen, Heart, Users, Sparkles, Loader2 } from "lucide-react";
+
+const getIcon = (name: string, size = 24) => {
+  switch (name) {
+    case "Terminal": return <Terminal size={size} />;
+    case "Brain": return <Brain size={size} />;
+    case "Microscope": return <Microscope size={size} />;
+    case "Rocket": return <Rocket size={size} />;
+    case "Landmark": return <Landmark size={size} />;
+    case "BookOpen": return <BookOpen size={size} />;
+    case "Heart": return <Heart size={size} />;
+    case "Users": return <Users size={size} />;
+    default: return <Terminal size={size} />;
+  }
+};
 
 const BRAND = "rgb(151,0,3)";
 
@@ -36,6 +51,44 @@ export default function CareerPage() {
   const metCompetencies  = career.keyCompetencies.filter((c) => c.current >= c.required);
   const gapCompetencies  = career.keyCompetencies.filter((c) => c.current <  c.required);
   const totalGap         = gapCompetencies.reduce((s, c) => s + c.gap, 0);
+
+  const [aiAnalysis, setAiAnalysis] = useState<string>("");
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAnalysis = async () => {
+      setIsAnalyzing(true);
+      setAiAnalysis("");
+      try {
+        const gapCompetencies  = CAREER_PATHS[selectedCareer].keyCompetencies.filter((c: any) => c.current < c.required);
+        const res = await fetch("/api/dashboard/student/career/ai-analysis", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            career: selectedCareer,
+            readinessScore: CAREER_PATHS[selectedCareer].readinessScore,
+            gapCompetencies: gapCompetencies.map((g: any) => ({ name: g.name, gap: g.gap })),
+            roadmap: CAREER_PATHS[selectedCareer].roadmap
+          })
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) setAiAnalysis(data.analysis);
+        } else {
+          if (isMounted) setAiAnalysis("Could not generate AI analysis at this time.");
+        }
+      } catch (e) {
+        if (isMounted) setAiAnalysis("Error connecting to AI Advisor.");
+      }
+      if (isMounted) setIsAnalyzing(false);
+    };
+
+    fetchAnalysis();
+    return () => { isMounted = false; };
+  }, [selectedCareer]);
+
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">
@@ -67,7 +120,7 @@ export default function CareerPage() {
                   }`}
                   style={isActive ? { backgroundColor: c.color, borderColor: c.color } : {}}
                 >
-                  <span className="text-base">{c.icon}</span>
+                  <span className="flex items-center justify-center">{getIcon(c.icon, 16)}</span>
                   {key}
                 </button>
               );
@@ -81,7 +134,7 @@ export default function CareerPage() {
         className="rounded-xl border p-4 flex items-start gap-4"
         style={{ backgroundColor: career.bg, borderColor: career.color + "30" }}
       >
-        <span className="text-4xl flex-shrink-0">{career.icon}</span>
+        <span className="flex-shrink-0 flex items-center justify-center text-gray-800" style={{color: career.color}}>{getIcon(career.icon, 48)}</span>
         <div className="flex-1">
           <h2 className="text-base font-bold" style={{ color: career.color }}>{selectedCareer}</h2>
           <p className="text-sm text-gray-700 mt-0.5">{career.description}</p>
@@ -192,6 +245,25 @@ export default function CareerPage() {
               color={career.color}
             />
           ))}
+        </div>
+      </DashboardCard>
+
+      {/* ── AI Career Advisor Insight ── */}
+      <DashboardCard
+        title={<span className="flex items-center gap-2"><Sparkles size={18} className="text-amber-500" /> AI Career Advisor Insight</span>}
+        subtitle="Personalised strategic recommendations to close your skill gaps"
+      >
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-100/50">
+          {isAnalyzing ? (
+            <div className="flex flex-col items-center justify-center py-8 text-amber-700/60">
+              <Loader2 className="animate-spin mb-3" size={24} />
+              <p className="text-sm font-medium animate-pulse">Groq AI is analyzing your profile...</p>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+              {aiAnalysis || "No analysis available."}
+            </div>
+          )}
         </div>
       </DashboardCard>
 
