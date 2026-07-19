@@ -51,7 +51,8 @@ export default function RootLayout({ children }) {
                 });
               }
 
-              // Add cache busting parameter to avoid 404s
+              // Add cache busting parameter to avoid 404s (Disabled because it breaks Next.js preloading and causes 'as' attribute console warnings)
+              /*
               const currentTime = Date.now();
               const links = document.querySelectorAll('link[rel="preload"], link[rel="modulepreload"]');
               links.forEach(link => {
@@ -59,6 +60,7 @@ export default function RootLayout({ children }) {
                   link.href += (link.href.includes('?') ? '&' : '?') + '_t=' + currentTime;
                 }
               });
+              */
             `,
           }}
         />
