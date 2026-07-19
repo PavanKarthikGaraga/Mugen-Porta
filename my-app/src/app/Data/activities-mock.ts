@@ -221,7 +221,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Faculty Mentor",
-    competencies: ["Advanced AI Development", "Machine Learning Applications", "Research Methodology", "Product Engineering", "Technology Commercialization", "Innovation Leadership", "Entrepreneurship", "Research Communication", "Project Management", "Industry Collaboration", "Visionary Leadership", "Strategic Thinking", "Global Perspective", "Ethical Innovation", "Lifelong Learning"]
+    competencies: ["Advanced AI Development", "Machine Learning Applications", "Research Methodology", "Product Engineering", "Technology Commercialization", "Innovation Leadership", "Entrepreneurship", "Global Collaboration"]
   },
   {
     id: "TECH-SWD-001",
@@ -350,7 +350,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Software Mentor",
-    competencies: ["Enterprise Software Architecture", "Cloud Computing", "DevOps", "API Ecosystems", "Software Security", "Product Engineering", "System Integration", "Technology Leadership", "Product Strategy", "Startup Management", "Research Communication", "Innovation Management", "Visionary Leadership", "Entrepreneurial Thinking", "Global Collaboration", "Ethical Decision-Making", "Lifelong Learning"]
+    competencies: ["Enterprise Software Architecture", "Cloud-Native Development", "DevOps & CI/CD", "Technology Entrepreneurship", "Research & Innovation", "Product Strategy", "Professional Ethics", "Global Collaboration"]
   },
   {
     id: "TECH-CYS-001",
@@ -479,7 +479,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Cybersecurity Mentor",
-    competencies: ["Advanced Cyber Defense", "Security Engineering", "Threat Intelligence", "Cloud Security", "Zero Trust Architecture", "Secure Software Development", "Cybersecurity Research", "Research Leadership", "Innovation Management", "Startup Development", "Technology Commercialization", "Strategic Cybersecurity Planning", "Visionary Leadership", "Ethical Responsibility", "Resilience", "Lifelong Learning", "Global Collaboration"]
+    competencies: ["Advanced Cyber Defense", "Threat Intelligence", "Cloud Security", "Cybersecurity Research", "Innovation Leadership", "Technology Strategy", "Global Collaboration", "Professional Ethics"]
   },
   {
     id: "TECH-DSA-001",
@@ -582,7 +582,7 @@ const rawActivities: any[] = [
     enrolledCount: 15,
     maxEnrollment: 30,
     faculty: "Data Science Faculty Mentor",
-    competencies: ["Enterprise Analytics", "Decision Intelligence", "AI Governance", "Executive Dashboard Design", "Data Governance", "KPI Framework Development", "Leadership", "Strategic Planning", "Stakeholder Management", "Business Communication", "Change Management", "Visionary Thinking", "Ethical Leadership", "Accountability", "Collaboration"]
+    competencies: ["Enterprise Analytics", "Decision Intelligence", "AI Governance", "Leadership", "Business Strategy", "Stakeholder Management", "Ethical Decision Making"]
   },
   {
     id: "TECH-DSA-005",
@@ -609,7 +609,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Analytics Mentor",
-    competencies: ["Advanced Data Science", "Global Analytics Strategy", "Research Leadership", "Technology Commercialization", "Visionary Leadership", "Ethical Innovation"]
+    competencies: ["Advanced Data Science", "Research Methodology", "AI Innovation", "Technology Commercialization", "Innovation Leadership", "Global Collaboration", "Professional Ethics", "Lifelong Learning"]
   },
   {
     id: "TECH-CLD-001",
@@ -738,7 +738,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Cloud Mentor",
-    competencies: ["Cloud Native Computing", "Kubernetes & Container Orchestration", "Multi-Cloud Architecture", "Serverless Computing", "AI Operations (AIOps)", "Cloud Security Engineering", "Enterprise Platform Engineering", "Technology Leadership", "Product Management", "Research Leadership", "Innovation Management", "Consulting", "Visionary Leadership", "Entrepreneurship", "Ethical Responsibility", "Global Collaboration", "Lifelong Learning"]
+    competencies: ["Cloud Native Computing", "Multi-Cloud Architecture", "Cloud Security Engineering", "AIOps", "Research Leadership", "Technology Entrepreneurship", "Global Collaboration", "Professional Ethics"]
   },
   {
     id: "TECH-IOT-001",
@@ -764,7 +764,7 @@ const rawActivities: any[] = [
     enrolledCount: 60,
     maxEnrollment: 100,
     faculty: "IoT Faculty Mentor",
-    competencies: ["IoT Fundamentals", "Embedded Systems Basics", "Sensor Integration", "Actuator Control", "Wireless Communication", "Data Acquisition", "Basic IoT Security", "Problem Solving", "Documentation", "Team Collaboration", "Design Thinking", "Creativity", "Innovation", "Curiosity", "Lifelong Learning"]
+    competencies: ["IoT Fundamentals", "Embedded Systems Basics", "Sensor Integration", "Wireless Communication", "Problem Solving"]
   },
   {
     id: "TECH-IOT-002",
@@ -868,7 +868,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal IoT Mentor",
-    competencies: ["Advanced IoT Architecture", "Industrial IoT Platforms", "Edge AI Integration", "Technology Leadership", "Product Management", "Research Leadership", "Innovation Management"]
+    competencies: ["Advanced IoT Architecture", "Industrial IoT Platforms", "Edge AI", "Technology Leadership", "Research & Development", "Product Innovation", "Global Collaboration", "Lifelong Learning"]
   },
   {
     id: "TECH-ROB-001",
@@ -997,7 +997,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Robotics Mentor",
-    competencies: ["Advanced Robotics", "Artificial Intelligence for Robotics", "Autonomous Systems", "Swarm Robotics", "Human–Robot Collaboration", "Digital Twin Robotics", "Industrial Automation", "Robotics System Integration", "Research Leadership", "Product Innovation", "Technology Entrepreneurship", "Strategic Planning", "Global Collaboration", "Visionary Leadership", "Ethical Innovation", "Resilience", "Lifelong Learning", "Professional Excellence"]
+    competencies: ["Advanced Robotics", "Autonomous Systems", "Research & Development", "Technology Entrepreneurship", "Innovation Leadership", "Global Collaboration", "Professional Ethics", "Lifelong Learning"]
   },
   {
     id: "TECH-DRN-001",
@@ -1126,7 +1126,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Aerospace Mentor",
-    competencies: ["Advanced UAV Design", "Autonomous Navigation Systems", "Geospatial Data Analytics", "Aerospace Research", "Startup Incubation", "Aerospace Safety & Regulations"]
+    competencies: ["Advanced UAV Design", "Autonomous Navigation", "Geospatial Analytics", "Aerospace Research", "Innovation Leadership", "Technology Entrepreneurship", "Global Collaboration", "Professional Ethics"]
   },
   {
     id: "TECH-BC-001",
@@ -1255,7 +1255,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Blockchain Mentor",
-    competencies: ["Enterprise Blockchain Engineering", "Advanced Smart Contracts", "Web3 Architecture", "Decentralized Identity", "Cross-Chain Interoperability", "Enterprise Digital Trust", "Blockchain Security Engineering", "Blockchain–AI–IoT Integration", "Innovation Leadership", "Research Management", "Product Development", "Technology Entrepreneurship", "Strategic Consulting", "Visionary Leadership", "Ethical Innovation", "Global Collaboration", "Lifelong Learning", "Professional Excellence"]
+    competencies: ["Enterprise Blockchain Engineering", "Advanced Smart Contracts", "Web3 Architecture", "Blockchain Research", "Technology Entrepreneurship", "Innovation Leadership", "Global Collaboration", "Professional Ethics"]
   },
   {
     id: "TECH-QC-001",
@@ -1384,7 +1384,7 @@ const rawActivities: any[] = [
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Quantum Mentor",
-    competencies: ["Advanced Quantum Computing", "Quantum System Engineering", "Hybrid AI–Quantum Computing", "Quantum Optimization", "Quantum Cryptography", "Scientific Computing", "Deep Technology Product Development", "Research Leadership", "Product Innovation", "Technology Entrepreneurship", "Strategic Consulting", "Global Collaboration", "Visionary Leadership", "Scientific Curiosity", "Professional Excellence"]
+    competencies: ["Advanced Quantum Computing", "Quantum Research", "Deep Technology Innovation", "Technology Entrepreneurship", "Global Collaboration", "Research Leadership", "Professional Ethics", "Lifelong Learning"]
   },
   {
     id: "TECH-SPC-001",
