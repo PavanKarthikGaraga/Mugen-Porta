@@ -27,6 +27,78 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'Valid messages array is required' }, { status: 400 });
         }
 
+        // Rate Limiting Logic Start
+        await pool.execute(`
+            CREATE TABLE IF NOT EXISTS ai_mentor_limits (
+                username VARCHAR(100) PRIMARY KEY,
+                request_count INT DEFAULT 0,
+                last_request_time DATETIME,
+                banned_until DATETIME NULL,
+                violation_level INT DEFAULT 0
+            );
+        `);
+
+        const [limitRows] = await pool.execute(
+            'SELECT * FROM ai_mentor_limits WHERE username = ?',
+            [student.username]
+        ) as any[];
+
+        const limitRecord = limitRows[0];
+        const now = new Date();
+
+        if (limitRecord) {
+            if (limitRecord.banned_until && new Date(limitRecord.banned_until) > now) {
+                return NextResponse.json({ 
+                    error: `You have been temporarily banned from using the AI Mentor due to spamming. Your ban will be lifted on ${new Date(limitRecord.banned_until).toLocaleString()}.` 
+                }, { status: 429 });
+            }
+
+            const lastReq = new Date(limitRecord.last_request_time);
+            const diffSeconds = (now.getTime() - lastReq.getTime()) / 1000;
+
+            if (diffSeconds < 60) {
+                const newCount = limitRecord.request_count + 1;
+                if (newCount > 5) {
+                    const newViolation = limitRecord.violation_level + 1;
+                    if (newViolation >= 3) {
+                        const banDate = new Date();
+                        banDate.setDate(banDate.getDate() + 3);
+                        await pool.execute(
+                            'UPDATE ai_mentor_limits SET request_count = ?, last_request_time = ?, banned_until = ?, violation_level = ? WHERE username = ?',
+                            [newCount, now, banDate, newViolation, student.username]
+                        );
+                        return NextResponse.json({ 
+                            error: 'You have been banned for 3 days for continuously spamming the AI Mentor.' 
+                        }, { status: 429 });
+                    } else {
+                        await pool.execute(
+                            'UPDATE ai_mentor_limits SET request_count = ?, last_request_time = ?, violation_level = ? WHERE username = ?',
+                            [newCount, now, newViolation, student.username]
+                        );
+                        return NextResponse.json({ 
+                            error: 'You are sending too many messages too quickly. Please wait a minute.' 
+                        }, { status: 429 });
+                    }
+                } else {
+                    await pool.execute(
+                        'UPDATE ai_mentor_limits SET request_count = ?, last_request_time = ? WHERE username = ?',
+                        [newCount, now, student.username]
+                    );
+                }
+            } else {
+                await pool.execute(
+                    'UPDATE ai_mentor_limits SET request_count = 1, last_request_time = ? WHERE username = ?',
+                    [now, student.username]
+                );
+            }
+        } else {
+            await pool.execute(
+                'INSERT INTO ai_mentor_limits (username, request_count, last_request_time, violation_level) VALUES (?, 1, ?, 0)',
+                [student.username, now]
+            );
+        }
+        // Rate Limiting Logic End
+
         // Fetch student context from DB
         const [profileRows, sdcRows, competencyRows, badgeRows] = await Promise.all([
             pool.execute(`
@@ -62,7 +134,7 @@ export async function POST(request: Request) {
         const compStr = compsData.map((c: any) => `${c.name}: ${c.score}/10`).join(', ');
 
         const systemPrompt = `
-You are the SAMAM AI Mentor for KL University. You act as a friendly, concise, and highly encouraging academic and extracurricular advisor.
+You are the SAMAM AI Mentor for KL University. You act as an expert, professional, and highly strategic academic advisor.
 
 Here is the context of the student you are talking to:
 Name: ${p.name || 'Student'}
@@ -74,12 +146,18 @@ Domain Breakdown: ${domainStr || 'None'}
 Badges Earned: ${badgesCount}
 Competency Scores: ${compStr || 'None evaluated yet'}
 
+The SAMAM Activity Catalog is categorized into 5 domains:
+1. Technology & Engineering (TEC): Technical skills, coding, hackathons, engineering clubs.
+2. Life Skills & Character (LCH): Soft skills, leadership, outdoor survival, ethics.
+3. Extension & Social Outreach (ESO): Community service, volunteering, social impact.
+4. Innovation & Entrepreneurship (IIE): Startups, business planning, design thinking.
+5. Health & Well-being (HWB): Sports, yoga, mental health, fitness.
+
 Guidelines:
-1. Always base your recommendations on their actual data (e.g. if they have low Technical points, recommend technical activities).
-2. Keep your answers brief (2-4 paragraphs max). Do not output huge walls of text.
-3. Be encouraging but professional. Use emojis sparingly.
-4. If they ask about points, remind them that points are earned across 5 domains (TEC, LCH, ESO, IIE, HWB).
-5. Suggest realistic, university-appropriate activities (clubs, hackathons, workshops, volunteering).
+1. Base your recommendations STRICTLY on their actual data and competencies.
+2. If they need to build specific skills, explicitly tell them which of the 5 SAMAM domains they should look at in the Activity Catalog.
+3. Keep your answers brief, actionable, and extremely professional (2-3 paragraphs). Do NOT use emojis.
+4. Act as a senior career mentor, not a chatbot. Direct them to explore specific types of activities in the catalog that map to their weaknesses.
 `;
 
         const GROQ_KEYS = [
