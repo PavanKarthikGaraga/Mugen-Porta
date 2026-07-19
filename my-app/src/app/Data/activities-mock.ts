@@ -3961,6 +3961,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Creative Writing Foundation Programme to develop crucial skills in Literature & Communication (LIT) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Literature & Communication (LIT)", "Apply techniques learned in Creative Writing Foundation Programme"],
+    competencies: ["Creative Writing", "Grammar & Language", "Critical Thinking", "Written Communication", "Creativity"],
   syllabus: [
     "Module 1: Introduction to Creative Writing and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -3986,6 +3987,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Public Speaking & Literary Expression Programme to develop crucial skills in Literature & Communication (LIT) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Literature & Communication (LIT)", "Apply techniques learned in Public Speaking & Literary Expression Programme"],
+    competencies: ["Public Speaking", "Storytelling", "Presentation Skills", "Audience Engagement", "Communication", "Confidence Building"],
   syllabus: [
     "Module 1: Introduction to Public Speaking & Literary Expression and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4011,6 +4013,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Poetry, Storytelling & Debate Festival to develop crucial skills in Literature & Communication (LIT) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Literature & Communication (LIT)", "Apply techniques learned in Poetry, Storytelling & Debate Festival"],
+    competencies: ["Poetry Writing", "Debate", "Storytelling", "Critical Reasoning", "Creative Expression", "Collaboration", "Leadership"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Poetry, Storytelling & Debate Festival",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4037,6 +4040,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Editorial Writing & Literary Publication Programme to develop crucial skills in Literature & Communication (LIT) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Literature & Communication (LIT)", "Apply techniques learned in Editorial Writing & Literary Publication Programme"],
+    competencies: ["Editorial Writing", "Content Editing", "Publication Management", "Research", "Leadership", "Communication", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Editorial Writing & Literary Publication",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4063,6 +4067,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Literary Leadership & National Literature Summit to develop crucial skills in Literature & Communication (LIT) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Literature & Communication (LIT)", "Apply techniques learned in Literary Leadership & National Literature Summit"],
+    competencies: ["Literary Leadership", "Publishing", "Creative Entrepreneurship", "Research Communication", "Professional Networking", "Mentoring", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Literary Leadership & National Literature Summit",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4089,6 +4094,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Music Appreciation & Vocal Foundation to develop crucial skills in Music & Performing Arts (MUS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Music & Performing Arts (MUS)", "Apply techniques learned in Music Appreciation & Vocal Foundation"],
+    competencies: ["Music Fundamentals", "Vocal Techniques", "Rhythm", "Listening Skills", "Creative Expression"],
   syllabus: [
     "Module 1: Introduction to Music Appreciation & Vocal and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4114,6 +4120,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Instrumental Music Development Programme to develop crucial skills in Music & Performing Arts (MUS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Music & Performing Arts (MUS)", "Apply techniques learned in Instrumental Music Development Programme"],
+    competencies: ["Instrumental Performance", "Music Theory", "Practice Discipline", "Performance Skills", "Collaboration", "Musical Interpretation"],
   syllabus: [
     "Module 1: Introduction to Instrumental Music Development and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4139,6 +4146,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Music Production & Performance Programme to develop crucial skills in Music & Performing Arts (MUS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Music & Performing Arts (MUS)", "Apply techniques learned in Music Production & Performance Programme"],
+    competencies: ["Music Production", "Audio Recording", "Live Performance", "Creative Composition", "Digital Audio Workstations", "Teamwork", "Innovation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Music Production & Performance",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4165,6 +4173,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Fusion Music Ensemble Leadership to develop crucial skills in Music & Performing Arts (MUS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Music & Performing Arts (MUS)", "Apply techniques learned in Fusion Music Ensemble Leadership"],
+    competencies: ["Ensemble Leadership", "Music Arrangement", "Performance Management", "Project Coordination", "Creative Collaboration", "Professional Practice", "Communication"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Fusion Music Ensemble Leadership",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4191,6 +4200,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Music Performance & Cultural Ambassador Programme to develop crucial skills in Music & Performing Arts (MUS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Music & Performing Arts (MUS)", "Apply techniques learned in National Music Performance & Cultural Ambassador Programme"],
+    competencies: ["Professional Performance", "Music Leadership", "Creative Entrepreneurship", "Networking", "Cultural Representation", "Professional Ethics", "Mentoring", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of National Music Performance & Cultural Ambassador",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4217,6 +4227,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Dance Foundation & Movement Skills to develop crucial skills in Dance & Performing Arts (DAN) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Dance & Performing Arts (DAN)", "Apply techniques learned in Dance Foundation & Movement Skills"],
+    competencies: ["Dance Fundamentals", "Body Coordination", "Rhythm", "Self-Discipline", "Creative Expression"],
   syllabus: [
     "Module 1: Introduction to Dance  & Movement Skills and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4242,6 +4253,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Classical & Contemporary Dance Programme to develop crucial skills in Dance & Performing Arts (DAN) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Dance & Performing Arts (DAN)", "Apply techniques learned in Classical & Contemporary Dance Programme"],
+    competencies: ["Dance Techniques", "Performance Skills", "Stage Presence", "Creativity", "Teamwork", "Communication"],
   syllabus: [
     "Module 1: Introduction to Classical & Contemporary Dance and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4267,6 +4279,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Choreography & Stage Performance to develop crucial skills in Dance & Performing Arts (DAN) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Dance & Performing Arts (DAN)", "Apply techniques learned in Choreography & Stage Performance"],
+    competencies: ["Choreography", "Performance Management", "Creative Direction", "Team Leadership", "Artistic Innovation", "Communication", "Problem Solving"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Choreography & Stage Performance",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4293,6 +4306,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Dance Production & Event Leadership to develop crucial skills in Dance & Performing Arts (DAN) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Dance & Performing Arts (DAN)", "Apply techniques learned in Dance Production & Event Leadership"],
+    competencies: ["Event Management", "Dance Production", "Leadership", "Project Coordination", "Audience Engagement", "Professional Practice", "Collaboration"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Dance Production & Event Leadership",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4319,6 +4333,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Dance Festival & Cultural Ambassador Programme to develop crucial skills in Dance & Performing Arts (DAN) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Dance & Performing Arts (DAN)", "Apply techniques learned in National Dance Festival & Cultural Ambassador Programme"],
+    competencies: ["Professional Performance", "Cultural Leadership", "Creative Entrepreneurship", "Public Representation", "Networking", "Professional Ethics", "Mentoring", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of National Dance Festival & Cultural Ambassador",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4345,6 +4360,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Photography Foundation Programme to develop crucial skills in Photography & Visual Storytelling (PHO) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Photography & Visual Storytelling (PHO)", "Apply techniques learned in Photography Foundation Programme"],
+    competencies: ["Camera Operations", "Photography Fundamentals", "Composition", "Visual Storytelling", "Creativity"],
   syllabus: [
     "Module 1: Introduction to Photography and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4370,6 +4386,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Creative Photography & Composition to develop crucial skills in Photography & Visual Storytelling (PHO) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Photography & Visual Storytelling (PHO)", "Apply techniques learned in Creative Photography & Composition"],
+    competencies: ["Lighting Techniques", "Composition", "Photo Editing", "Digital Imaging", "Creative Direction", "Visual Communication"],
   syllabus: [
     "Module 1: Introduction to Creative Photography & Composition and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4395,6 +4412,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Photojournalism & Documentary Photography to develop crucial skills in Photography & Visual Storytelling (PHO) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Photography & Visual Storytelling (PHO)", "Apply techniques learned in Photojournalism & Documentary Photography"],
+    competencies: ["Photojournalism", "Documentary Photography", "Visual Communication", "Ethical Reporting", "Storytelling", "Research", "Critical Thinking"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Photojournalism & Documentary Photography",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4421,6 +4439,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Photography Exhibition Management to develop crucial skills in Photography & Visual Storytelling (PHO) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Photography & Visual Storytelling (PHO)", "Apply techniques learned in Photography Exhibition Management"],
+    competencies: ["Exhibition Planning", "Portfolio Curation", "Leadership", "Project Management", "Audience Engagement", "Professional Practice", "Networking"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Photography Exhibition Management",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4447,6 +4466,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Professional Photography Portfolio Development to develop crucial skills in Photography & Visual Storytelling (PHO) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Photography & Visual Storytelling (PHO)", "Apply techniques learned in Professional Photography Portfolio Development"],
+    competencies: ["Professional Photography", "Portfolio Development", "Personal Branding", "Photography Entrepreneurship", "Innovation", "Professional Ethics", "Networking", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Professional Photography Portfolio Development",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4473,6 +4493,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Filmmaking Foundation Programme to develop crucial skills in Short Film & Digital Media (SFM) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Short Film & Digital Media (SFM)", "Apply techniques learned in Filmmaking Foundation Programme"],
+    competencies: ["Film Production Fundamentals", "Storytelling", "Script Basics", "Creativity", "Teamwork"],
   syllabus: [
     "Module 1: Introduction to Filmmaking and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4498,6 +4519,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Script Writing & Storyboarding to develop crucial skills in Short Film & Digital Media (SFM) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Short Film & Digital Media (SFM)", "Apply techniques learned in Script Writing & Storyboarding"],
+    competencies: ["Script Writing", "Storyboarding", "Narrative Design", "Creative Thinking", "Visual Planning", "Communication"],
   syllabus: [
     "Module 1: Introduction to Script Writing & Storyboarding and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4523,6 +4545,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Cinematography & Film Production to develop crucial skills in Short Film & Digital Media (SFM) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Short Film & Digital Media (SFM)", "Apply techniques learned in Cinematography & Film Production"],
+    competencies: ["Cinematography", "Video Production", "Editing", "Lighting", "Sound Recording", "Team Collaboration", "Problem Solving"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Cinematography & Film Production",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4549,6 +4572,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Film Direction & Festival Production to develop crucial skills in Short Film & Digital Media (SFM) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Short Film & Digital Media (SFM)", "Apply techniques learned in Film Direction & Festival Production"],
+    competencies: ["Film Direction", "Production Management", "Leadership", "Project Coordination", "Creative Decision Making", "Festival Management", "Professional Practice"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Film Direction & Festival Production",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4575,6 +4599,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Short Film Competition & Production Project to develop crucial skills in Short Film & Digital Media (SFM) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Short Film & Digital Media (SFM)", "Apply techniques learned in National Short Film Competition & Production Project"],
+    competencies: ["Professional Film Production", "Creative Leadership", "Media Entrepreneurship", "Innovation", "Professional Networking", "Mentoring", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of National Short Film Competition & Production",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4601,6 +4626,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Drawing & Painting Foundation to develop crucial skills in Fine Arts & Painting (ART) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fine Arts & Painting (ART)", "Apply techniques learned in Drawing & Painting Foundation"],
+    competencies: ["Drawing Fundamentals", "Color Theory", "Creative Expression", "Observation Skills", "Visual Communication"],
   syllabus: [
     "Module 1: Introduction to Drawing & Painting and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4626,6 +4652,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Creative Arts & Mixed Media Programme to develop crucial skills in Fine Arts & Painting (ART) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fine Arts & Painting (ART)", "Apply techniques learned in Creative Arts & Mixed Media Programme"],
+    competencies: ["Mixed Media Techniques", "Creative Design", "Composition", "Artistic Experimentation", "Portfolio Development", "Communication"],
   syllabus: [
     "Module 1: Introduction to Creative Arts & Mixed Media and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4651,6 +4678,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Public Art & Mural Design Project to develop crucial skills in Fine Arts & Painting (ART) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fine Arts & Painting (ART)", "Apply techniques learned in Public Art & Mural Design Project"],
+    competencies: ["Mural Design", "Public Art Planning", "Creative Collaboration", "Community Engagement", "Project Execution", "Visual Storytelling", "Innovation"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Public Art & Mural Design",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4677,6 +4705,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Art Exhibition & Curatorial Practice to develop crucial skills in Fine Arts & Painting (ART) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fine Arts & Painting (ART)", "Apply techniques learned in Art Exhibition & Curatorial Practice"],
+    competencies: ["Curatorial Practice", "Exhibition Planning", "Art Presentation", "Leadership", "Project Management", "Networking", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Art Exhibition & Curatorial Practice",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4703,6 +4732,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Professional Artist Portfolio & National Art Showcase to develop crucial skills in Fine Arts & Painting (ART) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fine Arts & Painting (ART)", "Apply techniques learned in Professional Artist Portfolio & National Art Showcase"],
+    competencies: ["Professional Portfolio Development", "Art Entrepreneurship", "Creative Leadership", "Exhibition Management", "Brand Building", "Networking", "Innovation", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Professional Artist Portfolio & National Art Showcase",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4729,6 +4759,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Handicrafts Foundation Programme to develop crucial skills in Handicrafts & Traditional Arts (CRA) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Handicrafts & Traditional Arts (CRA)", "Apply techniques learned in Handicrafts Foundation Programme"],
+    competencies: ["Craftsmanship", "Traditional Art Forms", "Creativity", "Fine Motor Skills", "Cultural Appreciation"],
   syllabus: [
     "Module 1: Introduction to Handicrafts and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4754,6 +4785,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Traditional Crafts & Sustainable Design to develop crucial skills in Handicrafts & Traditional Arts (CRA) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Handicrafts & Traditional Arts (CRA)", "Apply techniques learned in Traditional Crafts & Sustainable Design"],
+    competencies: ["Traditional Craft Techniques", "Sustainable Design", "Material Selection", "Creative Innovation", "Product Design", "Documentation"],
   syllabus: [
     "Module 1: Introduction to Traditional Crafts & Sustainable Design and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4779,6 +4811,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Craft Entrepreneurship Programme to develop crucial skills in Handicrafts & Traditional Arts (CRA) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Handicrafts & Traditional Arts (CRA)", "Apply techniques learned in Craft Entrepreneurship Programme"],
+    competencies: ["Craft Product Development", "Entrepreneurship", "Brand Development", "Marketing", "Business Planning", "Innovation", "Communication"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Craft Entrepreneurship",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4805,6 +4838,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Community Craft Revival Project to develop crucial skills in Handicrafts & Traditional Arts (CRA) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Handicrafts & Traditional Arts (CRA)", "Apply techniques learned in Community Craft Revival Project"],
+    competencies: ["Community Engagement", "Craft Preservation", "Project Management", "Leadership", "Sustainable Development", "Stakeholder Collaboration", "Social Responsibility"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Community Craft Revival",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4831,6 +4865,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Handicraft Exhibition & Artisan Collaboration to develop crucial skills in Handicrafts & Traditional Arts (CRA) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Handicrafts & Traditional Arts (CRA)", "Apply techniques learned in National Handicraft Exhibition & Artisan Collaboration"],
+    competencies: ["Professional Craft Practice", "Artisan Collaboration", "Creative Leadership", "Exhibition Management", "Innovation", "Professional Ethics", "Networking", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of National Handicraft Exhibition & Artisan Collaboration",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4857,6 +4892,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Fashion Design Foundation to develop crucial skills in Fashion, Design & Lifestyle (FAS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fashion, Design & Lifestyle (FAS)", "Apply techniques learned in Fashion Design Foundation"],
+    competencies: ["Fashion Design Fundamentals", "Design Thinking", "Creativity", "Sketching", "Visual Communication"],
   syllabus: [
     "Module 1: Introduction to Fashion Design and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4882,6 +4918,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Sustainable Fashion & Textile Innovation to develop crucial skills in Fashion, Design & Lifestyle (FAS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fashion, Design & Lifestyle (FAS)", "Apply techniques learned in Sustainable Fashion & Textile Innovation"],
+    competencies: ["Textile Knowledge", "Sustainable Fashion", "Garment Construction", "Material Selection", "Creative Problem Solving", "Fashion Illustration"],
   syllabus: [
     "Module 1: Introduction to Sustainable Fashion & Textile Innovation and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4907,6 +4944,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Fashion Styling & Brand Development to develop crucial skills in Fashion, Design & Lifestyle (FAS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fashion, Design & Lifestyle (FAS)", "Apply techniques learned in Fashion Styling & Brand Development"],
+    competencies: ["Fashion Styling", "Brand Identity", "Trend Forecasting", "Portfolio Development", "Marketing", "Creative Direction", "Communication"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Fashion Styling & Brand Development",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4933,6 +4971,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Fashion Show Production & Event Management to develop crucial skills in Fashion, Design & Lifestyle (FAS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fashion, Design & Lifestyle (FAS)", "Apply techniques learned in Fashion Show Production & Event Management"],
+    competencies: ["Fashion Show Management", "Event Planning", "Leadership", "Project Coordination", "Team Management", "Professional Practice", "Stakeholder Engagement"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Fashion Show Production & Event Management",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4959,6 +4998,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Fashion Showcase & Design Entrepreneurship to develop crucial skills in Fashion, Design & Lifestyle (FAS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fashion, Design & Lifestyle (FAS)", "Apply techniques learned in National Fashion Showcase & Design Entrepreneurship"],
+    competencies: ["Fashion Entrepreneurship", "Creative Leadership", "Brand Development", "Innovation", "Professional Networking", "Business Strategy", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of National Fashion Showcase & Design Entrepreneurship",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -4985,6 +5025,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Adventure & Outdoor Skills Foundation to develop crucial skills in Adventure, Outdoor Leadership & Heritage (ADV) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Adventure, Outdoor Leadership & Heritage (ADV)", "Apply techniques learned in Adventure & Outdoor Skills Foundation"],
+    competencies: ["Outdoor Survival", "Adventure Safety", "Physical Endurance", "Teamwork", "Self-Management"],
   syllabus: [
     "Module 1: Introduction to Adventure & Outdoor Skills and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5010,6 +5051,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Camping, Trekking & Survival Skills to develop crucial skills in Adventure, Outdoor Leadership & Heritage (ADV) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Adventure, Outdoor Leadership & Heritage (ADV)", "Apply techniques learned in Camping, Trekking & Survival Skills"],
+    competencies: ["Camping Skills", "Trekking", "Navigation", "Survival Techniques", "Risk Assessment", "Environmental Responsibility"],
   syllabus: [
     "Module 1: Introduction to Camping, Trekking & Survival Skills and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5035,6 +5077,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Adventure Leadership & Expedition Planning to develop crucial skills in Adventure, Outdoor Leadership & Heritage (ADV) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Adventure, Outdoor Leadership & Heritage (ADV)", "Apply techniques learned in Adventure Leadership & Expedition Planning"],
+    competencies: ["Expedition Planning", "Outdoor Leadership", "Decision Making", "Emergency Preparedness", "Team Coordination", "Communication", "Problem Solving"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Adventure Leadership & Expedition Planning",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5061,6 +5104,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Nature Conservation & Eco-Tourism Project to develop crucial skills in Adventure, Outdoor Leadership & Heritage (ADV) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Adventure, Outdoor Leadership & Heritage (ADV)", "Apply techniques learned in Nature Conservation & Eco-Tourism Project"],
+    competencies: ["Nature Conservation", "Eco-Tourism Planning", "Environmental Stewardship", "Community Engagement", "Project Management", "Sustainability", "Leadership"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Nature Conservation & Eco-Tourism",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5087,6 +5131,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Adventure Expedition & Outdoor Leadership Certification to develop crucial skills in Adventure, Outdoor Leadership & Heritage (ADV) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Adventure, Outdoor Leadership & Heritage (ADV)", "Apply techniques learned in National Adventure Expedition & Outdoor Leadership Certification"],
+    competencies: ["Adventure Leadership", "Expedition Management", "Risk Management", "Mentoring", "Strategic Planning", "Professional Ethics", "Resilience", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of National Adventure Expedition & Outdoor Leadership Certification",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5113,6 +5158,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Esports Foundation & Responsible Gaming to develop crucial skills in Esports, Gaming & Digital Entertainment (ESP) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Esports, Gaming & Digital Entertainment (ESP)", "Apply techniques learned in Esports Foundation & Responsible Gaming"],
+    competencies: ["Gaming Fundamentals", "Responsible Gaming", "Strategic Thinking", "Teamwork", "Digital Citizenship"],
   syllabus: [
     "Module 1: Introduction to Esports  & Responsible Gaming and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5138,6 +5184,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Competitive Gaming & Team Strategy to develop crucial skills in Esports, Gaming & Digital Entertainment (ESP) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Esports, Gaming & Digital Entertainment (ESP)", "Apply techniques learned in Competitive Gaming & Team Strategy"],
+    competencies: ["Competitive Gaming", "Game Strategy", "Communication", "Decision Making", "Performance Analysis", "Leadership"],
   syllabus: [
     "Module 1: Introduction to Competitive Gaming & Team Strategy and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5163,6 +5210,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Esports Tournament Organization to develop crucial skills in Esports, Gaming & Digital Entertainment (ESP) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Esports, Gaming & Digital Entertainment (ESP)", "Apply techniques learned in Esports Tournament Organization"],
+    competencies: ["Tournament Management", "Event Planning", "Broadcast Coordination", "Team Leadership", "Problem Solving", "Communication", "Project Management"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Esports Tournament Organization",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5189,6 +5237,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Game Streaming, Casting & Content Creation to develop crucial skills in Esports, Gaming & Digital Entertainment (ESP) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Esports, Gaming & Digital Entertainment (ESP)", "Apply techniques learned in Game Streaming, Casting & Content Creation"],
+    competencies: ["Game Streaming", "Content Creation", "Public Speaking", "Digital Branding", "Audience Engagement", "Media Production", "Creativity"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Game Streaming, Casting & Content Creation",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5215,6 +5264,7 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Esports Championship & Digital Entertainment Leadership to develop crucial skills in Esports, Gaming & Digital Entertainment (ESP) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Esports, Gaming & Digital Entertainment (ESP)", "Apply techniques learned in National Esports Championship & Digital Entertainment Leadership"],
+    competencies: ["Esports Leadership", "Professional Gaming", "Digital Entrepreneurship", "Brand Development", "Event Leadership", "Professional Ethics", "Networking", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of National Esports Championship & Digital Entertainment Leadership",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
