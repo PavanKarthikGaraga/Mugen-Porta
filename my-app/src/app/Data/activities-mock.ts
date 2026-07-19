@@ -109,6 +109,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to basic AI tools to enhance productivity.",
     outcomes: ["Understand AI basics", "Use AI tools for writing", "Apply AI for productivity"],
+  syllabus: [
+    "Fundamentals of Technology & Emerging Technologies",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 45,
     maxEnrollment: 100,
     faculty: "Prof. AI Basics",
@@ -128,6 +134,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn effective prompt engineering to communicate with AI models.",
     outcomes: ["Write effective prompts", "Optimize AI outputs", "Automate basic tasks"],
+  syllabus: [
+    "Fundamentals of Prompt Engineering & AI Communication",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 30,
     maxEnrollment: 50,
     faculty: "Dr. Prompt Smith",
@@ -147,6 +159,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Build intelligent automation scripts and AI applications.",
     outcomes: ["Develop AI apps", "Automate workflows", "Deploy simple models"],
+  syllabus: [
+    "Fundamentals of AI Application Development & Intelligent Automation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 20,
     maxEnrollment: 40,
     faculty: "Prof. ML Engineer",
@@ -166,6 +184,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Solve real industry challenges using AI.",
     outcomes: ["Build industry solutions", "Lead an AI project team", "Present AI prototypes"],
+  syllabus: [
+    "Fundamentals of AI Innovation Challenge & Industry Solutions",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 10,
     maxEnrollment: 25,
     faculty: "Dr. Innovation",
@@ -185,6 +209,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To enable outstanding students to transform AI innovations into research publications, patents, startups, technology transfer projects, or scalable societal solutions through structured mentoring, incubation, and global collaboration.",
     outcomes: ["Conduct advanced AI research", "Develop industry-grade AI solutions", "Publish research papers", "File patents or copyrights where appropriate", "Build startup-ready AI products", "Collaborate with industry and international partners", "Demonstrate ethical and responsible AI leadership"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Faculty Mentor",
@@ -205,6 +235,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to web development basics.",
     outcomes: ["Understand HTML/CSS", "Build simple web pages", "Introduction to JavaScript"],
+  syllabus: [
+    "Introduction to Full Stack Development",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 60,
     maxEnrollment: 120,
     faculty: "Prof. Web Basics",
@@ -224,6 +260,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn frontend frameworks and UI/UX design principles.",
     outcomes: ["Build reactive UIs", "Apply UI/UX principles", "Consume REST APIs"],
+  syllabus: [
+    "Fundamentals of Modern Frontend Development & UI/UX Engineering",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 40,
     maxEnrollment: 80,
     faculty: "Dr. Frontend",
@@ -243,6 +285,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Develop full-stack applications with robust databases.",
     outcomes: ["Develop server-side logic", "Design databases", "Deploy full-stack apps"],
+  syllabus: [
+    "Fundamentals of Full Stack Application Development & Database Engineering",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 30,
     maxEnrollment: 60,
     faculty: "Prof. Backend",
@@ -262,6 +310,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engineer scalable enterprise digital products.",
     outcomes: ["Architect enterprise software", "Implement CI/CD pipelines", "Lead software teams"],
+  syllabus: [
+    "Fundamentals of Enterprise Software Engineering & Digital Product Innovation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 15,
     maxEnrollment: 30,
     faculty: "Dr. Software Arch",
@@ -281,6 +335,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare students to build globally competitive software products that can evolve into startups, open-source platforms, institutional solutions, research outcomes, or commercial technologies while strengthening leadership, innovation, and entrepreneurial capabilities.",
     outcomes: ["Architect enterprise-grade software ecosystems", "Build scalable cloud-native applications", "Lead multidisciplinary software teams", "Commercialize software products", "Publish technical research", "Contribute to open-source communities", "Launch technology startups"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Software Mentor",
@@ -301,6 +361,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to basic digital safety and cybersecurity concepts.",
     outcomes: ["Understand digital threats", "Practice safe browsing", "Secure personal devices"],
+  syllabus: [
+    "Introduction to Cybersecurity & Digital Safety",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 50,
     maxEnrollment: 100,
     faculty: "Prof. Security Basics",
@@ -320,6 +386,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn foundational ethical hacking and vulnerability assessment.",
     outcomes: ["Conduct vulnerability scans", "Understand penetration testing", "Identify common exploits"],
+  syllabus: [
+    "Introduction to Ethical Hacking & Security Testing",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 35,
     maxEnrollment: 70,
     faculty: "Dr. Pen Tester",
@@ -339,6 +411,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Develop skills to defend systems and respond to cyber incidents.",
     outcomes: ["Implement network defense", "Perform digital forensics", "Execute incident response"],
+  syllabus: [
+    "Fundamentals of Cyber Defense, Digital Forensics & Incident Response",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 25,
     maxEnrollment: 50,
     faculty: "Prof. Cyber Analyst",
@@ -358,6 +436,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Manage security operations and mitigate organizational cyber risks.",
     outcomes: ["Lead SOC teams", "Manage cyber risks", "Develop security policies"],
+  syllabus: [
+    "Fundamentals of Security Operations Centre (SOC) Leadership & Cyber Risk Management",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 15,
     maxEnrollment: 30,
     faculty: "Dr. Cyber Risk",
@@ -377,6 +461,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare students to conduct advanced cybersecurity research, develop innovative security technologies, contribute to national cyber resilience, and transform cybersecurity innovations into research publications, patents, startups, or deployable organizational solutions.",
     outcomes: ["Conduct advanced cybersecurity research", "Design innovative cyber defense solutions", "Develop secure software and infrastructure", "Build cybersecurity products and services", "Publish research papers", "File patents or copyrights where appropriate", "Present cybersecurity innovations at national and international platforms", "Mentor junior cybersecurity students"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Cybersecurity Mentor",
@@ -397,6 +487,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to basic data science concepts, data collection, and elementary analysis.",
     outcomes: ["Understand data lifecycles", "Perform basic data cleaning", "Use spreadsheets for analysis"],
+  syllabus: [
+    "Introduction to Data Science & Analytics",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 60,
     maxEnrollment: 100,
     faculty: "Prof. Analytics Basics",
@@ -416,6 +512,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn to analyze datasets and create compelling data visualizations.",
     outcomes: ["Create dashboards", "Use BI tools like Tableau/PowerBI", "Communicate data insights"],
+  syllabus: [
+    "Fundamentals of Data Analysis & Visualization",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 45,
     maxEnrollment: 80,
     faculty: "Dr. Visuals",
@@ -435,6 +537,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Build predictive models and apply machine learning algorithms to real-world datasets.",
     outcomes: ["Train machine learning models", "Evaluate model accuracy", "Deploy predictive models"],
+  syllabus: [
+    "Fundamentals of Predictive Modeling & Machine Learning",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 30,
     maxEnrollment: 60,
     faculty: "Prof. ML Analytics",
@@ -454,6 +562,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead data-driven organizations by developing enterprise analytics strategies, AI governance frameworks, decision intelligence systems, and ethical data-driven transformation initiatives.",
     outcomes: ["Design enterprise analytics strategies", "Lead multidisciplinary analytics teams", "Build executive dashboards", "Develop AI governance frameworks", "Evaluate organizational data maturity", "Present strategic recommendations to leadership", "Promote ethical and responsible use of AI and data"],
+  syllabus: [
+    "Fundamentals of Data Science Leadership, AI Strategy & Decision Intelligence",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 15,
     maxEnrollment: 30,
     faculty: "Data Science Faculty Mentor",
@@ -474,6 +588,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare students to lead advanced data science research, drive global analytics innovation, and build transformative AI models for enterprise and societal impact.",
     outcomes: ["Conduct advanced data science research", "Build transformative AI and ML solutions", "Publish analytics research", "Commercialize data products", "Mentor junior analysts"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Analytics Mentor",
@@ -494,6 +614,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to basic cloud computing models, infrastructure, and services.",
     outcomes: ["Understand cloud concepts (IaaS, PaaS, SaaS)", "Deploy basic resources", "Explore cloud security basics"],
+  syllabus: [
+    "Introduction to Cloud Computing & Digital Infrastructure",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 55,
     maxEnrollment: 100,
     faculty: "Prof. Cloud Basics",
@@ -513,6 +639,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn foundational cloud infrastructure provisioning and basic DevOps pipelines.",
     outcomes: ["Provision cloud servers", "Understand containerization", "Build basic CI/CD pipelines"],
+  syllabus: [
+    "Introduction to Cloud Infrastructure & DevOps",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 40,
     maxEnrollment: 80,
     faculty: "Dr. DevOps",
@@ -532,6 +664,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Architect scalable cloud solutions and implement site reliability engineering practices.",
     outcomes: ["Design high-availability architectures", "Write Infrastructure as Code", "Implement SRE monitoring"],
+  syllabus: [
+    "Fundamentals of Cloud Architecture, Automation & Site Reliability Engineering",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 25,
     maxEnrollment: 50,
     faculty: "Prof. Site Reliability",
@@ -551,6 +689,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Lead enterprise cloud transformations and integrate security into DevOps pipelines.",
     outcomes: ["Lead DevSecOps implementations", "Manage multi-cloud strategies", "Govern enterprise cloud platforms"],
+  syllabus: [
+    "Fundamentals of Enterprise Cloud Strategy, DevSecOps & Platform Leadership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 15,
     maxEnrollment: 30,
     faculty: "Dr. Cloud Strategy",
@@ -570,6 +714,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To develop globally competent cloud professionals capable of designing enterprise cloud platforms, conducting advanced research, building cloud-native products, creating startups, and leading digital transformation initiatives.",
     outcomes: ["Design enterprise-scale cloud platforms", "Build cloud-native applications", "Implement AI-driven cloud operations", "Develop cloud security frameworks", "Conduct advanced cloud computing research", "Publish research papers and patents", "Build cloud startups", "Mentor junior students"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Cloud Mentor",
@@ -590,6 +740,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to the Internet of Things (IoT), smart devices, sensors, embedded systems, and connected technologies, enabling them to understand how intelligent systems solve real-world problems in homes, industries, agriculture, healthcare, and smart villages.",
     outcomes: ["Explain IoT architecture and components", "Identify different types of sensors and actuators", "Understand embedded systems fundamentals", "Connect simple IoT devices", "Collect and visualize sensor data", "Understand IoT communication protocols", "Apply IoT responsibly with security and privacy awareness"],
+  syllabus: [
+    "Introduction to Internet of Things (IoT) & Smart Systems",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 60,
     maxEnrollment: 100,
     faculty: "IoT Faculty Mentor",
@@ -610,6 +766,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Deepen knowledge in smart sensors, microcontrollers, and IoT network integration.",
     outcomes: ["Program microcontrollers", "Integrate advanced sensors", "Develop basic IoT networks"],
+  syllabus: [
+    "Fundamentals of Smart Sensors, Embedded Systems & IoT Networks",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 40,
     maxEnrollment: 80,
     faculty: "Dr. Embedded Systems",
@@ -629,6 +791,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Design IoT network architectures and implement edge computing solutions for real-time processing.",
     outcomes: ["Design IoT networks", "Implement Edge processing", "Optimize IoT data transmission"],
+  syllabus: [
+    "Fundamentals of IoT Networks & Edge Computing",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 25,
     maxEnrollment: 50,
     faculty: "Prof. Edge Computing",
@@ -648,6 +816,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Develop scalable industrial IoT solutions and smart city infrastructure applications.",
     outcomes: ["Architect Industrial IoT systems", "Implement smart city solutions", "Lead IoT development teams"],
+  syllabus: [
+    "Fundamentals of Smart Cities & Industrial IoT",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 15,
     maxEnrollment: 30,
     faculty: "Dr. Smart Systems",
@@ -667,6 +841,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To develop globally competent IoT professionals capable of designing enterprise IoT platforms, conducting advanced research, building IoT startups, and leading digital transformation initiatives.",
     outcomes: ["Design enterprise-scale IoT platforms", "Conduct advanced IoT research", "Publish research papers and patents", "Build IoT startups", "Mentor junior students"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal IoT Mentor",
@@ -687,6 +867,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to the foundational concepts of robotics and automation.",
     outcomes: ["Understand basic robotic components", "Identify automation use cases", "Explore robotics ethics"],
+  syllabus: [
+    "Introduction to Robotics & Intelligent Automation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 50,
     maxEnrollment: 100,
     faculty: "Prof. Robotics Basics",
@@ -706,6 +892,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn to design, assemble, and program basic robotic systems.",
     outcomes: ["Design basic robots", "Program microcontrollers for robotics", "Implement simple control loops"],
+  syllabus: [
+    "Fundamentals of Robot Design, Programming & Control Systems",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 35,
     maxEnrollment: 80,
     faculty: "Dr. Control Systems",
@@ -725,6 +917,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Develop autonomous robots capable of computer vision and human-robot interaction.",
     outcomes: ["Integrate computer vision", "Program autonomous navigation", "Implement HRI principles"],
+  syllabus: [
+    "Fundamentals of Autonomous Robotics, Computer Vision & Human–Robot Interaction",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 25,
     maxEnrollment: 50,
     faculty: "Prof. Autonomous Systems",
@@ -744,6 +942,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Lead the implementation of industrial robots and cobots in smart manufacturing environments.",
     outcomes: ["Program industrial cobots", "Design smart manufacturing workflows", "Lead automation projects"],
+  syllabus: [
+    "Fundamentals of Industrial Robotics, Collaborative Robots (Cobots) & Intelligent Manufacturing Leadership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 15,
     maxEnrollment: 30,
     faculty: "Dr. Smart Manufacturing",
@@ -763,6 +967,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare students as global robotics innovators capable of conducting advanced research, designing intelligent robotic systems, publishing research, securing patents, launching robotics startups, and leading technological transformation through automation.",
     outcomes: ["Design advanced intelligent robotic systems", "Integrate AI, IoT, Edge Computing, and Computer Vision into robotics", "Conduct publishable robotics research", "Develop industry-ready robotic products", "File patents and intellectual property", "Build robotics startups", "Mentor junior robotics innovators", "Present innovations before national and international expert panels"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Robotics Mentor",
@@ -783,6 +993,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to the fundamentals of drone technology and basic geospatial concepts.",
     outcomes: ["Understand drone components", "Learn basic flight principles", "Explore geospatial mapping"],
+  syllabus: [
+    "Introduction to Drone Technology & Geospatial Systems",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 50,
     maxEnrollment: 100,
     faculty: "Prof. Aerospace Basics",
@@ -802,6 +1018,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn to operate drones safely, navigate flight paths, and capture mapping data.",
     outcomes: ["Operate drones safely", "Plan flight missions", "Capture aerial mapping data"],
+  syllabus: [
+    "Fundamentals of Drone Operations, Navigation & Mapping",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 35,
     maxEnrollment: 80,
     faculty: "Dr. Drone Navigation",
@@ -821,6 +1043,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Process aerial data using photogrammetry and apply computer vision to drone feeds.",
     outcomes: ["Process drone imagery", "Apply computer vision to aerial data", "Generate 3D models"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 25,
     maxEnrollment: 50,
     faculty: "Prof. Photogrammetry",
@@ -840,6 +1068,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Lead industrial drone deployments for sectors like agriculture, construction, and disaster management.",
     outcomes: ["Manage industrial drone fleets", "Lead geospatial data projects", "Implement industry-specific drone solutions"],
+  syllabus: [
+    "Fundamentals of Industrial Drone Applications & Geospatial Leadership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 15,
     maxEnrollment: 30,
     faculty: "Dr. Aerospace Leadership",
@@ -859,6 +1093,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare students as global drone innovators capable of conducting advanced aerospace research, designing specialized UAVs, and launching aerospace startups.",
     outcomes: ["Design specialized UAVs", "Conduct aerospace research", "Build drone startups", "Develop custom drone payloads", "Lead autonomous fleet operations", "Mentor junior aerospace innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Aerospace Mentor",
@@ -879,6 +1119,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to the fundamentals of blockchain technology and decentralized systems.",
     outcomes: ["Understand blockchain basics", "Explore Web3 concepts", "Identify decentralized use cases"],
+  syllabus: [
+    "Introduction to Blockchain, Web3 & Decentralized Digital Systems",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 50,
     maxEnrollment: 100,
     faculty: "Prof. Blockchain Basics",
@@ -898,6 +1144,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn to write smart contracts and build decentralized applications (DApps).",
     outcomes: ["Write smart contracts", "Develop basic DApps", "Understand tokenomics"],
+  syllabus: [
+    "Fundamentals of Smart Contracts, Digital Assets & Decentralized Applications",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 35,
     maxEnrollment: 80,
     faculty: "Dr. Crypto Code",
@@ -917,6 +1169,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Design enterprise blockchain solutions and decentralized identity platforms.",
     outcomes: ["Architect enterprise blockchain", "Implement decentralized identity", "Build Web3 systems"],
+  syllabus: [
+    "Fundamentals of Enterprise Blockchain, Decentralized Identity & Web3 Systems",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 25,
     maxEnrollment: 50,
     faculty: "Prof. Web3 Systems",
@@ -936,6 +1194,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Lead blockchain governance and FinTech digital trust initiatives.",
     outcomes: ["Manage blockchain governance", "Implement FinTech solutions", "Lead digital trust projects"],
+  syllabus: [
+    "Fundamentals of Blockchain Governance, FinTech & Digital Trust Leadership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 15,
     maxEnrollment: 30,
     faculty: "Dr. FinTech Trust",
@@ -955,6 +1219,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competent blockchain innovators capable of designing enterprise-grade decentralized platforms, conducting advanced blockchain research, publishing research papers, securing patents, building Web3 startups, and leading digital transformation through trusted decentralized ecosystems.",
     outcomes: ["Design enterprise blockchain ecosystems", "Develop scalable Web3 platforms", "Implement decentralized identity and trusted digital credential systems", "Integrate blockchain with AI, IoT, Cloud, and Digital Governance", "Conduct advanced blockchain research", "Publish research papers and file patents", "Build blockchain startups", "Mentor junior innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Blockchain Mentor",
@@ -975,6 +1245,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "Introduce students to the fundamental principles of quantum mechanics, quantum computing, and future computing paradigms.",
     outcomes: ["Understand quantum superposition and entanglement", "Explore future computing technologies", "Identify applications of quantum computing"],
+  syllabus: [
+    "Introduction to Quantum Computing & Future Computing Technologies",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 40,
     maxEnrollment: 100,
     faculty: "Prof. Quantum Physics",
@@ -994,6 +1270,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "Learn to write quantum algorithms and run quantum simulations on cloud-based quantum platforms.",
     outcomes: ["Program quantum circuits", "Run quantum simulations", "Understand basic quantum algorithms like Shor's and Grover's"],
+  syllabus: [
+    "Fundamentals of Quantum Programming, Algorithms & Simulations",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 30,
     maxEnrollment: 80,
     faculty: "Dr. Qubit Developer",
@@ -1013,6 +1295,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Explore the intersection of quantum computing with machine learning and advanced cryptography.",
     outcomes: ["Develop hybrid AI-Quantum models", "Implement post-quantum cryptography concepts", "Optimize complex systems"],
+  syllabus: [
+    "Fundamentals of Quantum Machine Learning, Quantum Cryptography & Hybrid Computing",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 20,
     maxEnrollment: 50,
     faculty: "Prof. Quantum AI",
@@ -1032,6 +1320,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Lead the development of quantum system architectures and pioneer future computing initiatives.",
     outcomes: ["Architect quantum computing solutions", "Lead scientific computing projects", "Strategize enterprise quantum adoption"],
+  syllabus: [
+    "Fundamentals of Quantum Systems Architecture & Future Computing Leadership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 10,
     maxEnrollment: 30,
     faculty: "Dr. Computing Architecture",
@@ -1051,6 +1345,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive quantum innovators capable of designing next-generation quantum computing systems, conducting high-impact research, publishing scientific papers, filing patents, launching deep-technology startups, and solving complex scientific, industrial, and societal challenges using quantum technologies.",
     outcomes: ["Design advanced quantum computing solutions", "Develop hybrid AI–Quantum applications", "Conduct publishable quantum computing research", "Integrate quantum technologies with cloud, AI, cybersecurity, and scientific computing", "File patents and technology disclosures", "Build deep-tech startups", "Lead multidisciplinary research and innovation teams", "Mentor future quantum innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 5,
     maxEnrollment: 10,
     faculty: "Principal Quantum Mentor",
@@ -1071,6 +1371,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to the fundamentals of space science, satellite technology, NewSpace innovation, orbital mechanics, satellite communication, Earth observation, and space applications while developing awareness of how space technologies contribute to national development, scientific research, disaster management, agriculture, climate monitoring, and sustainable development.",
     outcomes: ["Explain the fundamentals of space technology", "Understand satellite systems and orbital mechanics", "Identify different types of satellites", "Explain satellite communication principles", "Understand Earth observation technologies", "Recognize India's achievements in space exploration", "Appreciate ethical and sustainable uses of space technology"],
+  syllabus: [
+    "Introduction to Space Technology, Satellite Systems & NewSpace Innovation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Space Technology Mentor"
@@ -1090,6 +1396,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in satellite subsystem design, remote sensing, Earth observation, GIS integration, satellite communication fundamentals, and geospatial applications for solving real-world problems related to agriculture, water resources, infrastructure, climate, disaster management, and rural development.",
     outcomes: ["Understand satellite subsystem architecture", "Design conceptual satellite payloads", "Interpret satellite imagery", "Apply remote sensing principles", "Integrate satellite data with GIS", "Develop Earth observation applications", "Evaluate satellite mission requirements"],
+  syllabus: [
+    "Fundamentals of Satellite Design, Remote Sensing & Space Applications",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Space Technology Mentor"
@@ -1109,6 +1421,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate satellite data, artificial intelligence, robotics, remote sensing, and geospatial intelligence to develop advanced applications for agriculture, environmental monitoring, climate resilience, disaster management, infrastructure planning, and future space exploration.",
     outcomes: ["Analyze multi-source satellite datasets", "Develop AI-assisted Earth observation solutions", "Apply satellite analytics to real-world challenges", "Understand concepts of robotic systems used in space exploration", "Design intelligent geospatial decision-support systems", "Integrate remote sensing with AI and GIS", "Evaluate space technology solutions for sustainability"],
+  syllabus: [
+    "Fundamentals of Space Robotics, Earth Observation & Satellite Data Analytics",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Space Technology Mentor"
@@ -1128,6 +1446,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead end-to-end space mission planning by integrating satellite engineering, mission analysis, aerospace systems, NewSpace entrepreneurship, Earth observation, artificial intelligence, and systems engineering while addressing global challenges through innovative space technologies.",
     outcomes: ["Design complete satellite mission architectures", "Develop satellite payload concepts", "Plan launch and mission operations", "Evaluate mission feasibility and risk", "Lead multidisciplinary aerospace projects", "Apply systems engineering principles", "Develop strategic NewSpace business opportunities"],
+  syllabus: [
+    "Fundamentals of Space Mission Design, NewSpace Leadership & Aerospace Systems",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 30,
     faculty: "Space Technology Mentor"
@@ -1147,6 +1471,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive aerospace innovators capable of designing satellite missions, conducting advanced space research, developing Earth observation solutions, publishing scientific papers, filing patents, launching NewSpace startups, and addressing global challenges through space technologies.",
     outcomes: ["Design complete space missions", "Develop advanced satellite systems", "Integrate AI, GIS, IoT, and satellite technologies", "Conduct publishable aerospace research", "Develop commercial NewSpace products", "File patents and technology disclosures", "Build aerospace startups", "Mentor future space innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 10,
     faculty: "Principal Space Technology Mentor"
@@ -1166,6 +1496,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to the fundamentals of biotechnology, molecular biology, genetics, bioinformatics, synthetic biology, and biotechnology innovation while developing awareness of how biological sciences contribute to healthcare, agriculture, environmental sustainability, food security, industrial biotechnology, and rural development.",
     outcomes: ["Explain the fundamentals of biotechnology", "Understand DNA, RNA, proteins, and genes", "Describe basic molecular biology techniques", "Understand bioinformatics and biological databases", "Explain synthetic biology concepts", "Identify biotechnology applications across multiple sectors", "Appreciate ethical, biosafety, and biosecurity considerations"],
+  syllabus: [
+    "Introduction to Biotechnology, Bioinformatics & Synthetic Biology",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Biotechnology Mentor"
@@ -1185,6 +1521,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to modern manufacturing systems, Industry 4.0 technologies, smart factories, automation, robotics, additive manufacturing, industrial Internet of Things (IIoT), digital twins, cyber-physical systems, and sustainable manufacturing while developing awareness of future industrial ecosystems.",
     outcomes: ["Explain Industry 4.0 concepts", "Understand smart factory architecture", "Describe modern manufacturing systems", "Identify Industry 4.0 technologies", "Understand digital manufacturing workflows", "Recognize sustainable manufacturing practices", "Appreciate ethical and environmental responsibilities in manufacturing"],
+  syllabus: [
+    "Introduction to Advanced Manufacturing, Industry 4.0 & Smart Factories",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Faculty Mentor"
@@ -1204,6 +1546,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in digital product design, CAD/CAM technologies, CNC machining concepts, programmable logic controllers (PLCs), industrial automation, robotics integration, and smart manufacturing workflows that enhance productivity, quality, and operational efficiency.",
     outcomes: ["Design engineering components using CAD principles", "Understand CAM workflows", "Explain CNC machining operations", "Develop basic PLC logic", "Understand industrial automation architecture", "Integrate digital manufacturing concepts", "Evaluate manufacturing efficiency improvements"],
+  syllabus: [
+    "Fundamentals of Digital Manufacturing, CAD/CAM, CNC & Industrial Automation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Manufacturing Engineering Mentor"
@@ -1223,6 +1571,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Industrial Internet of Things (IIoT), digital twins, artificial intelligence, cloud computing, robotics, sensor networks, and predictive analytics to design intelligent manufacturing systems capable of improving productivity, quality, efficiency, and sustainability.",
     outcomes: ["Design Industrial IoT architectures", "Integrate sensors with manufacturing systems", "Develop digital twin models", "Apply AI for predictive maintenance", "Analyze real-time manufacturing data", "Optimize industrial production processes", "Design intelligent manufacturing solutions"],
+  syllabus: [
+    "Fundamentals of Industrial IoT, Digital Twins & Intelligent Manufacturing Systems",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Industrial Automation Mentor"
@@ -1242,6 +1596,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead digital manufacturing transformation by integrating Lean Manufacturing, Industry 4.0 technologies, industrial automation, Industrial IoT, artificial intelligence, digital twins, sustainability, operational excellence, and Industry 5.0 principles into future-ready manufacturing enterprises.",
     outcomes: ["Lead smart factory transformation initiatives", "Apply Lean Manufacturing principles", "Understand Six Sigma quality improvement methodologies", "Design intelligent manufacturing ecosystems", "Optimize production using AI and analytics", "Lead multidisciplinary manufacturing innovation teams", "Develop sustainable industrial strategies"],
+  syllabus: [
+    "Fundamentals of Smart Factory Leadership, Lean Manufacturing & Industrial Innovation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Manufacturing Innovation Mentor"
@@ -1261,6 +1621,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive manufacturing innovators capable of designing intelligent factories, integrating AI, robotics, Industrial IoT, digital twins, additive manufacturing, and Industry 5.0 technologies while creating scalable industrial solutions, research outcomes, patents, and globally competitive manufacturing startups.",
     outcomes: ["Design Industry 5.0 manufacturing ecosystems", "Develop AI-enabled manufacturing solutions", "Integrate IIoT, robotics, and digital twins", "Conduct publishable manufacturing research", "Develop commercially viable manufacturing products", "File patents and technology disclosures", "Launch manufacturing technology startups", "Mentor future manufacturing innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 10,
     faculty: "Principal Manufacturing Mentor"
@@ -1280,6 +1646,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to renewable energy technologies, sustainable energy systems, smart grids, energy conservation, clean energy innovation, climate-resilient infrastructure, and the role of renewable energy in achieving energy security, environmental sustainability, and inclusive economic development.",
     outcomes: ["Explain the fundamentals of renewable energy", "Identify various renewable energy sources", "Understand smart grid concepts", "Explain sustainable energy practices", "Analyze energy consumption patterns", "Appreciate clean energy technologies", "Recognize the importance of climate action and energy conservation"],
+  syllabus: [
+    "Introduction to Renewable Energy, Smart Grids & Sustainable Energy Systems",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Renewable Energy Mentor"
@@ -1299,6 +1671,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in solar photovoltaic (PV) systems, wind energy technologies, bioenergy systems, battery energy storage systems (BESS), hybrid renewable energy systems, and clean-energy design for residential, commercial, industrial, and rural applications.",
     outcomes: ["Design basic solar PV systems", "Understand wind turbine operation", "Explain bioenergy conversion technologies", "Evaluate battery energy storage systems", "Design hybrid renewable energy systems", "Perform renewable energy feasibility studies", "Recommend sustainable energy solutions"],
+  syllabus: [
+    "Fundamentals of Solar, Wind, Bioenergy & Energy Storage Technologies",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Renewable Energy Mentor"
@@ -1318,6 +1696,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate smart grids, IoT, artificial intelligence, digital twins, cloud computing, battery energy storage systems, renewable energy integration, and predictive analytics for designing intelligent, resilient, and sustainable power systems.",
     outcomes: ["Design smart grid architectures", "Integrate renewable energy into power systems", "Develop IoT-enabled energy monitoring systems", "Apply AI for energy forecasting and optimization", "Design intelligent microgrids", "Analyze energy consumption patterns", "Optimize power system performance"],
+  syllabus: [
+    "Fundamentals of Smart Grids, Energy Analytics & Intelligent Power Systems",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Faculty Mentor"
@@ -1337,6 +1721,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead clean energy transitions by integrating renewable energy technologies, smart grids, climate resilience, sustainable energy policy, carbon management, green entrepreneurship, and community energy planning into innovative solutions for industries and rural communities.",
     outcomes: ["Develop sustainable energy transition strategies", "Evaluate renewable energy policies", "Design climate-resilient energy systems", "Lead multidisciplinary green innovation projects", "Conduct carbon footprint assessments", "Develop clean energy business models", "Promote community participation in energy sustainability"],
+  syllabus: [
+    "Fundamentals of Sustainable Energy Leadership, Energy Policy & Green Innovation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Faculty Mentor"
@@ -1356,6 +1746,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive clean-energy innovators capable of designing next-generation renewable energy systems, integrating artificial intelligence with smart grids, conducting impactful research, creating commercially viable green technologies, filing patents, and launching clean-energy startups that accelerate sustainable development.",
     outcomes: ["Design integrated renewable energy systems", "Develop AI-enabled energy management platforms", "Build resilient microgrid solutions", "Conduct publishable renewable energy research", "Develop commercially viable clean-energy products", "File patents and technology disclosures", "Launch renewable energy startups", "Mentor future clean-energy innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 10,
     faculty: "Principal Renewable Energy Mentor"
@@ -1375,6 +1771,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to digital healthcare ecosystems, telemedicine, electronic health records, health informatics, wearable technologies, medical Internet of Things (IoMT), healthcare analytics, and digital public health while promoting technology-enabled, accessible, and patient-centered healthcare services.",
     outcomes: ["Explain digital health concepts", "Understand telemedicine systems", "Describe electronic health records", "Explain health informatics fundamentals", "Understand wearable healthcare technologies", "Appreciate digital public health initiatives", "Recognize ethical, legal, and privacy considerations in digital healthcare"],
+  syllabus: [
+    "Introduction to Digital Health, Telemedicine & Health Informatics",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Digital Health Mentor"
@@ -1394,6 +1796,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in electronic health records (EHR), healthcare information systems (HIS), hospital management systems (HMS), healthcare data analytics, medical Internet of Things (IoMT), interoperability standards, and digital healthcare workflows for improving patient care, operational efficiency, and evidence-based healthcare delivery.",
     outcomes: ["Understand electronic health record architecture", "Manage healthcare information securely", "Analyze healthcare datasets", "Understand medical IoT devices and sensors", "Explain healthcare interoperability concepts", "Design digital patient management workflows", "Apply healthcare analytics for decision-making"],
+  syllabus: [
+    "Fundamentals of Electronic Health Records, Healthcare Data Analytics & Medical IoT",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Digital Health Mentor"
@@ -1413,6 +1821,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate artificial intelligence, machine learning, clinical decision support systems, healthcare analytics, wearable technologies, precision digital health, and predictive healthcare models to improve healthcare quality, accessibility, and evidence-based clinical decision-making.",
     outcomes: ["Understand AI applications in healthcare", "Design clinical decision support systems", "Analyze healthcare datasets using AI", "Develop predictive healthcare models", "Integrate wearable health monitoring devices", "Build precision digital health solutions", "Apply ethical principles in AI-enabled healthcare"],
+  syllabus: [
+    "Fundamentals of AI in Healthcare, Clinical Decision Support & Precision Digital Health",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Healthcare AI Mentor"
@@ -1432,6 +1846,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead digital healthcare transformation by integrating artificial intelligence, health informatics, telemedicine, medical IoT, hospital information systems, healthcare analytics, digital public health, healthcare quality improvement, and innovation management for resilient, patient-centered healthcare systems.",
     outcomes: ["Lead digital transformation initiatives in healthcare", "Design patient-centric digital healthcare systems", "Evaluate healthcare innovation strategies", "Improve hospital operational efficiency", "Develop digital public health programmes", "Lead multidisciplinary healthcare innovation teams", "Build sustainable HealthTech business models"],
+  syllabus: [
+    "Fundamentals of Digital Health Leadership, Healthcare Innovation & Hospital Transformation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Digital Health Mentor"
@@ -1451,6 +1871,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive digital health innovators capable of designing intelligent healthcare systems, integrating artificial intelligence with health informatics, conducting impactful research, filing patents, creating scalable HealthTech startups, and improving healthcare accessibility, quality, affordability, and public health outcomes.",
     outcomes: ["Design integrated digital healthcare ecosystems", "Develop AI-enabled healthcare platforms", "Build intelligent telemedicine solutions", "Conduct publishable digital health research", "Develop commercially viable HealthTech products", "File patents and technology disclosures", "Launch HealthTech startups", "Mentor future digital healthcare innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 10,
     faculty: "Principal Digital Health Mentor"
@@ -1470,6 +1896,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to modern agriculture technologies, precision farming, climate-smart agriculture, sustainable food systems, digital agriculture, smart irrigation, soil health management, and agricultural innovation while promoting food security, environmental sustainability, and rural prosperity.",
     outcomes: ["Explain AgriTech fundamentals", "Understand precision farming concepts", "Identify modern agricultural technologies", "Explain sustainable food systems", "Understand climate-smart agriculture", "Recognize digital agriculture applications", "Appreciate the importance of food security and sustainable farming"],
+  syllabus: [
+    "Introduction to AgriTech, Precision Farming & Food Systems",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Agriculture Mentor"
@@ -1489,6 +1921,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in Internet of Things (IoT)-enabled agriculture, GIS-based crop management, precision irrigation, environmental sensing, smart greenhouse technologies, farm automation, and digital farm management for improving agricultural productivity, sustainability, and climate resilience.",
     outcomes: ["Design IoT-enabled smart farming systems", "Understand GIS applications in agriculture", "Monitor crop and soil conditions using sensors", "Develop automated irrigation systems", "Analyze agricultural data for decision-making", "Design digital farm management solutions", "Apply sustainable precision farming techniques"],
+  syllabus: [
+    "Fundamentals of Smart Agriculture, IoT Farming & GIS-Based Crop Management",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Agriculture Technology Mentor"
@@ -1508,6 +1946,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Artificial Intelligence (AI), drone technology, remote sensing, GIS, IoT, machine learning, and precision farming analytics for designing intelligent agricultural systems that improve crop productivity, optimize resource utilization, reduce environmental impact, and strengthen food security.",
     outcomes: ["Develop AI-enabled crop monitoring systems", "Analyze drone imagery for agriculture", "Predict crop yield using AI models", "Detect crop diseases through computer vision", "Design precision farming decision-support systems", "Optimize irrigation and fertilizer application", "Build intelligent farm management solutions"],
+  syllabus: [
+    "Fundamentals of AI, Drone Agriculture & Precision Farming Analytics",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "AgriTech Innovation Mentor"
@@ -1527,6 +1971,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in emerging technology policy, digital ethics, artificial intelligence governance, cybersecurity regulation, data protection, intellectual property management, regulatory innovation, digital rights, and responsible technology governance for public institutions, industries, startups, and society.",
     outcomes: ["Analyze emerging technology policies", "Understand AI governance frameworks", "Apply digital ethics principles", "Interpret cybersecurity and privacy regulations", "Develop responsible technology governance models", "Design regulatory innovation strategies", "Evaluate technology risks and societal impacts"],
+  syllabus: [
+    "Fundamentals of Emerging Technology Policy, Ethics & Regulatory Innovation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Faculty Mentor"
@@ -1546,6 +1996,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Artificial Intelligence governance, responsible innovation, strategic technology foresight, policy analytics, technology risk assessment, digital trust, ethical AI, and long-term innovation planning for governments, industries, universities, startups, and Smart Village ecosystems.",
     outcomes: ["Design AI governance frameworks", "Conduct strategic technology foresight studies", "Develop responsible innovation policies", "Analyze technology risks and societal impacts", "Create long-term technology roadmaps", "Integrate ethical AI into organizational governance", "Support evidence-based technology policymaking"],
+  syllabus: [
+    "Fundamentals of AI Governance, Responsible Innovation & Strategic Technology Foresight",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "AI Governance Mentor"
@@ -1565,6 +2021,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to become strategic technology leaders capable of designing innovation strategies, technology policies, AI governance frameworks, digital public infrastructure initiatives, startup ecosystems, and national technology roadmaps while contributing to sustainable development and global digital transformation.",
     outcomes: ["Lead technology-driven public innovation", "Develop national and institutional technology strategies", "Design digital governance frameworks", "Formulate innovation policies", "Lead multidisciplinary technology teams", "Build sustainable innovation ecosystems", "Promote responsible technology leadership"],
+  syllabus: [
+    "Fundamentals of Global Technology Leadership, Innovation Strategy & Public Policy",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Faculty Mentor"
@@ -1584,6 +2046,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive technology leaders capable of shaping future technology policies, leading responsible innovation ecosystems, influencing public policy, building sustainable startups, conducting internationally recognized research, and driving national and global digital transformation aligned with ethical governance and societal well-being.",
     outcomes: ["Develop national and international technology policies", "Lead responsible innovation ecosystems", "Design AI and emerging technology governance frameworks", "Conduct high-impact interdisciplinary research", "File patents and technology disclosures", "Build globally scalable technology ventures", "Advise governments and institutions on digital transformation", "Mentor future technology leaders"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 10,
     faculty: "Chief Fellowship Mentor"
@@ -1603,6 +2071,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in genomics, DNA sequencing concepts, bioinformatics tools, molecular databases, computational biology, biological data analysis, and AI-assisted genomic interpretation for healthcare, agriculture, environmental science, and biotechnology innovation.",
     outcomes: ["Understand genome organization and sequencing technologies", "Explore biological and genomic databases", "Perform basic sequence analysis", "Apply bioinformatics tools to biological problems", "Interpret molecular and genomic datasets", "Understand AI-assisted genomic analysis", "Develop computational biology solutions"],
+  syllabus: [
+    "Fundamentals of Genomics, Bioinformatics & Molecular Data Analysis",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Bioinformatics Mentor"
@@ -1622,6 +2096,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate synthetic biology, computational biotechnology, artificial intelligence, bioinformatics, and precision medicine concepts to develop innovative biological solutions for healthcare, agriculture, environmental sustainability, industrial biotechnology, and personalized medicine.",
     outcomes: ["Understand synthetic biology design principles", "Apply computational biotechnology tools", "Explore precision medicine concepts", "Analyze biological systems using AI-assisted methods", "Design synthetic biological solutions (conceptual and educational)", "Integrate genomics with healthcare applications", "Evaluate biotechnology innovations ethically and responsibly"],
+  syllabus: [
+    "Fundamentals of Synthetic Biology, Precision Medicine & Computational Biotechnology",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Biotechnology Mentor"
@@ -1641,6 +2121,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead biotechnology innovation by integrating healthcare technologies, agricultural biotechnology, industrial biotechnology, bioinformatics, entrepreneurship, regulatory awareness, and sustainable biotechnology solutions for national and global challenges.",
     outcomes: ["Develop biotechnology-based innovations", "Design healthcare biotechnology solutions", "Understand biotechnology regulations and ethics", "Build biotechnology startup models", "Lead multidisciplinary biotechnology projects", "Evaluate commercialization opportunities", "Develop sustainable biotechnology products"],
+  syllabus: [
+    "Fundamentals of Biotechnology Innovation, Bioentrepreneurship & Healthcare Leadership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Biotechnology Mentor"
@@ -1660,6 +2146,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive biotechnology innovators capable of conducting advanced biological research, integrating artificial intelligence with biotechnology, publishing high-impact scientific papers, filing patents, launching biotechnology startups, and developing sustainable healthcare, agricultural, environmental, and industrial biotechnology solutions.",
     outcomes: ["Design advanced biotechnology solutions", "Integrate AI, genomics, and bioinformatics", "Conduct publishable biotechnology research", "Develop biotechnology products and services", "File patents and technology disclosures", "Build biotechnology startups", "Lead multidisciplinary biotechnology innovation teams", "Mentor future biotechnology innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 10,
     faculty: "Principal Biotechnology Mentor"
@@ -1679,6 +2171,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to become leaders in sustainable agriculture by integrating AgriTech, artificial intelligence, climate-smart farming, precision agriculture, agribusiness innovation, food value chains, rural entrepreneurship, and policy into scalable agricultural solutions that improve farmer income, food security, and environmental sustainability.",
     outcomes: ["Lead AgriTech transformation projects", "Design climate-smart farming systems", "Develop agribusiness strategies", "Evaluate agricultural value chains", "Apply sustainable farming practices", "Build farmer-centric innovation models", "Create scalable AgriTech enterprises"],
+  syllabus: [
+    "Fundamentals of AgriTech Leadership, Climate-Smart Agriculture & Agribusiness Innovation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "AgriTech Mentor"
@@ -1698,6 +2196,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive AgriTech innovators capable of designing intelligent farming systems, integrating artificial intelligence, drones, IoT, GIS, robotics, and precision agriculture technologies while conducting impactful research, creating commercially viable agricultural innovations, filing patents, and launching sustainable AgriTech enterprises.",
     outcomes: ["Design integrated smart farming ecosystems", "Develop AI-powered agricultural solutions", "Build precision agriculture platforms", "Conduct publishable AgriTech research", "Develop commercially viable agricultural products", "File patents and technology disclosures", "Launch AgriTech startups", "Mentor future agricultural innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 10,
     faculty: "Principal AgriTech Mentor"
@@ -1717,6 +2221,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to digital banking, FinTech ecosystems, digital payments, financial inclusion, financial literacy, blockchain-based finance, personal finance management, digital lending, and emerging financial technologies while promoting responsible financial behavior, innovation, and inclusive economic development.",
     outcomes: ["Explain FinTech fundamentals", "Understand digital banking systems", "Describe digital payment ecosystems", "Understand financial inclusion concepts", "Explain digital lending and savings models", "Appreciate financial literacy and responsible finance", "Recognize emerging financial technologies"],
+  syllabus: [
+    "Introduction to FinTech, Digital Banking & Financial Innovation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "FinTech Mentor"
@@ -1736,6 +2246,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in digital payment systems, blockchain-enabled financial services, financial analytics, fraud detection, digital wallets, payment gateways, financial data visualization, and secure digital financial transactions for businesses, banks, MSMEs, and rural communities.",
     outcomes: ["Understand digital payment architectures", "Explain blockchain applications in finance", "Analyze financial datasets", "Design digital payment workflows", "Understand fraud detection techniques", "Build financial dashboards", "Apply secure digital financial practices"],
+  syllabus: [
+    "Fundamentals of Digital Payments, Blockchain Finance & Financial Analytics",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "FinTech Mentor"
@@ -1755,6 +2271,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Artificial Intelligence, Machine Learning, Big Data Analytics, Regulatory Technology (RegTech), intelligent automation, fraud analytics, and predictive financial intelligence for designing secure, intelligent, and inclusive financial systems.",
     outcomes: ["Develop AI-enabled financial applications", "Design fraud detection systems", "Build intelligent credit assessment models", "Analyze financial datasets using AI", "Develop RegTech compliance solutions", "Create predictive financial decision-support systems", "Apply ethical AI principles in financial technology"],
+  syllabus: [
+    "Fundamentals of AI in Finance, RegTech & Intelligent Financial Systems",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "FinTech Mentor"
@@ -1774,6 +2296,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to lead digital financial transformation by integrating FinTech, artificial intelligence, blockchain, digital banking, financial inclusion, digital public infrastructure, regulatory innovation, entrepreneurship, and sustainable finance into scalable financial solutions that empower individuals, businesses, and rural communities.",
     outcomes: ["Lead FinTech transformation initiatives", "Design inclusive digital financial ecosystems", "Develop financial inclusion strategies", "Evaluate digital economy policies", "Build sustainable FinTech business models", "Lead multidisciplinary innovation teams", "Promote responsible digital finance"],
+  syllabus: [
+    "Fundamentals of FinTech Leadership, Financial Inclusion & Digital Economy Innovation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "FinTech Mentor"
@@ -1793,6 +2321,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive FinTech innovators capable of designing next-generation digital financial systems by integrating Artificial Intelligence, Blockchain, Digital Banking, Open Banking, Embedded Finance, Digital Public Infrastructure, Regulatory Technology (RegTech), and Financial Analytics while creating scalable financial innovations, patents, startups, and impactful financial inclusion solutions.",
     outcomes: ["Design intelligent financial ecosystems", "Develop AI-powered FinTech platforms", "Build secure blockchain financial applications", "Conduct publishable FinTech research", "Develop commercially viable financial technology products", "File patents and technology disclosures", "Launch FinTech startups", "Mentor future financial technology innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 10,
     faculty: "Principal FinTech Mentor"
@@ -1812,6 +2346,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to smart cities, sustainable urban development, intelligent infrastructure, digital governance, urban mobility, smart utilities, waste management, water systems, energy-efficient cities, climate resilience, and citizen-centric urban innovation while promoting sustainable and inclusive communities.",
     outcomes: ["Explain smart city concepts", "Understand sustainable urban planning", "Identify intelligent infrastructure technologies", "Describe digital governance systems", "Understand smart mobility and transportation", "Explain urban sustainability principles", "Recognize the role of citizens in smart city development"],
+  syllabus: [
+    "Introduction to Smart Cities, Urban Innovation & Sustainable Infrastructure",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Faculty Mentor"
@@ -1831,6 +2371,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in Internet of Things (IoT), intelligent transportation systems, smart utilities, GIS-enabled infrastructure management, urban digital infrastructure, smart street lighting, smart parking, environmental sensing, and connected public services for creating efficient, resilient, and sustainable cities.",
     outcomes: ["Design IoT-enabled smart city solutions", "Develop intelligent mobility systems", "Understand GIS-based infrastructure monitoring", "Build smart utility monitoring systems", "Integrate sensors into urban infrastructure", "Analyze urban data for decision-making", "Design connected public service platforms"],
+  syllabus: [
+    "Fundamentals of IoT for Smart Cities, Intelligent Mobility & Urban Digital Infrastructure",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Faculty Mentor"
@@ -1850,6 +2396,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Artificial Intelligence (AI), Digital Twins, Geographic Information Systems (GIS), Internet of Things (IoT), predictive analytics, remote sensing, and urban intelligence platforms for designing resilient, sustainable, and citizen-centric smart cities and Smart Village–Smart City ecosystems.",
     outcomes: ["Design AI-enabled smart city solutions", "Develop digital twins for urban infrastructure", "Analyze urban datasets using AI", "Build predictive urban analytics models", "Integrate IoT with city management systems", "Optimize urban services using data-driven decision-making", "Apply ethical AI principles in urban governance"],
+  syllabus: [
+    "Fundamentals of AI, Digital Twins & Smart Urban Analytics",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Smart City Mentor"
@@ -1869,6 +2421,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to become leaders in smart urban transformation by integrating artificial intelligence, digital governance, GIS, IoT, digital twins, sustainable infrastructure, citizen engagement, public policy, climate resilience, and urban innovation into scalable solutions for future-ready cities and Smart Village–Smart City ecosystems.",
     outcomes: ["Lead Smart City transformation initiatives", "Design citizen-centric urban governance systems", "Develop sustainable urban development strategies", "Integrate AI and IoT into city governance", "Design resilient public infrastructure", "Develop digital governance frameworks", "Lead multidisciplinary urban innovation teams"],
+  syllabus: [
+    "Fundamentals of Smart City Leadership, Urban Governance & Sustainable Development",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Smart City Mentor"
@@ -1888,6 +2446,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive urban innovators capable of designing next-generation smart cities by integrating Artificial Intelligence, Digital Twins, IoT, GIS, intelligent infrastructure, digital governance, climate resilience, sustainable mobility, and urban analytics while creating scalable technologies, patents, startups, and citizen-centric public solutions.",
     outcomes: ["Design integrated Smart City ecosystems", "Develop AI-powered urban intelligence platforms", "Build Digital Twin solutions for infrastructure", "Conduct publishable Smart City research", "Develop commercially viable urban technology products", "File patents and technology disclosures", "Launch UrbanTech startups", "Mentor future Smart City innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 10,
     faculty: "Principal Smart City Mentor"
@@ -1907,6 +2471,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to Educational Technology (EdTech), digital learning ecosystems, learning management systems, learning analytics, virtual classrooms, artificial intelligence in education, personalized learning, digital content creation, and future-ready education while promoting lifelong learning and digital literacy.",
     outcomes: ["Explain the fundamentals of EdTech", "Understand digital learning ecosystems", "Use Learning Management Systems (LMS)", "Explain learning analytics concepts", "Understand personalized learning approaches", "Create basic digital educational resources", "Appreciate technology-enabled lifelong learning"],
+  syllabus: [
+    "Introduction to EdTech, Learning Analytics & Digital Education",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "EdTech Mentor"
@@ -1926,6 +2496,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Communication", "Teamwork & Collaboration"],
     purpose: "To develop practical competencies in Learning Management Systems (LMS), instructional design, digital content development, virtual laboratories, interactive multimedia, digital assessments, learning analytics, and educational media production for modern education ecosystems.",
     outcomes: ["Configure and manage Learning Management Systems", "Design engaging digital learning experiences", "Develop interactive multimedia educational content", "Create online assessments and quizzes", "Build virtual learning environments", "Apply instructional design principles", "Evaluate learner engagement using analytics"],
+  syllabus: [
+    "Fundamentals of Learning Management Systems, Digital Content Creation & Educational Technologies",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "EdTech Mentor"
@@ -1945,6 +2521,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "To enable students to integrate Artificial Intelligence (AI), Learning Analytics, Adaptive Learning Technologies, Natural Language Processing (NLP), intelligent tutoring systems, predictive analytics, and educational data mining to design personalized, inclusive, and evidence-based learning experiences.",
     outcomes: ["Develop AI-enabled educational applications", "Design adaptive learning environments", "Build intelligent tutoring systems", "Analyze learner performance using AI", "Develop predictive student success models", "Create personalized learning pathways", "Apply ethical AI principles in education"],
+  syllabus: [
+    "Fundamentals of AI in Education, Adaptive Learning & Learning Analytics",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "EdTech Mentor"
@@ -1964,6 +2546,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "To prepare students to become leaders in educational transformation by integrating Artificial Intelligence, digital pedagogy, learning analytics, curriculum innovation, assessment technologies, educational leadership, academic quality assurance, and institutional transformation into scalable educational solutions.",
     outcomes: ["Lead educational transformation initiatives", "Design innovative digital learning ecosystems", "Develop learner-centered curriculum models", "Integrate AI into teaching and assessment", "Improve academic quality through learning analytics", "Lead institutional innovation projects", "Promote inclusive and future-ready education"],
+  syllabus: [
+    "Fundamentals of Educational Leadership, Digital Pedagogy & Academic Innovation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Educational Leadership Mentor"
@@ -1983,6 +2571,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "To prepare globally competitive educational technology innovators capable of designing next-generation learning ecosystems by integrating Artificial Intelligence, Learning Analytics, Adaptive Learning, Digital Pedagogy, Virtual Laboratories, Immersive Learning Technologies, Educational Data Intelligence, and Personalized Learning while creating scalable educational innovations, patents, startups, and transformative academic solutions.",
     outcomes: ["Design intelligent digital learning ecosystems", "Develop AI-powered educational platforms", "Build adaptive learning environments", "Conduct publishable EdTech research", "Develop commercially viable educational technology products", "File patents and technology disclosures", "Launch EdTech startups", "Mentor future educational innovators"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 10,
     faculty: "Principal EdTech Mentor"
@@ -2002,6 +2596,12 @@ const rawActivities: any[] = [
     ga: ["Digital Competence", "Engineering Excellence", "Lifelong Learning", "Critical Thinking"],
     purpose: "To introduce students to technology policy, digital governance, innovation management, public policy, responsible innovation, emerging technologies, intellectual property, ethical technology development, and national innovation ecosystems while preparing them to become responsible technology leaders.",
     outcomes: ["Explain technology policy fundamentals", "Understand digital governance ecosystems", "Describe innovation management principles", "Explain technology regulations and standards", "Understand intellectual property fundamentals", "Appreciate responsible innovation", "Recognize the role of technology in national development"],
+  syllabus: [
+    "Introduction to Technology Policy, Innovation Management & Digital Governance",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 100,
     faculty: "Technology Policy Mentor"
@@ -2021,6 +2621,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Village Immersion & Community Orientation Programme to develop crucial skills in Smart Village Revolution (SVR) and contribute to society.",
     outcomes: ["Understand core concepts of Smart Village Revolution (SVR)", "Apply techniques learned in Village Immersion & Community Orientation Programme"],
+  syllabus: [
+    "Fundamentals of Village Immersion & Community Orientation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2040,6 +2646,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Village Resource Mapping & Community Profiling to develop crucial skills in Smart Village Revolution (SVR) and contribute to society.",
     outcomes: ["Understand core concepts of Smart Village Revolution (SVR)", "Apply techniques learned in Village Resource Mapping & Community Profiling"],
+  syllabus: [
+    "Fundamentals of Village Resource Mapping & Community Profiling",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2059,6 +2671,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Smart Village Development Planning Programme to develop crucial skills in Smart Village Revolution (SVR) and contribute to society.",
     outcomes: ["Understand core concepts of Smart Village Revolution (SVR)", "Apply techniques learned in Smart Village Development Planning Programme"],
+  syllabus: [
+    "Fundamentals of Smart Village Development Planning",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2078,6 +2696,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Smart Village Innovation Challenge to develop crucial skills in Smart Village Revolution (SVR) and contribute to society.",
     outcomes: ["Understand core concepts of Smart Village Revolution (SVR)", "Apply techniques learned in Smart Village Innovation Challenge"],
+  syllabus: [
+    "Fundamentals of Smart Village Innovation Challenge",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2097,6 +2721,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Adopt-a-Village Transformation Project to develop crucial skills in Smart Village Revolution (SVR) and contribute to society.",
     outcomes: ["Understand core concepts of Smart Village Revolution (SVR)", "Apply techniques learned in Adopt-a-Village Transformation Project"],
+  syllabus: [
+    "Fundamentals of Adopt-a-Village Transformation Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2116,6 +2746,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Community Engagement & Service Learning Foundation Programme to develop crucial skills in Community Engagement & Service Learning (CES) and contribute to society.",
     outcomes: ["Understand core concepts of Community Engagement & Service Learning (CES)", "Apply techniques learned in Community Engagement & Service Learning Foundation Programme"],
+  syllabus: [
+    "Introduction to Community Engagement & Service Learning",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2135,6 +2771,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Community Needs Assessment, Participatory Rural Appraisal & Service Learning Programme to develop crucial skills in Community Engagement & Service Learning (CES) and contribute to society.",
     outcomes: ["Understand core concepts of Community Engagement & Service Learning (CES)", "Apply techniques learned in Community Needs Assessment, Participatory Rural Appraisal & Service Learning Programme"],
+  syllabus: [
+    "Fundamentals of Community Needs Assessment, Participatory Rural Appraisal & Service Learning",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2154,6 +2796,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Community Project Planning & Implementation Programme to develop crucial skills in Community Engagement & Service Learning (CES) and contribute to society.",
     outcomes: ["Understand core concepts of Community Engagement & Service Learning (CES)", "Apply techniques learned in Community Project Planning & Implementation Programme"],
+  syllabus: [
+    "Fundamentals of Community Project Planning & Implementation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2173,6 +2821,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Community Leadership & Social Change Programme to develop crucial skills in Community Engagement & Service Learning (CES) and contribute to society.",
     outcomes: ["Understand core concepts of Community Engagement & Service Learning (CES)", "Apply techniques learned in Community Leadership & Social Change Programme"],
+  syllabus: [
+    "Fundamentals of Community Leadership & Social Change",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2192,6 +2846,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Community Development Capstone Project to develop crucial skills in Community Engagement & Service Learning (CES) and contribute to society.",
     outcomes: ["Understand core concepts of Community Engagement & Service Learning (CES)", "Apply techniques learned in Community Development Capstone Project"],
+  syllabus: [
+    "Fundamentals of Community Development Capstone Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2211,6 +2871,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Environmental Awareness & Sustainability Foundation to develop crucial skills in Sustainable Development & Environment (SDE) and contribute to society.",
     outcomes: ["Understand core concepts of Sustainable Development & Environment (SDE)", "Apply techniques learned in Environmental Awareness & Sustainability Foundation"],
+  syllabus: [
+    "Introduction to Environmental Awareness & Sustainability Foundation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2230,6 +2896,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Waste Management & Circular Economy Programme to develop crucial skills in Sustainable Development & Environment (SDE) and contribute to society.",
     outcomes: ["Understand core concepts of Sustainable Development & Environment (SDE)", "Apply techniques learned in Waste Management & Circular Economy Programme"],
+  syllabus: [
+    "Fundamentals of Waste Management & Circular Economy",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2249,6 +2921,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Biodiversity Conservation & Climate Action Programme to develop crucial skills in Sustainable Development & Environment (SDE) and contribute to society.",
     outcomes: ["Understand core concepts of Sustainable Development & Environment (SDE)", "Apply techniques learned in Biodiversity Conservation & Climate Action Programme"],
+  syllabus: [
+    "Fundamentals of Biodiversity Conservation & Climate Action",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2268,6 +2946,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Sustainable Campus & Green Community Initiative to develop crucial skills in Sustainable Development & Environment (SDE) and contribute to society.",
     outcomes: ["Understand core concepts of Sustainable Development & Environment (SDE)", "Apply techniques learned in Sustainable Campus & Green Community Initiative"],
+  syllabus: [
+    "Fundamentals of Sustainable Campus & Green Community Initiative",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2287,6 +2971,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Sustainability Leadership & Environmental Impact Project to develop crucial skills in Sustainable Development & Environment (SDE) and contribute to society.",
     outcomes: ["Understand core concepts of Sustainable Development & Environment (SDE)", "Apply techniques learned in Sustainability Leadership & Environmental Impact Project"],
+  syllabus: [
+    "Fundamentals of Sustainability Leadership & Environmental Impact Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2306,6 +2996,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Community Health Awareness Programme to develop crucial skills in Health, Hygiene & Nutrition (HHN) and contribute to society.",
     outcomes: ["Understand core concepts of Health, Hygiene & Nutrition (HHN)", "Apply techniques learned in Community Health Awareness Programme"],
+  syllabus: [
+    "Fundamentals of Community Health Awareness",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2325,6 +3021,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Hygiene, Sanitation & Public Health Initiative to develop crucial skills in Health, Hygiene & Nutrition (HHN) and contribute to society.",
     outcomes: ["Understand core concepts of Health, Hygiene & Nutrition (HHN)", "Apply techniques learned in Hygiene, Sanitation & Public Health Initiative"],
+  syllabus: [
+    "Fundamentals of Hygiene, Sanitation & Public Health Initiative",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2344,6 +3046,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Nutrition & Lifestyle Improvement Programme to develop crucial skills in Health, Hygiene & Nutrition (HHN) and contribute to society.",
     outcomes: ["Understand core concepts of Health, Hygiene & Nutrition (HHN)", "Apply techniques learned in Nutrition & Lifestyle Improvement Programme"],
+  syllabus: [
+    "Fundamentals of Nutrition & Lifestyle Improvement",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2363,6 +3071,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Community Health Camp Management to develop crucial skills in Health, Hygiene & Nutrition (HHN) and contribute to society.",
     outcomes: ["Understand core concepts of Health, Hygiene & Nutrition (HHN)", "Apply techniques learned in Community Health Camp Management"],
+  syllabus: [
+    "Fundamentals of Community Health Camp Management",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2382,6 +3096,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Public Health Leadership Project to develop crucial skills in Health, Hygiene & Nutrition (HHN) and contribute to society.",
     outcomes: ["Understand core concepts of Health, Hygiene & Nutrition (HHN)", "Apply techniques learned in Public Health Leadership Project"],
+  syllabus: [
+    "Fundamentals of Public Health Leadership Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2401,6 +3121,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Adult Literacy & Learning Support Programme to develop crucial skills in Education, Literacy & Digital Inclusion (EDI) and contribute to society.",
     outcomes: ["Understand core concepts of Education, Literacy & Digital Inclusion (EDI)", "Apply techniques learned in Adult Literacy & Learning Support Programme"],
+  syllabus: [
+    "Fundamentals of Adult Literacy & Learning Support",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2420,6 +3146,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the School Student Mentorship Programme to develop crucial skills in Education, Literacy & Digital Inclusion (EDI) and contribute to society.",
     outcomes: ["Understand core concepts of Education, Literacy & Digital Inclusion (EDI)", "Apply techniques learned in School Student Mentorship Programme"],
+  syllabus: [
+    "Fundamentals of School Student Mentorship",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2439,6 +3171,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Digital Literacy for Rural Communities to develop crucial skills in Education, Literacy & Digital Inclusion (EDI) and contribute to society.",
     outcomes: ["Understand core concepts of Education, Literacy & Digital Inclusion (EDI)", "Apply techniques learned in Digital Literacy for Rural Communities"],
+  syllabus: [
+    "Fundamentals of Digital Literacy for Rural Communities",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2458,6 +3196,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Financial Literacy & Digital Banking Awareness Programme to develop crucial skills in Education, Literacy & Digital Inclusion (EDI) and contribute to society.",
     outcomes: ["Understand core concepts of Education, Literacy & Digital Inclusion (EDI)", "Apply techniques learned in Financial Literacy & Digital Banking Awareness Programme"],
+  syllabus: [
+    "Fundamentals of Financial Literacy & Digital Banking Awareness",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2477,6 +3221,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Career Guidance & Higher Education Awareness Programme to develop crucial skills in Education, Literacy & Digital Inclusion (EDI) and contribute to society.",
     outcomes: ["Understand core concepts of Education, Literacy & Digital Inclusion (EDI)", "Apply techniques learned in Career Guidance & Higher Education Awareness Programme"],
+  syllabus: [
+    "Fundamentals of Career Guidance & Higher Education Awareness",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2496,6 +3246,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Sustainable Agriculture Awareness Programme to develop crucial skills in Agriculture & Rural Innovation (ARI) and contribute to society.",
     outcomes: ["Understand core concepts of Agriculture & Rural Innovation (ARI)", "Apply techniques learned in Sustainable Agriculture Awareness Programme"],
+  syllabus: [
+    "Fundamentals of Sustainable Agriculture Awareness",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2515,6 +3271,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Smart Farming Technology Demonstration to develop crucial skills in Agriculture & Rural Innovation (ARI) and contribute to society.",
     outcomes: ["Understand core concepts of Agriculture & Rural Innovation (ARI)", "Apply techniques learned in Smart Farming Technology Demonstration"],
+  syllabus: [
+    "Fundamentals of Smart Farming Technology Demonstration",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2534,6 +3296,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Water Conservation & Irrigation Management Project to develop crucial skills in Agriculture & Rural Innovation (ARI) and contribute to society.",
     outcomes: ["Understand core concepts of Agriculture & Rural Innovation (ARI)", "Apply techniques learned in Water Conservation & Irrigation Management Project"],
+  syllabus: [
+    "Fundamentals of Water Conservation & Irrigation Management Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2553,6 +3321,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Farmer Capacity Building & Agricultural Extension Programme to develop crucial skills in Agriculture & Rural Innovation (ARI) and contribute to society.",
     outcomes: ["Understand core concepts of Agriculture & Rural Innovation (ARI)", "Apply techniques learned in Farmer Capacity Building & Agricultural Extension Programme"],
+  syllabus: [
+    "Fundamentals of Farmer Capacity Building & Agricultural Extension",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2572,6 +3346,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Rural Innovation & Agri-Entrepreneurship Project to develop crucial skills in Agriculture & Rural Innovation (ARI) and contribute to society.",
     outcomes: ["Understand core concepts of Agriculture & Rural Innovation (ARI)", "Apply techniques learned in Rural Innovation & Agri-Entrepreneurship Project"],
+  syllabus: [
+    "Fundamentals of Rural Innovation & Agri-Entrepreneurship Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2591,6 +3371,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Women Empowerment & Gender Equality Foundation to develop crucial skills in Women & Youth Empowerment (WYE) and contribute to society.",
     outcomes: ["Understand core concepts of Women & Youth Empowerment (WYE)", "Apply techniques learned in Women Empowerment & Gender Equality Foundation"],
+  syllabus: [
+    "Introduction to Women Empowerment & Gender Equality Foundation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2610,6 +3396,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Self-Help Group Development Programme to develop crucial skills in Women & Youth Empowerment (WYE) and contribute to society.",
     outcomes: ["Understand core concepts of Women & Youth Empowerment (WYE)", "Apply techniques learned in Self-Help Group Development Programme"],
+  syllabus: [
+    "Fundamentals of Self-Help Group Development",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2629,6 +3421,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Youth Leadership & Civic Engagement Camp to develop crucial skills in Women & Youth Empowerment (WYE) and contribute to society.",
     outcomes: ["Understand core concepts of Women & Youth Empowerment (WYE)", "Apply techniques learned in Youth Leadership & Civic Engagement Camp"],
+  syllabus: [
+    "Fundamentals of Youth Leadership & Civic Engagement Camp",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2648,6 +3446,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Employability & Skill Development Initiative to develop crucial skills in Women & Youth Empowerment (WYE) and contribute to society.",
     outcomes: ["Understand core concepts of Women & Youth Empowerment (WYE)", "Apply techniques learned in Employability & Skill Development Initiative"],
+  syllabus: [
+    "Fundamentals of Employability & Skill Development Initiative",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2667,6 +3471,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Women & Youth Social Innovation Project to develop crucial skills in Women & Youth Empowerment (WYE) and contribute to society.",
     outcomes: ["Understand core concepts of Women & Youth Empowerment (WYE)", "Apply techniques learned in Women & Youth Social Innovation Project"],
+  syllabus: [
+    "Fundamentals of Women & Youth Social Innovation Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2686,6 +3496,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Disaster Preparedness Foundation Programme to develop crucial skills in Disaster Management & Public Safety (DPS) and contribute to society.",
     outcomes: ["Understand core concepts of Disaster Management & Public Safety (DPS)", "Apply techniques learned in Disaster Preparedness Foundation Programme"],
+  syllabus: [
+    "Introduction to Disaster Preparedness",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2705,6 +3521,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the First Aid & Emergency Response Training to develop crucial skills in Disaster Management & Public Safety (DPS) and contribute to society.",
     outcomes: ["Understand core concepts of Disaster Management & Public Safety (DPS)", "Apply techniques learned in First Aid & Emergency Response Training"],
+  syllabus: [
+    "Fundamentals of First Aid & Emergency Response Training",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2724,6 +3546,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Fire Safety & Disaster Simulation Exercise to develop crucial skills in Disaster Management & Public Safety (DPS) and contribute to society.",
     outcomes: ["Understand core concepts of Disaster Management & Public Safety (DPS)", "Apply techniques learned in Fire Safety & Disaster Simulation Exercise"],
+  syllabus: [
+    "Fundamentals of Fire Safety & Disaster Simulation Exercise",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2743,6 +3571,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Road Safety & Community Risk Reduction Programme to develop crucial skills in Disaster Management & Public Safety (DPS) and contribute to society.",
     outcomes: ["Understand core concepts of Disaster Management & Public Safety (DPS)", "Apply techniques learned in Road Safety & Community Risk Reduction Programme"],
+  syllabus: [
+    "Fundamentals of Road Safety & Community Risk Reduction",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2762,6 +3596,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Community Disaster Management Leadership Project to develop crucial skills in Disaster Management & Public Safety (DPS) and contribute to society.",
     outcomes: ["Understand core concepts of Disaster Management & Public Safety (DPS)", "Apply techniques learned in Community Disaster Management Leadership Project"],
+  syllabus: [
+    "Fundamentals of Community Disaster Management Leadership Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2781,6 +3621,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Citizenship & Constitutional Values Programme to develop crucial skills in Civic Engagement & Good Governance (CGG) and contribute to society.",
     outcomes: ["Understand core concepts of Civic Engagement & Good Governance (CGG)", "Apply techniques learned in Citizenship & Constitutional Values Programme"],
+  syllabus: [
+    "Fundamentals of Citizenship & Constitutional Values",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2800,6 +3646,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Government Schemes Awareness Programme to develop crucial skills in Civic Engagement & Good Governance (CGG) and contribute to society.",
     outcomes: ["Understand core concepts of Civic Engagement & Good Governance (CGG)", "Apply techniques learned in Government Schemes Awareness Programme"],
+  syllabus: [
+    "Fundamentals of Government Schemes Awareness",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2819,6 +3671,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Electoral Literacy & Democratic Participation Programme to develop crucial skills in Civic Engagement & Good Governance (CGG) and contribute to society.",
     outcomes: ["Understand core concepts of Civic Engagement & Good Governance (CGG)", "Apply techniques learned in Electoral Literacy & Democratic Participation Programme"],
+  syllabus: [
+    "Fundamentals of Electoral Literacy & Democratic Participation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2838,6 +3696,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Legal Literacy, RTI & Consumer Rights Programme to develop crucial skills in Civic Engagement & Good Governance (CGG) and contribute to society.",
     outcomes: ["Understand core concepts of Civic Engagement & Good Governance (CGG)", "Apply techniques learned in Legal Literacy, RTI & Consumer Rights Programme"],
+  syllabus: [
+    "Fundamentals of Legal Literacy, RTI & Consumer Rights",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2857,6 +3721,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Good Governance & Civic Leadership Project to develop crucial skills in Civic Engagement & Good Governance (CGG) and contribute to society.",
     outcomes: ["Understand core concepts of Civic Engagement & Good Governance (CGG)", "Apply techniques learned in Good Governance & Civic Leadership Project"],
+  syllabus: [
+    "Fundamentals of Good Governance & Civic Leadership Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2876,6 +3746,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Social Innovation Foundation Programme to develop crucial skills in Social Innovation & Impact (SII) and contribute to society.",
     outcomes: ["Understand core concepts of Social Innovation & Impact (SII)", "Apply techniques learned in Social Innovation Foundation Programme"],
+  syllabus: [
+    "Introduction to Social Innovation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2895,6 +3771,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the NGO Collaboration & Community Partnership Programme to develop crucial skills in Social Innovation & Impact (SII) and contribute to society.",
     outcomes: ["Understand core concepts of Social Innovation & Impact (SII)", "Apply techniques learned in NGO Collaboration & Community Partnership Programme"],
+  syllabus: [
+    "Fundamentals of NGO Collaboration & Community Partnership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2914,6 +3796,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Sustainable Development Goals (SDG) Action Project to develop crucial skills in Social Innovation & Impact (SII) and contribute to society.",
     outcomes: ["Understand core concepts of Social Innovation & Impact (SII)", "Apply techniques learned in Sustainable Development Goals (SDG) Action Project"],
+  syllabus: [
+    "Fundamentals of Sustainable Development Goals (SDG) Action Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2933,6 +3821,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Social Entrepreneurship & Innovation Challenge to develop crucial skills in Social Innovation & Impact (SII) and contribute to society.",
     outcomes: ["Understand core concepts of Social Innovation & Impact (SII)", "Apply techniques learned in Social Entrepreneurship & Innovation Challenge"],
+  syllabus: [
+    "Fundamentals of Social Entrepreneurship & Innovation Challenge",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2952,6 +3846,12 @@ const rawActivities: any[] = [
     ga: ["Social Responsibility", "Public Service", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Grand Community Impact Capstone Project to develop crucial skills in Social Innovation & Impact (SII) and contribute to society.",
     outcomes: ["Understand core concepts of Social Innovation & Impact (SII)", "Apply techniques learned in Grand Community Impact Capstone Project"],
+  syllabus: [
+    "Fundamentals of Grand Community Impact Capstone Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Community Outreach Mentor"
@@ -2971,6 +3871,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Creative Writing Foundation Programme to develop crucial skills in Literature & Communication (LIT) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Literature & Communication (LIT)", "Apply techniques learned in Creative Writing Foundation Programme"],
+  syllabus: [
+    "Introduction to Creative Writing",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -2990,6 +3896,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Public Speaking & Literary Expression Programme to develop crucial skills in Literature & Communication (LIT) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Literature & Communication (LIT)", "Apply techniques learned in Public Speaking & Literary Expression Programme"],
+  syllabus: [
+    "Fundamentals of Public Speaking & Literary Expression",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3009,6 +3921,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Poetry, Storytelling & Debate Festival to develop crucial skills in Literature & Communication (LIT) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Literature & Communication (LIT)", "Apply techniques learned in Poetry, Storytelling & Debate Festival"],
+  syllabus: [
+    "Fundamentals of Poetry, Storytelling & Debate Festival",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3028,6 +3946,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Editorial Writing & Literary Publication Programme to develop crucial skills in Literature & Communication (LIT) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Literature & Communication (LIT)", "Apply techniques learned in Editorial Writing & Literary Publication Programme"],
+  syllabus: [
+    "Fundamentals of Editorial Writing & Literary Publication",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3047,6 +3971,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Literary Leadership & National Literature Summit to develop crucial skills in Literature & Communication (LIT) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Literature & Communication (LIT)", "Apply techniques learned in Literary Leadership & National Literature Summit"],
+  syllabus: [
+    "Fundamentals of Literary Leadership & National Literature Summit",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3066,6 +3996,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Music Appreciation & Vocal Foundation to develop crucial skills in Music & Performing Arts (MUS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Music & Performing Arts (MUS)", "Apply techniques learned in Music Appreciation & Vocal Foundation"],
+  syllabus: [
+    "Introduction to Music Appreciation & Vocal Foundation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3085,6 +4021,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Instrumental Music Development Programme to develop crucial skills in Music & Performing Arts (MUS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Music & Performing Arts (MUS)", "Apply techniques learned in Instrumental Music Development Programme"],
+  syllabus: [
+    "Fundamentals of Instrumental Music Development",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3104,6 +4046,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Music Production & Performance Programme to develop crucial skills in Music & Performing Arts (MUS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Music & Performing Arts (MUS)", "Apply techniques learned in Music Production & Performance Programme"],
+  syllabus: [
+    "Fundamentals of Music Production & Performance",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3123,6 +4071,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Fusion Music Ensemble Leadership to develop crucial skills in Music & Performing Arts (MUS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Music & Performing Arts (MUS)", "Apply techniques learned in Fusion Music Ensemble Leadership"],
+  syllabus: [
+    "Fundamentals of Fusion Music Ensemble Leadership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3142,6 +4096,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Music Performance & Cultural Ambassador Programme to develop crucial skills in Music & Performing Arts (MUS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Music & Performing Arts (MUS)", "Apply techniques learned in National Music Performance & Cultural Ambassador Programme"],
+  syllabus: [
+    "Fundamentals of National Music Performance & Cultural Ambassador",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3161,6 +4121,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Dance Foundation & Movement Skills to develop crucial skills in Dance & Performing Arts (DAN) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Dance & Performing Arts (DAN)", "Apply techniques learned in Dance Foundation & Movement Skills"],
+  syllabus: [
+    "Introduction to Dance Foundation & Movement Skills",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3180,6 +4146,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Classical & Contemporary Dance Programme to develop crucial skills in Dance & Performing Arts (DAN) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Dance & Performing Arts (DAN)", "Apply techniques learned in Classical & Contemporary Dance Programme"],
+  syllabus: [
+    "Fundamentals of Classical & Contemporary Dance",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3199,6 +4171,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Choreography & Stage Performance to develop crucial skills in Dance & Performing Arts (DAN) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Dance & Performing Arts (DAN)", "Apply techniques learned in Choreography & Stage Performance"],
+  syllabus: [
+    "Fundamentals of Choreography & Stage Performance",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3218,6 +4196,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Dance Production & Event Leadership to develop crucial skills in Dance & Performing Arts (DAN) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Dance & Performing Arts (DAN)", "Apply techniques learned in Dance Production & Event Leadership"],
+  syllabus: [
+    "Fundamentals of Dance Production & Event Leadership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3237,6 +4221,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Dance Festival & Cultural Ambassador Programme to develop crucial skills in Dance & Performing Arts (DAN) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Dance & Performing Arts (DAN)", "Apply techniques learned in National Dance Festival & Cultural Ambassador Programme"],
+  syllabus: [
+    "Fundamentals of National Dance Festival & Cultural Ambassador",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3256,6 +4246,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Photography Foundation Programme to develop crucial skills in Photography & Visual Storytelling (PHO) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Photography & Visual Storytelling (PHO)", "Apply techniques learned in Photography Foundation Programme"],
+  syllabus: [
+    "Introduction to Photography",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3275,6 +4271,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Creative Photography & Composition to develop crucial skills in Photography & Visual Storytelling (PHO) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Photography & Visual Storytelling (PHO)", "Apply techniques learned in Creative Photography & Composition"],
+  syllabus: [
+    "Fundamentals of Creative Photography & Composition",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3294,6 +4296,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Photojournalism & Documentary Photography to develop crucial skills in Photography & Visual Storytelling (PHO) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Photography & Visual Storytelling (PHO)", "Apply techniques learned in Photojournalism & Documentary Photography"],
+  syllabus: [
+    "Fundamentals of Photojournalism & Documentary Photography",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3313,6 +4321,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Photography Exhibition Management to develop crucial skills in Photography & Visual Storytelling (PHO) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Photography & Visual Storytelling (PHO)", "Apply techniques learned in Photography Exhibition Management"],
+  syllabus: [
+    "Fundamentals of Photography Exhibition Management",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3332,6 +4346,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Professional Photography Portfolio Development to develop crucial skills in Photography & Visual Storytelling (PHO) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Photography & Visual Storytelling (PHO)", "Apply techniques learned in Professional Photography Portfolio Development"],
+  syllabus: [
+    "Fundamentals of Professional Photography Portfolio Development",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3351,6 +4371,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Filmmaking Foundation Programme to develop crucial skills in Short Film & Digital Media (SFM) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Short Film & Digital Media (SFM)", "Apply techniques learned in Filmmaking Foundation Programme"],
+  syllabus: [
+    "Introduction to Filmmaking",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3370,6 +4396,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Script Writing & Storyboarding to develop crucial skills in Short Film & Digital Media (SFM) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Short Film & Digital Media (SFM)", "Apply techniques learned in Script Writing & Storyboarding"],
+  syllabus: [
+    "Fundamentals of Script Writing & Storyboarding",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3389,6 +4421,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Cinematography & Film Production to develop crucial skills in Short Film & Digital Media (SFM) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Short Film & Digital Media (SFM)", "Apply techniques learned in Cinematography & Film Production"],
+  syllabus: [
+    "Fundamentals of Cinematography & Film Production",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3408,6 +4446,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Film Direction & Festival Production to develop crucial skills in Short Film & Digital Media (SFM) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Short Film & Digital Media (SFM)", "Apply techniques learned in Film Direction & Festival Production"],
+  syllabus: [
+    "Fundamentals of Film Direction & Festival Production",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3427,6 +4471,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Short Film Competition & Production Project to develop crucial skills in Short Film & Digital Media (SFM) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Short Film & Digital Media (SFM)", "Apply techniques learned in National Short Film Competition & Production Project"],
+  syllabus: [
+    "Fundamentals of National Short Film Competition & Production Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3446,6 +4496,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Drawing & Painting Foundation to develop crucial skills in Fine Arts & Painting (ART) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fine Arts & Painting (ART)", "Apply techniques learned in Drawing & Painting Foundation"],
+  syllabus: [
+    "Introduction to Drawing & Painting Foundation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3465,6 +4521,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Creative Arts & Mixed Media Programme to develop crucial skills in Fine Arts & Painting (ART) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fine Arts & Painting (ART)", "Apply techniques learned in Creative Arts & Mixed Media Programme"],
+  syllabus: [
+    "Fundamentals of Creative Arts & Mixed Media",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3484,6 +4546,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Public Art & Mural Design Project to develop crucial skills in Fine Arts & Painting (ART) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fine Arts & Painting (ART)", "Apply techniques learned in Public Art & Mural Design Project"],
+  syllabus: [
+    "Fundamentals of Public Art & Mural Design Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3503,6 +4571,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Art Exhibition & Curatorial Practice to develop crucial skills in Fine Arts & Painting (ART) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fine Arts & Painting (ART)", "Apply techniques learned in Art Exhibition & Curatorial Practice"],
+  syllabus: [
+    "Fundamentals of Art Exhibition & Curatorial Practice",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3522,6 +4596,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Professional Artist Portfolio & National Art Showcase to develop crucial skills in Fine Arts & Painting (ART) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fine Arts & Painting (ART)", "Apply techniques learned in Professional Artist Portfolio & National Art Showcase"],
+  syllabus: [
+    "Fundamentals of Professional Artist Portfolio & National Art Showcase",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3541,6 +4621,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Handicrafts Foundation Programme to develop crucial skills in Handicrafts & Traditional Arts (CRA) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Handicrafts & Traditional Arts (CRA)", "Apply techniques learned in Handicrafts Foundation Programme"],
+  syllabus: [
+    "Introduction to Handicrafts",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3560,6 +4646,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Traditional Crafts & Sustainable Design to develop crucial skills in Handicrafts & Traditional Arts (CRA) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Handicrafts & Traditional Arts (CRA)", "Apply techniques learned in Traditional Crafts & Sustainable Design"],
+  syllabus: [
+    "Fundamentals of Traditional Crafts & Sustainable Design",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3579,6 +4671,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Craft Entrepreneurship Programme to develop crucial skills in Handicrafts & Traditional Arts (CRA) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Handicrafts & Traditional Arts (CRA)", "Apply techniques learned in Craft Entrepreneurship Programme"],
+  syllabus: [
+    "Fundamentals of Craft Entrepreneurship",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3598,6 +4696,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Community Craft Revival Project to develop crucial skills in Handicrafts & Traditional Arts (CRA) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Handicrafts & Traditional Arts (CRA)", "Apply techniques learned in Community Craft Revival Project"],
+  syllabus: [
+    "Fundamentals of Community Craft Revival Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3617,6 +4721,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Handicraft Exhibition & Artisan Collaboration to develop crucial skills in Handicrafts & Traditional Arts (CRA) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Handicrafts & Traditional Arts (CRA)", "Apply techniques learned in National Handicraft Exhibition & Artisan Collaboration"],
+  syllabus: [
+    "Fundamentals of National Handicraft Exhibition & Artisan Collaboration",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3636,6 +4746,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Fashion Design Foundation to develop crucial skills in Fashion, Design & Lifestyle (FAS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fashion, Design & Lifestyle (FAS)", "Apply techniques learned in Fashion Design Foundation"],
+  syllabus: [
+    "Introduction to Fashion Design Foundation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3655,6 +4771,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Sustainable Fashion & Textile Innovation to develop crucial skills in Fashion, Design & Lifestyle (FAS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fashion, Design & Lifestyle (FAS)", "Apply techniques learned in Sustainable Fashion & Textile Innovation"],
+  syllabus: [
+    "Fundamentals of Sustainable Fashion & Textile Innovation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3674,6 +4796,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Fashion Styling & Brand Development to develop crucial skills in Fashion, Design & Lifestyle (FAS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fashion, Design & Lifestyle (FAS)", "Apply techniques learned in Fashion Styling & Brand Development"],
+  syllabus: [
+    "Fundamentals of Fashion Styling & Brand Development",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3693,6 +4821,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Fashion Show Production & Event Management to develop crucial skills in Fashion, Design & Lifestyle (FAS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fashion, Design & Lifestyle (FAS)", "Apply techniques learned in Fashion Show Production & Event Management"],
+  syllabus: [
+    "Fundamentals of Fashion Show Production & Event Management",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3712,6 +4846,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Fashion Showcase & Design Entrepreneurship to develop crucial skills in Fashion, Design & Lifestyle (FAS) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Fashion, Design & Lifestyle (FAS)", "Apply techniques learned in National Fashion Showcase & Design Entrepreneurship"],
+  syllabus: [
+    "Fundamentals of National Fashion Showcase & Design Entrepreneurship",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3731,6 +4871,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Adventure & Outdoor Skills Foundation to develop crucial skills in Adventure, Outdoor Leadership & Heritage (ADV) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Adventure, Outdoor Leadership & Heritage (ADV)", "Apply techniques learned in Adventure & Outdoor Skills Foundation"],
+  syllabus: [
+    "Introduction to Adventure & Outdoor Skills Foundation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3750,6 +4896,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Camping, Trekking & Survival Skills to develop crucial skills in Adventure, Outdoor Leadership & Heritage (ADV) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Adventure, Outdoor Leadership & Heritage (ADV)", "Apply techniques learned in Camping, Trekking & Survival Skills"],
+  syllabus: [
+    "Fundamentals of Camping, Trekking & Survival Skills",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3769,6 +4921,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Adventure Leadership & Expedition Planning to develop crucial skills in Adventure, Outdoor Leadership & Heritage (ADV) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Adventure, Outdoor Leadership & Heritage (ADV)", "Apply techniques learned in Adventure Leadership & Expedition Planning"],
+  syllabus: [
+    "Fundamentals of Adventure Leadership & Expedition Planning",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3788,6 +4946,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Nature Conservation & Eco-Tourism Project to develop crucial skills in Adventure, Outdoor Leadership & Heritage (ADV) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Adventure, Outdoor Leadership & Heritage (ADV)", "Apply techniques learned in Nature Conservation & Eco-Tourism Project"],
+  syllabus: [
+    "Fundamentals of Nature Conservation & Eco-Tourism Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3807,6 +4971,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Adventure Expedition & Outdoor Leadership Certification to develop crucial skills in Adventure, Outdoor Leadership & Heritage (ADV) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Adventure, Outdoor Leadership & Heritage (ADV)", "Apply techniques learned in National Adventure Expedition & Outdoor Leadership Certification"],
+  syllabus: [
+    "Fundamentals of National Adventure Expedition & Outdoor Leadership Certification",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3826,6 +4996,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Esports Foundation & Responsible Gaming to develop crucial skills in Esports, Gaming & Digital Entertainment (ESP) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Esports, Gaming & Digital Entertainment (ESP)", "Apply techniques learned in Esports Foundation & Responsible Gaming"],
+  syllabus: [
+    "Introduction to Esports Foundation & Responsible Gaming",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3845,6 +5021,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Competitive Gaming & Team Strategy to develop crucial skills in Esports, Gaming & Digital Entertainment (ESP) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Esports, Gaming & Digital Entertainment (ESP)", "Apply techniques learned in Competitive Gaming & Team Strategy"],
+  syllabus: [
+    "Fundamentals of Competitive Gaming & Team Strategy",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3864,6 +5046,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Esports Tournament Organization to develop crucial skills in Esports, Gaming & Digital Entertainment (ESP) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Esports, Gaming & Digital Entertainment (ESP)", "Apply techniques learned in Esports Tournament Organization"],
+  syllabus: [
+    "Fundamentals of Esports Tournament Organization",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3883,6 +5071,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Game Streaming, Casting & Content Creation to develop crucial skills in Esports, Gaming & Digital Entertainment (ESP) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Esports, Gaming & Digital Entertainment (ESP)", "Apply techniques learned in Game Streaming, Casting & Content Creation"],
+  syllabus: [
+    "Fundamentals of Game Streaming, Casting & Content Creation",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3902,6 +5096,12 @@ const rawActivities: any[] = [
     ga: ["Cultural Appreciation", "Communication", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the National Esports Championship & Digital Entertainment Leadership to develop crucial skills in Esports, Gaming & Digital Entertainment (ESP) and enrich culture and heritage.",
     outcomes: ["Understand core concepts of Esports, Gaming & Digital Entertainment (ESP)", "Apply techniques learned in National Esports Championship & Digital Entertainment Leadership"],
+  syllabus: [
+    "Fundamentals of National Esports Championship & Digital Entertainment Leadership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Liberal Arts Mentor"
@@ -3921,6 +5121,12 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Innovation Mindset & Design Thinking Foundation Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Innovation Mindset & Design Thinking Foundation Programme"],
+  syllabus: [
+    "Introduction to Innovation Mindset & Design Thinking",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Innovation Mentor"
@@ -3940,6 +5146,12 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Idea Validation & Problem Discovery Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Idea Validation & Problem Discovery Programme"],
+  syllabus: [
+    "Fundamentals of Idea Validation & Problem Discovery",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Innovation Mentor"
@@ -3959,6 +5171,12 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Business Model Canvas & Startup Planning Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Business Model Canvas & Startup Planning Programme"],
+  syllabus: [
+    "Fundamentals of Business Model Canvas & Startup Planning",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Innovation Mentor"
@@ -3978,6 +5196,12 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Prototype Development & MVP Bootcamp to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Prototype Development & MVP Bootcamp"],
+  syllabus: [
+    "Fundamentals of Prototype Development & MVP Bootcamp",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Innovation Mentor"
@@ -3997,6 +5221,12 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Leadership", "Industry Readiness"],
     purpose: "Engage in the Startup Incubation & Mentorship Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Startup Incubation & Mentorship Programme"],
+  syllabus: [
+    "Fundamentals of Startup Incubation & Mentorship",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Innovation Mentor"
@@ -4016,6 +5246,12 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Leadership", "Industry Readiness"],
     purpose: "Engage in the Entrepreneurship Development & Business Registration Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Entrepreneurship Development & Business Registration Programme"],
+  syllabus: [
+    "Fundamentals of Entrepreneurship Development & Business Registration",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Innovation Mentor"
@@ -4035,6 +5271,12 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Startup Pitching & Investor Readiness Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Startup Pitching & Investor Readiness Programme"],
+  syllabus: [
+    "Fundamentals of Startup Pitching & Investor Readiness",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Innovation Mentor"
@@ -4054,6 +5296,12 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Innovation Challenge & National Hackathon Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Innovation Challenge & National Hackathon Programme"],
+  syllabus: [
+    "Fundamentals of Innovation Challenge & National Hackathon",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Innovation Mentor"
@@ -4073,6 +5321,12 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Startup Accelerator & Venture Growth Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Startup Accelerator & Venture Growth Programme"],
+  syllabus: [
+    "Fundamentals of Startup Accelerator & Venture Growth",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Innovation Mentor"
@@ -4092,6 +5346,12 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Entrepreneur-in-Residence (EiR) Capstone Project to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Entrepreneur-in-Residence (EiR) Capstone Project"],
+  syllabus: [
+    "Fundamentals of Entrepreneur-in-Residence (EiR) Capstone Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Innovation Mentor"
@@ -4111,6 +5371,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Yoga Foundation & Mindful Living Programme to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Yoga Foundation & Mindful Living Programme"],
+  syllabus: [
+    "Introduction to Yoga Foundation & Mindful Living",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4130,6 +5396,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Asanas, Pranayama & Meditation Practice Programme to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Asanas, Pranayama & Meditation Practice Programme"],
+  syllabus: [
+    "Fundamentals of Asanas, Pranayama & Meditation Practice",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4149,6 +5421,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Stress Management & Mental Wellness through Yoga to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Stress Management & Mental Wellness through Yoga"],
+  syllabus: [
+    "Fundamentals of Stress Management & Mental Wellness through Yoga",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4168,6 +5446,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Yoga for Physical Fitness & Lifestyle Disease Prevention to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Yoga for Physical Fitness & Lifestyle Disease Prevention"],
+  syllabus: [
+    "Fundamentals of Yoga for Physical Fitness & Lifestyle Disease Prevention",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4187,6 +5471,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Advanced Yoga Practice & Holistic Wellness Programme to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Advanced Yoga Practice & Holistic Wellness Programme"],
+  syllabus: [
+    "Advanced Theoretical Frameworks",
+    "Industry-grade Application and Case Studies",
+    "Research and Innovation Methodologies",
+    "Capstone Project Development"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4206,6 +5496,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Yoga Instructor Development Programme to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Yoga Instructor Development Programme"],
+  syllabus: [
+    "Fundamentals of Yoga Instructor Development",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4225,6 +5521,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Campus Yoga Ambassador Initiative to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Campus Yoga Ambassador Initiative"],
+  syllabus: [
+    "Fundamentals of Campus Yoga Ambassador Initiative",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4244,6 +5546,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Community Yoga Outreach & International Yoga Day Programme to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Community Yoga Outreach & International Yoga Day Programme"],
+  syllabus: [
+    "Fundamentals of Community Yoga Outreach & International Yoga Day",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4263,6 +5571,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Yoga Research, Therapy & Wellness Innovation Project to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Yoga Research, Therapy & Wellness Innovation Project"],
+  syllabus: [
+    "Fundamentals of Yoga Research, Therapy & Wellness Innovation Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4282,6 +5596,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Certified Yoga Leadership & Wellness Capstone Project to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Certified Yoga Leadership & Wellness Capstone Project"],
+  syllabus: [
+    "Fundamentals of Certified Yoga Leadership & Wellness Capstone Project",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4301,6 +5621,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Personal Safety & Emergency Preparedness Foundation to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Personal Safety & Emergency Preparedness Foundation"],
+  syllabus: [
+    "Introduction to Personal Safety & Emergency Preparedness Foundation",
+    "Core Concepts and Terminology",
+    "Basic Tools and Methodologies",
+    "Hands-on Introductory Projects"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4320,6 +5646,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the First Aid, CPR & Basic Life Support (BLS) Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in First Aid, CPR & Basic Life Support (BLS) Programme"],
+  syllabus: [
+    "Fundamentals of First Aid, CPR & Basic Life Support (BLS)",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4339,6 +5671,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Fire Safety, Evacuation & Disaster Preparedness Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Fire Safety, Evacuation & Disaster Preparedness Programme"],
+  syllabus: [
+    "Fundamentals of Fire Safety, Evacuation & Disaster Preparedness",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4358,6 +5696,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Road Safety & Responsible Citizen Awareness Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Road Safety & Responsible Citizen Awareness Programme"],
+  syllabus: [
+    "Fundamentals of Road Safety & Responsible Citizen Awareness",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4377,6 +5721,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Women Safety, Self-Protection & Personal Security Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Women Safety, Self-Protection & Personal Security Programme"],
+  syllabus: [
+    "Fundamentals of Women Safety, Self-Protection & Personal Security",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4396,6 +5746,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Mental Health First Aid & Psychological Well-being Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Mental Health First Aid & Psychological Well-being Programme"],
+  syllabus: [
+    "Fundamentals of Mental Health First Aid & Psychological Well-being",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4415,6 +5771,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Campus Safety Leadership & Risk Management Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Campus Safety Leadership & Risk Management Programme"],
+  syllabus: [
+    "Fundamentals of Campus Safety Leadership & Risk Management",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4434,6 +5796,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Community Disaster Response & Humanitarian Volunteer Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Community Disaster Response & Humanitarian Volunteer Programme"],
+  syllabus: [
+    "Fundamentals of Community Disaster Response & Humanitarian Volunteer",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4453,6 +5821,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Occupational Health, Safety & Environmental (HSE) Leadership Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Occupational Health, Safety & Environmental (HSE) Leadership Programme"],
+  syllabus: [
+    "Fundamentals of Occupational Health, Safety & Environmental (HSE) Leadership",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
@@ -4472,6 +5846,12 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the SafeLife Master Trainer & Community Safety Leadership Capstone to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in SafeLife Master Trainer & Community Safety Leadership Capstone"],
+  syllabus: [
+    "Fundamentals of SafeLife Master Trainer & Community Safety Leadership Capstone",
+    "Practical Applications and Workflows",
+    "Group Collaboration and Problem Solving",
+    "Final Assessment and Delivery"
+  ],
     enrolledCount: 0,
     maxEnrollment: 50,
     faculty: "Wellness Mentor"
