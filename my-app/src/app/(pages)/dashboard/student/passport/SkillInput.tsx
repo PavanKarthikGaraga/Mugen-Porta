@@ -98,7 +98,7 @@ export default function SkillInput({ value = [], onChange }: SkillInputProps) {
                             onClick={() => addSkill(inputValue)}
                             className="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 cursor-pointer flex justify-between items-center"
                         >
-                            <span>Add "{inputValue}"</span>
+                            <span>Add &quot;{inputValue}&quot;</span>
                             <span className="text-xs text-blue-400">Press Enter</span>
                         </li>
                     )}
