@@ -113,7 +113,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to AI Productivity and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for AI Productivity",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 45,
     maxEnrollment: 100,
@@ -138,7 +138,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Prompt Engineering & AI Communication and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Prompt Engineering & AI Communication",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 30,
     maxEnrollment: 50,
@@ -242,7 +242,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Full Stack Development and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Full Stack Development",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 60,
     maxEnrollment: 120,
@@ -267,7 +267,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Modern Frontend Development & UI/UX Engineering and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Modern Frontend Development & UI/UX Engineering",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 40,
     maxEnrollment: 80,
@@ -371,7 +371,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Cybersecurity & Digital Safety and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Cybersecurity & Digital Safety",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 50,
     maxEnrollment: 100,
@@ -396,7 +396,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Ethical Hacking & Security Testing and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Ethical Hacking & Security Testing",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 35,
     maxEnrollment: 70,
@@ -500,7 +500,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Data Science & Analytics and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Data Science & Analytics",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 60,
     maxEnrollment: 100,
@@ -525,7 +525,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Data Analysis & Visualization and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Data Analysis & Visualization",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 45,
     maxEnrollment: 80,
@@ -630,7 +630,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Cloud Computing & Digital Infrastructure and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Cloud Computing & Digital Infrastructure",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 55,
     maxEnrollment: 100,
@@ -655,7 +655,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Cloud Infrastructure & DevOps and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Cloud Infrastructure & DevOps",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 40,
     maxEnrollment: 80,
@@ -759,7 +759,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Internet of Things (IoT) & Smart Systems and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Internet of Things (IoT) & Smart Systems",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 60,
     maxEnrollment: 100,
@@ -785,7 +785,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Smart Sensors, Embedded Systems & IoT Networks and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Smart Sensors, Embedded Systems & IoT Networks",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 40,
     maxEnrollment: 80,
@@ -889,7 +889,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Robotics & Intelligent Automation and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Robotics & Intelligent Automation",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 50,
     maxEnrollment: 100,
@@ -914,7 +914,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Robot Design, Programming & Control Systems and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Robot Design, Programming & Control Systems",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 35,
     maxEnrollment: 80,
@@ -1018,7 +1018,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Drone Technology & Geospatial Systems and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Drone Technology & Geospatial Systems",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 50,
     maxEnrollment: 100,
@@ -1043,7 +1043,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Drone Operations, Navigation & Mapping and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Drone Operations, Navigation & Mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 35,
     maxEnrollment: 80,
@@ -1147,7 +1147,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Blockchain, Web3 & Decentralized Digital Systems and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Blockchain, Web3 & Decentralized Digital Systems",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 50,
     maxEnrollment: 100,
@@ -1172,7 +1172,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Smart Contracts, Digital Assets & Decentralized Applications and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Smart Contracts, Digital Assets & Decentralized Applications",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 35,
     maxEnrollment: 80,
@@ -1276,7 +1276,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Quantum Computing & Future Computing Technologies and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Quantum Computing & Future Computing Technologies",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 40,
     maxEnrollment: 100,
@@ -1301,7 +1301,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Quantum Programming, Algorithms & Simulations and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Quantum Programming, Algorithms & Simulations",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 30,
     maxEnrollment: 80,
@@ -1405,7 +1405,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Space Technology, Satellite Systems & NewSpace Innovation and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Space Technology, Satellite Systems & NewSpace Innovation",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -1430,7 +1430,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Satellite Design, Remote Sensing & Space Applications and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Satellite Design, Remote Sensing & Space Applications",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -1533,7 +1533,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Biotechnology, Bioinformatics & Synthetic Biology and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Biotechnology, Bioinformatics & Synthetic Biology",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -1558,7 +1558,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Manufacturing, Industry 4.0 & Smart Factories and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Manufacturing, Industry 4.0 & Smart Factories",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -1583,7 +1583,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Digital Manufacturing, CAD/CAM, CNC & Industrial Automation and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Digital Manufacturing, CAD/CAM, CNC & Industrial Automation",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -1686,7 +1686,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Renewable Energy, Smart Grids & Sustainable Energy Systems and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Renewable Energy, Smart Grids & Sustainable Energy Systems",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -1711,7 +1711,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Solar, Wind, Bioenergy & Energy Storage Technologies and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Solar, Wind, Bioenergy & Energy Storage Technologies",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -1814,7 +1814,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Digital Health, Telemedicine & Health Informatics and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Digital Health, Telemedicine & Health Informatics",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -1839,7 +1839,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Electronic Health Records, Healthcare Data Analytics & Medical IoT and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Electronic Health Records, Healthcare Data Analytics & Medical IoT",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -1942,7 +1942,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to AgriTech, Precision Farming & Food Systems and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for AgriTech, Precision Farming & Food Systems",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -1967,7 +1967,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Smart Agriculture, IoT Farming & GIS-Based Crop Management and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Smart Agriculture, IoT Farming & GIS-Based Crop Management",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -2018,7 +2018,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Emerging Technology Policy, Ethics & Regulatory Innovation and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Emerging Technology Policy, Ethics & Regulatory Innovation",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -2121,7 +2121,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Genomics, Bioinformatics & Molecular Data Analysis and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Genomics, Bioinformatics & Molecular Data Analysis",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -2276,7 +2276,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to FinTech, Digital Banking & Financial Innovation and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for FinTech, Digital Banking & Financial Innovation",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -2301,7 +2301,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Digital Payments, Blockchain Finance & Financial Analytics and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Digital Payments, Blockchain Finance & Financial Analytics",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -2404,7 +2404,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Smart Cities, Urban Innovation & Sustainable Infrastructure and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Smart Cities, Urban Innovation & Sustainable Infrastructure",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -2429,7 +2429,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to IoT for Smart Cities, Intelligent Mobility & Urban Digital Infrastructure and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for IoT for Smart Cities, Intelligent Mobility & Urban Digital Infrastructure",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -2532,7 +2532,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to EdTech, Learning Analytics & Digital Education and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for EdTech, Learning Analytics & Digital Education",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -2557,7 +2557,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Learning Management Systems, Digital Content Creation & Educational Technologies and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Learning Management Systems, Digital Content Creation & Educational Technologies",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -2660,7 +2660,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Technology Policy, Innovation Management & Digital Governance and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Building prototypes and writing code for Technology Policy, Innovation Management & Digital Governance",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 100,
@@ -2685,7 +2685,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Village Immersion & Community Orientation and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -2710,7 +2710,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Village Resource Mapping & Community Profiling and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -2813,7 +2813,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Community Engagement & Service Learning and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -2838,7 +2838,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Community Needs Assessment, Participatory Rural Appraisal & Service Learning and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -2941,7 +2941,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Environmental Awareness & Sustainability and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -2966,7 +2966,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Waste Management & Circular Economy and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3069,7 +3069,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Community Health Awareness and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3094,7 +3094,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Hygiene, Sanitation & Public Health and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3197,7 +3197,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Adult Literacy & Learning Support and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3222,7 +3222,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to School Student Mentorship and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3325,7 +3325,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Sustainable Agriculture Awareness and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3350,7 +3350,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Smart Farming Technology Demonstration and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3453,7 +3453,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Women Empowerment & Gender Equality and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3478,7 +3478,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Self-Help Group Development and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3581,7 +3581,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Disaster Preparedness and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3606,7 +3606,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to First Aid & Emergency Response Training and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3709,7 +3709,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Citizenship & Constitutional Values and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3734,7 +3734,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Government Schemes Awareness and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3837,7 +3837,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Social Innovation and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3862,7 +3862,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to NGO Collaboration & Community Partnership and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3965,7 +3965,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Creative Writing and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -3990,7 +3990,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Public Speaking & Literary Expression and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4093,7 +4093,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Music Appreciation & Vocal and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4118,7 +4118,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Instrumental Music Development and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4221,7 +4221,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Dance  & Movement Skills and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4246,7 +4246,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Classical & Contemporary Dance and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4349,7 +4349,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Photography and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4374,7 +4374,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Creative Photography & Composition and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4477,7 +4477,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Filmmaking and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4502,7 +4502,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Script Writing & Storyboarding and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4605,7 +4605,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Drawing & Painting and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4630,7 +4630,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Creative Arts & Mixed Media and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4733,7 +4733,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Handicrafts and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4758,7 +4758,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Traditional Crafts & Sustainable Design and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4861,7 +4861,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Fashion Design and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4886,7 +4886,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Sustainable Fashion & Textile Innovation and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -4989,7 +4989,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Adventure & Outdoor Skills and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -5014,7 +5014,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Camping, Trekking & Survival Skills and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -5117,7 +5117,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Esports  & Responsible Gaming and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -5142,7 +5142,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Competitive Gaming & Team Strategy and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Case study analysis and real-world scenario mapping",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -5245,7 +5245,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Innovation Mindset & Design Thinking and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
     "Module 3: Hands-on Practice: Market validation and building a Minimum Viable Product (MVP)",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -5270,7 +5270,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Idea Validation & Problem Discovery and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
     "Module 3: Hands-on Practice: Market validation and building a Minimum Viable Product (MVP)",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -5503,7 +5503,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Yoga  & Mindful Living and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Applied exercises and interactive workshops",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -5528,7 +5528,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Asanas, Pranayama & Meditation Practice and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Applied exercises and interactive workshops",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -5761,7 +5761,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to Personal Safety & Emergency Preparedness and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Applied exercises and interactive workshops",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
@@ -5786,7 +5786,7 @@ const rawActivities: any[] = [
     "Module 1: Introduction to First Aid, CPR & Basic Life Support (BLS) and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
     "Module 3: Hands-on Practice: Applied exercises and interactive workshops",
-    "Module 5: Final Assessment, Review, and Deliverable Submission"
+    "Module 4: Final Assessment, Review, and Deliverable Submission"
   ],
     enrolledCount: 0,
     maxEnrollment: 50,
