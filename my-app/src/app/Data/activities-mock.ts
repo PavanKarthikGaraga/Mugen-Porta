@@ -5316,6 +5316,7 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Innovation Mindset & Design Thinking Foundation Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Innovation Mindset & Design Thinking Foundation Programme"],
+    competencies: ["Design Thinking", "Creative Problem Solving", "Opportunity Identification", "Critical Thinking", "Communication"],
   syllabus: [
     "Module 1: Introduction to Innovation Mindset & Design Thinking and Core Fundamentals",
     "Module 2: Essential Tools, Frameworks, and Setup",
@@ -5341,6 +5342,7 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Idea Validation & Problem Discovery Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Idea Validation & Problem Discovery Programme"],
+    competencies: ["Problem Discovery", "Customer Research", "Idea Validation", "Market Analysis", "Analytical Thinking", "Documentation"],
   syllabus: [
     "Module 1: Introduction to Idea Validation & Problem Discovery and Core Fundamentals",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -5366,6 +5368,7 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Business Model Canvas & Startup Planning Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Business Model Canvas & Startup Planning Programme"],
+    competencies: ["Business Model Development", "Value Proposition Design", "Market Strategy", "Financial Planning", "Entrepreneurial Thinking", "Presentation Skills"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Business Model Canvas & Startup Planning",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -5392,6 +5395,7 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Prototype Development & MVP Bootcamp to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Prototype Development & MVP Bootcamp"],
+    competencies: ["Rapid Prototyping", "Minimum Viable Product (MVP) Development", "Product Design", "User Testing", "Iteration", "Team Collaboration", "Technical Communication"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Prototype Development & MVP",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -5418,6 +5422,7 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Leadership", "Industry Readiness"],
     purpose: "Engage in the Startup Incubation & Mentorship Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Startup Incubation & Mentorship Programme"],
+    competencies: ["Startup Development", "Business Mentoring", "Networking", "Leadership", "Resource Management", "Strategic Planning", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Startup Incubation & Mentorship",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -5444,6 +5449,7 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Leadership", "Industry Readiness"],
     purpose: "Engage in the Entrepreneurship Development & Business Registration Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Entrepreneurship Development & Business Registration Programme"],
+    competencies: ["Business Registration", "Legal Compliance", "Business Operations", "Financial Management", "Leadership", "Decision Making", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Entrepreneurship Development & Business Registration",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -5470,6 +5476,7 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Startup Pitching & Investor Readiness Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Startup Pitching & Investor Readiness Programme"],
+    competencies: ["Pitching", "Investor Communication", "Business Storytelling", "Negotiation", "Financial Presentation", "Confidence Building", "Leadership"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Startup Pitching & Investor Readiness",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -5496,6 +5503,7 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Innovation Challenge & National Hackathon Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Innovation Challenge & National Hackathon Programme"],
+    competencies: ["Innovation Management", "Hackathon Participation", "Collaborative Problem Solving", "Rapid Solution Development", "Project Management", "Leadership", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Innovation Challenge & National Hackathon",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -5522,6 +5530,7 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Startup Accelerator & Venture Growth Programme to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Startup Accelerator & Venture Growth Programme"],
+    competencies: ["Business Scaling", "Growth Strategy", "Innovation Leadership", "Strategic Partnerships", "Business Analytics", "Risk Management", "Entrepreneurship", "Decision Making"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Startup Accelerator & Venture Growth",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -5548,6 +5557,7 @@ const rawActivities: any[] = [
     ga: ["Entrepreneurship", "Creativity & Innovation", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Entrepreneur-in-Residence (EiR) Capstone Project to develop crucial skills in Innovation, Incubation & Entrepreneurship (IIE).",
     outcomes: ["Understand core concepts of Innovation", "Apply techniques learned in Entrepreneur-in-Residence (EiR) Capstone Project"],
+    competencies: ["Entrepreneurial Leadership", "Innovation Strategy", "Technology Commercialization", "Business Mentorship", "Investment Readiness", "Professional Networking", "Visionary Leadership", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Entrepreneur-in-Residence (EiR) Capstone",
     "Module 2: Architecture, Frameworks, and Implementation Methodologies",
@@ -5574,6 +5584,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Yoga Foundation & Mindful Living Programme to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Yoga Foundation & Mindful Living Programme"],
+    competencies: ["Yoga Fundamentals", "Mindfulness", "Breathing Techniques", "Physical Fitness", "Self-Discipline"],
   syllabus: [
     "Module 1: Introduction to Yoga  & Mindful Living and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5599,6 +5610,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the Asanas, Pranayama & Meditation Practice Programme to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Asanas, Pranayama & Meditation Practice Programme"],
+    competencies: ["Asana Practice", "Pranayama", "Meditation", "Flexibility", "Stress Management", "Self-Awareness"],
   syllabus: [
     "Module 1: Introduction to Asanas, Pranayama & Meditation Practice and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5624,6 +5636,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Stress Management & Mental Wellness through Yoga to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Stress Management & Mental Wellness through Yoga"],
+    competencies: ["Mental Wellness", "Stress Management", "Mindfulness", "Emotional Regulation", "Resilience", "Healthy Lifestyle", "Self-Reflection"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Stress Management & Mental Wellness through Yoga",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5650,6 +5663,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Yoga for Physical Fitness & Lifestyle Disease Prevention to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Yoga for Physical Fitness & Lifestyle Disease Prevention"],
+    competencies: ["Physical Conditioning", "Lifestyle Disease Prevention", "Yoga Therapy Basics", "Health Promotion", "Wellness Planning", "Self-Management", "Discipline"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Yoga for Physical Fitness & Lifestyle Disease Prevention",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5676,6 +5690,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Advanced Yoga Practice & Holistic Wellness Programme to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Advanced Yoga Practice & Holistic Wellness Programme"],
+    competencies: ["Advanced Yoga Practice", "Holistic Wellness", "Meditation Mastery", "Mind-Body Integration", "Wellness Coaching", "Resilience", "Healthy Living"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Yoga Practice & Holistic Wellness",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5702,6 +5717,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Yoga Instructor Development Programme to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Yoga Instructor Development Programme"],
+    competencies: ["Yoga Instruction", "Session Planning", "Participant Assessment", "Communication", "Leadership", "Professional Ethics", "Mentoring"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Yoga Instructor Development",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5728,6 +5744,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Campus Yoga Ambassador Initiative to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Campus Yoga Ambassador Initiative"],
+    competencies: ["Wellness Leadership", "Peer Mentoring", "Community Engagement", "Event Coordination", "Advocacy", "Communication", "Teamwork"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Campus Yoga Ambassador",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5754,6 +5771,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Community Yoga Outreach & International Yoga Day Programme to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Community Yoga Outreach & International Yoga Day Programme"],
+    competencies: ["Community Outreach", "Yoga Event Management", "Public Speaking", "Volunteer Leadership", "Health Promotion", "Cultural Awareness", "Collaboration"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Community Yoga Outreach & International Yoga Day",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5780,6 +5798,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Yoga Research, Therapy & Wellness Innovation Project to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Yoga Research, Therapy & Wellness Innovation Project"],
+    competencies: ["Yoga Research", "Evidence-Based Practice", "Wellness Innovation", "Critical Thinking", "Research Communication", "Ethical Practice", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Yoga Research, Therapy & Wellness Innovation",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5806,6 +5825,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Certified Yoga Leadership & Wellness Capstone Project to develop crucial skills in Yoga Club (YOG).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Certified Yoga Leadership & Wellness Capstone Project"],
+    competencies: ["Advanced Yoga Leadership", "Wellness Programme Design", "Mentorship", "Strategic Planning", "Research Leadership", "Professional Ethics", "Community Wellness", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Certified Yoga Leadership & Wellness Capstone",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5832,6 +5852,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Critical Thinking"],
     purpose: "Engage in the Personal Safety & Emergency Preparedness Foundation to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Personal Safety & Emergency Preparedness Foundation"],
+    competencies: ["Personal Safety Awareness", "Risk Identification", "Emergency Preparedness", "Situational Awareness", "Self-Management"],
   syllabus: [
     "Module 1: Introduction to Personal Safety & Emergency Preparedness and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5857,6 +5878,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Communication", "Teamwork & Collaboration"],
     purpose: "Engage in the First Aid, CPR & Basic Life Support (BLS) Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in First Aid, CPR & Basic Life Support (BLS) Programme"],
+    competencies: ["First Aid", "Cardiopulmonary Resuscitation (CPR)", "Basic Life Support", "Emergency Response", "Decision Making", "Teamwork"],
   syllabus: [
     "Module 1: Introduction to First Aid, CPR & Basic Life Support (BLS) and Core Fundamentals",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5882,6 +5904,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Fire Safety, Evacuation & Disaster Preparedness Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Fire Safety, Evacuation & Disaster Preparedness Programme"],
+    competencies: ["Fire Safety", "Emergency Evacuation", "Disaster Preparedness", "Risk Assessment", "Incident Response", "Communication", "Leadership"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Fire Safety, Evacuation & Disaster Preparedness",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5908,6 +5931,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Problem Solving", "Professional Competence", "Teamwork & Collaboration"],
     purpose: "Engage in the Road Safety & Responsible Citizen Awareness Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Road Safety & Responsible Citizen Awareness Programme"],
+    competencies: ["Road Safety", "Defensive Practices", "Public Safety Awareness", "Responsible Citizenship", "Communication", "Ethical Responsibility", "Decision Making"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Road Safety & Responsible Citizen Awareness",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5934,6 +5958,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Women Safety, Self-Protection & Personal Security Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Women Safety, Self-Protection & Personal Security Programme"],
+    competencies: ["Personal Security", "Self-Protection", "Situational Awareness", "Confidence Building", "Emergency Decision Making", "Communication", "Resilience"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Women Safety, Self-Protection & Personal Security",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5960,6 +5985,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Leadership", "Industry Readiness", "Creativity & Innovation"],
     purpose: "Engage in the Mental Health First Aid & Psychological Well-being Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Mental Health First Aid & Psychological Well-being Programme"],
+    competencies: ["Mental Health Awareness", "Psychological First Aid", "Stress Management", "Emotional Intelligence", "Empathy", "Communication", "Self-Care"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Mental Health First Aid & Psychological Well-being",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -5986,6 +6012,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Campus Safety Leadership & Risk Management Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Campus Safety Leadership & Risk Management Programme"],
+    competencies: ["Risk Management", "Campus Safety Leadership", "Safety Auditing", "Emergency Planning", "Stakeholder Coordination", "Leadership", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Campus Safety Leadership & Risk Management",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -6012,6 +6039,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Community Disaster Response & Humanitarian Volunteer Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Community Disaster Response & Humanitarian Volunteer Programme"],
+    competencies: ["Disaster Response", "Humanitarian Service", "Volunteer Management", "Emergency Coordination", "Leadership", "Community Engagement", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Community Disaster Response & Humanitarian Volunteer",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -6038,6 +6066,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the Occupational Health, Safety & Environmental (HSE) Leadership Programme to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in Occupational Health, Safety & Environmental (HSE) Leadership Programme"],
+    competencies: ["Occupational Health & Safety", "Environmental Safety", "Hazard Assessment", "Safety Compliance", "Leadership", "Risk Management", "Professional Ethics"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of Occupational Health, Safety & Environmental (HSE) Leadership",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
@@ -6064,6 +6093,7 @@ const rawActivities: any[] = [
     ga: ["Health & Well-being", "Lifelong Learning", "Global Citizenship", "Research Excellence", "Sustainability", "Leadership"],
     purpose: "Engage in the SafeLife Master Trainer & Community Safety Leadership Capstone to develop crucial skills in SafeLife Club (SLF).",
     outcomes: ["Understand core concepts of Health & Wellness", "Apply techniques learned in SafeLife Master Trainer & Community Safety Leadership Capstone"],
+    competencies: ["Safety Training", "Leadership Development", "Emergency Planning", "Community Safety Management", "Mentoring", "Strategic Planning", "Professional Ethics", "Lifelong Learning"],
   syllabus: [
     "Module 1: Advanced Concepts and Strategic Overview of SafeLife Master Trainer & Community Safety Leadership Capstone",
     "Module 2: Theoretical Frameworks, Methodologies, and Key Principles",
