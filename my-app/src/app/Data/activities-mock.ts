@@ -34,7 +34,7 @@ export const LEVELS = [
   {
     id: "explorer",
     name: "Explorer",
-    icon: "🔭",
+    icon: "Compass",
     description: "Begin your journey. Discover what interests you.",
     credits_required: 0,
     color: "#6B7280",
@@ -44,7 +44,7 @@ export const LEVELS = [
   {
     id: "foundation",
     name: "Foundation",
-    icon: "🌱",
+    icon: "Layers",
     description: "Build your base competencies across core areas.",
     credits_required: 50,
     color: "#059669",
@@ -54,7 +54,7 @@ export const LEVELS = [
   {
     id: "practitioner",
     name: "Practitioner",
-    icon: "⚙️",
+    icon: "Briefcase",
     description: "Apply knowledge. Contribute to real-world projects.",
     credits_required: 120,
     color: "#2563EB",
@@ -64,7 +64,7 @@ export const LEVELS = [
   {
     id: "leader",
     name: "Leader",
-    icon: "🏅",
+    icon: "Award",
     description: "Lead teams, mentor peers, drive initiatives.",
     credits_required: 220,
     color: "#D97706",
@@ -74,7 +74,7 @@ export const LEVELS = [
   {
     id: "innovator",
     name: "Innovator",
-    icon: "💡",
+    icon: "Lightbulb",
     description: "Create novel solutions. Drive systemic change.",
     credits_required: 350,
     color: "#7C3AED",
@@ -84,7 +84,7 @@ export const LEVELS = [
   {
     id: "fellow",
     name: "Fellow",
-    icon: "🌟",
+    icon: "Star",
     description: "Highest level of achievement and thought leadership.",
     credits_required: 500,
     color: "#DB2777",

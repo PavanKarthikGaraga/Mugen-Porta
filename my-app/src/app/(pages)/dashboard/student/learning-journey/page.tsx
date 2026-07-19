@@ -2,9 +2,22 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FiLock, FiCheckCircle, FiArrowRight, FiZap } from "react-icons/fi";
+import { Compass, Layers, Briefcase, Award, Lightbulb, Star } from "lucide-react";
 import { JOURNEY_STAGES, DOMAINS } from "@/app/Data/activities-mock";
 
 const BRAND = "rgb(151,0,3)";
+
+const getIcon = (name: string, size = 24) => {
+  switch (name) {
+    case "Compass": return <Compass size={size} />;
+    case "Layers": return <Layers size={size} />;
+    case "Briefcase": return <Briefcase size={size} />;
+    case "Award": return <Award size={size} />;
+    case "Lightbulb": return <Lightbulb size={size} />;
+    case "Star": return <Star size={size} />;
+    default: return <Star size={size} />;
+  }
+};
 
 export default function LearningJourneyPage() {
   const [activeStage, setActiveStage] = useState("practitioner");
@@ -116,7 +129,7 @@ export default function LearningJourneyPage() {
                   }
                   aria-label={stage.name}
                 >
-                  <span>{stage.icon}</span>
+                  <span>{getIcon(stage.icon, 28)}</span>
                   {completedActivities === totalActivities && totalActivities > 0 && (
                     <FiCheckCircle
                       className="absolute -top-1 -right-1 text-emerald-500 bg-white rounded-full"
@@ -178,9 +191,9 @@ export default function LearningJourneyPage() {
             <div className="flex items-center gap-3 mb-4">
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-                style={{ backgroundColor: activeStageData.bg }}
+                style={{ backgroundColor: activeStageData.bg, color: activeStageData.color }}
               >
-                {activeStageData.icon}
+                {getIcon(activeStageData.icon, 24)}
               </div>
               <div>
                 <h2 className="text-base font-bold text-gray-900">{activeStageData.name} Stage Activities</h2>
