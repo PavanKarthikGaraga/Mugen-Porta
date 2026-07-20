@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
-    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText, FiAward, FiAlertCircle
+    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText, FiAward, FiAlertCircle, FiStar
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
 import { toast } from "sonner";
@@ -67,6 +67,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Clubs',             href: '/dashboard/admin/clubs',    icon: FiFolder  },
         { name: 'Students',          href: '/dashboard/admin/students', icon: FiFolder  },
         { name: 'SAMAM Dashboard',   href: '/dashboard/admin/samam',    icon: FiAward   },
+        { name: 'Award Badges/Points', href: '/dashboard/admin/samam/award', icon: FiStar },
 
         // { name: 'Final Submissions', href: '/dashboard/admin/final-reports', icon: FiFileText },
         { name: 'Controls',          href: '/dashboard/admin/controls', icon: FiSettings }

@@ -100,14 +100,33 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
           {/* Meta */}
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="bg-gray-50 rounded-xl p-3">
-              <p className="text-gray-400 mb-0.5">Earned From</p>
-              <p className="font-semibold text-gray-800">{badge.earnedFrom}</p>
+              <p className="text-gray-400 mb-0.5">Status</p>
+              <p className="font-semibold text-gray-800 flex items-center gap-1">
+                {badge.issuedOn ? <><FiCheckCircle className="text-emerald-500" /> Earned</> : <><FiLock className="text-gray-400" /> Locked</>}
+              </p>
             </div>
-            <div className="bg-gray-50 rounded-xl p-3">
-              <p className="text-gray-400 mb-0.5">Issue Date</p>
-              <p className="font-semibold text-gray-800">{badge.issuedOn}</p>
-            </div>
+            {badge.issuedOn && (
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-gray-400 mb-0.5">Issue Date</p>
+                <p className="font-semibold text-gray-800">{badge.issuedOn}</p>
+              </div>
+            )}
           </div>
+
+          {/* Locked Badge Requirement */}
+          {!badge.issuedOn && (
+            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-xs mt-2">
+              <p className="text-gray-500 font-semibold mb-1">Unlock Requirement</p>
+              <p className="text-gray-700">{badge.requirement}</p>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-3 overflow-hidden">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-500" 
+                  style={{ width: `${badge.progress || 0}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1 text-right">{badge.progress || 0}%</p>
+            </div>
+          )}
 
           {/* Competencies */}
           {badge.competencies && Array.isArray(badge.competencies) && badge.competencies.length > 0 && (
@@ -123,73 +142,94 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
             </div>
           )}
 
-          {/* QR + verification */}
-          <div className="flex items-start gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-            <QRPlaceholder size={60} />
-            <div className="min-w-0">
-              <div className="flex items-center gap-1 mb-1">
-                <FiCheckCircle size={12} className="text-emerald-500" />
-                <p className="text-xs font-semibold text-emerald-700">Verified Digital Badge</p>
+          {/* QR + verification (Only if unlocked) */}
+          {badge.issuedOn && (
+            <div className="flex items-start gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+              <QRPlaceholder size={60} />
+              <div className="min-w-0">
+                <div className="flex items-center gap-1 mb-1">
+                  <FiCheckCircle size={12} className="text-emerald-500" />
+                  <p className="text-xs font-semibold text-emerald-700">Verified Digital Badge</p>
+                </div>
+                <p className="text-[10px] text-gray-500 break-all">{badge.verificationId}</p>
+                <a
+                  href={badge.shareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-0.5 text-[10px] font-medium mt-1 hover:underline"
+                  style={{ color: BRAND }}
+                >
+                  <FiExternalLink size={9} /> Verify online
+                </a>
               </div>
-              <p className="text-[10px] text-gray-500 break-all">{badge.verificationId}</p>
+            </div>
+          )}
+
+          {/* Actions (Only if unlocked) */}
+          {badge.issuedOn && (
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+                      <rect width="100%" height="100%" fill="${badge.bg || '#EFF6FF'}" rx="40" />
+                      <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-size="240">${badge.icon || '🏅'}</text>
+                      <text x="50%" y="75%" dominant-baseline="middle" text-anchor="middle" font-size="48" font-family="sans-serif" font-weight="bold" fill="#111827">${badge.name}</text>
+                      <text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" font-size="32" font-family="sans-serif" fill="#4B5563">KL University • SAMAM</text>
+                    </svg>`;
+                    
+                    const canvas = document.createElement("canvas");
+                    canvas.width = 800;
+                    canvas.height = 800;
+                    const ctx = canvas.getContext("2d");
+                    const img = new Image();
+                    const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+                    const url = URL.createObjectURL(svgBlob);
+                    
+                    img.onload = () => {
+                      if(ctx) {
+                        ctx.fillStyle = "white";
+                        ctx.fillRect(0, 0, 800, 800); // White background for transparent SVGs just in case
+                        ctx.drawImage(img, 0, 0);
+                        const pngUrl = canvas.toDataURL("image/png");
+                        const a = document.createElement("a");
+                        a.href = pngUrl;
+                        a.download = `${badge.name.replace(/\\s+/g, '_')}_Badge.png`;
+                        a.click();
+                      }
+                      URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
+                <FiDownload size={13} /> Download
+              </button>
+              <button 
+                onClick={async () => {
+                    if (navigator.share) {
+                        await navigator.share({
+                            title: `I earned the ${badge.name} badge!`,
+                            text: `Check out my new verified digital badge from KL University!`,
+                            url: badge.shareUrl
+                        }).catch(() => {});
+                    } else {
+                        navigator.clipboard.writeText(badge.shareUrl);
+                        alert("Verification link copied to clipboard!");
+                    }
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
+                <FiShare2 size={13} /> Share
+              </button>
               <a
-                href={badge.shareUrl}
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(badge.shareUrl)}&summary=${encodeURIComponent(`🎖️ I'm proud to share that I've earned the "${badge.name}" digital badge from KL University's SAMAM Activity Management Program!\n\n📌 ${badge.description}\n\n🔒 Verify this credential: ${badge.shareUrl}\n\n#SAMAM #KLUniversity #DigitalBadge #Achievement`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 text-[10px] font-medium mt-1 hover:underline"
-                style={{ color: BRAND }}
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-colors"
+                style={{ backgroundColor: "#0077B5" }}
               >
-                <FiExternalLink size={9} /> Verify online
+                Add to LinkedIn
               </a>
             </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-2">
-            <button 
-              onClick={() => {
-                  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-                    <rect width="100%" height="100%" fill="${badge.bg || '#EFF6FF'}" rx="20" />
-                    <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-size="120">${badge.icon || '🏅'}</text>
-                    <text x="50%" y="75%" dominant-baseline="middle" text-anchor="middle" font-size="24" font-family="sans-serif" font-weight="bold" fill="#111827">${badge.name}</text>
-                    <text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" font-size="16" font-family="sans-serif" fill="#4B5563">KL University • SAMAM</text>
-                  </svg>`;
-                  const blob = new Blob([svg], { type: 'image/svg+xml' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `${badge.name.replace(/\\s+/g, '_')}_Badge.svg`;
-                  a.click();
-              }}
-              className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
-              <FiDownload size={13} /> Download
-            </button>
-            <button 
-              onClick={async () => {
-                  if (navigator.share) {
-                      await navigator.share({
-                          title: `I earned the ${badge.name} badge!`,
-                          text: `Check out my new verified digital badge from KL University!`,
-                          url: badge.shareUrl
-                      }).catch(() => {});
-                  } else {
-                      navigator.clipboard.writeText(badge.shareUrl);
-                      alert("Verification link copied to clipboard!");
-                  }
-              }}
-              className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
-              <FiShare2 size={13} /> Share
-            </button>
-            <a
-              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(badge.shareUrl)}&summary=${encodeURIComponent(`🎖️ I'm proud to share that I've earned the "${badge.name}" digital badge from KL University's SAMAM Activity Management Program!\n\n📌 ${badge.description}\n\n🔒 Verify this credential: ${badge.shareUrl}\n\n#SAMAM #KLUniversity #DigitalBadge #Achievement`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-colors"
-              style={{ backgroundColor: "#0077B5" }}
-            >
-              Add to LinkedIn
-            </a>
-          </div>
+          )}
 
           <button onClick={onClose} className="w-full text-xs text-gray-400 hover:text-gray-600 pt-1">Close</button>
         </div>
@@ -339,9 +379,10 @@ export default function BadgesPage() {
           {lockedBadges.map((badge) => {
             const rarity = RARITY_CONFIG[badge.rarity] || RARITY_CONFIG.Common;
             return (
-              <div
+              <button
                 key={badge.id}
-                className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col items-center gap-2 text-center opacity-70"
+                onClick={() => setSelected(badge)}
+                className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col items-center gap-2 text-center opacity-70 hover:opacity-100 hover:shadow-md transition-all cursor-pointer"
               >
                 <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl bg-gray-200 border-2 border-gray-300 grayscale relative">
                   {badge.icon}
@@ -371,7 +412,7 @@ export default function BadgesPage() {
                     </p>
                   )}
                 </div>
-              </div>
+              </button>
             );
           })}
           {lockedBadges.length === 0 && (
