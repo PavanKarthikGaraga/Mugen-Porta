@@ -19,7 +19,6 @@ const COMMANDS = [
   { name: "Badge Wallet",               href: "/dashboard/student/badges",           icon: <FiAward /> },
   { name: "Excellence Passport",        href: "/dashboard/student/passport",         icon: <FiFileText /> },
   { name: "Career Dashboard",           href: "/dashboard/student/career",           icon: <FiBriefcase /> },
-  { name: "AI Mentor",                  href: "/dashboard/student/ai-mentor",        icon: <FiCpu /> },
   { name: "Reflection Journal",         href: "/dashboard/student/journal",          icon: <FiEdit3 /> },
   { name: "Certificates",               href: "/dashboard/student/certificates",     icon: <FiCheckSquare /> },
   { name: "Analytics",                  href: "/dashboard/student/analytics",        icon: <FiBarChart2 /> },

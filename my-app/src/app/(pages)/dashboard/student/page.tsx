@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   FiZap, FiStar, FiAward, FiClock, FiTrendingUp, FiUsers,
-  FiBookOpen, FiChevronRight, FiCpu, FiBriefcase, FiEdit3,
+  FiBookOpen, FiChevronRight, FiCpu, FiBriefcase, FiEdit3, FiBarChart2
 } from "react-icons/fi";
 import StatCard       from "@/app/components/dashboard/StatCard";
 import DashboardCard  from "@/app/components/dashboard/DashboardCard";
@@ -13,7 +13,6 @@ import NotificationCard from "@/app/components/dashboard/NotificationCard";
 import BadgeCard      from "@/app/components/dashboard/BadgeCard";
 import WeeklyChart    from "@/app/components/dashboard/WeeklyChart";
 import CompetencyRadar from "@/app/components/dashboard/CompetencyRadar";
-import AIRecommendation from "@/app/components/dashboard/AIRecommendation";
 // Removed mock data imports
 
 const BRAND = "rgb(151,0,3)";
@@ -296,11 +295,6 @@ export default function SAMAMDashboardPage() {
       <DashboardCard
         title="AI Recommendations"
         subtitle="Personalized for you"
-        action={
-          <Link href="/dashboard/student/ai-mentor" className="text-xs font-medium hover:underline" style={{ color: BRAND }}>
-            Talk to AI Mentor →
-          </Link>
-        }
       >
         <div className="space-y-3">
           <p className="text-sm text-gray-500 italic">No recommendations available yet.</p>
@@ -353,7 +347,7 @@ export default function SAMAMDashboardPage() {
         {[
           { label: "Log Activity",     icon: <FiBookOpen size={18} />, href: "/dashboard/student/my-activities",     color: "#2563EB" },
           { label: "Write Reflection", icon: <FiEdit3    size={18} />, href: "/dashboard/student/journal",          color: "#059669" },
-          { label: "AI Mentor",        icon: <FiCpu      size={18} />, href: "/dashboard/student/ai-mentor",        color: "#7C3AED" },
+          { label: "Analytics",        icon: <FiBarChart2 size={18} />, href: "/dashboard/student/analytics",       color: "#7C3AED" },
           { label: "Career Dashboard", icon: <FiBriefcase size={18}/>, href: "/dashboard/student/career",           color: "#D97706" },
         ].map((item) => (
           <Link
