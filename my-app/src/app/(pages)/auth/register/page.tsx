@@ -119,14 +119,22 @@ export default function Register() {
                 }
                 break;
             case 4: // Personal Details
+                const isCDOEBranch = formData.branch === "KL CDOE Management (OL) BBA" || formData.branch === "KL CDOE Humanities (OL) BCA";
                 if (!formData.username || !formData.name || !formData.email || !formData.phoneNumber || !formData.branch || !formData.gender || !formData.year || !formData.campus || !formData.careerChoice) {
                     toast.error("Please fill all required fields");
                     return false;
                 }
                 // Validate username format
-                if (!formData.username || formData.username.length !== 10 || !/^\d{10}$/.test(formData.username) || (!formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25') && !formData.username.startsWith('26'))) {
-                    toast.error("Username must be exactly 10 digits and start with 23, 24, 25, or 26");
-                    return false;
+                if (!isCDOEBranch) {
+                    if (!formData.username || formData.username.length !== 10 || !/^\d{10}$/.test(formData.username) || (!formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25') && !formData.username.startsWith('26'))) {
+                        toast.error("Username must be exactly 10 digits and start with 23, 24, 25, or 26");
+                        return false;
+                    }
+                } else {
+                    if (!formData.username || (formData.username.length !== 10 && formData.username.length !== 11) || !/^\d{10,11}$/.test(formData.username)) {
+                        toast.error("CDOE Username must be exactly 10 or 11 digits");
+                        return false;
+                    }
                 }
                 break;
             case 5: // Club Selection
