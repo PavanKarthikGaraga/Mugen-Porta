@@ -16,7 +16,7 @@ const RARITY_CONFIG: Record<string, { label: string; textColor: string; borderCo
 
 function LinkedInShareButton({ badge, recipient, verificationId }: any) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
-    const verifyUrl = `${appUrl}/verify/${verificationId}`;
+    const verifyUrl = `${appUrl}/badge/verify/${verificationId}`;
     
     const postText = [
         `🎖️ I'm proud to share that I've earned the "${badge.name}" digital badge from KL University's SAMAM Activity Management Program!`,
@@ -33,7 +33,7 @@ function LinkedInShareButton({ badge, recipient, verificationId }: any) {
         `#SAMAM #KLUniversity #DigitalBadge #${DOMAIN_LONG[badge.domain]?.replace(/[^a-z]/gi, "") || badge.domain} #Achievement`
     ].filter(Boolean).join("\n");
 
-    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(verifyUrl)}&summary=${encodeURIComponent(postText)}`;
+    const linkedinUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(postText)}`;
 
     return (
         <a
@@ -52,7 +52,7 @@ function LinkedInShareButton({ badge, recipient, verificationId }: any) {
 function CopyLinkButton({ verificationId }: { verificationId: string }) {
     const [copied, setCopied] = useState(false);
     const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${appUrl}/verify/${verificationId}`;
+    const url = `${appUrl}/badge/verify/${verificationId}`;
 
     const copy = async () => {
         await navigator.clipboard.writeText(url);
@@ -110,7 +110,7 @@ export default function BadgeVerifyClient({ verificationId }: { verificationId: 
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch(`/api/verify/${verificationId}`)
+        fetch(`/api/badge/verify/${verificationId}`)
             .then(r => r.json())
             .then(d => {
                 if (!d.valid) setError(d.message || "Invalid credential");

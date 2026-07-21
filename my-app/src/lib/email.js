@@ -137,7 +137,7 @@ export const sendPasswordResetEmail = async (email, name, resetLink) => {
     }
 };
 
-export const sendRegistrationEmail = async (email, name, username, password, year, selectedDomain, clubDetails, isY22Student, isY23Student, isY24Student, isY25Student) => {
+export const sendRegistrationEmail = async (email, name, username, password, year, selectedDomain, clubDetails, isY22Student, isY23Student, isY24Student, isY25Student, isY26Student) => {
     const htmlTemplate = `
     <!DOCTYPE html>
     <html lang="en">

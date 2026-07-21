@@ -3,11 +3,13 @@ import { KPI, MiniBar, BRAND, BRAND_ACCENT, DOMAIN_COLORS, DOMAIN_ICONS } from "
 import { FiUsers, FiStar, FiAward, FiBarChart2 } from "react-icons/fi";
 
 export default function AnalyticsView({ analytics, analyticsLoading, setTab, openStudent }: any) {
+  const totalStudents = analytics?.levelBreakdown?.reduce((acc: number, curr: any) => acc + Number(curr.count), 0) ?? 0;
+
   return (
     <div className="space-y-6">
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPI icon={<FiUsers size={18} />}    label="Active Students" value={analyticsLoading ? "—" : analytics?.sdcStats?.studentsWithCredits ?? 0}   color="#111827" />
+        <KPI icon={<FiUsers size={18} />}    label="Active Students" value={analyticsLoading ? "—" : totalStudents}   color="#111827" />
         <KPI icon={<FiStar size={18} />}     label="Total Points Issued"      value={analyticsLoading ? "—" : analytics?.sdcStats?.totalCredits ?? 0}            color="#111827" />
         <KPI icon={<FiAward size={18} />}    label="Badges Distributed"           value={analyticsLoading ? "—" : analytics?.badgeStats?.totalIssued ?? 0}           color="#111827" />
         <KPI icon={<FiBarChart2 size={18} />}label="Unique Badges"   value={analyticsLoading ? "—" : analytics?.badgeStats?.uniqueBadges ?? 0}          color="#111827" />

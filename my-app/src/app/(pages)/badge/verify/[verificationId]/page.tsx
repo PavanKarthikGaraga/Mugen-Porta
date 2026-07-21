@@ -1,14 +1,14 @@
 import { Metadata } from 'next';
 import BadgeVerifyClient from '@/app/components/BadgeVerifyClient';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sacactivities.kluniversity.in';
 
 export async function generateMetadata(
     { params }: { params: Promise<{ verificationId: string }> }
 ): Promise<Metadata> {
     const { verificationId } = await params;
     try {
-        const res = await fetch(`${APP_URL}/api/verify/${verificationId}`, { cache: 'no-store' });
+        const res = await fetch(`${APP_URL}/api/badge/verify/${verificationId}`, { cache: 'no-store' });
         if (res.ok) {
             const data = await res.json();
             if (data.valid) {

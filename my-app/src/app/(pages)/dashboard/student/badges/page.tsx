@@ -182,23 +182,29 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
                     canvas.height = 800;
                     const ctx = canvas.getContext("2d");
                     const img = new Image();
-                    const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-                    const url = URL.createObjectURL(svgBlob);
+                    img.crossOrigin = "anonymous";
                     
                     img.onload = () => {
                       if(ctx) {
                         ctx.fillStyle = "white";
-                        ctx.fillRect(0, 0, 800, 800); // White background for transparent SVGs just in case
+                        ctx.fillRect(0, 0, 800, 800);
                         ctx.drawImage(img, 0, 0);
-                        const pngUrl = canvas.toDataURL("image/png");
-                        const a = document.createElement("a");
-                        a.href = pngUrl;
-                        a.download = `${badge.name.replace(/\\s+/g, '_')}_Badge.png`;
-                        a.click();
+                        try {
+                            const pngUrl = canvas.toDataURL("image/png");
+                            const a = document.createElement("a");
+                            a.href = pngUrl;
+                            a.download = `${badge.name.replace(/\\s+/g, '_')}_Badge.png`;
+                            a.click();
+                        } catch (e) {
+                            // Fallback to SVG if canvas is tainted
+                            const a = document.createElement("a");
+                            a.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+                            a.download = `${badge.name.replace(/\\s+/g, '_')}_Badge.svg`;
+                            a.click();
+                        }
                       }
-                      URL.revokeObjectURL(url);
                     };
-                    img.src = url;
+                    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
                 }}
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
                 <FiDownload size={13} /> Download
@@ -220,7 +226,7 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
                 <FiShare2 size={13} /> Share
               </button>
               <a
-                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(badge.shareUrl)}&summary=${encodeURIComponent(`🎖️ I'm proud to share that I've earned the "${badge.name}" digital badge from KL University's SAMAM Activity Management Program!\n\n📌 ${badge.description}\n\n🔒 Verify this credential: ${badge.shareUrl}\n\n#SAMAM #KLUniversity #DigitalBadge #Achievement`)}`}
+                href={`https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(`🎖️ I'm proud to share that I've earned the "${badge.name}" digital badge from KL University's SAMAM Activity Management Program!\n\n📌 ${badge.description}\n\n🔒 Verify this credential: ${badge.shareUrl}\n\n#SAMAM #KLUniversity #DigitalBadge #Achievement`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-colors"

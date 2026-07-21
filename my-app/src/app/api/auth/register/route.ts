@@ -68,7 +68,9 @@ export async function POST(req) {
 
         // Validation based on student year - unified logic matching frontend
 
-        if (!isY22Student && !isY23Student && !isY24Student && !isY25Student && !isY26Student) {
+        const isCDOEBranch = branch === "KL CDOE Management (OL) BBA" || branch === "KL CDOE Humanities (OL) BCA";
+
+        if (!isCDOEBranch && !isY22Student && !isY23Student && !isY24Student && !isY25Student && !isY26Student) {
             return NextResponse.json(
                 { message: "Invalid username format. Must start with 22, 23, 24, 25, or 26" },
                 { status: 400 }
@@ -94,7 +96,12 @@ export async function POST(req) {
         // ERP Fee Receipt is no longer required
 
         // Additional validations
-        if (username.length > 10) {
+        if (isCDOEBranch && username.length > 11) {
+            return NextResponse.json(
+                { message: "CDOE username must be 11 characters or less" },
+                { status: 400 }
+            );
+        } else if (!isCDOEBranch && username.length > 10) {
             return NextResponse.json(
                 { message: "Username must be 10 characters or less" },
                 { status: 400 }
@@ -126,7 +133,7 @@ export async function POST(req) {
         const [existingUsers] = await pool.execute(
             "SELECT id FROM users WHERE username = ? OR email = ?",
             [username, email]
-        );
+        ) as any[];
 
         if (existingUsers.length > 0) {
             return NextResponse.json(
@@ -139,7 +146,7 @@ export async function POST(req) {
         const [existingStudents] = await pool.execute(
             "SELECT id FROM students WHERE phoneNumber = ?",
             [phoneNumber]
-        );
+        ) as any[];
 
         if (existingStudents.length > 0) {
             return NextResponse.json(
@@ -272,8 +279,8 @@ export async function POST(req) {
                     message: emailResult.success
                         ? "Registration successful! Check your email for login credentials."
                         : "Registration successful! However, there was an issue queuing the confirmation email. Please contact support.",
-                    userId: userResult.insertId,
-                    studentId: studentResult.insertId,
+                    userId: (userResult as any).insertId,
+                    studentId: (studentResult as any).insertId,
                     username: username,
                     emailQueued: emailResult.success
                 },

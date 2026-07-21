@@ -6,15 +6,21 @@ export default function PersonalDetails({ formData, updateFormData }) {
 
     const validateUsername = (username) => {
         if (!username) return false;
-        if (username.length !== 10) return false;
-        if (!/^\d{10}$/.test(username)) return false;
-        if (!isCDOEBranch && !username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false;
+        if (!isCDOEBranch) {
+            if (username.length !== 10) return false;
+            if (!/^\d{10}$/.test(username)) return false;
+            if (!username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false;
+        } else {
+            if (username.length !== 10 && username.length !== 11) return false;
+            if (!/^\d{10,11}$/.test(username)) return false;
+        }
         return true;
     };
 
     const validateUsernameForTyping = (username) => {
         if (!username) return true;
-        if (username.length > 10) return false;
+        if (!isCDOEBranch && username.length > 10) return false;
+        if (isCDOEBranch && username.length > 11) return false;
         if (!/^\d*$/.test(username)) return false;
         if (!isCDOEBranch && username.length >= 2) {
             if (!username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false;
@@ -180,7 +186,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         type="text"
                         id="username"
                         name="username"
-                        placeholder={isCDOEBranch ? "Enter 10-digit username" : "Enter username (must start with 23, 24, 25, or 26)"}
+                        placeholder={isCDOEBranch ? "Enter 10 or 11-digit username" : "Enter username (must start with 23, 24, 25, or 26)"}
                         className={`w-full h-12 px-4 border rounded-lg focus:ring-2 focus:border-blue-500 outline-none ${
                             formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username)
                                 ? 'border-red-500 focus:ring-red-500'
@@ -188,23 +194,25 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         }`}
                         value={formData.username || ""}
                         onChange={handleInputChange}
-                        pattern={isCDOEBranch ? "^\\d{10}$" : "^(23|24|25|26)\\d{8}$"}
-                        maxLength={10}
+                        pattern={isCDOEBranch ? "^\\d{10,11}$" : "^(23|24|25|26)\\d{8}$"}
+                        maxLength={isCDOEBranch ? 11 : 10}
                         minLength={10}
-                        title={isCDOEBranch ? "Username must be exactly 10 digits long" : "Username must start with 23, 24, 25, or 26 and be exactly 10 characters long"}
+                        title={isCDOEBranch ? "Username must be 10 or 11 digits long" : "Username must start with 23, 24, 25, or 26 and be exactly 10 characters long"}
                         required
                     />
                     {formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username) ? (
                         <p className="text-xs text-red-500 mt-1">
                             {!isCDOEBranch && !formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25') && !formData.username.startsWith('26')
                                 ? 'Username must start with 23, 24, 25, or 26'
-                                : formData.username.length !== 10
+                                : isCDOEBranch && formData.username.length !== 10 && formData.username.length !== 11
+                                ? `Username must be 10 or 11 digits (currently ${formData.username.length})`
+                                : !isCDOEBranch && formData.username.length !== 10
                                 ? `Username must be exactly 10 digits (currently ${formData.username.length})`
                                 : 'Username must contain only digits'}
                         </p>
                     ) : (
                         <p className="text-xs text-gray-500 mt-1">
-                            {isCDOEBranch ? "Must be exactly 10 digits long" : "Must start with 23, 24, 25, or 26 and be exactly 10 digits long"}
+                            {isCDOEBranch ? "Must be 10 or 11 digits long" : "Must start with 23, 24, 25, or 26 and be exactly 10 digits long"}
                         </p>
                     )}
                 </div>
