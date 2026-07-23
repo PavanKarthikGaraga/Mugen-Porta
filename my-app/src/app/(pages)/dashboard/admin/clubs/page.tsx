@@ -197,6 +197,7 @@ export default function ClubsPage() {
                             <option value="ESO">Extension & Society Outreach (ESO)</option>
                             <option value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</option>
                             <option value="HWB">Health & Well-being (HWB)</option>
+                            <option value="DEPT. CLUBS">Department Clubs (DEPT. CLUBS)</option>
                         </select>
                     </div>
 
@@ -350,6 +351,7 @@ export default function ClubsPage() {
                                     <option value="ESO">ESO</option>
                                     <option value="IIE">IIE</option>
                                     <option value="HWB">HWB</option>
+                                    <option value="DEPT. CLUBS">DEPT. CLUBS</option>
                                 </select>
                             </div>
                             <div>
