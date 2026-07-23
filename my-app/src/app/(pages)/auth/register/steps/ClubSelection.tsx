@@ -12,7 +12,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
     // Domain categories
     const allDomains = [
         { id: "TEC", name: "Technical", description: "Technology and Engineering projects" },
-        { id: "LCH", name: "Literary, Cultural & Heritage", description: "Arts, Literature and Cultural preservation" },
+        { id: "LCH", name: "Liberal Arts, Cultural and Hobbies", description: "Arts, Literature and Cultural preservation" },
         { id: "ESO", name: "Extension & Social Outreach", description: "Community service and social initiatives" },
         { id: "IIE", name: "Innovation, Incubation & Entrepreneurship", description: "Startup and Innovation projects" },
         { id: "HWB", name: "Health & Well-being", description: "Health, fitness and wellness programs" }
