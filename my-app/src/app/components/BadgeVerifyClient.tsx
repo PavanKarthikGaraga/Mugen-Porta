@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { FiCheckCircle, FiXCircle, FiExternalLink, FiCopy, FiLinkedin, FiAward, FiCalendar, FiUser, FiBookOpen } from "react-icons/fi";
 
 const DOMAIN_LONG: Record<string, string> = {
@@ -15,13 +16,12 @@ const RARITY_CONFIG: Record<string, { label: string; textColor: string; borderCo
 };
 
 function LinkedInShareButton({ badge, recipient, verificationId }: any) {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
-    const verifyUrl = `${appUrl}/badge/verify/${verificationId}`;
+    const verifyUrl = `https://sacactivities.kluniversity.in/badges/verify/${verificationId}`;
     
     const postText = [
-        `🎖️ I'm proud to share that I've earned the "${badge.name}" digital badge from KL University's SAMAM Activity Management Program!`,
+        `🎖️ I'm proud to share that I've earned the "${badge.name.replace(/&/g, 'and')}" digital badge from KL University's SAMAM Activity Management Program!`,
         ``,
-        `📌 ${badge.description || "Recognized for outstanding achievement in the SAMAM program."}`,
+        `📌 ${badge.description ? badge.description.replace(/&/g, 'and') : "Recognized for outstanding achievement in the SAMAM program."}`,
         ``,
         badge.competencies?.length > 0
             ? `🧠 Skills demonstrated: ${badge.competencies.join(" · ")}`
@@ -51,8 +51,7 @@ function LinkedInShareButton({ badge, recipient, verificationId }: any) {
 
 function CopyLinkButton({ verificationId }: { verificationId: string }) {
     const [copied, setCopied] = useState(false);
-    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${appUrl}/badge/verify/${verificationId}`;
+    const url = `https://sacactivities.kluniversity.in/badges/verify/${verificationId}`;
 
     const copy = async () => {
         await navigator.clipboard.writeText(url);
@@ -277,9 +276,9 @@ export default function BadgeVerifyClient({ verificationId }: { verificationId: 
             <div className="border-t border-gray-200 bg-white mt-8">
                 <div className="max-w-4xl mx-auto px-6 py-5 flex items-center justify-between">
                     <p className="text-[11px] text-gray-400">© {new Date().getFullYear()} KL University · SAMAM Program</p>
-                    <a href="/" className="text-[11px] text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1">
+                    <Link href="/" className="text-[11px] text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1">
                         <FiExternalLink size={11} /> View Platform
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

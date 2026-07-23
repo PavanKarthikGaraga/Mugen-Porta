@@ -64,8 +64,8 @@ export async function POST(request: Request) {
         // Generate cryptographically unique verification ID
         const crypto = await import('crypto');
         const verificationId = `SAMAM-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sacactivities.kluniversity.in';
-        const shareUrl = `${appUrl}/badge/verify/${verificationId}`;
+        const appUrl = 'https://sacactivities.kluniversity.in';
+        const shareUrl = `${appUrl}/badges/verify/${verificationId}`;
 
         await pool.execute(`
             INSERT INTO student_badges (username, badge_id, earned_from, verification_id, share_url, issued_on)

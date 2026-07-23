@@ -182,7 +182,6 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
                     canvas.height = 800;
                     const ctx = canvas.getContext("2d");
                     const img = new Image();
-                    img.crossOrigin = "anonymous";
                     
                     img.onload = () => {
                       if(ctx) {
@@ -193,14 +192,18 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
                             const pngUrl = canvas.toDataURL("image/png");
                             const a = document.createElement("a");
                             a.href = pngUrl;
-                            a.download = `${badge.name.replace(/\\s+/g, '_')}_Badge.png`;
+                            a.download = `${badge.name.replace(/\s+/g, '_')}_Badge.png`;
+                            document.body.appendChild(a);
                             a.click();
+                            document.body.removeChild(a);
                         } catch (e) {
                             // Fallback to SVG if canvas is tainted
                             const a = document.createElement("a");
                             a.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-                            a.download = `${badge.name.replace(/\\s+/g, '_')}_Badge.svg`;
+                            a.download = `${badge.name.replace(/\s+/g, '_')}_Badge.svg`;
+                            document.body.appendChild(a);
                             a.click();
+                            document.body.removeChild(a);
                         }
                       }
                     };
@@ -226,7 +229,7 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
                 <FiShare2 size={13} /> Share
               </button>
               <a
-                href={`https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(`🎖️ I'm proud to share that I've earned the "${badge.name}" digital badge from KL University's SAMAM Activity Management Program!\n\n📌 ${badge.description}\n\n🔒 Verify this credential: ${badge.shareUrl}\n\n#SAMAM #KLUniversity #DigitalBadge #Achievement`)}`}
+                href={`https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(`🎖️ I'm proud to share that I've earned the "${badge.name.replace(/&/g, 'and')}" digital badge from KL University's SAMAM Activity Management Program!\n\n📌 ${badge.description ? badge.description.replace(/&/g, 'and') : ''}\n\n🔒 Verify this credential: ${badge.shareUrl}\n\n#SAMAM #KLUniversity #DigitalBadge #Achievement`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-colors"

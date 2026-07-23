@@ -28,7 +28,7 @@ export async function GET(
                 badge: {
                     id: 900,
                     verificationId,
-                    shareUrl: `https://sacactivities.kluniversity.in/verify/${verificationId}`,
+                    shareUrl: `https://sacactivities.kluniversity.in/badges/verify/${verificationId}`,
                     issuedOn: 'Jul 14, 2026',
                     earnedFrom: 'SAMAM Program Milestones',
                     awardedBy: 'SAMAM Administration',
@@ -53,7 +53,7 @@ export async function GET(
                 issuer: {
                     name: 'SAMAM Activity Management Program',
                     institution: 'KL University',
-                    website: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+                    website: 'https://sacactivities.kluniversity.in',
                 },
             });
         }
@@ -127,7 +127,7 @@ export async function GET(
             issuer: {
                 name: 'SAMAM Activity Management Program',
                 institution: 'KL University',
-                website: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+                website: 'https://sacactivities.kluniversity.in',
             },
         });
 

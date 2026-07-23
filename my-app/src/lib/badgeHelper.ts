@@ -27,8 +27,8 @@ export async function awardBadge(username: string, badgeCode: string, earnedFrom
 
         // Award badge
         const verificationId = crypto.randomBytes(8).toString('hex').toUpperCase();
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sacactivities.kluniversity.in';
-        const shareUrl = `${appUrl}/badge/verify/${verificationId}`;
+        const appUrl = 'https://sacactivities.kluniversity.in';
+        const shareUrl = `${appUrl}/badges/verify/${verificationId}`;
 
         await pool.execute(
             `INSERT INTO student_badges (username, badge_id, verification_id, share_url, earned_from, issued_on)
