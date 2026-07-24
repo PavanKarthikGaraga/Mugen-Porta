@@ -228,23 +228,11 @@ export default function SAMAMStudentDashboardLayout({ children }) {
                 <div className="w-7 h-7 bg-white/20 rounded-md flex items-center justify-center">
                   <span className="text-white font-bold text-xs">S</span>
                 </div>
-                <span className="font-bold text-base hidden sm:block">SAMAM <span className="text-xs font-normal text-gray-500">(Student Activity Management and Achievement Model)</span></span>
+                <span className="font-bold text-base hidden sm:block">SAMAM <span className="text-xs font-normal text-white/80">(Student Activity Management and Achievement Model)</span></span>
               </div>
             </div>
 
-            {/* Center — search */}
-            <div className="flex-1 max-w-xs hidden md:block">
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60" size={14} />
-                <input
-                  type="text"
-                  placeholder="Search activities, badges…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-white/50 focus:outline-none focus:bg-white/20 transition-colors"
-                />
-              </div>
-            </div>
+            {/* Center — removed search */}
 
             {/* Right — notifications + user */}
             <div className="flex items-center gap-2 flex-shrink-0">
