@@ -15,7 +15,7 @@ const DOMAIN_NAMES: Record<string, string> = {
 export default function ActivityManager({
   actSearchStr, setActSearchStr, fetchActivities, activitiesLoading, filteredActivities, deleteActivity
 }: any) {
-  const [selectedDomain, setSelectedDomain] = useState("");
+  const [selectedDomain, setSelectedDomain] = useState("TEC");
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const displayActivities = useMemo(() => {
@@ -38,7 +38,16 @@ export default function ActivityManager({
   }, {});
 
   // Extract unique domains and categories for dropdown options
-  const availableDomains = Array.from(new Set(filteredActivities.map((a: any) => a.domain || "Other"))) as string[];
+  const rawDomains = Array.from(new Set(filteredActivities.map((a: any) => a.domain || "Other"))) as string[];
+  const domainOrder = Object.keys(DOMAIN_NAMES);
+  const availableDomains = rawDomains.sort((a, b) => {
+    const idxA = domainOrder.indexOf(a);
+    const idxB = domainOrder.indexOf(b);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.localeCompare(b);
+  });
   const availableCategories = Array.from(new Set(
     filteredActivities
       .filter((a: any) => !selectedDomain || a.domain === selectedDomain)
@@ -55,24 +64,26 @@ export default function ActivityManager({
             className="w-full h-9 pl-9 pr-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm" />
         </div>
         
-        <select 
-          value={selectedDomain} 
-          onChange={(e) => { setSelectedDomain(e.target.value); setSelectedCategory(""); }}
-          className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32"
-        >
-          <option value="">All Domains</option>
-          {availableDomains.map(d => <option key={d} value={d}>{DOMAIN_NAMES[d] || d}</option>)}
-        </select>
+        <div className="flex items-center gap-3 shrink-0">
+          <select 
+            value={selectedDomain} 
+            onChange={(e) => { setSelectedDomain(e.target.value); setSelectedCategory(""); }}
+            className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32"
+          >
+            <option value="">All Domains</option>
+            {availableDomains.map(d => <option key={d} value={d}>{DOMAIN_NAMES[d] || d}</option>)}
+          </select>
 
-        <select 
-          value={selectedCategory} 
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32"
-          disabled={!selectedDomain && availableCategories.length > 20}
-        >
-          <option value="">All Categories</option>
-          {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+          <select 
+            value={selectedCategory} 
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32"
+            disabled={!selectedDomain && availableCategories.length > 20}
+          >
+            <option value="">All Categories</option>
+            {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
         <button onClick={fetchActivities}
           className="h-9 px-4 text-[13px] font-medium border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors shadow-sm">
           <FiRefreshCw size={14} className={activitiesLoading ? "animate-spin" : ""} /> Refresh
