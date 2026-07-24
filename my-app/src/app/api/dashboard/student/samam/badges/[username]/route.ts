@@ -34,7 +34,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             competencies: typeof row.competencies === 'string' ? JSON.parse(row.competencies) : row.competencies,
             description: row.description,
             verificationId: row.verification_id,
-            shareUrl: row.share_url
+            shareUrl: `https://sacactivities.kluniversity.in/badges/verify/${row.verification_id}`
         }));
 
         const earnedBadgeIds = earnedRows.map((row: any) => row.badge_id);

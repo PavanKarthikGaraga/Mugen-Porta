@@ -170,44 +170,33 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
             <div className="flex gap-2">
               <button 
                 onClick={() => {
-                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
-                      <rect width="100%" height="100%" fill="${badge.bg || '#EFF6FF'}" rx="40" />
-                      <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-size="240">${badge.icon || '🏅'}</text>
-                      <text x="50%" y="75%" dominant-baseline="middle" text-anchor="middle" font-size="48" font-family="sans-serif" font-weight="bold" fill="#111827">${badge.name}</text>
-                      <text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" font-size="32" font-family="sans-serif" fill="#4B5563">KL University • SAMAM</text>
+                    const rarity = RARITY_CONFIG[badge.rarity] || RARITY_CONFIG.Common;
+                    const verifyUrl = `https://sacactivities.kluniversity.in/badges/verify/${badge.verificationId}`;
+                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="900" viewBox="0 0 800 900">
+                      <defs>
+                        <radialGradient id="bg" cx="30%" cy="30%">
+                          <stop offset="0%" stop-color="${badge.bg || '#EFF6FF'}"/>
+                          <stop offset="100%" stop-color="${badge.bg || '#EFF6FF'}cc"/>
+                        </radialGradient>
+                      </defs>
+                      <rect width="800" height="900" fill="#ffffff" rx="32"/>
+                      <rect x="20" y="20" width="760" height="860" fill="url(#bg)" rx="24" stroke="${rarity.ring}" stroke-width="3"/>
+                      <circle cx="400" cy="280" r="180" fill="${badge.bg || '#EFF6FF'}" stroke="${rarity.ring}" stroke-width="6" opacity="0.6"/>
+                      <text x="400" y="300" dominant-baseline="middle" text-anchor="middle" font-size="180">${badge.icon || '🏅'}</text>
+                      <text x="400" y="520" dominant-baseline="middle" text-anchor="middle" font-size="42" font-family="Georgia,serif" font-weight="bold" fill="#111827">${badge.name}</text>
+                      <text x="400" y="575" dominant-baseline="middle" text-anchor="middle" font-size="24" font-family="sans-serif" fill="#6B7280">KL University • SAMAM Program</text>
+                      <rect x="160" y="620" width="480" height="2" fill="${rarity.ring}" opacity="0.4"/>
+                      <text x="400" y="660" dominant-baseline="middle" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#9CA3AF">Verified Digital Credential</text>
+                      <text x="400" y="690" dominant-baseline="middle" text-anchor="middle" font-size="16" font-family="monospace" fill="#6B7280">${badge.verificationId}</text>
+                      <text x="400" y="730" dominant-baseline="middle" text-anchor="middle" font-size="14" font-family="sans-serif" fill="#9CA3AF">${verifyUrl}</text>
+                      <text x="400" y="800" dominant-baseline="middle" text-anchor="middle" font-size="20" font-family="sans-serif" font-weight="bold" fill="${rarity.ring}">${badge.rarity || 'Common'} Badge</text>
                     </svg>`;
-                    
-                    const canvas = document.createElement("canvas");
-                    canvas.width = 800;
-                    canvas.height = 800;
-                    const ctx = canvas.getContext("2d");
-                    const img = new Image();
-                    
-                    img.onload = () => {
-                      if(ctx) {
-                        ctx.fillStyle = "white";
-                        ctx.fillRect(0, 0, 800, 800);
-                        ctx.drawImage(img, 0, 0);
-                        try {
-                            const pngUrl = canvas.toDataURL("image/png");
-                            const a = document.createElement("a");
-                            a.href = pngUrl;
-                            a.download = `${badge.name.replace(/\s+/g, '_')}_Badge.png`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        } catch (e) {
-                            // Fallback to SVG if canvas is tainted
-                            const a = document.createElement("a");
-                            a.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-                            a.download = `${badge.name.replace(/\s+/g, '_')}_Badge.svg`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        }
-                      }
-                    };
-                    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+                    const a = document.createElement("a");
+                    a.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+                    a.download = `${badge.name.replace(/\s+/g, '_')}_Badge.svg`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
                 }}
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
                 <FiDownload size={13} /> Download
