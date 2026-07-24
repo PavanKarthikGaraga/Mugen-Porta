@@ -77,6 +77,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Email Queue', href: '/dashboard/admin/dev/email-queue', icon: FiMail },
         { name: 'Database Query', href: '/dashboard/admin/dev/db-query', icon: FiDatabase },
         { name: 'AI Bans', href: '/dashboard/admin/dev/ai-bans', icon: FiAlertCircle },
+        { name: 'Lead Activities', href: '/dashboard/admin/dev/lead-activities', icon: FiAward },
     ];
 
     const handleLogout = async () => {

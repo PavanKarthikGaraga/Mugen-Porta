@@ -10,11 +10,19 @@ async function checkLead() {
     const decoded = await verifyToken(token);
     if (!decoded || decoded.role !== 'lead') return null;
     
-    // verify the lead's club
-    const [leadResult]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [decoded.username as string]);
-    if (leadResult.length === 0 || !leadResult[0].clubId) return null;
+    const [leadResult]: any = await pool.execute('SELECT clubId, assigned_categories FROM leads WHERE username = ?', [decoded.username as string]);
+    if (leadResult.length === 0) return null;
     
-    return { decoded, clubId: leadResult[0].clubId };
+    let assigned_categories = [];
+    if (leadResult[0].assigned_categories) {
+        try {
+            assigned_categories = typeof leadResult[0].assigned_categories === 'string' 
+                ? JSON.parse(leadResult[0].assigned_categories) 
+                : leadResult[0].assigned_categories;
+        } catch(e) {}
+    }
+    
+    return { decoded, clubId: leadResult[0].clubId, assigned_categories };
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -23,14 +31,30 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         if (!lead) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         const { id } = await params; // id is the activity code
         
-        // Ensure that the activity belongs to students in their club (we can just fetch students in their club enrolled in this activity)
+        if (!lead.assigned_categories || lead.assigned_categories.length === 0) {
+            return NextResponse.json({ message: 'No categories assigned' }, { status: 403 });
+        }
+
+        const categoryPlaceholders = lead.assigned_categories.map(() => '?').join(',');
+        
+        // Ensure the activity belongs to one of their assigned categories
+        const [actCheck]: any = await pool.execute(`
+            SELECT id FROM activity_catalogue 
+            WHERE code = ? AND category IN (${categoryPlaceholders})
+        `, [id, ...lead.assigned_categories]);
+        
+        if (actCheck.length === 0) {
+             return NextResponse.json({ message: 'Activity not found or not in your assigned categories' }, { status: 403 });
+        }
+        
+        // Fetch ALL students enrolled in this activity
         const [rows] = await pool.execute(`
             SELECT ae.id, ae.username, s.name, ae.attendance_percentage, ae.attendance_marked
             FROM activity_enrollments ae
             JOIN students s ON ae.username = s.username
-            WHERE ae.activity_code = ? AND s.clubId = ?
+            WHERE ae.activity_code = ?
             ORDER BY s.name ASC
-        `, [id, lead.clubId]);
+        `, [id]);
 
         return NextResponse.json({ success: true, students: rows });
 
@@ -47,9 +71,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         const { id } = await params;
         const { absentees } = await request.json(); // Array of usernames
 
-        // We only want to update enrollments for students in this lead's club!
-        // So we update where activity_code = ? and username IN (select username from students where clubId = ?)
+        if (!lead.assigned_categories || lead.assigned_categories.length === 0) {
+            return NextResponse.json({ message: 'No categories assigned' }, { status: 403 });
+        }
+
+        const categoryPlaceholders = lead.assigned_categories.map(() => '?').join(',');
         
+        const [actCheck]: any = await pool.execute(`
+            SELECT id FROM activity_catalogue 
+            WHERE code = ? AND category IN (${categoryPlaceholders})
+        `, [id, ...lead.assigned_categories]);
+        
+        if (actCheck.length === 0) {
+             return NextResponse.json({ message: 'Activity not found or not in your assigned categories' }, { status: 403 });
+        }
+
         const absenteesPlaceholders = absentees.length > 0 ? absentees.map(() => '?').join(',') : "''";
         
         let query = `
@@ -61,10 +97,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
                     ELSE 100
                 END
             WHERE activity_code = ? 
-            AND username IN (SELECT username FROM students WHERE clubId = ?)
         `;
         
-        let queryParams = [...absentees, id, lead.clubId];
+        let queryParams = [...absentees, id];
 
         await pool.execute(query, queryParams);
 

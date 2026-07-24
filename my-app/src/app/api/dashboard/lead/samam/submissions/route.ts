@@ -12,9 +12,23 @@ export async function GET(req: Request) {
     const decoded = await verifyToken(token);
     if (!decoded || decoded.role !== "lead") return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const [leadResult]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [decoded.username as string]);
-    if (leadResult.length === 0 || !leadResult[0].clubId) return NextResponse.json({ message: 'No club assigned' }, { status: 403 });
-    const clubId = leadResult[0].clubId;
+    const [leadResult]: any = await pool.execute('SELECT clubId, assigned_categories FROM leads WHERE username = ?', [decoded.username as string]);
+    if (leadResult.length === 0) return NextResponse.json({ message: 'No club assigned' }, { status: 403 });
+    
+    let assigned_categories = [];
+    if (leadResult[0].assigned_categories) {
+        try {
+            assigned_categories = typeof leadResult[0].assigned_categories === 'string' 
+                ? JSON.parse(leadResult[0].assigned_categories) 
+                : leadResult[0].assigned_categories;
+        } catch(e) {}
+    }
+
+    if (!assigned_categories || assigned_categories.length === 0) {
+        return NextResponse.json({ success: true, submissions: [], total: 0 });
+    }
+
+    const categoryPlaceholders = assigned_categories.map(() => '?').join(',');
 
     const url = new URL(req.url);
     const status = url.searchParams.get('status') || 'S';
@@ -23,14 +37,15 @@ export async function GET(req: Request) {
     const offset = (page - 1) * limit;
 
     let query = `
-      SELECT i.*, s.name, s.branch, s.year 
+      SELECT i.*, s.name, s.branch, s.year, a.title as activity_title, a.domain
       FROM internal_submissions i
       JOIN students s ON i.username = s.username
-      WHERE i.status = ? AND s.clubId = ?
+      JOIN activity_catalogue a ON i.activity_code = a.code
+      WHERE i.status = ? AND a.category IN (${categoryPlaceholders})
       ORDER BY i.created_at DESC
       LIMIT ? OFFSET ?
     `;
-    const params: any[] = [status, clubId, limit, offset];
+    const params: any[] = [status, ...assigned_categories, limit, offset];
 
     const [rows] = await pool.execute(query, params);
     
@@ -38,8 +53,9 @@ export async function GET(req: Request) {
       SELECT COUNT(*) as count 
       FROM internal_submissions i
       JOIN students s ON i.username = s.username
-      WHERE i.status = ? AND s.clubId = ?
-    `, [status, clubId]);
+      JOIN activity_catalogue a ON i.activity_code = a.code
+      WHERE i.status = ? AND a.category IN (${categoryPlaceholders})
+    `, [status, ...assigned_categories]);
     
     const total = (countRows as any)[0].count;
 

@@ -8,13 +8,16 @@ import Link from "next/link";
 interface ActivityEditorProps {
   activityId?: string; // If undefined, it's a new activity
   initialData?: any; // To populate data immediately
+  role?: "admin" | "lead";
 }
 
-export default function ActivityEditor({ activityId, initialData }: ActivityEditorProps) {
+export default function ActivityEditor({ activityId, initialData, role = "admin" }: ActivityEditorProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(!!activityId && !initialData);
   const [saving, setSaving] = useState(false);
   const isNew = !activityId && !initialData;
+  const apiPrefix = role === "lead" ? "/api/dashboard/lead/samam/activities" : "/api/activities";
+  const [assignedCategories, setAssignedCategories] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     code: initialData?.code || "",
@@ -34,7 +37,7 @@ export default function ActivityEditor({ activityId, initialData }: ActivityEdit
 
   useEffect(() => {
     if (activityId && !initialData) {
-      fetch(`/api/activities/${activityId}`)
+      fetch(`${apiPrefix}/${activityId}`)
         .then(r => r.json())
         .then(d => {
           if (d.success) setFormData(prev => ({ ...prev, ...d.data }));
@@ -46,7 +49,18 @@ export default function ActivityEditor({ activityId, initialData }: ActivityEdit
           setLoading(false);
         });
     }
-  }, [activityId, initialData]);
+  }, [activityId, initialData, apiPrefix]);
+
+  useEffect(() => {
+    if (role === "lead") {
+      fetch("/api/dashboard/lead/samam/activities")
+        .then(r => r.json())
+        .then(d => {
+           if (d.assigned_categories) setAssignedCategories(d.assigned_categories);
+        })
+        .catch(console.error);
+    }
+  }, [role]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -107,8 +121,8 @@ export default function ActivityEditor({ activityId, initialData }: ActivityEdit
   const handleSave = async () => {
     try {
       setSaving(true);
-      const url = isNew ? `/api/activities` : `/api/activities/${activityId}`;
-      const method = isNew ? 'POST' : 'PUT';
+      const url = isNew ? `${apiPrefix}` : `${apiPrefix}/${activityId}`;
+      const method = isNew ? "POST" : "PUT";
 
       const res = await fetch(url, {
         method,
@@ -165,13 +179,27 @@ export default function ActivityEditor({ activityId, initialData }: ActivityEdit
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Domain</label>
-            <select name="domain" value={formData.domain} onChange={handleChange} className="w-full p-2 border rounded">
-              <option value="TEC">Technical (TEC)</option>
-              <option value="LCH">Liberal & Creative Arts (LCH)</option>
-              <option value="ESO">Extension & Outreach (ESO)</option>
-              <option value="IIE">Innovation & Ent. (IIE)</option>
-              <option value="HWB">Health & Well-being (HWB)</option>
+            <select name="domain" value={formData.domain} onChange={handleChange} className="w-full border rounded-md px-3 py-2">
+              <option value="TEC">TEC (Technical)</option>
+              <option value="LCH">LCH (Liberal Arts)</option>
+              <option value="ESO">ESO (Extension & Society)</option>
+              <option value="IIE">IIE (Innovation)</option>
+              <option value="HWB">HWB (Health & Wellbeing)</option>
             </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            {role === "lead" ? (
+              <select name="category" value={formData.category} onChange={handleChange} className="w-full border rounded-md px-3 py-2">
+                <option value="" disabled>Select an assigned category...</option>
+                {assignedCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            ) : (
+              <input type="text" name="category" value={formData.category} onChange={handleChange} className="w-full border rounded-md px-3 py-2" placeholder="e.g. Hackathon, Workshop..." />
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>

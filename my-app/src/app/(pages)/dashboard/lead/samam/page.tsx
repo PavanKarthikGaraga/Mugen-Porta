@@ -43,6 +43,14 @@ export default function LeadSamamPage() {
     } finally { setActivitiesLoading(false); }
   }, []);
 
+  const deleteActivity = async (id: string) => {
+    if (!confirm("Delete this activity?")) return;
+    const res = await fetch(`/api/dashboard/lead/samam/activities/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (res.ok) { toast.success(data.message); fetchActivities(); }
+    else toast.error(data.message || "Failed");
+  };
+
   /* ── Initial Fetch ── */
   useEffect(() => { fetchAnalytics(); fetchActivities(); }, [fetchAnalytics, fetchActivities]);
 
@@ -92,7 +100,7 @@ export default function LeadSamamPage() {
             fetchActivities={fetchActivities}
             activitiesLoading={activitiesLoading}
             filteredActivities={filteredActivities}
-            deleteActivity={async () => {}} // Lead cannot delete activities
+            deleteActivity={deleteActivity}
             role="lead"
           />
         )}

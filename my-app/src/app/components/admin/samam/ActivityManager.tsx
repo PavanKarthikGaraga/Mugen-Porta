@@ -88,13 +88,11 @@ export default function ActivityManager({
           className="h-9 px-4 text-[13px] font-medium border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors shadow-sm">
           <FiRefreshCw size={14} className={activitiesLoading ? "animate-spin" : ""} /> Refresh
         </button>
-        {role === "admin" && (
-          <Link
-            href="/dashboard/admin/samam/activities/new"
-            className="h-9 px-4 text-[13px] font-medium rounded-md text-white flex items-center gap-2 hover:opacity-90 transition-opacity shadow-sm" style={{ backgroundColor: BRAND }}>
-            <FiPlus size={14} /> New Activity
-          </Link>
-        )}
+        <Link
+          href={role === "admin" ? "/dashboard/admin/samam/activities/new" : "/dashboard/lead/samam/activities/new"}
+          className="h-9 px-4 text-[13px] font-medium rounded-md text-white flex items-center gap-2 hover:opacity-90 transition-opacity shadow-sm" style={{ backgroundColor: BRAND }}>
+          <FiPlus size={14} /> New Activity
+        </Link>
       </div>
 
       <div className="bg-white rounded-md border border-gray-200 flex-1 flex flex-col">
@@ -167,24 +165,20 @@ export default function ActivityManager({
                                       <FiUserCheck size={14} />
                                     </Link>
                                     
-                                    {role === "admin" && (
-                                      <>
-                                        <Link 
-                                          href={`/dashboard/admin/samam/activities/${a.code}/edit`}
-                                          className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                                          title="Edit Activity"
-                                        >
-                                          <FiEdit2 size={14} />
-                                        </Link>
-                                        <button 
-                                          onClick={() => deleteActivity(a.code)}
-                                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                          title="Delete Activity"
-                                        >
-                                          <FiTrash2 size={14} />
-                                        </button>
-                                      </>
-                                    )}
+                                    <Link 
+                                      href={role === "admin" ? `/dashboard/admin/samam/activities/${a.code}/edit` : `/dashboard/lead/samam/activities/${a.code}/edit`}
+                                      className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                      title="Edit Activity"
+                                    >
+                                      <FiEdit2 size={14} />
+                                    </Link>
+                                    <button 
+                                      onClick={() => deleteActivity(a.code)}
+                                      className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                      title="Delete Activity"
+                                    >
+                                      <FiTrash2 size={14} />
+                                    </button>
                                   </div>
                                 </td>
                               </tr>
