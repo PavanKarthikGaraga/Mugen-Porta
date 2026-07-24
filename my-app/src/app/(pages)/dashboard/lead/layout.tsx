@@ -51,6 +51,7 @@ export default function LeadDashboardLayout({ children }) {
         { name: 'Overview', href: '/dashboard/lead', icon: FiHome },
         { name: 'Profile', href: '/dashboard/lead/profile', icon: FiUser },
         { name: 'Students', href: '/dashboard/lead/students', icon: FiUsers },
+        { name: 'SAMAM', href: '/dashboard/lead/samam', icon: FiActivity },
         { name: 'Submissions', href: '/dashboard/lead/reports', icon: FiFileText },
         // { name: 'Final Submissions', href: '/dashboard/lead/final-reports', icon: FiFileText }
     ];

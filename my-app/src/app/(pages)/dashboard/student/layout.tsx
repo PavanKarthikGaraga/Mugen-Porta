@@ -20,7 +20,7 @@ const navigation = [
   { name: "Activity Catalogue",         href: "/dashboard/student/activity-catalogue",icon: FiGrid },
   { name: "My Activities",              href: "/dashboard/student/my-activities",     icon: FiList },
   { name: "Competencies",               href: "/dashboard/student/competencies",      icon: FiZap },
-  { name: "SAMAM Points",                href: "/dashboard/student/sdc",              icon: FiStar },
+  { name: "Student Activity Management and Achievement Model", href: "/dashboard/student/sdc", icon: FiStar },
   { name: "Badge Wallet",               href: "/dashboard/student/badges",           icon: FiAward },
   { name: "Excellence Passport",        href: "/dashboard/student/passport",         icon: FiFileText },
   { name: "Career Dashboard",           href: "/dashboard/student/career",           icon: FiBriefcase },
@@ -228,7 +228,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
                 <div className="w-7 h-7 bg-white/20 rounded-md flex items-center justify-center">
                   <span className="text-white font-bold text-xs">S</span>
                 </div>
-                <span className="font-bold text-base hidden sm:block">SAMAM</span>
+                <span className="font-bold text-base hidden sm:block">SAMAM <span className="text-xs font-normal text-gray-500">(Student Activity Management and Achievement Model)</span></span>
               </div>
             </div>
 

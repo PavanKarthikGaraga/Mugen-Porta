@@ -4,7 +4,7 @@ import { FiCheck, FiX, FiExternalLink, FiRefreshCw } from "react-icons/fi";
 import { toast } from "sonner";
 import { BRAND } from "./SharedUI";
 
-export default function SubmissionsManager() {
+export default function SubmissionsManager({ role = "admin" }: { role?: "admin" | "lead" }) {
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("S"); // S = Submitted, A = Approved, R = Rejected
@@ -13,7 +13,7 @@ export default function SubmissionsManager() {
   const fetchSubmissions = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/dashboard/admin/samam/submissions?status=${filter}`);
+      const res = await fetch(`/api/dashboard/${role}/samam/submissions?status=${filter}`);
       if (res.ok) {
         const data = await res.json();
         setSubmissions(data.submissions || []);
@@ -38,7 +38,7 @@ export default function SubmissionsManager() {
 
     setProcessing(id);
     try {
-      const res = await fetch(`/api/dashboard/admin/samam/submissions/${id}/review`, {
+      const res = await fetch(`/api/dashboard/${role}/samam/submissions/${id}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, reason })
