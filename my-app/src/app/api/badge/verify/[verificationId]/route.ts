@@ -101,7 +101,7 @@ export async function GET(
             badge: {
                 id: row.student_badge_id,
                 verificationId: row.verification_id,
-                shareUrl: row.share_url,
+                shareUrl: `https://sacactivities.kluniversity.in/badges/verify/${row.verification_id}`,
                 issuedOn: row.issued_on,
                 earnedFrom: row.earned_from,
                 awardedBy: row.awarded_by,
