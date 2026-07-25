@@ -40,16 +40,28 @@ export async function GET(request: Request) {
             return NextResponse.json({ allCategories: catRows });
         }
 
-        // Fetch lead data
-        const [leadRows]: any = await pool.execute(`
-            SELECT l.username, u.name, l.assigned_categories
-            FROM leads l
-            JOIN users u ON l.username = u.username
-            WHERE l.username = ?
-        `, [username]);
+        // Fetch lead data — join students for name, LEFT JOIN so it doesn't fail if student row missing
+        let leadRows: any[] = [];
+        try {
+            const [rows]: any = await pool.execute(`
+                SELECT l.username, COALESCE(s.name, l.username) as name, l.assigned_categories
+                FROM leads l
+                LEFT JOIN students s ON l.username = s.username
+                WHERE l.username = ?
+            `, [username]);
+            leadRows = rows;
+        } catch (queryError: any) {
+            // If column doesn't exist yet, return a helpful message
+            if (queryError.code === 'ER_BAD_FIELD_ERROR' || queryError.message?.includes('assigned_categories')) {
+                return NextResponse.json({ 
+                    message: 'Database schema not up to date. Please run: ALTER TABLE leads ADD COLUMN assigned_categories JSON DEFAULT NULL;' 
+                }, { status: 500 });
+            }
+            throw queryError;
+        }
 
         if (leadRows.length === 0) {
-            return NextResponse.json({ message: 'Lead not found' }, { status: 404 });
+            return NextResponse.json({ message: 'Lead not found. Make sure the ID belongs to a user with the Lead role.' }, { status: 404 });
         }
 
         const lead = leadRows[0];
