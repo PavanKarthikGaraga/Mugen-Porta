@@ -30,7 +30,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             ORDER BY sb.issued_on DESC
         `, [username]) as any[];
 
-        const earnedBadges = earnedRows.map((row: any) => ({
+        const earnedBadges = await Promise.all(earnedRows.map(async (row: any) => ({
             id: row.student_badge_id,
             code: row.code,
             name: row.name,
@@ -40,9 +40,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             color: row.color,
             bg: row.bg_color,
             issuedOn: new Date(row.issued_on).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            // Never surface "Awarded by admin: <username>" verbatim - fall
-            // back to the badge's requirement text instead.
-            earnedFrom: presentableRecognition(row.earned_from, row.requirement, row.name),
+            // Never surface "Awarded by admin: <username>" verbatim, and
+            // turn a raw "Complete <CODE>" requirement into the actual
+            // activity name + code.
+            earnedFrom: await presentableRecognition(row.earned_from, row.requirement, row.name),
             competencies: typeof row.competencies === 'string' ? JSON.parse(row.competencies) : row.competencies,
             description: row.description,
             verificationId: row.verification_id,
@@ -51,7 +52,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             // column, which may have been written during local dev and
             // could contain a localhost URL.
             shareUrl: row.verification_id ? `${PRODUCTION_VERIFY_BASE_URL}/${row.verification_id}` : null
-        }));
+        })));
 
         const earnedBadgeIds = earnedRows.map((row: any) => row.badge_id);
         let lockedRows: any[] = [];

@@ -10,16 +10,51 @@ const DEMO_BADGES: Record<string, any> = {
     'v-demo-hwb-mha': { code: 'B-HWB-MHA', name: 'Mental Health Ally', icon: '🧠', domain: 'HWB', rarity: 'Legendary', color: '#DC2626', bg: '#FEF2F2', comp: ['Advocacy', 'Active Listening', 'Mental Health First Aid'], desc: 'Honored for exceptional advocacy for mental health awareness, organizing support workshops, and actively contributing to a stigma-free campus environment.' },
 };
 
+// Activity-type badges are seeded with a requirement like "Complete
+// ESO-ARI-001" - just an activity code, not something a viewer of the
+// credential can make sense of. Recognize that pattern so we can look the
+// activity up and show its actual title.
+const ACTIVITY_CODE_REQUIREMENT = /^complete\s+([a-z0-9-]+)$/i;
+
+async function lookupActivityTitle(code: string): Promise<string | null> {
+    if (!code) return null;
+    try {
+        const [rows] = await pool.execute(
+            'SELECT title FROM activity_catalogue WHERE code = ? LIMIT 1',
+            [code]
+        ) as any[];
+        return rows?.[0]?.title || null;
+    } catch {
+        return null;
+    }
+}
+
 // A badge's `earned_from` column sometimes contains an internal note like
 // "Awarded by admin: 2400030188" (the admin's own username, not anything
-// meaningful to the recipient/viewer). Never surface that verbatim -
-// fall back to something presentable instead.
-export function presentableRecognition(earnedFrom: string | null | undefined, requirement: string | null | undefined, badgeName: string) {
+// meaningful to the recipient/viewer) - or is empty and falls back to the
+// badge's raw "Complete <CODE>" requirement text. Neither is presentable.
+// This resolves both cases into "Completion of <Activity Name> (<CODE>)"
+// wherever we can identify the underlying activity, mentioning both the
+// human-readable name and the code.
+export async function presentableRecognition(earnedFrom: string | null | undefined, requirement: string | null | undefined, badgeName: string): Promise<string> {
     const raw = (earnedFrom || '').trim();
-    if (raw && !/^awarded by (admin|faculty|lead)\s*:/i.test(raw)) {
+    const isAdminLeak = /^awarded by (admin|faculty|lead)\s*:/i.test(raw);
+
+    const req = (requirement || '').trim();
+    const codeMatch = req.match(ACTIVITY_CODE_REQUIREMENT);
+
+    if (raw && !isAdminLeak) {
         return raw;
     }
-    if (requirement && requirement.trim()) return requirement.trim();
+
+    if (codeMatch) {
+        const code = codeMatch[1];
+        const title = await lookupActivityTitle(code);
+        if (title) return `Completion of "${title}" (${code})`;
+        return `Completion of activity ${code}`;
+    }
+
+    if (req) return req;
     return `Recognized for outstanding achievement in "${badgeName}"`;
 }
 
@@ -122,7 +157,7 @@ export async function getBadgeVerification(verificationId: string): Promise<Badg
             // domain, never trusted from a raw DB `share_url` column.
             shareUrl: `${VERIFY_ORIGIN}/badges/verify/${row.verification_id}`,
             issuedOn: row.issued_on,
-            earnedFrom: presentableRecognition(row.earned_from, row.requirement, row.badge_name),
+            earnedFrom: await presentableRecognition(row.earned_from, row.requirement, row.badge_name),
             awardedBy: row.awarded_by,
             code: row.code,
             name: row.badge_name,
