@@ -6,7 +6,8 @@ import {
   FiArrowLeft, FiStar, FiClock, FiUser, FiCheckCircle,
   FiBookOpen, FiFileText, FiMessageSquare, FiEdit3,
   FiCalendar, FiAward, FiTarget, FiGlobe, FiTrendingUp,
-  FiDownload, FiExternalLink, FiZap, FiFlag, FiVideo, FiLink
+  FiDownload, FiExternalLink, FiZap, FiFlag, FiVideo, FiLink,
+  FiAlertTriangle, FiBriefcase, FiHeart
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";
@@ -541,7 +542,13 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                 label="Attendance progress"
                 value={activity.userAttendance}
                 color={activity.userAttendance >= 75 ? "#059669" : BRAND}
-                sublabel={activity.userAttendance < 75 ? "⚠️ Minimum 75% required for certificate" : "✅ Eligible for certificate"}
+                sublabel={
+                  <span className="flex items-center gap-1">
+                    {activity.userAttendance < 75
+                      ? <><FiAlertTriangle size={11} /> Minimum 75% required for certificate</>
+                      : <><FiCheckCircle size={11} /> Eligible for certificate</>}
+                  </span>
+                }
               />
               <p className="text-xs text-gray-400 text-center">
                 Attendance is recorded by the mentor at each session.
@@ -675,9 +682,9 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
           {activeTab === "impact" && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { title: "Career Impact",  icon: "💼", color: "#2563EB", bg: "#EFF6FF", text: `This activity directly builds ${activity.competencies[0]} and ${activity.competencies[1]}, both critical for ${activity.career[0]} career path. 87% of students who completed this reported improved interview performance.` },
-                { title: "Life Impact",    icon: "🌱", color: "#059669", bg: "#ECFDF5", text: `Develops ${activity.ga[0] || "communication"} and personal resilience. Participants report improved confidence, time management, and ability to work in diverse teams.` },
-                { title: "Societal Impact",icon: "🌍", color: "#7C3AED", bg: "#F5F3FF", text: `Aligned with ${activity.sdgs.slice(0, 3).map(s => `SDG ${s}`).join(", ")}. Each participant contributes to ${activity.nationalMission} by developing skills that drive national growth.` },
+                { title: "Career Impact",  icon: FiBriefcase, color: "#2563EB", bg: "#EFF6FF", text: `This activity directly builds ${activity.competencies[0]} and ${activity.competencies[1]}, both critical for ${activity.career[0]} career path. 87% of students who completed this reported improved interview performance.` },
+                { title: "Life Impact",    icon: FiHeart,     color: "#059669", bg: "#ECFDF5", text: `Develops ${activity.ga[0] || "communication"} and personal resilience. Participants report improved confidence, time management, and ability to work in diverse teams.` },
+                { title: "Societal Impact",icon: FiGlobe,     color: "#7C3AED", bg: "#F5F3FF", text: `Aligned with ${activity.sdgs.slice(0, 3).map(s => `SDG ${s}`).join(", ")}. Each participant contributes to ${activity.nationalMission} by developing skills that drive national growth.` },
               ].map((card) => (
                 <div
                   key={card.title}
@@ -685,7 +692,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                   style={{ backgroundColor: card.bg, borderColor: `${card.color}30` }}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">{card.icon}</span>
+                    <span style={{ color: card.color }}><card.icon size={18} /></span>
                     <h4 className="text-sm font-bold" style={{ color: card.color }}>{card.title}</h4>
                   </div>
                   <p className="text-xs text-gray-700 leading-relaxed">{card.text}</p>

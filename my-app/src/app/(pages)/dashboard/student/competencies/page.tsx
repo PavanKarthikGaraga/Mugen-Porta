@@ -1,14 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FiTrendingUp, FiLink, FiCheckCircle, FiInfo } from "react-icons/fi";
-import DashboardCard   from "@/app/components/dashboard/DashboardCard";
-import ProgressCard    from "@/app/components/dashboard/ProgressCard";
-import CompetencyRadar from "@/app/components/dashboard/CompetencyRadar";
-import LineChart       from "@/app/components/dashboard/LineChart";
-import ActivityHeatmap from "@/app/components/dashboard/ActivityHeatmap";
 import {
-  COMPETENCY_GROWTH, HEATMAP_DATA, COMPETENCY_EVIDENCE,
-} from "@/app/Data/development-mock";
+  FiTrendingUp, FiTrendingDown, FiLink, FiTarget, FiArrowRight,
+  FiCpu, FiBriefcase, FiAward, FiSearch, FiZap, FiHeart, FiTag,
+  FiBarChart2, FiCompass,
+} from "react-icons/fi";
+import DashboardCard   from "@/app/components/dashboard/DashboardCard";
+import CompetencyRadar from "@/app/components/dashboard/CompetencyRadar";
 
 const BRAND = "rgb(151,0,3)";
 
@@ -21,21 +19,32 @@ const LEVEL_CONFIG: Record<string, any> = {
   Innovator:    { color: "#DC2626", bg: "bg-red-50"      },
 };
 
-const EVIDENCE_TYPE: Record<string, any> = {
-  certificate:  { label: "Certificate",  bg: "bg-blue-50",   text: "text-blue-700"   },
-  github:       { label: "GitHub",       bg: "bg-gray-100",  text: "text-gray-700"   },
-  achievement:  { label: "Achievement",  bg: "bg-amber-50",  text: "text-amber-700"  },
-  project:      { label: "Project",      bg: "bg-purple-50", text: "text-purple-700" },
-  course:       { label: "Course",       bg: "bg-cyan-50",   text: "text-cyan-700"   },
-  publication:  { label: "Publication",  bg: "bg-green-50",  text: "text-green-700"  },
-  activity:     { label: "Activity",     bg: "bg-red-50",    text: "text-red-700"    },
+// Professional icon per competency category — replaces the emoji that used
+// to come straight from the API.
+const CATEGORY_ICON: Record<string, any> = {
+  technical:    FiCpu,
+  professional: FiBriefcase,
+  leadership:   FiAward,
+  research:     FiSearch,
+  innovation:   FiZap,
+  personal:     FiHeart,
 };
+
+const EVIDENCE_TYPE: Record<string, any> = {
+  activity: { label: "Activity", bg: "bg-red-50",   text: "text-red-700"   },
+  badge:    { label: "Badge",    bg: "bg-amber-50",  text: "text-amber-700" },
+};
+
+function CategoryIcon({ id, size = 14 }: { id: string; size?: number }) {
+  const Icon = CATEGORY_ICON[id] || FiTag;
+  return <Icon size={size} />;
+}
 
 export default function CompetenciesPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("technical");
-  const [activeView, setActiveView] = useState("overview"); // overview | timeline | heatmap
+  const [activeView, setActiveView] = useState("overview"); // overview | insights
 
   useEffect(() => {
     const fetchCompetencies = async () => {
@@ -43,7 +52,7 @@ export default function CompetenciesPage() {
         const authRes = await fetch("/api/auth/me");
         if (!authRes.ok) throw new Error("Not auth");
         const authData = await authRes.json();
-        
+
         const username = authData.user.username;
         const res = await fetch(`/api/dashboard/student/samam/competencies/${username}`);
         if (res.ok) {
@@ -75,15 +84,22 @@ export default function CompetenciesPage() {
   const cat = categories.find((c) => c.id === activeCategory) || categories[0];
   const radarData = cat.competencies.map((c: any) => ({ name: c.name, score: c.score }));
 
-  // Overall score per category for the summary row
+  // Overall score per category for the summary row — all real, computed
+  // straight from the student's own scores.
   const overallScores = categories.map((c) => ({
     ...c,
     avg: c.competencies.length > 0 ? Math.round(c.competencies.reduce((s: number, x: any) => s + x.score, 0) / c.competencies.length) : 0,
   }));
 
-  const ALL_SERIES = categories.map((c) => ({
-    key: c.id, color: c.competencies[0]?.color || BRAND, label: c.title,
-  }));
+  // Flatten every scored competency across all categories for insight math.
+  const allScored = categories.flatMap((c: any) =>
+    c.competencies.filter((x: any) => x.score > 0).map((x: any) => ({ ...x, categoryTitle: c.title, categoryId: c.id }))
+  );
+  const strongest = [...allScored].sort((a, b) => b.score - a.score)[0] || null;
+  const weakest = [...allScored].sort((a, b) => a.score - b.score)[0] || null;
+  const trendingUp = allScored.filter((c) => c.trend > 0).length;
+  const trendingDown = allScored.filter((c) => c.trend < 0).length;
+  const totalEvidence = allScored.reduce((s: number, c: any) => s + (c.evidence?.length || 0), 0);
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">
@@ -96,14 +112,14 @@ export default function CompetenciesPage() {
             <div>
               <h1 className="text-xl font-bold text-gray-900">Competency Dashboard</h1>
               <p className="text-sm text-gray-500 mt-0.5">
-                Track your growth across 6 competency domains with evidence and recommendations.
+                Track your growth across {categories.length} competency domains, backed by real evidence from your activities and badges.
               </p>
             </div>
             {/* Overall summary pills */}
             <div className="flex flex-wrap gap-2">
               {overallScores.map((c) => (
                 <div key={c.id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border bg-gray-50 border-gray-100">
-                  <span className="text-sm">{c.icon}</span>
+                  <span className="text-gray-500"><CategoryIcon id={c.id} /></span>
                   <span className="text-xs font-bold text-gray-700">{c.avg}%</span>
                   <span className="text-[10px] text-gray-500">{c.title.split(" ")[0]}</span>
                 </div>
@@ -116,18 +132,18 @@ export default function CompetenciesPage() {
       {/* ── View toggle ── */}
       <div className="flex gap-1 bg-white border border-gray-100 rounded-xl p-1 w-fit shadow-sm">
         {[
-          { key: "overview",  label: "Competencies" },
-          { key: "timeline",  label: "Growth Chart"  },
-          { key: "heatmap",   label: "Activity Heatmap" },
+          { key: "overview", label: "Competencies", icon: FiCompass },
+          { key: "insights",  label: "Insights",      icon: FiBarChart2 },
         ].map((v) => (
           <button
             key={v.key}
             onClick={() => setActiveView(v.key)}
-            className={`px-4 py-2 text-xs font-medium rounded-lg transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg transition-all ${
               activeView === v.key ? "text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
             }`}
             style={activeView === v.key ? { backgroundColor: BRAND } : {}}
           >
+            <v.icon size={13} />
             {v.label}
           </button>
         ))}
@@ -153,7 +169,7 @@ export default function CompetenciesPage() {
                       }`}
                       style={isActive ? { color: cColor, borderColor: cColor } : {}}
                     >
-                      <span>{c.icon}</span>
+                      <CategoryIcon id={c.id} />
                       {c.title}
                       <span
                         className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? "text-white" : "text-gray-500 bg-gray-100"}`}
@@ -210,6 +226,11 @@ export default function CompetenciesPage() {
                                 <FiTrendingUp size={9} />+{comp.trend}%
                               </span>
                             )}
+                            {comp.trend < 0 && (
+                              <span className="flex items-center gap-0.5 text-[9px] text-red-500">
+                                <FiTrendingDown size={9} />{comp.trend}%
+                              </span>
+                            )}
                             <span className="text-xs font-bold text-gray-700">{comp.score}%</span>
                           </div>
                         </div>
@@ -219,10 +240,10 @@ export default function CompetenciesPage() {
                             style={{ width: `${comp.score}%`, backgroundColor: comp.color || BRAND }}
                           />
                         </div>
-                        {/* Evidence pills */}
-                        {COMPETENCY_EVIDENCE[comp.id as keyof typeof COMPETENCY_EVIDENCE] && (
+                        {/* Real evidence pills — sourced from completed activities and earned badges */}
+                        {comp.evidence && comp.evidence.length > 0 ? (
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {COMPETENCY_EVIDENCE[comp.id as keyof typeof COMPETENCY_EVIDENCE].map((ev, i) => {
+                            {comp.evidence.map((ev: any, i: number) => {
                               const eType = EVIDENCE_TYPE[ev.type] || EVIDENCE_TYPE.activity;
                               return (
                                 <span key={i} className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${eType.bg} ${eType.text}`}>
@@ -231,7 +252,9 @@ export default function CompetenciesPage() {
                               );
                             })}
                           </div>
-                        )}
+                        ) : comp.score > 0 ? (
+                          <p className="text-[9px] text-gray-400 mt-1">No linked evidence yet — this score was set directly by an administrator.</p>
+                        ) : null}
                       </div>
                     );
                   })}
@@ -243,69 +266,135 @@ export default function CompetenciesPage() {
             </div>
           </div>
 
-          {/* AI Recommendations */}
-          <DashboardCard title="🤖 AI Recommendations" subtitle={`For your ${cat.title} competencies`}>
-            {cat.competencies.length > 0 ? (
+          {/* Recommended next steps — grounded in this student's real weakest competency in this category */}
+          <DashboardCard title="Recommended Next Steps" subtitle={`For your ${cat.title} competencies`}>
+            {cat.competencies.length > 0 ? (() => {
+              const scored = cat.competencies.filter((c: any) => c.score > 0);
+              const catWeakest = scored.length > 0 ? [...scored].sort((a: any, b: any) => a.score - b.score)[0] : null;
+              const items = [
+                {
+                  icon: FiCompass,
+                  label: "Explore activities",
+                  text: `Browse the Activity Catalogue and enroll in more ${cat.title} activities to keep building this category.`,
+                  href: "/dashboard/student/activity-catalogue",
+                  cta: "Open Catalogue",
+                },
+                catWeakest
+                  ? {
+                      icon: FiTarget,
+                      label: "Focus area",
+                      text: `"${catWeakest.name}" is currently your lowest score in this category at ${catWeakest.score}%. Look for activities that name it explicitly as a competency.`,
+                      href: "/dashboard/student/activity-catalogue",
+                      cta: "Find activities",
+                    }
+                  : {
+                      icon: FiTarget,
+                      label: "Get started",
+                      text: `None of your ${cat.title} competencies have a score yet. Complete an activity in this category to start building evidence.`,
+                      href: "/dashboard/student/activity-catalogue",
+                      cta: "Find activities",
+                    },
+                {
+                  icon: FiAward,
+                  label: "Next milestone",
+                  text: `Reach ${cat.title} Practitioner level by earning more SAMAM Points from activities in this domain.`,
+                  href: "/dashboard/student/badges",
+                  cta: "View badges",
+                },
+              ];
+              return (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    { icon: "📚", label: "Activity to try",    text: `Enroll in ${cat.id === "technical" ? "System Design Sprint" : cat.id === "leadership" ? "Youth Leadership Congress" : "Advanced Research Methods"} to jump your weakest competency.` },
-                    { icon: "⚡", label: "Quick win",          text: `Your ${[...cat.competencies].sort((a,b)=>a.score-b.score)[0].name} score is lowest. One workshop can add +15% in 2 weeks.` },
-                    { icon: "🎯", label: "Next milestone",     text: `Reach ${cat.title} Practitioner level by earning 10 more SAMAM Points in this domain.` },
-                  ].map((r) => (
-                    <div key={r.label} className="p-3.5 rounded-xl border border-gray-100 bg-gray-50">
+                  {items.map((r: any) => (
+                    <div key={r.label} className="p-3.5 rounded-xl border border-gray-100 bg-gray-50 flex flex-col">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-lg">{r.icon}</span>
+                        <span className="text-gray-500"><r.icon size={16} /></span>
                         <p className="text-xs font-semibold text-gray-700">{r.label}</p>
                       </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">{r.text}</p>
+                      <p className="text-xs text-gray-600 leading-relaxed flex-1">{r.text}</p>
+                      <a href={r.href} className="flex items-center gap-1 text-[11px] font-semibold mt-2" style={{ color: BRAND }}>
+                        {r.cta} <FiArrowRight size={11} />
+                      </a>
                     </div>
                   ))}
                 </div>
-            ) : (
+              );
+            })() : (
                 <p className="text-xs text-gray-500">Not enough data to provide recommendations.</p>
             )}
           </DashboardCard>
         </>
       )}
 
-      {/* ── TIMELINE VIEW ── */}
-      {activeView === "timeline" && (
-        <DashboardCard title="Competency Growth Timeline" subtitle="12-month progress across all 6 domains">
-          {/* Series legend */}
-          <div className="flex flex-wrap gap-3 mb-4">
-            {categories.map((c) => (
-              <div key={c.id} className="flex items-center gap-1.5">
-                <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: c.competencies[0]?.color || BRAND }} />
-                <span className="text-xs text-gray-600">{c.title}</span>
-              </div>
-            ))}
-          </div>
-          <div className="overflow-x-auto">
-            <LineChart data={COMPETENCY_GROWTH} series={ALL_SERIES} height={220} />
-          </div>
-        </DashboardCard>
-      )}
-
-      {/* ── HEATMAP VIEW ── */}
-      {activeView === "heatmap" && (
-        <DashboardCard title="Activity Contribution Heatmap" subtitle="52 weeks of learning activity across all domains">
-          <div className="overflow-x-auto">
-            <ActivityHeatmap data={HEATMAP_DATA} color={BRAND} />
-          </div>
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* ── INSIGHTS VIEW ── */}
+      {activeView === "insights" && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             {[
-              { label: "Active Weeks",    value: "38 / 52" },
-              { label: "Longest Streak",  value: "12 weeks" },
-              { label: "Peak Month",      value: "November" },
-              { label: "Avg / Week",      value: "2.4 activities" },
+              { label: "Strongest",       value: strongest ? `${strongest.name} (${strongest.score}%)` : "No scores yet", icon: FiAward },
+              { label: "Needs attention", value: weakest ? `${weakest.name} (${weakest.score}%)` : "No scores yet",       icon: FiTarget },
+              { label: "Trending up",     value: `${trendingUp} competenc${trendingUp === 1 ? "y" : "ies"}`,               icon: FiTrendingUp },
+              { label: "Evidence linked", value: `${totalEvidence} activit${totalEvidence === 1 ? "y" : "ies"}/badges`,    icon: FiLink },
             ].map((s) => (
-              <div key={s.label} className="p-3 bg-gray-50 rounded-xl text-center">
-                <p className="text-lg font-bold text-gray-900">{s.value}</p>
-                <p className="text-[10px] text-gray-500">{s.label}</p>
+              <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <div className="flex items-center gap-1.5 text-gray-400 mb-1.5">
+                  <s.icon size={13} />
+                  <p className="text-[10px] uppercase tracking-wide font-semibold">{s.label}</p>
+                </div>
+                <p className="text-sm font-bold text-gray-900 leading-snug">{s.value}</p>
               </div>
             ))}
           </div>
-        </DashboardCard>
+
+          <DashboardCard title="Category Comparison" subtitle="Average score across each competency domain">
+            <div className="space-y-3">
+              {overallScores.map((c) => (
+                <div key={c.id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                      <CategoryIcon id={c.id} />
+                      {c.title}
+                    </div>
+                    <span className="text-xs font-bold text-gray-700">{c.avg}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${c.avg}%`, backgroundColor: c.competencies[0]?.color || BRAND }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </DashboardCard>
+
+          <DashboardCard title="Momentum" subtitle="Which competencies are moving, based on your most recent score updates">
+            {allScored.length === 0 ? (
+              <p className="text-xs text-gray-500">No scored competencies yet — complete activities to start tracking momentum.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {allScored
+                  .filter((c) => c.trend !== 0)
+                  .sort((a, b) => Math.abs(b.trend) - Math.abs(a.trend))
+                  .slice(0, 8)
+                  .map((c: any) => (
+                    <div key={c.id} className="flex items-center justify-between p-2.5 rounded-lg border border-gray-100 bg-gray-50">
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-gray-800 truncate">{c.name}</p>
+                        <p className="text-[10px] text-gray-500">{c.categoryTitle}</p>
+                      </div>
+                      <span className={`flex items-center gap-1 text-xs font-bold flex-shrink-0 ${c.trend > 0 ? "text-emerald-600" : "text-red-500"}`}>
+                        {c.trend > 0 ? <FiTrendingUp size={12} /> : <FiTrendingDown size={12} />}
+                        {c.trend > 0 ? "+" : ""}{c.trend}%
+                      </span>
+                    </div>
+                  ))}
+                {allScored.filter((c) => c.trend !== 0).length === 0 && (
+                  <p className="text-xs text-gray-500 col-span-2">Scores are steady — no recent movement recorded yet.</p>
+                )}
+              </div>
+            )}
+          </DashboardCard>
+        </>
       )}
     </div>
   );

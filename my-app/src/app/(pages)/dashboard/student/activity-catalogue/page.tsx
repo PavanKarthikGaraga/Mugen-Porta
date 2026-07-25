@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { FiFilter, FiGrid, FiList, FiX, FiSliders } from "react-icons/fi";
+import { FiFilter, FiGrid, FiList, FiX, FiSliders, FiSearch } from "react-icons/fi";
 import { DOMAINS, LEVELS, ACTIVITY_PACKS, FACULTIES } from "@/app/Data/activities-mock";
 import CatalogueCard from "@/app/components/dashboard/CatalogueCard";
 import FilterPanel  from "@/app/components/dashboard/FilterPanel";
@@ -305,7 +305,7 @@ export default function ActivityCataloguePage() {
           {/* Results grouped by category */}
           {filtered.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
-              <p className="text-3xl mb-3">🔍</p>
+              <FiSearch size={30} className="mx-auto mb-3" />
               <p className="text-sm font-medium text-gray-600">No activities match your filters</p>
               <button
                 onClick={() => { setSearch(""); setActiveFilters({ ...EMPTY_FILTERS }); }}

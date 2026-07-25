@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { FiChevronRight, FiClock, FiStar, FiAward, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { FiChevronRight, FiClock, FiStar, FiAward, FiCheckCircle, FiAlertCircle, FiUser } from "react-icons/fi";
 import ProgressCard from "./ProgressCard";
 import { DOMAINS } from "@/app/Data/activities-mock";
 
@@ -40,7 +40,7 @@ export default function MyActivityRow({ activity, tabKey }) {
             <div>
               <p className="text-[10px] font-mono text-gray-400">{activity?.code}</p>
               <h4 className="text-sm font-semibold text-gray-900 leading-snug">{activity?.name}</h4>
-              <p className="text-xs text-gray-400 mt-0.5">👤 {activity?.faculty} · {activity?.semester}</p>
+              <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1"><FiUser size={11} /> {activity?.faculty} · {activity?.semester}</p>
             </div>
             <span className={`text-[10px] font-medium px-2.5 py-1 rounded-full border flex-shrink-0 ${config.bg} ${config.text} ${config.border}`}>
               {config.label}

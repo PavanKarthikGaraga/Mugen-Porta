@@ -152,7 +152,7 @@ export default function MyActivitiesPage() {
           {/* Certificate tab — download CTA */}
           {activeTab === "completed" && filtered.length > 0 && (
             <div className="mt-4 p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-start gap-3">
-              <span className="text-2xl">🎓</span>
+              <span className="text-emerald-700"><FiAward size={22} /></span>
               <div>
                 <p className="text-sm font-semibold text-emerald-800">Your certificates are ready!</p>
                 <p className="text-xs text-emerald-700 mt-0.5">

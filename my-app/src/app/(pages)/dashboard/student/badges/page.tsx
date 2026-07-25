@@ -1,6 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FiDownload, FiShare2, FiCheckCircle, FiLock, FiExternalLink, FiFilter } from "react-icons/fi";
+import {
+  FiDownload, FiShare2, FiCheckCircle, FiLock, FiExternalLink, FiFilter,
+  FiCpu, FiBookOpen, FiHeart, FiZap, FiActivity, FiAward, FiSearch,
+} from "react-icons/fi";
 import { toast } from "sonner";
 import SearchBar from "@/app/components/dashboard/SearchBar";
 
@@ -8,6 +11,16 @@ const BRAND = "rgb(151,0,3)";
 const VERIFY_ORIGIN = "https://sacactivities.kluniversity.in";
 const ISSUER_NAME = "KL SAC (Student Activity Center)";
 const ISSUER_NAME_SHORT = "KL SAC";
+
+// The DB's `icon` column still stores emoji glyphs for some badge domains —
+// the in-app wallet UI uses a professional icon per domain instead so badges
+// read as credentials, not stickers. (The downloadable credential SVG keeps
+// the DB-sourced icon, which is a separate migration.)
+const DOMAIN_ICON: Record<string, any> = { TEC: FiCpu, LCH: FiBookOpen, ESO: FiHeart, IIE: FiZap, HWB: FiActivity };
+function BadgeIcon({ domain, size = 24 }: { domain?: string; size?: number }) {
+  const Icon = DOMAIN_ICON[domain] || FiAward;
+  return <Icon size={size} />;
+}
 
 // Escape special XML characters so any text embedded in a downloaded SVG
 // always parses correctly (unescaped `&`, `<`, etc. caused
@@ -32,14 +45,14 @@ function getVerifyUrl(badge) {
 function buildLinkedInPostText(badge) {
   const verifyUrl = getVerifyUrl(badge);
   const lines = [
-    `🎖️ I'm proud to share that I've earned the "${(badge.name || "").replace(/&/g, "and")}" digital badge from ${ISSUER_NAME}'s SAMAM Activity Management Program!`,
+    `I'm proud to share that I've earned the "${(badge.name || "").replace(/&/g, "and")}" digital badge from ${ISSUER_NAME}'s SAMAM Activity Management Program.`,
     "",
-    badge.description ? `📌 ${badge.description.replace(/&/g, "and")}` : "",
+    badge.description ? badge.description.replace(/&/g, "and") : "",
     "",
-    Array.isArray(badge.competencies) && badge.competencies.length > 0 ? `🧠 Skills: ${badge.competencies.join(" · ")}` : "",
+    Array.isArray(badge.competencies) && badge.competencies.length > 0 ? `Skills: ${badge.competencies.join(" · ")}` : "",
     "",
-    `🏛️ Issued by: ${ISSUER_NAME} | SAMAM Program`,
-    `🔒 Verify this credential: ${verifyUrl}`,
+    `Issued by: ${ISSUER_NAME} | SAMAM Program`,
+    `Verify this credential: ${verifyUrl}`,
     "",
     "#SAMAM #KLSAC #DigitalBadge #Achievement",
   ].filter(Boolean);
@@ -341,9 +354,9 @@ function BadgeCard({ badge, onSelect }: { badge: any, onSelect: (b: any) => void
       {/* Icon orb */}
       <div
         className="w-16 h-16 rounded-full flex items-center justify-center text-3xl border-2 transition-transform group-hover:scale-110"
-        style={{ backgroundColor: badge.bg, borderColor: rarity.ring }}
+        style={{ backgroundColor: badge.bg, borderColor: rarity.ring, color: badge.color || BRAND }}
       >
-        {badge.icon}
+        <BadgeIcon domain={badge.domain} size={26} />
       </div>
       {/* Rarity stars */}
       <div className="flex gap-0.5">
@@ -375,10 +388,10 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
         {/* Header */}
         <div className="p-6 text-center" style={{ background: `linear-gradient(135deg, ${badge.bg}, white)` }}>
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-4xl mx-auto border-4 mb-3"
-            style={{ backgroundColor: badge.bg, borderColor: rarity.ring }}
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto border-4 mb-3"
+            style={{ backgroundColor: badge.bg, borderColor: rarity.ring, color: badge.color || BRAND }}
           >
-            {badge.icon}
+            <BadgeIcon domain={badge.domain} size={34} />
           </div>
           <h2 className="text-xl font-bold text-gray-900">{badge.name}</h2>
           <p className="text-xs font-semibold mt-1" style={{ color: rarity.ring }}>
@@ -648,7 +661,7 @@ export default function BadgesPage() {
         </p>
         {filtered.length === 0 ? (
           <div className="text-center py-12 text-gray-400 bg-white rounded-xl border border-gray-100">
-            <p className="text-3xl mb-2">🔍</p>
+            <FiSearch size={26} className="mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-600">No badges match your filters</p>
           </div>
         ) : (
@@ -674,8 +687,8 @@ export default function BadgesPage() {
                 onClick={() => setSelected(badge)}
                 className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col items-center gap-2 text-center opacity-70 hover:opacity-100 hover:shadow-md transition-all cursor-pointer"
               >
-                <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl bg-gray-200 border-2 border-gray-300 grayscale relative">
-                  {badge.icon}
+                <div className="w-14 h-14 rounded-full flex items-center justify-center text-gray-500 bg-gray-200 border-2 border-gray-300 grayscale relative">
+                  <BadgeIcon domain={badge.domain} size={22} />
                   {badge.progress > 0 && badge.progress < 100 && (
                     <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full ring-2 ring-white">
                       {badge.progress}%

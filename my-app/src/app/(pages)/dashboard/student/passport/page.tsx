@@ -5,9 +5,9 @@ import {
   FiGithub, FiLinkedin, FiGlobe, FiDownload, FiExternalLink,
   FiUser, FiBookOpen, FiCode, FiBriefcase, FiAward,
   FiHeart, FiStar, FiCalendar, FiFileText, FiCheckCircle,
+  FiMapPin, FiTrendingUp,
 } from "react-icons/fi";
-import { PASSPORT, BADGES }  from "@/app/Data/development-mock";
-import { mockSDC, mockStats } from "@/app/Data/samam-mock";
+import { PASSPORT } from "@/app/Data/development-mock";
 
 const BRAND = "rgb(151,0,3)";
 
@@ -171,9 +171,9 @@ export default function PassportPage() {
               <h1 className="text-2xl font-bold text-gray-900">{profile.name || profile.username}</h1>
               <p className="text-sm font-medium text-gray-500 mt-0.5">{profile.tagline}</p>
               <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
-                <span>📍 {academic.campus}</span>
-                <span>🎓 {academic.year}</span>
-                <span>⭐ CGPA {academic.cgpa}</span>
+                <span className="flex items-center gap-1"><FiMapPin size={11} /> {academic.campus}</span>
+                <span className="flex items-center gap-1"><FiBookOpen size={11} /> {academic.year}</span>
+                <span className="flex items-center gap-1"><FiTrendingUp size={11} /> CGPA {academic.cgpa}</span>
               </div>
             </div>
             {/* Stats */}

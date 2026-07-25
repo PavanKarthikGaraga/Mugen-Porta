@@ -1,18 +1,24 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { FiEdit3, FiCheckCircle, FiClock, FiSave, FiPlus, FiChevronDown, FiChevronUp, FiMessageSquare } from "react-icons/fi";
+import {
+  FiEdit3, FiCheckCircle, FiClock, FiSave, FiPlus, FiChevronDown, FiChevronUp, FiMessageSquare,
+  FiZap, FiMoon, FiAlertCircle, FiTrendingUp, FiStar, FiFeather,
+} from "react-icons/fi";
 import { JOURNAL_ENTRIES, REFLECTION_PROMPTS, ACTIVITIES } from "@/app/Data/activities-mock";
 
 const BRAND = "rgb(151,0,3)";
 
+// `key` matches the mood values already stored on mock/real journal entries —
+// only the on-screen representation (icon + label, not a raw emoji) changed.
 const MOOD_OPTIONS = [
-  { emoji: "🔥", label: "Energised" },
-  { emoji: "💙", label: "Reflective" },
-  { emoji: "😤", label: "Challenged" },
-  { emoji: "🌱", label: "Growing" },
-  { emoji: "🎉", label: "Excited" },
-  { emoji: "😌", label: "Calm" },
+  { key: "🔥", label: "Energised",  icon: FiZap,         color: "#DC2626" },
+  { key: "💙", label: "Reflective", icon: FiMoon,         color: "#2563EB" },
+  { key: "😤", label: "Challenged", icon: FiAlertCircle,  color: "#D97706" },
+  { key: "🌱", label: "Growing",    icon: FiTrendingUp,   color: "#059669" },
+  { key: "🎉", label: "Excited",    icon: FiStar,         color: "#7C3AED" },
+  { key: "😌", label: "Calm",       icon: FiFeather,      color: "#0891B2" },
 ];
+const MOOD_BY_KEY: Record<string, typeof MOOD_OPTIONS[number]> = Object.fromEntries(MOOD_OPTIONS.map((m) => [m.key, m]));
 
 const completedActivities = ACTIVITIES.filter((a) => a.userStatus === "completed" || a.userStatus === "pending_review");
 
@@ -149,19 +155,23 @@ export default function ReflectionJournalPage() {
               <div>
                 <label className="text-xs font-semibold text-gray-700 mb-1.5 block">How are you feeling?</label>
                 <div className="flex gap-2 flex-wrap">
-                  {MOOD_OPTIONS.map((m) => (
-                    <button
-                      key={m.emoji}
-                      onClick={() => setFormData((f) => ({ ...f, mood: m.emoji }))}
-                      title={m.label}
-                      className={`text-xl p-2 rounded-xl border-2 transition-all ${
-                        formData.mood === m.emoji ? "scale-110 shadow-sm" : "border-gray-100 hover:border-gray-300 opacity-60"
-                      }`}
-                      style={formData.mood === m.emoji ? { borderColor: BRAND } : {}}
-                    >
-                      {m.emoji}
-                    </button>
-                  ))}
+                  {MOOD_OPTIONS.map((m) => {
+                    const isSelected = formData.mood === m.key;
+                    return (
+                      <button
+                        key={m.key}
+                        onClick={() => setFormData((f) => ({ ...f, mood: m.key }))}
+                        title={m.label}
+                        className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl border-2 transition-all text-xs font-medium ${
+                          isSelected ? "shadow-sm" : "border-gray-100 hover:border-gray-300 text-gray-500"
+                        }`}
+                        style={isSelected ? { borderColor: m.color, color: m.color, backgroundColor: `${m.color}0D` } : {}}
+                      >
+                        <m.icon size={14} />
+                        {m.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -203,7 +213,7 @@ export default function ReflectionJournalPage() {
                 onChange={(e) => setFormData((f) => ({ ...f, content: e.target.value }))}
                 placeholder="Start writing… Be honest, specific, and thoughtful. Great reflections connect experience to future action."
                 className="w-full border border-gray-200 rounded-xl p-4 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 resize-none leading-relaxed font-normal"
-                style={{ "--tw-ring-color": BRAND, lineHeight: "1.8" }}
+                style={{ "--tw-ring-color": BRAND, lineHeight: "1.8" } as React.CSSProperties}
               />
             </div>
 
@@ -256,7 +266,7 @@ export default function ReflectionJournalPage() {
 
         {entries.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
-            <p className="text-4xl mb-3">✍️</p>
+            <FiEdit3 size={32} className="mx-auto mb-3" />
             <p className="text-sm font-medium text-gray-600">No reflections yet</p>
             <p className="text-xs text-gray-400 mt-1">Click &quot;New Reflection&quot; to start your journey.</p>
           </div>
@@ -272,12 +282,20 @@ export default function ReflectionJournalPage() {
                   <div key={entry.id} className="sm:pl-4">
                     <div className="flex items-start gap-4 p-5">
                       {/* Timeline orb */}
-                      <div
-                        className="hidden sm:flex w-8 h-8 rounded-full items-center justify-center text-base flex-shrink-0 z-10 bg-white border-2"
-                        style={{ borderColor: BRAND }}
-                      >
-                        {entry.mood}
-                      </div>
+                      {(() => {
+                        const moodMeta = MOOD_BY_KEY[entry.mood];
+                        const MoodIcon = moodMeta?.icon || FiFeather;
+                        const moodColor = moodMeta?.color || BRAND;
+                        return (
+                          <div
+                            className="hidden sm:flex w-8 h-8 rounded-full items-center justify-center flex-shrink-0 z-10 bg-white border-2"
+                            style={{ borderColor: moodColor, color: moodColor }}
+                            title={moodMeta?.label}
+                          >
+                            <MoodIcon size={14} />
+                          </div>
+                        );
+                      })()}
 
                       <div className="flex-1 min-w-0">
                         {/* Entry header */}
@@ -288,7 +306,11 @@ export default function ReflectionJournalPage() {
                           <div className="flex items-start justify-between gap-3 flex-wrap">
                             <div>
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="sm:hidden text-base">{entry.mood}</span>
+                                {(() => {
+                                  const moodMeta = MOOD_BY_KEY[entry.mood];
+                                  const MoodIcon = moodMeta?.icon || FiFeather;
+                                  return <span className="sm:hidden" style={{ color: moodMeta?.color || BRAND }}><MoodIcon size={14} /></span>;
+                                })()}
                                 <p className="text-sm font-semibold text-gray-900">{entry.activityName}</p>
                                 <span className="text-[10px] font-mono text-gray-400">{entry.activityCode}</span>
                               </div>

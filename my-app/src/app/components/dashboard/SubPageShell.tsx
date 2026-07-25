@@ -1,8 +1,10 @@
+import { FiCheck } from "react-icons/fi";
+
 /**
  * SubPageShell — reusable stub shell for modules under development.
- * Props: icon, title, subtitle, features (string[]), route
+ * Props: icon (a react-icons component, e.g. FiAward), title, subtitle, features (string[]), route
  */
-export default function SubPageShell({ icon, title, subtitle, features = [], route }) {
+export default function SubPageShell({ icon: Icon, title, subtitle, features = [], route }) {
   return (
     <div className="max-w-2xl mx-auto py-8">
       {/* Card */}
@@ -13,10 +15,10 @@ export default function SubPageShell({ icon, title, subtitle, features = [], rou
         <div className="px-8 py-10 text-center">
           {/* Icon */}
           <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 text-3xl"
-            style={{ backgroundColor: "rgba(151,0,3,0.07)", border: "1.5px solid rgba(151,0,3,0.15)" }}
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
+            style={{ backgroundColor: "rgba(151,0,3,0.07)", border: "1.5px solid rgba(151,0,3,0.15)", color: "rgb(151,0,3)" }}
           >
-            {icon}
+            {Icon ? <Icon size={28} /> : null}
           </div>
 
           {/* Badge */}
@@ -48,7 +50,7 @@ export default function SubPageShell({ icon, title, subtitle, features = [], rou
                     key={f}
                     className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-gray-50 border border-gray-100"
                   >
-                    <span className="text-base flex-shrink-0 mt-0.5" style={{ color: "rgb(151,0,3)" }}>✦</span>
+                    <span className="flex-shrink-0 mt-0.5" style={{ color: "rgb(151,0,3)" }}><FiCheck size={14} /></span>
                     <span className="text-sm text-gray-700 leading-snug">{f}</span>
                   </div>
                 ))}

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiLock, FiCheckCircle, FiArrowRight, FiZap } from "react-icons/fi";
+import { FiLock, FiCheckCircle, FiArrowRight, FiZap, FiAward } from "react-icons/fi";
 import { Compass, Layers, Briefcase, Award, Lightbulb, Star } from "lucide-react";
 import { JOURNEY_STAGES, DOMAINS } from "@/app/Data/activities-mock";
 
@@ -277,7 +277,9 @@ export default function LearningJourneyPage() {
                         : { backgroundColor: "#F9FAFB", borderColor: "#E5E7EB" }
                     }
                   >
-                    <p className="text-2xl mb-1">{a.badgeEarned ? "🏆" : "🔒"}</p>
+                    <p className="mb-1 flex justify-center" style={{ color: a.badgeEarned ? activeStageData.color : "#9CA3AF" }}>
+                      {a.badgeEarned ? <FiAward size={22} /> : <FiLock size={22} />}
+                    </p>
                     <p className="text-[11px] font-semibold text-gray-800">{a.badge}</p>
                     <p className="text-[9px] text-gray-400 mt-0.5 truncate">{a.code}</p>
                   </div>

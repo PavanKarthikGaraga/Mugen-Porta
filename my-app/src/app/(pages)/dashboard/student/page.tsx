@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   FiZap, FiStar, FiAward, FiClock, FiTrendingUp, FiUsers,
-  FiBookOpen, FiChevronRight, FiCpu, FiBriefcase, FiEdit3, FiBarChart2
+  FiBookOpen, FiChevronRight, FiCpu, FiBriefcase, FiEdit3, FiBarChart2,
+  FiHome, FiTarget, FiCalendar
 } from "react-icons/fi";
 import StatCard       from "@/app/components/dashboard/StatCard";
 import DashboardCard  from "@/app/components/dashboard/DashboardCard";
@@ -124,14 +125,14 @@ export default function SAMAMDashboardPage() {
               </div>
 
               <div className="flex flex-wrap gap-3 mt-3">
-                <span className="text-xs text-gray-500">
-                  🏫 <span className="font-medium">{profileData.clubName || 'No Club'}</span>
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <FiHome size={11} /> <span className="font-medium">{profileData.clubName || 'No Club'}</span>
                 </span>
-                <span className="text-xs text-gray-500">
-                  🎯 <span className="font-medium">{profileData.samam?.careerChoice || 'Undecided'}</span>
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <FiTarget size={11} /> <span className="font-medium">{profileData.samam?.careerChoice || 'Undecided'}</span>
                 </span>
-                <span className="text-xs text-gray-500">
-                  🎓 Class of <span className="font-medium">{profileData.samam?.graduationYear || 'TBD'}</span>
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <FiCalendar size={11} /> Class of <span className="font-medium">{profileData.samam?.graduationYear || 'TBD'}</span>
                 </span>
               </div>
             </div>

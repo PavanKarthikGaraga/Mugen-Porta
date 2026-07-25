@@ -1,8 +1,10 @@
 import SubPageShell from "@/app/components/dashboard/SubPageShell";
+import { FiAward } from "react-icons/fi";
+
 export default function CertificatesPage() {
   return (
     <SubPageShell
-      icon="🎓"
+      icon={FiAward}
       title="Certificates"
       subtitle="Download and share all your participation and achievement certificates from activities you have completed."
       features={[

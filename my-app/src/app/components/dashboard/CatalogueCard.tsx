@@ -129,8 +129,8 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
         </div>
 
         {/* Faculty */}
-        <p className="text-xs text-gray-400 truncate">
-          👤 {activity.faculty}
+        <p className="text-xs text-gray-400 truncate flex items-center gap-1">
+          <FiUser size={11} /> {activity.faculty}
         </p>
 
         {/* SDGs */}

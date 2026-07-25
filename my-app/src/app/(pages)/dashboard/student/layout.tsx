@@ -6,8 +6,11 @@ import {
   FiHome, FiBookOpen, FiGrid, FiList, FiZap, FiStar, FiAward,
   FiFileText, FiBriefcase, FiCpu, FiEdit3, FiCheckSquare,
   FiBarChart2, FiBell, FiUser, FiSettings, FiLogOut, FiMenu,
-  FiX, FiLock, FiSearch, FiChevronDown, FiFolder, FiSend
+  FiX, FiLock, FiSearch, FiChevronDown, FiFolder, FiSend,
+  FiClipboard, FiInfo
 } from "react-icons/fi";
+
+const NOTIF_ICON: Record<string, any> = { activity: FiClipboard, badge: FiAward, sdc: FiStar, reminder: FiBell, system: FiInfo };
 import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
 import Breadcrumbs from "@/app/components/dashboard/Breadcrumbs";
@@ -269,13 +272,13 @@ export default function SAMAMStudentDashboardLayout({ children }) {
                           No notifications yet.
                         </div>
                       ) : notifications.slice(0, 5).map((n) => {
-                        const icons = { activity: "📋", badge: "🏆", sdc: "⭐", reminder: "🔔", system: "ℹ️" };
+                        const NIcon = NOTIF_ICON[n.type] || FiBell;
                         return (
                           <div
                             key={n.id}
                             className={`flex items-start gap-3 px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors ${!n.read ? "bg-red-50/40" : ""}`}
                           >
-                            <div className="text-base flex-shrink-0 mt-0.5">{icons[n.type]}</div>
+                            <div className="w-7 h-7 flex-shrink-0 mt-0.5 rounded-full flex items-center justify-center text-gray-500 bg-gray-100"><NIcon size={13} /></div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <p className="text-xs font-semibold text-gray-900">{n.title}</p>

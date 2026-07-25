@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FiBell, FiCheck, FiFilter } from "react-icons/fi";
+import { FiBell, FiCheck, FiFilter, FiClipboard, FiAward, FiStar, FiInfo } from "react-icons/fi";
+
+const NOTIF_ICON: Record<string, any> = { activity: FiClipboard, badge: FiAward, sdc: FiStar, reminder: FiBell, system: FiInfo };
 
 export default function NotificationsPage() {
   const [filter, setFilter] = useState("all");
@@ -69,10 +71,12 @@ export default function NotificationsPage() {
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-zinc-800">
             {filtered.map((n) => {
-              const icons: Record<string, string> = { activity: "📋", badge: "🏆", sdc: "⭐", reminder: "🔔", system: "ℹ️" };
+              const NIcon = NOTIF_ICON[n.type] || FiBell;
               return (
                 <div key={n.id} className={`p-5 flex gap-4 transition-colors ${!n.read ? "bg-red-50/30 dark:bg-red-900/10" : "hover:bg-gray-50 dark:hover:bg-zinc-900/50"}`}>
-                  <div className="text-2xl mt-1 flex-shrink-0">{icons[n.type] || "🔔"}</div>
+                  <div className="w-9 h-9 mt-0.5 flex-shrink-0 rounded-full flex items-center justify-center text-gray-500 bg-gray-100 dark:bg-zinc-800 dark:text-zinc-400">
+                    <NIcon size={16} />
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-4">
                       <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{n.title}</p>
