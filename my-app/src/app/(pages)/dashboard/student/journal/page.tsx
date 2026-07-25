@@ -1,85 +1,161 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  FiEdit3, FiCheckCircle, FiClock, FiSave, FiPlus, FiChevronDown, FiChevronUp, FiMessageSquare,
-  FiZap, FiMoon, FiAlertCircle, FiTrendingUp, FiStar, FiFeather,
+  FiEdit3, FiCheckCircle, FiClock, FiPlus, FiChevronDown, FiChevronUp, FiMessageSquare,
+  FiZap, FiMoon, FiAlertCircle, FiTrendingUp, FiStar, FiFeather, FiTrash2, FiX,
 } from "react-icons/fi";
-import { JOURNAL_ENTRIES, REFLECTION_PROMPTS, ACTIVITIES } from "@/app/Data/activities-mock";
+import { toast } from "sonner";
+import { REFLECTION_PROMPTS } from "@/app/Data/activities-mock";
 
 const BRAND = "rgb(151,0,3)";
+const API = "/api/student/journal";
 
-// `key` matches the mood values already stored on mock/real journal entries —
-// only the on-screen representation (icon + label, not a raw emoji) changed.
+// `key` is what gets stored in the database — a stable slug, not a glyph.
 const MOOD_OPTIONS = [
-  { key: "🔥", label: "Energised",  icon: FiZap,         color: "#DC2626" },
-  { key: "💙", label: "Reflective", icon: FiMoon,         color: "#2563EB" },
-  { key: "😤", label: "Challenged", icon: FiAlertCircle,  color: "#D97706" },
-  { key: "🌱", label: "Growing",    icon: FiTrendingUp,   color: "#059669" },
-  { key: "🎉", label: "Excited",    icon: FiStar,         color: "#7C3AED" },
-  { key: "😌", label: "Calm",       icon: FiFeather,      color: "#0891B2" },
+  { key: "energised",  label: "Energised",  icon: FiZap,         color: "#DC2626" },
+  { key: "reflective", label: "Reflective", icon: FiMoon,        color: "#2563EB" },
+  { key: "challenged", label: "Challenged", icon: FiAlertCircle, color: "#D97706" },
+  { key: "growing",    label: "Growing",    icon: FiTrendingUp,  color: "#059669" },
+  { key: "excited",    label: "Excited",    icon: FiStar,        color: "#7C3AED" },
+  { key: "calm",       label: "Calm",       icon: FiFeather,     color: "#0891B2" },
 ];
-const MOOD_BY_KEY: Record<string, typeof MOOD_OPTIONS[number]> = Object.fromEntries(MOOD_OPTIONS.map((m) => [m.key, m]));
+const MOOD_BY_KEY: Record<string, typeof MOOD_OPTIONS[number]> =
+  Object.fromEntries(MOOD_OPTIONS.map((m) => [m.key, m]));
 
-const completedActivities = ACTIVITIES.filter((a) => a.userStatus === "completed" || a.userStatus === "pending_review");
+const EMPTY_FORM = {
+  activityCode: "", mood: "growing", promptIdx: 0, content: "", tags: "",
+};
 
 export default function ReflectionJournalPage() {
-  const [entries,      setEntries]      = useState(JOURNAL_ENTRIES);
-  const [activeEntry,  setActiveEntry]  = useState(null); // editing entry id
-  const [isNewEntry,   setIsNewEntry]   = useState(false);
-  const [expanded,     setExpanded]     = useState(null); // viewing entry id
-  const [autoSaveMsg,  setAutoSaveMsg]  = useState("");
+  const [entries, setEntries] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  // New / edit form state
-  const [formData, setFormData] = useState({
-    activityCode: "",
-    mood: "🌱",
-    promptIdx: 0,
-    content: "",
-    tags: "",
-  });
+  const [activities, setActivities] = useState<{ code: string; name: string }[]>([]);
+  const [editingId, setEditingId] = useState<number | null>(null); // null + isOpen = new entry
+  const [isOpen, setIsOpen] = useState(false);
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<any>(null);
 
-  const textareaRef = useRef(null);
-  const autoSaveTimer = useRef(null);
+  const [formData, setFormData] = useState({ ...EMPTY_FORM });
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // ── Auto-save effect ────────────────────────────────────────────────────────
+  const loadEntries = useCallback(async () => {
+    try {
+      const res = await fetch(API);
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed");
+      setEntries(data.entries || []);
+      setLoadError(false);
+    } catch (e) {
+      console.error(e);
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadEntries(); }, [loadEntries]);
+
+  // Real enrolled activities for the picker, rather than the full catalogue.
   useEffect(() => {
-    if (!formData.content) return;
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = setTimeout(() => {
-      setAutoSaveMsg("Auto-saved");
-      setTimeout(() => setAutoSaveMsg(""), 2000);
-    }, 2000);
-    return () => clearTimeout(autoSaveTimer.current);
-  }, [formData.content]);
+    fetch("/api/student/activities")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d?.success) return;
+        const all = [...(d.data?.completed || []), ...(d.data?.ongoing || [])];
+        setActivities(all.map((a: any) => ({ code: a.code, name: a.name || a.title })));
+      })
+      .catch(() => { /* picker just falls back to "General Reflection" */ });
+  }, []);
 
   const openNew = () => {
-    setFormData({ activityCode: "", mood: "🌱", promptIdx: 0, content: "", tags: "" });
-    setActiveEntry(null);
-    setIsNewEntry(true);
+    setFormData({ ...EMPTY_FORM });
+    setEditingId(null);
+    setIsOpen(true);
     setExpanded(null);
     setTimeout(() => textareaRef.current?.focus(), 100);
   };
 
-  const handleSave = () => {
-    const activity = completedActivities.find((a) => a.code === formData.activityCode);
-    const newEntry = {
-      id: Date.now(),
-      activityCode: formData.activityCode,
-      activityName: activity?.name || "General Reflection",
-      date: new Date().toISOString().split("T")[0],
-      mood: formData.mood,
-      prompt: REFLECTION_PROMPTS[formData.promptIdx],
-      content: formData.content,
-      facultyFeedback: null,
-      tags: formData.tags.split(",").map((t) => t.trim()).filter(Boolean),
-      wordCount: formData.content.split(/\s+/).filter(Boolean).length,
-    };
-    setEntries((prev) => [newEntry, ...prev]);
-    setIsNewEntry(false);
+  const openEdit = (entry: any) => {
+    const promptIdx = Math.max(0, REFLECTION_PROMPTS.indexOf(entry.prompt));
+    setFormData({
+      activityCode: entry.activityCode || "",
+      mood: entry.mood || "growing",
+      promptIdx,
+      content: entry.content || "",
+      tags: (entry.tags || []).join(", "),
+    });
+    setEditingId(entry.id);
+    setIsOpen(true);
+    setExpanded(null);
+    setTimeout(() => textareaRef.current?.focus(), 100);
+  };
+
+  const handleSave = async () => {
+    if (!formData.content.trim()) return;
+    setSaving(true);
+    try {
+      const activity = activities.find((a) => a.code === formData.activityCode);
+      const payload = {
+        activityCode: formData.activityCode || null,
+        activityName: activity?.name || null,
+        mood: formData.mood,
+        prompt: REFLECTION_PROMPTS[formData.promptIdx],
+        content: formData.content,
+        tags: formData.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      };
+
+      const res = await fetch(API, {
+        method: editingId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingId ? { ...payload, id: editingId } : payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        toast.error(data.error || "Could not save your reflection");
+        return;
+      }
+
+      if (editingId) {
+        setEntries((prev) => prev.map((e) => (e.id === editingId ? data.entry : e)));
+        toast.success("Reflection updated");
+      } else {
+        setEntries((prev) => [data.entry, ...prev]);
+        toast.success("Reflection saved");
+      }
+      setIsOpen(false);
+      setEditingId(null);
+    } catch (e) {
+      toast.error("Network error while saving. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (entry: any) => {
+    setDeletingId(entry.id);
+    try {
+      const res = await fetch(`${API}?id=${entry.id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        toast.error(data.error || "Could not delete this reflection");
+        return;
+      }
+      setEntries((prev) => prev.filter((e) => e.id !== entry.id));
+      setConfirmDelete(null);
+      toast.success("Reflection deleted");
+    } catch (e) {
+      toast.error("Network error while deleting. Please try again.");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const wordCount = formData.content.split(/\s+/).filter(Boolean).length;
-  const readTime  = Math.max(1, Math.ceil(wordCount / 200));
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
@@ -111,21 +187,17 @@ export default function ReflectionJournalPage() {
         </div>
       </div>
 
-      {/* ── Journal Writing Interface ── */}
-      {isNewEntry && (
+      {/* ── Editor ── */}
+      {isOpen && (
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: BRAND }}>
-          {/* Editor header bar */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100" style={{ backgroundColor: "rgba(151,0,3,0.04)" }}>
             <div className="flex items-center gap-2">
               <FiEdit3 size={15} style={{ color: BRAND }} />
-              <p className="text-sm font-semibold" style={{ color: BRAND }}>New Reflection Entry</p>
+              <p className="text-sm font-semibold" style={{ color: BRAND }}>
+                {editingId ? "Edit Reflection" : "New Reflection Entry"}
+              </p>
             </div>
             <div className="flex items-center gap-3">
-              {autoSaveMsg && (
-                <span className="flex items-center gap-1 text-xs text-emerald-600">
-                  <FiCheckCircle size={11} /> {autoSaveMsg}
-                </span>
-              )}
               <span className="text-xs text-gray-400 flex items-center gap-1">
                 <FiClock size={11} /> ~{readTime} min read
               </span>
@@ -134,7 +206,6 @@ export default function ReflectionJournalPage() {
           </div>
 
           <div className="p-5 space-y-4">
-            {/* Row 1: Activity + Mood */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Activity picker */}
               <div>
@@ -145,10 +216,15 @@ export default function ReflectionJournalPage() {
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-1 text-gray-700 bg-gray-50"
                 >
                   <option value="">General Reflection</option>
-                  {completedActivities.map((a) => (
-                    <option key={a.id} value={a.code}>{a.code} — {a.name}</option>
+                  {activities.map((a) => (
+                    <option key={a.code} value={a.code}>{a.code} — {a.name}</option>
                   ))}
                 </select>
+                {activities.length === 0 && (
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Enroll in an activity to link reflections to it.
+                  </p>
+                )}
               </div>
 
               {/* Mood picker */}
@@ -176,7 +252,7 @@ export default function ReflectionJournalPage() {
               </div>
             </div>
 
-            {/* Reflection Prompt picker */}
+            {/* Prompt picker */}
             <div>
               <label className="text-xs font-semibold text-gray-700 mb-1.5 block">Reflection Prompt</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -197,13 +273,11 @@ export default function ReflectionJournalPage() {
               </div>
             </div>
 
-            {/* Selected prompt display */}
             <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50">
               <p className="text-xs font-semibold text-amber-800 mb-0.5">Your prompt:</p>
               <p className="text-sm text-amber-900 font-medium">&ldquo;{REFLECTION_PROMPTS[formData.promptIdx]}&rdquo;</p>
             </div>
 
-            {/* Main textarea */}
             <div>
               <label className="text-xs font-semibold text-gray-700 mb-1.5 block">Your Reflection</label>
               <textarea
@@ -217,7 +291,6 @@ export default function ReflectionJournalPage() {
               />
             </div>
 
-            {/* Tags */}
             <div>
               <label className="text-xs font-semibold text-gray-700 mb-1.5 block">Tags (comma separated)</label>
               <input
@@ -229,42 +302,48 @@ export default function ReflectionJournalPage() {
               />
             </div>
 
-            {/* Actions */}
             <div className="flex items-center justify-between pt-2">
               <button
-                onClick={() => setIsNewEntry(false)}
-                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                onClick={() => { setIsOpen(false); setEditingId(null); }}
+                disabled={saving}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
-              <div className="flex gap-2">
-                <button
-                  className="flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  <FiSave size={12} /> Save Draft
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={!formData.content.trim()}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-5 py-2 rounded-lg text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-                  style={{ backgroundColor: BRAND }}
-                >
-                  <FiCheckCircle size={12} /> Submit Reflection
-                </button>
-              </div>
+              <button
+                onClick={handleSave}
+                disabled={!formData.content.trim() || saving}
+                className="flex items-center gap-1.5 text-xs font-semibold px-5 py-2 rounded-lg text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                style={{ backgroundColor: BRAND }}
+              >
+                <FiCheckCircle size={12} />
+                {saving ? "Saving…" : editingId ? "Update Reflection" : "Submit Reflection"}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Past Entries Timeline ── */}
+      {/* ── Past Entries ── */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
           <p className="text-sm font-semibold text-gray-900">Past Reflections</p>
           <span className="text-xs text-gray-400">{entries.length} entries</span>
         </div>
 
-        {entries.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-16">
+            <div className="animate-spin rounded-full h-7 w-7 border-b-2" style={{ borderColor: BRAND }} />
+          </div>
+        ) : loadError ? (
+          <div className="text-center py-12 text-gray-400">
+            <FiAlertCircle size={30} className="mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-600">Couldn&apos;t load your reflections</p>
+            <button onClick={loadEntries} className="text-xs font-semibold mt-2 hover:underline" style={{ color: BRAND }}>
+              Try again
+            </button>
+          </div>
+        ) : entries.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
             <FiEdit3 size={32} className="mx-auto mb-3" />
             <p className="text-sm font-medium text-gray-600">No reflections yet</p>
@@ -272,33 +351,26 @@ export default function ReflectionJournalPage() {
           </div>
         ) : (
           <div className="relative">
-            {/* Timeline line */}
             <div className="absolute left-12 top-0 bottom-0 w-0.5 bg-gray-100 hidden sm:block" />
 
             <div className="divide-y divide-gray-50">
               {entries.map((entry) => {
                 const isExpanded = expanded === entry.id;
+                const moodMeta = MOOD_BY_KEY[entry.mood];
+                const MoodIcon = moodMeta?.icon || FiFeather;
+                const moodColor = moodMeta?.color || BRAND;
                 return (
                   <div key={entry.id} className="sm:pl-4">
                     <div className="flex items-start gap-4 p-5">
-                      {/* Timeline orb */}
-                      {(() => {
-                        const moodMeta = MOOD_BY_KEY[entry.mood];
-                        const MoodIcon = moodMeta?.icon || FiFeather;
-                        const moodColor = moodMeta?.color || BRAND;
-                        return (
-                          <div
-                            className="hidden sm:flex w-8 h-8 rounded-full items-center justify-center flex-shrink-0 z-10 bg-white border-2"
-                            style={{ borderColor: moodColor, color: moodColor }}
-                            title={moodMeta?.label}
-                          >
-                            <MoodIcon size={14} />
-                          </div>
-                        );
-                      })()}
+                      <div
+                        className="hidden sm:flex w-8 h-8 rounded-full items-center justify-center flex-shrink-0 z-10 bg-white border-2"
+                        style={{ borderColor: moodColor, color: moodColor }}
+                        title={moodMeta?.label}
+                      >
+                        <MoodIcon size={14} />
+                      </div>
 
                       <div className="flex-1 min-w-0">
-                        {/* Entry header */}
                         <button
                           onClick={() => setExpanded(isExpanded ? null : entry.id)}
                           className="w-full text-left"
@@ -306,13 +378,11 @@ export default function ReflectionJournalPage() {
                           <div className="flex items-start justify-between gap-3 flex-wrap">
                             <div>
                               <div className="flex items-center gap-2 flex-wrap">
-                                {(() => {
-                                  const moodMeta = MOOD_BY_KEY[entry.mood];
-                                  const MoodIcon = moodMeta?.icon || FiFeather;
-                                  return <span className="sm:hidden" style={{ color: moodMeta?.color || BRAND }}><MoodIcon size={14} /></span>;
-                                })()}
+                                <span className="sm:hidden" style={{ color: moodColor }}><MoodIcon size={14} /></span>
                                 <p className="text-sm font-semibold text-gray-900">{entry.activityName}</p>
-                                <span className="text-[10px] font-mono text-gray-400">{entry.activityCode}</span>
+                                {entry.activityCode && (
+                                  <span className="text-[10px] font-mono text-gray-400">{entry.activityCode}</span>
+                                )}
                               </div>
                               <p className="text-xs text-gray-400 mt-0.5">{entry.date}</p>
                             </div>
@@ -327,22 +397,20 @@ export default function ReflectionJournalPage() {
                             </div>
                           </div>
 
-                          {/* Prompt preview */}
-                          <p className="text-xs text-amber-700 mt-1.5 italic">&ldquo;{entry.prompt}&rdquo;</p>
+                          {entry.prompt && (
+                            <p className="text-xs text-amber-700 mt-1.5 italic">&ldquo;{entry.prompt}&rdquo;</p>
+                          )}
 
-                          {/* Content preview */}
-                          <p className={`text-sm text-gray-700 mt-2 leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
+                          <p className={`text-sm text-gray-700 mt-2 leading-relaxed whitespace-pre-wrap ${isExpanded ? "" : "line-clamp-2"}`}>
                             {entry.content}
                           </p>
                         </button>
 
-                        {/* Expanded content */}
                         {isExpanded && (
                           <div className="mt-4 space-y-3">
-                            {/* Tags */}
                             {entry.tags?.length > 0 && (
                               <div className="flex flex-wrap gap-1.5">
-                                {entry.tags.map((t) => (
+                                {entry.tags.map((t: string) => (
                                   <span key={t} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
                                     #{t}
                                   </span>
@@ -350,7 +418,6 @@ export default function ReflectionJournalPage() {
                               </div>
                             )}
 
-                            {/* Faculty feedback */}
                             {entry.facultyFeedback && (
                               <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50">
                                 <p className="text-xs font-semibold text-blue-800 mb-1 flex items-center gap-1">
@@ -359,6 +426,21 @@ export default function ReflectionJournalPage() {
                                 <p className="text-sm text-blue-900 leading-relaxed">{entry.facultyFeedback}</p>
                               </div>
                             )}
+
+                            <div className="flex items-center gap-2 pt-1">
+                              <button
+                                onClick={() => openEdit(entry)}
+                                className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                              >
+                                <FiEdit3 size={11} /> Edit
+                              </button>
+                              <button
+                                onClick={() => setConfirmDelete(entry)}
+                                className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                              >
+                                <FiTrash2 size={11} /> Delete
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -370,6 +452,39 @@ export default function ReflectionJournalPage() {
           </div>
         )}
       </div>
+
+      {/* ── Delete confirmation ── */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setConfirmDelete(null)}>
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-base font-bold text-gray-900">Delete this reflection?</h3>
+              <button onClick={() => setConfirmDelete(null)} className="text-gray-400 hover:text-gray-600">
+                <FiX size={16} />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+              &ldquo;{confirmDelete.activityName}&rdquo; from {confirmDelete.date} will be permanently removed. This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2 mt-5">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                disabled={deletingId === confirmDelete.id}
+                className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(confirmDelete)}
+                disabled={deletingId === confirmDelete.id}
+                className="px-4 py-2 text-xs font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deletingId === confirmDelete.id ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
