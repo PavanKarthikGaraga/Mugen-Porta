@@ -8,6 +8,8 @@ const DOMAIN_LONG: Record<string, string> = {
     ESO: "Extension & Social Outreach", IIE: "Innovation & Incubation", HWB: "Health & Wellness",
 };
 
+const ISSUER_NAME = "KL SAC (Student Activity Center)";
+
 const RARITY_CONFIG: Record<string, { label: string; textColor: string; borderColor: string; bgColor: string; glowColor: string; gradient: string }> = {
     Legendary: { label: "Legendary", textColor: "#D97706", borderColor: "#FDE68A", bgColor: "#FFFBEB", glowColor: "rgba(245,158,11,0.3)", gradient: "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)" },
     Epic:      { label: "Epic",      textColor: "#7C3AED", borderColor: "#DDD6FE", bgColor: "#F5F3FF", glowColor: "rgba(124,58,237,0.25)", gradient: "linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)" },
@@ -143,7 +145,7 @@ export default function BadgeVerifyClient({ verificationId, initialData = null }
                             <span className="text-white font-extrabold text-sm">S</span>
                         </div>
                         <div>
-                            <span className="text-[13px] font-bold text-gray-900">KL University</span>
+                            <span className="text-[13px] font-bold text-gray-900">{ISSUER_NAME}</span>
                             <span className="text-gray-300 mx-2">·</span>
                             <span className="text-[12px] text-gray-500">SAMAM Program</span>
                         </div>
@@ -233,7 +235,7 @@ export default function BadgeVerifyClient({ verificationId, initialData = null }
                         <div className="flex-1">
                             <p className="text-[14px] font-bold text-gray-900">Tamper-Proof Digital Credential</p>
                             <p className="text-[12px] text-gray-600 mt-1 leading-relaxed">
-                                This is an official SAMAM digital credential issued by KL University. Its authenticity can always be re-confirmed at this canonical URL.
+                                This is an official SAMAM digital credential issued by {ISSUER_NAME}. Its authenticity can always be re-confirmed at this canonical URL.
                             </p>
                             <div className="mt-3 flex flex-col gap-1.5">
                                 <p className="text-[11px] font-mono font-semibold flex items-center gap-1.5" style={{ color: rarity.textColor }}>
@@ -256,7 +258,7 @@ export default function BadgeVerifyClient({ verificationId, initialData = null }
             {/* Footer */}
             <div className="border-t border-gray-200 bg-white mt-4">
                 <div className="max-w-5xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2">
-                    <p className="text-[11px] text-gray-400">© {new Date().getFullYear()} KL University · SAMAM Activity Management Program</p>
+                    <p className="text-[11px] text-gray-400">© {new Date().getFullYear()} {ISSUER_NAME} · SAMAM Activity Management Program</p>
                     <Link href="/" className="text-[11px] text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1 font-medium">
                         <FiExternalLink size={11} /> Visit SAMAM Platform
                     </Link>

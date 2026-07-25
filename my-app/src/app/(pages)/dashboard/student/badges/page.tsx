@@ -6,6 +6,8 @@ import SearchBar from "@/app/components/dashboard/SearchBar";
 
 const BRAND = "rgb(151,0,3)";
 const VERIFY_ORIGIN = "https://sacactivities.kluniversity.in";
+const ISSUER_NAME = "KL SAC (Student Activity Center)";
+const ISSUER_NAME_SHORT = "KL SAC";
 
 // Escape special XML characters so any text embedded in a downloaded SVG
 // always parses correctly (unescaped `&`, `<`, etc. caused
@@ -30,16 +32,16 @@ function getVerifyUrl(badge) {
 function buildLinkedInPostText(badge) {
   const verifyUrl = getVerifyUrl(badge);
   const lines = [
-    `🎖️ I'm proud to share that I've earned the "${(badge.name || "").replace(/&/g, "and")}" digital badge from KL University's SAMAM Activity Management Program!`,
+    `🎖️ I'm proud to share that I've earned the "${(badge.name || "").replace(/&/g, "and")}" digital badge from ${ISSUER_NAME}'s SAMAM Activity Management Program!`,
     "",
     badge.description ? `📌 ${badge.description.replace(/&/g, "and")}` : "",
     "",
     Array.isArray(badge.competencies) && badge.competencies.length > 0 ? `🧠 Skills: ${badge.competencies.join(" · ")}` : "",
     "",
-    `🏛️ Issued by: KL University | SAMAM Program`,
+    `🏛️ Issued by: ${ISSUER_NAME} | SAMAM Program`,
     `🔒 Verify this credential: ${verifyUrl}`,
     "",
-    "#SAMAM #KLUniversity #DigitalBadge #Achievement",
+    "#SAMAM #KLSAC #DigitalBadge #Achievement",
   ].filter(Boolean);
   return lines.join("\n");
 }
@@ -53,45 +55,180 @@ async function copyToClipboard(text) {
   }
 }
 
-// Builds a professional, Credly-style credential card as an SVG string.
-// All dynamic text is XML-escaped so the SVG always parses correctly.
-function buildBadgeSvg(badge, rarityRing) {
+// Darkens a #rrggbb hex color by a given amount (0-1) - used to build a
+// subtle gradient for the header/medallion instead of a single flat fill.
+function shadeHex(hex, amt) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
+  if (!m) return hex;
+  const clamp = (v) => Math.max(0, Math.min(255, v));
+  const [r, g, b] = [m[1], m[2], m[3]].map((h) => clamp(Math.round(parseInt(h, 16) * (1 + amt))));
+  return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+}
+
+// Measures + word-wraps the badge name so it never overflows/gets clipped
+// off the card - long names shrink first, then wrap onto a second line.
+function fitBadgeName(text, maxWidth, startSize = 46, minSize = 26) {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const measure = (str, size) => {
+    ctx.font = `bold ${size}px Georgia, serif`;
+    return ctx.measureText(str).width;
+  };
+  const wrap = (size) => {
+    const words = (text || "").split(/\s+/).filter(Boolean);
+    const lines = [];
+    let current = "";
+    for (const word of words) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (!current || measure(candidate, size) <= maxWidth) {
+        current = candidate;
+      } else {
+        lines.push(current);
+        current = word;
+      }
+    }
+    if (current) lines.push(current);
+    return lines;
+  };
+
+  for (let size = startSize; size >= minSize; size -= 2) {
+    const lines = wrap(size);
+    if (lines.length <= 2 && lines.every((l) => measure(l, size) <= maxWidth)) {
+      return { fontSize: size, lines };
+    }
+  }
+  // Fall back to the smallest size, hard-wrapped to two lines however it falls.
+  const lines = wrap(minSize);
+  return { fontSize: minSize, lines: lines.slice(0, 2) };
+}
+
+// Builds a professional, Credly-style credential card as an SVG string,
+// including an embedded scannable QR code linking to the verify page.
+// All dynamic text is XML-escaped so the SVG always parses correctly, and
+// the badge name is measured + wrapped so long titles never get clipped.
+function buildBadgeSvg(badge, rarityRing, qrDataUrl) {
+  const W = 820;
   const verifyUrl = getVerifyUrl(badge);
-  const safeName = xmlEscape(badge.name);
-  const safeDomain = xmlEscape(badge.domain || "");
+  const safeDomain = xmlEscape((badge.domain || "").toUpperCase());
   const safeRarity = xmlEscape(badge.rarity || "Common");
   const safeVerificationId = xmlEscape(badge.verificationId || "");
   const safeVerifyUrl = xmlEscape(verifyUrl);
   const safeIcon = badge.icon || "🏅";
   const bg = badge.bg || "#EFF6FF";
+  const ringDark = shadeHex(rarityRing, -0.25);
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960">
+  const { fontSize: nameFontSize, lines: nameLines } = fitBadgeName(badge.name || "Badge", W - 200);
+  const nameLineHeight = nameFontSize * 1.2;
+
+  // --- Layout (computed top-to-bottom so nothing overlaps or gets cut off) ---
+  const headerH = 84;
+  const medallionCy = headerH + 220;
+  const medallionR = 158;
+  const nameTop = medallionCy + medallionR + 60;
+  const nameBlockH = nameLines.length * nameLineHeight;
+  const domainY = nameTop + nameBlockH + 14;
+  const pillY = domainY + 46;
+  const dividerY = pillY + 60;
+  const labelY = dividerY + 34;
+  const panelY = labelY + 26;
+  const panelH = 190;
+  const panelW = 660;
+  const panelX = (W - panelW) / 2;
+  const qrSize = 138;
+  const qrX = panelX + 26;
+  const qrY = panelY + (panelH - qrSize) / 2;
+  const textX = qrX + qrSize + 34;
+  const footerLineY = panelY + panelH + 50;
+  const footerTextY = footerLineY + 30;
+  const H = footerTextY + 40;
+
+  const nameSvg = nameLines
+    .map((line, i) => {
+      const y = nameTop + nameLineHeight * (i + 0.8);
+      return `<text x="${W / 2}" y="${y}" text-anchor="middle" font-size="${nameFontSize}" font-family="Georgia, serif" font-weight="bold" fill="#111827">${xmlEscape(line)}</text>`;
+    })
+    .join("\n  ");
+
+  const qrBlock = qrDataUrl
+    ? `<image href="${qrDataUrl}" x="${qrX}" y="${qrY}" width="${qrSize}" height="${qrSize}"/>`
+    : `<rect x="${qrX}" y="${qrY}" width="${qrSize}" height="${qrSize}" rx="8" fill="#F3F4F6"/>`;
+
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
-    <radialGradient id="bg" cx="30%" cy="25%">
+    <radialGradient id="bg" cx="50%" cy="18%" r="65%">
       <stop offset="0%" stop-color="${bg}"/>
       <stop offset="100%" stop-color="#ffffff"/>
     </radialGradient>
+    <linearGradient id="header" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${ringDark}"/>
+      <stop offset="100%" stop-color="${rarityRing}"/>
+    </linearGradient>
+    <radialGradient id="medallion" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="${bg}"/>
+    </radialGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="22" flood-color="#0F172A" flood-opacity="0.14"/>
+    </filter>
+    <filter id="medallionGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="${rarityRing}" flood-opacity="0.35"/>
+    </filter>
   </defs>
-  <rect width="800" height="960" fill="#ffffff" rx="32"/>
-  <rect x="20" y="20" width="760" height="920" fill="url(#bg)" rx="24" stroke="${rarityRing}" stroke-width="3"/>
-  <rect x="0" y="0" width="800" height="64" fill="${rarityRing}" rx="24"/>
-  <rect x="0" y="40" width="800" height="24" fill="${rarityRing}"/>
-  <text x="400" y="36" dominant-baseline="middle" text-anchor="middle" font-size="16" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="3">KL UNIVERSITY — SAMAM PROGRAM</text>
-  <circle cx="400" cy="300" r="170" fill="${bg}" stroke="${rarityRing}" stroke-width="6" opacity="0.6"/>
-  <circle cx="400" cy="300" r="150" fill="${bg}" stroke="${rarityRing}" stroke-width="1.5" opacity="0.5"/>
-  <text x="400" y="320" dominant-baseline="middle" text-anchor="middle" font-size="170">${safeIcon}</text>
-  <text x="400" y="520" dominant-baseline="middle" text-anchor="middle" font-size="40" font-family="Georgia,serif" font-weight="bold" fill="#111827">${safeName}</text>
-  <text x="400" y="565" dominant-baseline="middle" text-anchor="middle" font-size="20" font-family="sans-serif" fill="#6B7280">${safeDomain}</text>
-  <rect x="290" y="595" width="220" height="34" rx="17" fill="${rarityRing}"/>
-  <text x="400" y="612" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="2">${safeRarity.toUpperCase()} BADGE</text>
-  <rect x="160" y="660" width="480" height="2" fill="${rarityRing}" opacity="0.4"/>
-  <text x="400" y="695" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF" letter-spacing="2">VERIFIED DIGITAL CREDENTIAL</text>
-  <rect x="150" y="715" width="500" height="40" rx="8" fill="${bg}"/>
-  <text x="400" y="736" dominant-baseline="middle" text-anchor="middle" font-size="15" font-family="monospace" font-weight="bold" fill="${rarityRing}">${safeVerificationId}</text>
-  <text x="400" y="780" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF">${safeVerifyUrl}</text>
-  <text x="400" y="920" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF">© ${new Date().getFullYear()} KL University · SAMAM Activity Management Program</text>
+
+  <!-- Card base -->
+  <rect width="${W}" height="${H}" fill="#F1F5F9"/>
+  <g filter="url(#cardShadow)">
+    <rect x="20" y="20" width="${W - 40}" height="${H - 40}" fill="url(#bg)" rx="28"/>
+    <rect x="20" y="20" width="${W - 40}" height="${H - 40}" fill="none" stroke="${rarityRing}" stroke-width="2" rx="28" opacity="0.55"/>
+  </g>
+
+  <!-- Header -->
+  <path d="M 20 48 A 28 28 0 0 1 48 20 L ${W - 48} 20 A 28 28 0 0 1 ${W - 20} 48 L ${W - 20} ${headerH} L 20 ${headerH} Z" fill="url(#header)"/>
+  <text x="${W / 2}" y="${headerH / 2}" text-anchor="middle" dominant-baseline="middle" font-size="17" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="3">${ISSUER_NAME_SHORT.toUpperCase()} — SAMAM PROGRAM</text>
+
+  <!-- Medallion -->
+  <circle cx="${W / 2}" cy="${medallionCy}" r="${medallionR}" fill="url(#medallion)" filter="url(#medallionGlow)"/>
+  <circle cx="${W / 2}" cy="${medallionCy}" r="${medallionR}" fill="none" stroke="${rarityRing}" stroke-width="5"/>
+  <circle cx="${W / 2}" cy="${medallionCy}" r="${medallionR - 18}" fill="none" stroke="${rarityRing}" stroke-width="1.5" opacity="0.45" stroke-dasharray="2 6"/>
+  <text x="${W / 2}" y="${medallionCy + 8}" text-anchor="middle" dominant-baseline="middle" font-size="150">${safeIcon}</text>
+
+  <!-- Name / domain / rarity -->
+  ${nameSvg}
+  <text x="${W / 2}" y="${domainY}" text-anchor="middle" dominant-baseline="middle" font-size="16" font-family="sans-serif" font-weight="600" fill="#6B7280" letter-spacing="2">${safeDomain}</text>
+  <rect x="${W / 2 - 110}" y="${pillY - 18}" width="220" height="36" rx="18" fill="url(#header)"/>
+  <text x="${W / 2}" y="${pillY}" text-anchor="middle" dominant-baseline="middle" font-size="13" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="2">${safeRarity.toUpperCase()} BADGE</text>
+
+  <!-- Divider -->
+  <line x1="${W / 2 - 240}" y1="${dividerY}" x2="${W / 2 + 240}" y2="${dividerY}" stroke="${rarityRing}" stroke-width="1.5" opacity="0.35"/>
+  <text x="${W / 2}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF" letter-spacing="3">VERIFIED DIGITAL CREDENTIAL</text>
+
+  <!-- Verification panel -->
+  <rect x="${panelX}" y="${panelY}" width="${panelW}" height="${panelH}" rx="18" fill="${bg}" stroke="${rarityRing}" stroke-width="1.5" opacity="0.97"/>
+  <rect x="${qrX - 8}" y="${qrY - 8}" width="${qrSize + 16}" height="${qrSize + 16}" rx="10" fill="#ffffff"/>
+  ${qrBlock}
+  <text x="${textX}" y="${panelY + 42}" font-size="12" font-family="sans-serif" font-weight="bold" fill="${ringDark}" letter-spacing="1.5">TAMPER-PROOF CREDENTIAL</text>
+  <text x="${textX}" y="${panelY + 76}" font-size="17" font-family="monospace" font-weight="bold" fill="#111827">${safeVerificationId}</text>
+  <text x="${textX}" y="${panelY + 106}" font-size="13" font-family="sans-serif" fill="#4B5563">${safeVerifyUrl}</text>
+  <text x="${textX}" y="${panelY + 140}" font-size="11" font-family="sans-serif" fill="#9CA3AF">Scan the QR code or visit the link above to verify.</text>
+
+  <!-- Footer -->
+  <line x1="${W / 2 - 200}" y1="${footerLineY}" x2="${W / 2 + 200}" y2="${footerLineY}" stroke="${rarityRing}" stroke-width="1" opacity="0.3"/>
+  <text x="${W / 2}" y="${footerTextY}" text-anchor="middle" dominant-baseline="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF">© ${new Date().getFullYear()} ${ISSUER_NAME_SHORT} · SAMAM Activity Management Program</text>
 </svg>`;
+
+  return { svg, width: W, height: H };
+}
+
+// Generates a scannable QR code (as a PNG data URL) that resolves to the
+// badge's canonical verification link.
+async function generateVerifyQrDataUrl(url, size = 320) {
+  const QRCode = (await import("qrcode")).default;
+  return QRCode.toDataURL(url, {
+    width: size,
+    margin: 1,
+    color: { dark: "#111827", light: "#FFFFFF" },
+  });
 }
 
 // Rasterizes an SVG string to a PNG data URL via an offscreen canvas.
@@ -128,17 +265,21 @@ function rasterizeSvg(svgString: string, width: number, height: number, scale = 
   });
 }
 
-// Generates and downloads a professional, Credly-style PDF credential.
+// Generates and downloads a professional, Credly-style PDF credential,
+// complete with a real, scannable QR code linking to the verify page.
 async function downloadBadgePdf(badge, rarityRing) {
-  const svg = buildBadgeSvg(badge, rarityRing);
-  const { pngDataUrl } = await rasterizeSvg(svg, 800, 960, 2.5);
+  const verifyUrl = getVerifyUrl(badge);
+  const qrDataUrl = await generateVerifyQrDataUrl(verifyUrl, 340).catch(() => null);
+  const { svg, width, height } = buildBadgeSvg(badge, rarityRing, qrDataUrl);
+  const { pngDataUrl } = await rasterizeSvg(svg, width, height, 2.5);
 
   const { jsPDF } = await import("jspdf");
-  // Custom page size matching the badge card's aspect ratio (in points),
-  // so the PDF is a clean digital credential rather than a badge floating
-  // in the middle of a generic A4 sheet.
-  const pageWidth = 400;
-  const pageHeight = 480;
+  // Custom page size matching the badge card's actual aspect ratio (in
+  // points), so the PDF is a clean digital credential rather than a badge
+  // floating in the middle of a generic A4 sheet - and never stretched or
+  // cropped, since the ratio always matches what was actually rendered.
+  const pageWidth = 420;
+  const pageHeight = Math.round((height / width) * pageWidth);
   const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: [pageWidth, pageHeight] });
   pdf.addImage(pngDataUrl, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
 
@@ -153,29 +294,39 @@ const RARITY_CONFIG: Record<string, any> = {
   Legendary: { label: "Legendary", stars: 4, ring: "#D97706", glow: "rgba(217,119,6,0.25)"   },
 };
 
-// Tiny QR placeholder SVG
-function QRPlaceholder({ size = 60 }: { size?: number }) {
+// Real, scannable QR code that resolves to the badge's verification link
+// (previously this was a static decorative SVG that didn't encode anything
+// and couldn't actually be scanned).
+function BadgeQRCode({ value, size = 60 }: { value: string; size?: number }) {
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!value) return;
+    generateVerifyQrDataUrl(value, size * 4)
+      .then((url) => { if (!cancelled) setDataUrl(url); })
+      .catch(() => { if (!cancelled) setDataUrl(null); });
+    return () => { cancelled = true; };
+  }, [value, size]);
+
+  if (!dataUrl) {
+    return (
+      <div
+        className="rounded-lg bg-gray-100 animate-pulse flex-shrink-0"
+        style={{ width: size, height: size }}
+        aria-label="Generating QR code…"
+      />
+    );
+  }
+
   return (
-    <svg width={size} height={size} viewBox="0 0 60 60" fill="none" aria-label="QR code placeholder">
-      <rect width={60} height={60} rx={4} fill="#F9FAFB" />
-      {/* Finder patterns */}
-      <rect x={4} y={4} width={16} height={16} rx={1} fill="#111827" />
-      <rect x={6} y={6} width={12} height={12} rx={0.5} fill="#F9FAFB" />
-      <rect x={8} y={8} width={8} height={8} rx={0.5} fill="#111827" />
-      <rect x={40} y={4} width={16} height={16} rx={1} fill="#111827" />
-      <rect x={42} y={6} width={12} height={12} rx={0.5} fill="#F9FAFB" />
-      <rect x={44} y={8} width={8} height={8} rx={0.5} fill="#111827" />
-      <rect x={4} y={40} width={16} height={16} rx={1} fill="#111827" />
-      <rect x={6} y={42} width={12} height={12} rx={0.5} fill="#F9FAFB" />
-      <rect x={8} y={44} width={8} height={8} rx={0.5} fill="#111827" />
-      {/* Data modules */}
-      {Array.from({ length: 8 }, (_, i) => <rect key={i} x={24 + (i % 4) * 4} y={4 + Math.floor(i / 4) * 4} width={3} height={3} fill="#111827" />)}
-      {Array.from({ length: 16 }, (_, i) => {
-        const x = 4 + (i % 8) * 7;
-        const y = 26 + Math.floor(i / 8) * 7;
-        return x < 56 && y < 56 ? <rect key={i} x={x} y={y} width={3} height={3} fill="#111827" opacity={i % 3 === 0 ? 0 : 1} /> : null;
-      })}
-    </svg>
+    <img
+      src={dataUrl}
+      width={size}
+      height={size}
+      alt="Scan to verify this badge"
+      className="rounded-lg border border-gray-100 flex-shrink-0"
+    />
   );
 }
 
@@ -287,7 +438,7 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
           {/* QR + verification (Only if unlocked) */}
           {badge.issuedOn && (
             <div className="flex items-start gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-              <QRPlaceholder size={60} />
+              <BadgeQRCode value={getVerifyUrl(badge)} size={60} />
               <div className="min-w-0">
                 <div className="flex items-center gap-1 mb-1">
                   <FiCheckCircle size={12} className="text-emerald-500" />
@@ -336,7 +487,7 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
                     if (navigator.share) {
                         await navigator.share({
                             title: `I earned the ${badge.name} badge!`,
-                            text: `Check out my new verified digital badge from KL University!`,
+                            text: `Check out my new verified digital badge from ${ISSUER_NAME}!`,
                             url: verifyUrl
                         }).catch(() => {});
                     } else if (!copied) {

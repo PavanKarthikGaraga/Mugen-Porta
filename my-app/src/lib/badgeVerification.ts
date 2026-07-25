@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 
 const VERIFY_ORIGIN = 'https://sacactivities.kluniversity.in';
+const ISSUER_INSTITUTION = 'KL SAC (Student Activity Center)';
 
 // Demo badges used for showcase/marketing links - not real DB rows.
 const DEMO_BADGES: Record<string, any> = {
@@ -101,11 +102,11 @@ export async function getBadgeVerification(verificationId: string): Promise<Badg
                 name: 'Demo Student',
                 branch: 'CSE',
                 year: '3rd',
-                institution: 'KL University',
+                institution: ISSUER_INSTITUTION,
             },
             issuer: {
                 name: 'SAMAM Activity Management Program',
-                institution: 'KL University',
+                institution: ISSUER_INSTITUTION,
                 website: VERIFY_ORIGIN,
             },
         };
@@ -175,11 +176,11 @@ export async function getBadgeVerification(verificationId: string): Promise<Badg
             name: row.student_name || 'Student',
             branch: row.student_branch || 'N/A',
             year: row.student_year || 'N/A',
-            institution: 'KL University',
+            institution: ISSUER_INSTITUTION,
         },
         issuer: {
             name: 'SAMAM Activity Management Program',
-            institution: 'KL University',
+            institution: ISSUER_INSTITUTION,
             website: VERIFY_ORIGIN,
         },
     };

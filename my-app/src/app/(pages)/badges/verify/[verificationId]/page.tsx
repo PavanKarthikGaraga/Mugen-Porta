@@ -2,6 +2,8 @@ import { Metadata } from 'next';
 import BadgeVerifyClient from '@/app/components/BadgeVerifyClient';
 import { getBadgeVerification } from '@/lib/badgeVerification';
 
+const ISSUER_NAME = 'KL SAC (Student Activity Center)';
+
 export async function generateMetadata(
     { params }: { params: Promise<{ verificationId: string }> }
 ): Promise<Metadata> {
@@ -13,18 +15,18 @@ export async function generateMetadata(
         if (result.valid) {
             const { badge, recipient } = result;
             const title = `${recipient.name} earned "${badge.name}" | SAMAM`;
-            const description = `${recipient.name} was awarded the "${badge.name}" digital badge by KL University SAMAM. ${badge.description || ''}`;
+            const description = `${recipient.name} was awarded the "${badge.name}" digital badge by ${ISSUER_NAME} SAMAM. ${badge.description || ''}`;
             return {
                 title,
                 description,
-                openGraph: { title, description, type: 'website', siteName: 'SAMAM — KL University' },
+                openGraph: { title, description, type: 'website', siteName: `SAMAM — ${ISSUER_NAME}` },
                 twitter: { card: 'summary', title, description },
             };
         }
     } catch { /* fallthrough */ }
     return {
         title: 'Badge Verification | SAMAM',
-        description: 'Verify a SAMAM digital badge issued by KL University.',
+        description: `Verify a SAMAM digital badge issued by ${ISSUER_NAME}.`,
     };
 }
 
