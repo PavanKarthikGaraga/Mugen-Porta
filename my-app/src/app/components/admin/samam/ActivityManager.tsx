@@ -15,7 +15,7 @@ const DOMAIN_NAMES: Record<string, string> = {
 export default function ActivityManager({
   actSearchStr, setActSearchStr, fetchActivities, activitiesLoading, filteredActivities, deleteActivity, role = "admin"
 }: any) {
-  const [selectedDomain, setSelectedDomain] = useState("TEC");
+  const [selectedDomain, setSelectedDomain] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const displayActivities = useMemo(() => {
