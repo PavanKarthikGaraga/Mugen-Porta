@@ -71,7 +71,9 @@ export default function SubPageShell({ icon, title, subtitle, features = [], rou
       </div>
 
       <p className="text-center text-xs text-gray-400 mt-5">
-        Designed &amp; Developed by Pavan Karthik Garaga &nbsp;|&nbsp; ZeroOne CodeClub
+        Designed &amp; Developed by{" "}
+        <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors duration-200 font-medium">Nischal Singana</a>
+        {" "}|{" "}ZeroOne CodeClub
       </p>
     </div>
   );

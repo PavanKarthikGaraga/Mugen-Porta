@@ -154,7 +154,9 @@ export default function FacultyDashboardLayout({ children }) {
                 <div className="flex flex-col sm:flex-row justify-between items-center">
                     <span>© 2026 KL University SAC Activities. All Rights Reserved.</span>
                     <span className="mt-1 sm:mt-0">
-                        Designed and Developed by ZeroOne CodeClub
+                        Designed and Developed by{" "}
+                        <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors duration-200 font-medium underline-offset-2 hover:underline">Nischal Singana</a>
+                        {" "}| ZeroOne CodeClub
                     </span>
                 </div>
             </footer>
