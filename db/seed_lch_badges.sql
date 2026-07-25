@@ -1,22 +1,82 @@
 -- =========================================================================
--- SAMAM / KL SAC — LCH domain badge seed
+-- SAMAM / KL SAC -- LCH domain badge seed
 -- Generated from src/app/Data/activities-mock.ts (210 LCH activities)
 -- Safe to re-run: badge_definitions rows are upserted by `code`,
 -- and the activity_catalogue link is a single idempotent UPDATE...JOIN.
+--
+-- Run this with a client that supports the DELIMITER directive and stored
+-- procedures (mysql CLI, phpMyAdmin Import tab, Adminer, HeidiSQL, etc.)
+-- since step 1 uses a tiny throwaway procedure instead of the MySQL 8.0.29+
+-- only `ADD COLUMN IF NOT EXISTS` syntax, so it works on older MySQL/MariaDB
+-- versions too (this is what caused the previous syntax error).
 -- =========================================================================
 
--- 1. Make sure every column this script needs actually exists.
---    (No-ops if already present — MySQL 8.0.29+ required for IF NOT EXISTS.)
-ALTER TABLE badge_definitions
-    ADD COLUMN IF NOT EXISTS type ENUM('activity','milestone') DEFAULT 'activity',
-    ADD COLUMN IF NOT EXISTS target_value INT DEFAULT 1,
-    ADD COLUMN IF NOT EXISTS metric VARCHAR(50) DEFAULT 'completion',
-    ADD COLUMN IF NOT EXISTS rarity VARCHAR(50) DEFAULT 'Common',
-    ADD COLUMN IF NOT EXISTS requirement TEXT,
-    ADD COLUMN IF NOT EXISTS color VARCHAR(20) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS bg_color VARCHAR(20) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS competencies JSON DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS is_active TINYINT(1) DEFAULT 1;
+-- 1. Make sure every column this script needs actually exists, without using
+--    `ADD COLUMN IF NOT EXISTS` (only supported on MySQL 8.0.29+). This checks
+--    INFORMATION_SCHEMA and only adds a column if it is actually missing, so
+--    it is safe to run this whole script more than once.
+DELIMITER $$
+DROP PROCEDURE IF EXISTS __seed_lch_badges_add_columns $$
+CREATE PROCEDURE __seed_lch_badges_add_columns()
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'badge_definitions' AND COLUMN_NAME = 'type'
+    ) THEN
+        ALTER TABLE badge_definitions ADD COLUMN type ENUM('activity','milestone') DEFAULT 'activity';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'badge_definitions' AND COLUMN_NAME = 'target_value'
+    ) THEN
+        ALTER TABLE badge_definitions ADD COLUMN target_value INT DEFAULT 1;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'badge_definitions' AND COLUMN_NAME = 'metric'
+    ) THEN
+        ALTER TABLE badge_definitions ADD COLUMN metric VARCHAR(50) DEFAULT 'completion';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'badge_definitions' AND COLUMN_NAME = 'rarity'
+    ) THEN
+        ALTER TABLE badge_definitions ADD COLUMN rarity VARCHAR(50) DEFAULT 'Common';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'badge_definitions' AND COLUMN_NAME = 'requirement'
+    ) THEN
+        ALTER TABLE badge_definitions ADD COLUMN requirement TEXT;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'badge_definitions' AND COLUMN_NAME = 'color'
+    ) THEN
+        ALTER TABLE badge_definitions ADD COLUMN color VARCHAR(20) DEFAULT NULL;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'badge_definitions' AND COLUMN_NAME = 'bg_color'
+    ) THEN
+        ALTER TABLE badge_definitions ADD COLUMN bg_color VARCHAR(20) DEFAULT NULL;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'badge_definitions' AND COLUMN_NAME = 'competencies'
+    ) THEN
+        ALTER TABLE badge_definitions ADD COLUMN competencies JSON DEFAULT NULL;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'badge_definitions' AND COLUMN_NAME = 'is_active'
+    ) THEN
+        ALTER TABLE badge_definitions ADD COLUMN is_active TINYINT(1) DEFAULT 1;
+    END IF;
+END $$
+DELIMITER ;
+CALL __seed_lch_badges_add_columns();
+DROP PROCEDURE __seed_lch_badges_add_columns;
 
 -- 2. Upsert one badge per LCH activity (210 rows).
 --    code = B-<activity code>, so it lines up with the existing
