@@ -1,7 +1,72 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FiCheckCircle, FiXCircle, FiExternalLink, FiCopy, FiAward, FiCalendar, FiUser, FiBookOpen, FiShield, FiHash } from "react-icons/fi";
+import { FiCheckCircle, FiXCircle, FiExternalLink, FiCopy, FiAward, FiCalendar, FiUser, FiBookOpen, FiShield, FiHash, FiCheck } from "react-icons/fi";
+
+// The credential is usually already resolved server-side (via `initialData`)
+// by the time this component mounts, so a real network "loading" state
+// almost never happens. Skipping straight to the result felt abrupt and
+// less trustworthy than the verification flow it's mimicking, so we always
+// play a short, deliberate "verifying" sequence first (like Credly's
+// verification pages do) before revealing the credential. If a real fetch
+// IS still in flight (e.g. `initialData` was unavailable), this same screen
+// simply stays up until it resolves.
+const VERIFY_STEPS = [
+    "Connecting to SAMAM credential registry",
+    "Validating cryptographic signature",
+    "Confirming issuer authenticity",
+];
+const VERIFY_STEP_INTERVAL_MS = 420;
+const VERIFY_REVEAL_DELAY_MS = 300;
+
+function VerifyingScreen({ verificationId, stepIndex }: { verificationId: string; stepIndex: number }) {
+    const allStepsDone = stepIndex >= VERIFY_STEPS.length;
+    return (
+        <div className="min-h-screen flex flex-col items-center justify-center gap-8 px-4" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)" }}>
+            <div className="relative w-24 h-24 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border-4 border-gray-200" />
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-gray-800 animate-spin" style={{ animationDuration: "1.1s" }} />
+                <div className="absolute inset-3 rounded-full bg-white shadow-sm flex items-center justify-center">
+                    <FiShield className="text-gray-700" size={26} />
+                </div>
+            </div>
+
+            <div className="text-center">
+                <p className="text-[16px] font-bold text-gray-900">Verifying Credential</p>
+                <p className="text-[12px] text-gray-400 mt-1 font-mono">{verificationId}</p>
+            </div>
+
+            <div className="w-full max-w-xs space-y-3">
+                {VERIFY_STEPS.map((step, i) => {
+                    const done = i < stepIndex;
+                    const active = i === stepIndex;
+                    return (
+                        <div key={step} className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                                done ? "bg-emerald-500" : active ? "bg-gray-800" : "bg-gray-200"
+                            }`}>
+                                {done ? <FiCheck size={11} className="text-white" /> : active ? <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> : null}
+                            </div>
+                            <span className={`text-[13px] transition-colors duration-300 ${
+                                done ? "text-gray-700 font-medium" : active ? "text-gray-900 font-semibold" : "text-gray-300"
+                            }`}>
+                                {step}
+                            </span>
+                        </div>
+                    );
+                })}
+                {allStepsDone && (
+                    <div className="flex items-center gap-3 pt-1">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-800">
+                            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                        </div>
+                        <span className="text-[13px] text-gray-900 font-semibold">Finalizing verification</span>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
 
 const DOMAIN_LONG: Record<string, string> = {
     TEC: "Technology", LCH: "Literary & Cultural Heritage",
@@ -68,6 +133,24 @@ export default function BadgeVerifyClient({ verificationId, initialData = null }
     const [loading, setLoading] = useState(!initialData);
     const [error, setError] = useState<string | null>(initialData && !initialData.valid ? (initialData.message || "Invalid or expired credential") : null);
 
+    // Deliberate "verifying" intro sequence — see VerifyingScreen comment above.
+    const [showIntro, setShowIntro] = useState(true);
+    const [stepIndex, setStepIndex] = useState(0);
+
+    useEffect(() => {
+        if (stepIndex >= VERIFY_STEPS.length) return;
+        const t = setTimeout(() => setStepIndex((i) => i + 1), VERIFY_STEP_INTERVAL_MS);
+        return () => clearTimeout(t);
+    }, [stepIndex]);
+
+    useEffect(() => {
+        // Only reveal once every checklist step has played AND the real data
+        // fetch (if any) has actually finished — whichever takes longer.
+        if (stepIndex < VERIFY_STEPS.length || loading) return;
+        const t = setTimeout(() => setShowIntro(false), VERIFY_REVEAL_DELAY_MS);
+        return () => clearTimeout(t);
+    }, [stepIndex, loading]);
+
     useEffect(() => {
         // If the server already resolved this credential (the common case),
         // skip the client-side fetch entirely - this is what used to make
@@ -95,20 +178,7 @@ export default function BadgeVerifyClient({ verificationId, initialData = null }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [verificationId]);
 
-    if (loading) return (
-        <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)" }}>
-            <div className="relative">
-                <div className="w-16 h-16 rounded-full border-4 border-gray-200 border-t-gray-700 animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <FiShield className="text-gray-400" size={18} />
-                </div>
-            </div>
-            <div className="text-center">
-                <p className="text-[15px] font-semibold text-gray-800">Verifying Credential</p>
-                <p className="text-[12px] text-gray-400 mt-1">Checking authenticity of <span className="font-mono">{verificationId}</span></p>
-            </div>
-        </div>
-    );
+    if (showIntro) return <VerifyingScreen verificationId={verificationId} stepIndex={stepIndex} />;
 
     if (error || !data) return (
         <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "linear-gradient(135deg, #fef2f2 0%, #fff1f1 100%)" }}>
@@ -135,7 +205,7 @@ export default function BadgeVerifyClient({ verificationId, initialData = null }
     const verifyUrlDisplay = verifyUrl.replace(/^https?:\/\//, "");
 
     return (
-        <div className="min-h-screen" style={{ background: "linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)", fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <div className="min-h-screen animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ background: "linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)", fontFamily: "'Inter', system-ui, sans-serif" }}>
 
             {/* ── Top bar ─────────────────────────────────────────────────────── */}
             <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
