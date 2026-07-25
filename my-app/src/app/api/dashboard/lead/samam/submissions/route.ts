@@ -13,10 +13,21 @@ export async function GET(req: Request) {
     const decoded = await verifyToken(token);
     if (!decoded || decoded.role !== "lead") return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const [leadResult]: any = await pool.execute('SELECT clubId, assigned_categories FROM leads WHERE username = ?', [decoded.username as string]);
+    let leadResult: any[] = [];
+    try {
+        const [rows]: any = await pool.execute('SELECT clubId, assigned_categories FROM leads WHERE username = ?', [decoded.username as string]);
+        leadResult = rows;
+    } catch (e: any) {
+        if (e.code === 'ER_BAD_FIELD_ERROR' || e.message?.includes('assigned_categories')) {
+            const [rows]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [decoded.username as string]);
+            leadResult = rows;
+        } else {
+            throw e;
+        }
+    }
     if (leadResult.length === 0) return NextResponse.json({ message: 'No club assigned' }, { status: 403 });
     
-    let assigned_categories = [];
+    let assigned_categories: string[] = [];
     if (leadResult[0].assigned_categories) {
         try {
             assigned_categories = typeof leadResult[0].assigned_categories === 'string' 

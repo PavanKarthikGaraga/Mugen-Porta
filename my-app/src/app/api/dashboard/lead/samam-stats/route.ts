@@ -11,18 +11,32 @@ async function getLeadClubData() {
     const decoded = await verifyToken(token);
     if (!decoded || decoded.role !== 'lead') return null;
 
-    // Get club info and assigned categories
-    const [leadResult]: any = await pool.execute(
-        'SELECT l.clubId, c.name as clubName, l.assigned_categories FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
-        [decoded.username as string]
-    );
+    // First try with assigned_categories column (may not exist on older DB)
+    let leadResult: any[] = [];
+    try {
+        const [rows]: any = await pool.execute(
+            'SELECT l.clubId, c.name as clubName, l.assigned_categories FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
+            [decoded.username as string]
+        );
+        leadResult = rows;
+    } catch (e: any) {
+        if (e.code === 'ER_BAD_FIELD_ERROR' || e.message?.includes('assigned_categories')) {
+            const [rows]: any = await pool.execute(
+                'SELECT l.clubId, c.name as clubName FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
+                [decoded.username as string]
+            );
+            leadResult = rows;
+        } else {
+            throw e;
+        }
+    }
 
     if (leadResult.length > 0) {
-        let assigned_categories = [];
+        let assigned_categories: string[] = [];
         if (leadResult[0].assigned_categories) {
             try {
-                assigned_categories = typeof leadResult[0].assigned_categories === 'string' 
-                    ? JSON.parse(leadResult[0].assigned_categories) 
+                assigned_categories = typeof leadResult[0].assigned_categories === 'string'
+                    ? JSON.parse(leadResult[0].assigned_categories)
                     : leadResult[0].assigned_categories;
             } catch(e) {}
         }
@@ -42,7 +56,9 @@ export async function GET(request: Request) {
              return NextResponse.json({
                 levelBreakdown: [],
                 sdcStats: { totalCredits: 0, studentsWithCredits: 0, avgPerTransaction: "0.0" },
-                badgeStats: { totalIssued: 0, studentsWithBadges: 0, uniqueBadges: 0 }
+                badgeStats: { totalIssued: 0, studentsWithBadges: 0, uniqueBadges: 0 },
+                topPerformers: [],
+                recentRecognitions: [],
             });
         }
 
@@ -51,9 +67,10 @@ export async function GET(request: Request) {
         const [
             levelBreakdownResult,
             sdcTotalResult,
-            badgesResult
+            badgesResult,
+            topPerformersResult,
+            recentRecognitionsResult,
         ] = await Promise.all([
-            // 1. Students per SAMAM level in these categories (based on activity enrollments)
             pool.execute(`
                 SELECT COALESCE(sp.level, 'Explorer') as level, COUNT(DISTINCT s.username) as count
                 FROM students s
@@ -65,10 +82,6 @@ export async function GET(request: Request) {
                 ORDER BY count DESC
             `, [...assigned_categories]),
 
-            // 2. Total SAMAM Points distributed for activities in these categories
-            // sdc_transactions doesn't directly link to activity_code in current schema easily, 
-            // but we can just filter by domain/pack if they match category, or we fetch stats of students enrolled.
-            // A more accurate approach for lead: Total credits earned from these categories (if domain matches category)
             pool.execute(`
                 SELECT
                     SUM(t.credits) as total_credits,
@@ -80,7 +93,6 @@ export async function GET(request: Request) {
                 WHERE ac.category IN (${categoryPlaceholders})
             `, [...assigned_categories]),
 
-            // 3. Badges overview for students in these categories
             pool.execute(`
                 SELECT
                     COUNT(*) as total_issued,
@@ -90,7 +102,35 @@ export async function GET(request: Request) {
                 JOIN activity_enrollments ae ON b.username = ae.username
                 JOIN activity_catalogue ac ON ae.activity_code = ac.code
                 WHERE ac.category IN (${categoryPlaceholders})
-            `, [...assigned_categories])
+            `, [...assigned_categories]),
+
+            // Top performers by points
+            pool.execute(`
+                SELECT s.username, s.name, SUM(t.credits) as total_points,
+                       COALESCE(sp.level, 'Explorer') as level
+                FROM students s
+                JOIN sdc_transactions t ON s.username = t.username
+                JOIN activity_enrollments ae ON s.username = ae.username
+                JOIN activity_catalogue ac ON ae.activity_code = ac.code
+                LEFT JOIN student_profiles sp ON s.username = sp.username
+                WHERE ac.category IN (${categoryPlaceholders})
+                GROUP BY s.username, s.name, sp.level
+                ORDER BY total_points DESC
+                LIMIT 5
+            `, [...assigned_categories]),
+
+            // Recent badge recognitions
+            pool.execute(`
+                SELECT b.username, s.name, bd.name as badge_name, bd.icon, b.issued_on
+                FROM student_badges b
+                JOIN badge_definitions bd ON b.badge_id = bd.id
+                JOIN students s ON b.username = s.username
+                JOIN activity_enrollments ae ON b.username = ae.username
+                JOIN activity_catalogue ac ON ae.activity_code = ac.code
+                WHERE ac.category IN (${categoryPlaceholders})
+                ORDER BY b.issued_on DESC
+                LIMIT 5
+            `, [...assigned_categories]),
         ]);
 
         const sdcStats = (sdcTotalResult[0] as any[])[0] || {};
@@ -107,7 +147,9 @@ export async function GET(request: Request) {
                 totalIssued: Number(badgeStats.total_issued || 0),
                 studentsWithBadges: Number(badgeStats.students_with_badges || 0),
                 uniqueBadges: Number(badgeStats.unique_badges || 0),
-            }
+            },
+            topPerformers: topPerformersResult[0] as any[],
+            recentRecognitions: recentRecognitionsResult[0] as any[],
         });
     } catch (error: any) {
         console.error('Lead stats error:', error);

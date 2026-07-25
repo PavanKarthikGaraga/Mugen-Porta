@@ -11,18 +11,33 @@ async function getLeadClubData() {
     const decoded = await verifyToken(token);
     if (!decoded || decoded.role !== 'lead') return null;
 
-    // Get club info and assigned categories
-    const [leadResult]: any = await pool.execute(
-        'SELECT l.clubId, c.name as clubName, l.assigned_categories FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
-        [decoded.username as string]
-    );
+    // First try with assigned_categories column (may not exist on older DB)
+    let leadResult: any[] = [];
+    try {
+        const [rows]: any = await pool.execute(
+            'SELECT l.clubId, c.name as clubName, l.assigned_categories FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
+            [decoded.username as string]
+        );
+        leadResult = rows;
+    } catch (e: any) {
+        // If assigned_categories column doesn't exist yet, fall back without it
+        if (e.code === 'ER_BAD_FIELD_ERROR' || e.message?.includes('assigned_categories')) {
+            const [rows]: any = await pool.execute(
+                'SELECT l.clubId, c.name as clubName FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
+                [decoded.username as string]
+            );
+            leadResult = rows;
+        } else {
+            throw e;
+        }
+    }
 
     if (leadResult.length > 0) {
-        let assigned_categories = [];
+        let assigned_categories: string[] = [];
         if (leadResult[0].assigned_categories) {
             try {
-                assigned_categories = typeof leadResult[0].assigned_categories === 'string' 
-                    ? JSON.parse(leadResult[0].assigned_categories) 
+                assigned_categories = typeof leadResult[0].assigned_categories === 'string'
+                    ? JSON.parse(leadResult[0].assigned_categories)
                     : leadResult[0].assigned_categories;
             } catch(e) {}
         }
@@ -40,20 +55,31 @@ export async function GET(request: Request) {
         const search = searchParams.get('search') || '';
         const { assigned_categories } = leadData;
 
-        if (!assigned_categories || assigned_categories.length === 0) {
-            return NextResponse.json({ activities: [] });
+        const conditions: string[] = [];
+        const params: any[] = [];
+
+        if (assigned_categories && assigned_categories.length > 0) {
+            // Filter by assigned categories
+            const categoryPlaceholders = assigned_categories.map(() => '?').join(',');
+            conditions.push(`category IN (${categoryPlaceholders})`);
+            params.push(...assigned_categories);
+        } else if (leadData.clubId) {
+            // Fallback: no assigned_categories yet, show activities by clubId domain if applicable
+            // (show all activities so the dashboard isn't blank)
+        }
+        // else show nothing — both not set
+
+        if (search) {
+            conditions.push('(title LIKE ? OR code LIKE ?)');
+            params.push(`%${search}%`, `%${search}%`);
         }
 
-        const categoryPlaceholders = assigned_categories.map(() => '?').join(',');
-        const conditions: string[] = [`category IN (${categoryPlaceholders})`];
-        const params: any[] = [...assigned_categories];
-
-        if (search) { 
-            conditions.push('(title LIKE ? OR code LIKE ?)'); 
-            params.push(`%${search}%`, `%${search}%`); 
+        // If neither assigned_categories nor fallback, return empty
+        if (assigned_categories.length === 0 && conditions.length === 0) {
+            return NextResponse.json({ activities: [], assigned_categories: [] });
         }
 
-        const where = `WHERE ${conditions.join(' AND ')}`;
+        const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
         const [rows] = await pool.execute(`
             SELECT id, code, title, description, domain, category,
@@ -79,7 +105,7 @@ export async function POST(request: Request) {
         if (!leadData) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const body = await request.json();
-        const { 
+        const {
             code, title, description, domain, category, points, max_participants, status,
             difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
             purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline
@@ -89,22 +115,22 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'Code, title, domain, category, and points are required' }, { status: 400 });
         }
 
-        if (!leadData.assigned_categories || !leadData.assigned_categories.includes(category)) {
+        if (leadData.assigned_categories && leadData.assigned_categories.length > 0 && !leadData.assigned_categories.includes(category)) {
             return NextResponse.json({ message: 'You can only create activities in your assigned categories' }, { status: 403 });
         }
 
         const safeJson = (val: any) => val ? JSON.stringify(val) : null;
 
         const [result] = await pool.execute(`
-            INSERT INTO activity_catalogue 
-            (code, title, description, domain, category, sdc_credits, max_seats, status, 
-             difficulty, journey_level, activity_pack, faculty_name, sdgs, hours, 
+            INSERT INTO activity_catalogue
+            (code, title, description, domain, category, sdc_credits, max_seats, status,
+             difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
              purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
              created_by, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         `, [
             code, title, description || '', domain, category, points, max_participants || null, status || 'upcoming',
-            difficulty || 'Beginner', journey_level || 'Explorer', activity_pack || null, faculty_name || null, 
+            difficulty || 'Beginner', journey_level || 'Explorer', activity_pack || null, faculty_name || null,
             safeJson(sdgs), hours || 0.0,
             purpose || null, safeJson(learning_outcomes), safeJson(competencies), safeJson(graduate_attributes),
             safeJson(resources), safeJson(assignments), safeJson(timeline),
@@ -119,4 +145,3 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }
-

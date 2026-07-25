@@ -11,14 +11,27 @@ async function getLeadClubData() {
     const decoded = await verifyToken(token);
     if (!decoded || decoded.role !== 'lead') return null;
 
-    // Get assigned categories
-    const [leadResult]: any = await pool.execute(
-        'SELECT l.clubId, l.assigned_categories FROM leads l WHERE l.username = ?',
-        [decoded.username as string]
-    );
+    let leadResult: any[] = [];
+    try {
+        const [rows]: any = await pool.execute(
+            'SELECT l.clubId, l.assigned_categories FROM leads l WHERE l.username = ?',
+            [decoded.username as string]
+        );
+        leadResult = rows;
+    } catch (e: any) {
+        if (e.code === 'ER_BAD_FIELD_ERROR' || e.message?.includes('assigned_categories')) {
+            const [rows]: any = await pool.execute(
+                'SELECT l.clubId FROM leads l WHERE l.username = ?',
+                [decoded.username as string]
+            );
+            leadResult = rows;
+        } else {
+            throw e;
+        }
+    }
 
     if (leadResult.length > 0) {
-        let assigned_categories = [];
+        let assigned_categories: string[] = [];
         if (leadResult[0].assigned_categories) {
             try {
                 assigned_categories = typeof leadResult[0].assigned_categories === 'string' 
