@@ -2,6 +2,7 @@ import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
+import { safeMessage } from '@/lib/apiSecurity';
 
 async function checkAdmin() {
     const cookieStore = await cookies();
@@ -36,7 +37,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         return NextResponse.json(activity);
     } catch (error: any) {
         console.error('Get activity error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }
 
@@ -81,7 +82,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     } catch (error: any) {
         console.error('Update activity error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }
 
@@ -101,6 +102,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
     } catch (error: any) {
         console.error('Delete activity error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }

@@ -1,7 +1,11 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 
-export async function GET() {
+export async function POST(request) {
+    const auth = await requireAuth(['admin']);
+    if (auth.response) return auth.response;
+
     try {
         await pool.query(`
             ALTER TABLE activity_catalogue
@@ -15,6 +19,6 @@ export async function GET() {
         return NextResponse.json({ message: 'Database updated successfully' });
     } catch (error: any) {
         console.error('DB Migration Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Database migration failed') }, { status: 500 });
     }
 }

@@ -112,9 +112,7 @@ export async function GET(request) {
     } catch (error) {
         console.error('Database error:', error);
         return NextResponse.json({ 
-            error: 'Failed to fetch registration data',
-            details: error.message 
-        }, { status: 500 });
+            error: 'Failed to fetch registration data'}, { status: 500 });
     }
 }
 

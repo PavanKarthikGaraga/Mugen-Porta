@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
+import { safeMessage } from '@/lib/apiSecurity';
 
 async function checkAdmin() {
     const cookieStore = await cookies();
@@ -34,6 +35,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'User unlocked successfully' });
     } catch (error: any) {
         console.error('Unlock User Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }

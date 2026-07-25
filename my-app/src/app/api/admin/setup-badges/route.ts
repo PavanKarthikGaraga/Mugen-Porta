@@ -1,7 +1,11 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 
-export async function GET() {
+export async function POST(request) {
+  const auth = await requireAuth(['admin']);
+  if (auth.response) return auth.response;
+
   try {
     // 1. Add schema columns if they don't exist
     try {
@@ -81,6 +85,6 @@ export async function GET() {
     return NextResponse.json({ success: true, message: "Successfully seeded 50 activity badges and 10 milestones.", logs });
   } catch (error: any) {
     console.error(error);
-    return NextResponse.json({ success: false, error: error.message });
+    return NextResponse.json({ success: false, error: safeMessage(error, 'Badge setup failed') });
   }
 }

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { getConnection } from '@/lib/db';
-import { handleApiError } from '@/lib/apiErrorHandler';
+import { safeMessage } from '@/lib/apiSecurity';
 
 export async function POST(request) {
     let connection;
@@ -164,7 +164,10 @@ export async function POST(request) {
 
     } catch (error) {
         console.error('Error submitting admin internal evaluation:', error);
-        return handleApiError(error);
+        return NextResponse.json(
+            { message: safeMessage(error, 'Failed to submit evaluation') },
+            { status: 500 }
+        );
     } finally {
         if (connection) {
             connection.release();

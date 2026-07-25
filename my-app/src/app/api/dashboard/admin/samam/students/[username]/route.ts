@@ -2,6 +2,7 @@ import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
+import { safeMessage } from '@/lib/apiSecurity';
 
 async function checkAdmin() {
     const cookieStore = await cookies();
@@ -87,6 +88,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ usernam
 
     } catch (error: any) {
         console.error('SAMAM student detail error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }

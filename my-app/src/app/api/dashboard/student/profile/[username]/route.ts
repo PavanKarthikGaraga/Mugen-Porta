@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { getSessionUser, canAccessUsername, safeMessage } from '@/lib/apiSecurity';
 
 export async function GET(request, { params }) {
     try {
@@ -10,6 +11,14 @@ export async function GET(request, { params }) {
                 { message: "Username is required" },
                 { status: 400 }
             );
+        }
+
+        const sessionUser = await getSessionUser();
+        if (!sessionUser) {
+            return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+        }
+        if (!canAccessUsername(sessionUser, username, ['admin', 'faculty', 'lead'])) {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         }
 
         // Fetch student profile data
@@ -37,8 +46,7 @@ export async function GET(request, { params }) {
     } catch (error) {
         console.error('Database error:', error);
         return NextResponse.json({
-            error: 'Failed to fetch student profile',
-            details: error.message
+            error: safeMessage(error, 'Failed to fetch student profile')
         }, { status: 500 });
     }
 }
@@ -53,6 +61,19 @@ export async function PATCH(request, { params }) {
                 { message: "Username and careerChoice are required" },
                 { status: 400 }
             );
+        }
+
+        if (typeof careerChoice !== 'string' || careerChoice.length > 200) {
+            return NextResponse.json({ message: "Invalid careerChoice value" }, { status: 400 });
+        }
+
+        const sessionUser = await getSessionUser();
+        if (!sessionUser) {
+            return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+        }
+        // Only the student themselves may update their own career choice.
+        if (sessionUser.username !== username) {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         }
 
         const [result] = await pool.execute(
@@ -71,8 +92,7 @@ export async function PATCH(request, { params }) {
     } catch (error) {
         console.error('Database error:', error);
         return NextResponse.json({
-            error: 'Failed to update student profile',
-            details: error.message
+            error: safeMessage(error, 'Failed to update student profile')
         }, { status: 500 });
     }
 }

@@ -2,6 +2,7 @@ import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
+import { safeMessage } from '@/lib/apiSecurity';
 
 async function checkStudent() {
     const cookieStore = await cookies();
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
 
     } catch (error: any) {
         console.error('Passport GET error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }
 
@@ -174,6 +175,6 @@ export async function PUT(request: Request) {
 
     } catch (error: any) {
         console.error('Passport PUT error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }

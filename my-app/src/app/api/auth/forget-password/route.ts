@@ -2,15 +2,22 @@ import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { SignJWT, jwtVerify } from 'jose';
 import { sendPasswordResetEmail } from '@/lib/email';
+import { checkRateLimit } from '@/lib/rateLimit';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req) {
+    // Prevent this endpoint being used to spam a user's inbox with reset emails.
+    const rateLimit = checkRateLimit(req, 'forget-password', { limit: 5, windowMs: 5 * 60 * 1000 });
+    if (rateLimit.limited) return rateLimit.response;
+
     let db;
     try {
         const { email } = await req.json();
 
-        if (!email) {
+        if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email)) {
             return NextResponse.json(
-                { message: "Email is required" },
+                { message: "A valid email is required" },
                 { status: 400 }
             );
         }
@@ -46,8 +53,9 @@ export async function POST(req) {
         .setExpirationTime('1h')
         .sign(tck);
 
-        // Create reset link
-        const resetLink = `sacac.kluniversity.in/auth/reset-password?token=${resetToken}`;
+        // Create reset link (always the canonical production domain, never localhost)
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sacactivities.kluniversity.in';
+        const resetLink = `${baseUrl}/auth/reset-password?token=${resetToken}`;
 
         // Send email
         const emailResult = await sendPasswordResetEmail(email, user.name, resetLink);

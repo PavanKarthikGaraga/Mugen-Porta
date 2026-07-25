@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
+import { safeMessage } from '@/lib/apiSecurity';
 
 export async function GET(request: Request) {
   try {
@@ -56,6 +57,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, data: grouped });
   } catch (error: any) {
     console.error("GET Student Activities Error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
   }
 }

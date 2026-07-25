@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { getConnection } from '@/lib/db';
+import { clampInt } from '@/lib/apiSecurity';
 
 export async function GET(request) {
     let connection;
@@ -94,8 +95,8 @@ export async function GET(request) {
         }
 
         const { searchParams } = new URL(request.url);
-        const page = parseInt(searchParams.get('page')) || 1;
-        const limit = parseInt(searchParams.get('limit')) || 50;
+        const page = clampInt(searchParams.get('page'), { min: 1, max: 100000, fallback: 1 });
+        const limit = clampInt(searchParams.get('limit'), { min: 1, max: 500, fallback: 50 });
         const search = searchParams.get('search')?.trim() || '';
         const year = searchParams.get('year')?.trim() || '';
         const category = searchParams.get('category')?.trim() || '';

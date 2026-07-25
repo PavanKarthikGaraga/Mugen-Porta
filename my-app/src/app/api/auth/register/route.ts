@@ -2,8 +2,18 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import pool from "@/lib/db";
 import { sendRegistrationEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { safeMessage } from "@/lib/apiSecurity";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9]+$/;
 
 export async function POST(req) {
+    // Registration creates a DB record and sends email - protect against
+    // automated mass-registration / abuse.
+    const rateLimit = checkRateLimit(req, 'register', { limit: 5, windowMs: 60 * 1000 });
+    if (rateLimit.limited) return rateLimit.response;
+
     try {
         const {
             // Personal Details
@@ -40,6 +50,28 @@ export async function POST(req) {
             // ERP Fee Receipt (kept for backward compat but no longer required)
             erpFeeReceiptRef
         } = await req.json();
+
+        // Type / format validation - reject anything that isn't the plain
+        // string shape we expect before it ever reaches a query or email.
+        if (typeof username !== 'string' || typeof name !== 'string' || typeof email !== 'string' || typeof phoneNumber !== 'string') {
+            return NextResponse.json({ message: "Invalid request data" }, { status: 400 });
+        }
+
+        if (!USERNAME_REGEX.test(username) || username.length < 3 || username.length > 20) {
+            return NextResponse.json({ message: "Username must be alphanumeric" }, { status: 400 });
+        }
+
+        if (!EMAIL_REGEX.test(email) || email.length > 150) {
+            return NextResponse.json({ message: "Please provide a valid email address" }, { status: 400 });
+        }
+
+        if (!/^\d{7,15}$/.test(phoneNumber)) {
+            return NextResponse.json({ message: "Please provide a valid phone number" }, { status: 400 });
+        }
+
+        if (name.trim().length < 2 || name.length > 100) {
+            return NextResponse.json({ message: "Please provide a valid name" }, { status: 400 });
+        }
 
         // Check if it's Y22, Y23, Y24, Y25 or Y26 student based on username
         const isY22Student = username.startsWith('22');

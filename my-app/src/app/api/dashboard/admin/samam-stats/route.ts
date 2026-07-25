@@ -111,6 +111,6 @@ export async function GET(request: Request) {
 
     } catch (error: any) {
         console.error('SAMAM admin stats error:', error);
-        return NextResponse.json({ error: 'Failed to fetch SAMAM stats', details: error.message }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to fetch SAMAM stats'}, { status: 500 });
     }
 }

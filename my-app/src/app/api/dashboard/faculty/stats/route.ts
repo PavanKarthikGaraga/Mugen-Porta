@@ -103,8 +103,6 @@ export async function GET(request) {
     } catch (error) {
         console.error('Database error:', error);
         return NextResponse.json({
-            error: 'Failed to fetch faculty dashboard stats',
-            details: error.message
-        }, { status: 500 });
+            error: 'Failed to fetch faculty dashboard stats'}, { status: 500 });
     }
 }

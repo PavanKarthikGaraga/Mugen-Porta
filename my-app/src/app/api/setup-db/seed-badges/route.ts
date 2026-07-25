@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { ACTIVITIES } from '@/app/Data/activities-mock';
+import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 
 const PACK_EMOJI_MAP: Record<string, string> = {
   "Artificial Intelligence": "🧠",
@@ -27,7 +28,10 @@ const LEVEL_RARITY_MAP: Record<string, string> = {
   "fellow": "Legendary"
 };
 
-export async function GET() {
+export async function POST(request) {
+  const auth = await requireAuth(['admin']);
+  if (auth.response) return auth.response;
+
   try {
     let logs = [];
     
@@ -94,6 +98,6 @@ export async function GET() {
     return NextResponse.json({ success: true, message: `Successfully seeded and linked ${ACTIVITIES.length} badges.`, logs });
   } catch (error: any) {
     console.error(error);
-    return NextResponse.json({ success: false, error: error.message });
+    return NextResponse.json({ success: false, error: safeMessage(error, 'Badge seeding failed') });
   }
 }

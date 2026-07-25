@@ -3,6 +3,7 @@ import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { awardBadge } from '@/lib/badgeHelper';
+import { safeMessage } from '@/lib/apiSecurity';
 
 async function getStudentUser() {
     const cookieStore = await cookies();
@@ -37,7 +38,7 @@ export async function GET(
     } catch (error: any) {
         // If table doesn't exist yet return not enrolled gracefully
         if (error.code === 'ER_NO_SUCH_TABLE') return NextResponse.json({ enrolled: false });
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }
 
@@ -144,7 +145,7 @@ export async function POST(
 );`
             }, { status: 500 });
         }
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }
 
@@ -164,6 +165,6 @@ export async function DELETE(
         );
         return NextResponse.json({ success: true, message: 'Unenrolled successfully' });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }

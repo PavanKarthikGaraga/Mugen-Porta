@@ -2,14 +2,37 @@ import { NextResponse } from 'next/server';
 
 import fs from 'fs';
 import path from 'path';
+import { getSessionUser, safeMessage } from '@/lib/apiSecurity';
+
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const ALLOWED_MIME_TYPES = new Set([
+    'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml',
+    'application/pdf'
+]);
 
 export async function POST(request: Request) {
     try {
+        // Uploads must be attributable to a logged-in user - this is a
+        // storage/cost-abuse and content-abuse control, not per-file IDOR
+        // (uploaded files are used as e.g. avatars/resumes across roles).
+        const sessionUser = await getSessionUser();
+        if (!sessionUser) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
         const formData = await request.formData();
         const file = formData.get('file') as File;
-        
+
         if (!file) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+        }
+
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+            return NextResponse.json({ error: 'File is too large. Maximum size is 10MB.' }, { status: 400 });
+        }
+
+        if (!ALLOWED_MIME_TYPES.has(file.type)) {
+            return NextResponse.json({ error: 'Unsupported file type.' }, { status: 400 });
         }
 
         const accountId = process.env.R2_ACCOUNT_ID;
@@ -67,6 +90,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ url: fileUrl });
     } catch (error: any) {
         console.error("Upload error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Upload failed') }, { status: 500 });
     }
 }

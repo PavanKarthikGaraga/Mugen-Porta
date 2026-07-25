@@ -1,9 +1,57 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FiDownload, FiShare2, FiCheckCircle, FiLock, FiExternalLink, FiFilter } from "react-icons/fi";
+import { toast } from "sonner";
 import SearchBar from "@/app/components/dashboard/SearchBar";
 
 const BRAND = "rgb(151,0,3)";
+const VERIFY_ORIGIN = "https://sacactivities.kluniversity.in";
+
+// Escape special XML characters so any text embedded in a downloaded SVG
+// always parses correctly (unescaped `&`, `<`, etc. caused
+// "xmlParseEntityRef: no name" errors when opening the file).
+function xmlEscape(str) {
+  return (str ?? "").toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+// Always derive the verification link from the canonical production domain
+// + verificationId - never trust a possibly-stale `shareUrl` value that may
+// have been generated on localhost during development.
+function getVerifyUrl(badge) {
+  if (badge?.verificationId) return `${VERIFY_ORIGIN}/badges/verify/${badge.verificationId}`;
+  return badge?.shareUrl || VERIFY_ORIGIN;
+}
+
+function buildLinkedInPostText(badge) {
+  const verifyUrl = getVerifyUrl(badge);
+  const lines = [
+    `🎖️ I'm proud to share that I've earned the "${(badge.name || "").replace(/&/g, "and")}" digital badge from KL University's SAMAM Activity Management Program!`,
+    "",
+    badge.description ? `📌 ${badge.description.replace(/&/g, "and")}` : "",
+    "",
+    Array.isArray(badge.competencies) && badge.competencies.length > 0 ? `🧠 Skills: ${badge.competencies.join(" · ")}` : "",
+    "",
+    `🏛️ Issued by: KL University | SAMAM Program`,
+    `🔒 Verify this credential: ${verifyUrl}`,
+    "",
+    "#SAMAM #KLUniversity #DigitalBadge #Achievement",
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 const RARITY_CONFIG: Record<string, any> = {
   Common:    { label: "Common",    stars: 1, ring: "#9CA3AF", glow: "rgba(156,163,175,0.15)" },
@@ -153,7 +201,7 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
                 </div>
                 <p className="text-[10px] text-gray-500 break-all">{badge.verificationId}</p>
                 <a
-                  href={badge.shareUrl}
+                  href={getVerifyUrl(badge)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-0.5 text-[10px] font-medium mt-1 hover:underline"
@@ -168,64 +216,96 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
           {/* Actions (Only if unlocked) */}
           {badge.issuedOn && (
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => {
                     const rarity = RARITY_CONFIG[badge.rarity] || RARITY_CONFIG.Common;
-                    const verifyUrl = `https://sacactivities.kluniversity.in/badges/verify/${badge.verificationId}`;
-                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="900" viewBox="0 0 800 900">
+                    const verifyUrl = getVerifyUrl(badge);
+                    // All dynamic text is XML-escaped below - unescaped `&`/`<`/`>`
+                    // in a badge name or description previously produced an
+                    // invalid SVG file ("xmlParseEntityRef: no name").
+                    const safeName = xmlEscape(badge.name);
+                    const safeDomain = xmlEscape(badge.domain || "");
+                    const safeRarity = xmlEscape(badge.rarity || "Common");
+                    const safeVerificationId = xmlEscape(badge.verificationId || "");
+                    const safeVerifyUrl = xmlEscape(verifyUrl);
+                    const safeIcon = badge.icon || "🏅";
+                    const bg = badge.bg || "#EFF6FF";
+                    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960">
                       <defs>
                         <radialGradient id="bg" cx="30%" cy="30%">
-                          <stop offset="0%" stop-color="${badge.bg || '#EFF6FF'}"/>
-                          <stop offset="100%" stop-color="${badge.bg || '#EFF6FF'}cc"/>
+                          <stop offset="0%" stop-color="${bg}"/>
+                          <stop offset="100%" stop-color="${bg}cc"/>
                         </radialGradient>
                       </defs>
-                      <rect width="800" height="900" fill="#ffffff" rx="32"/>
-                      <rect x="20" y="20" width="760" height="860" fill="url(#bg)" rx="24" stroke="${rarity.ring}" stroke-width="3"/>
-                      <circle cx="400" cy="280" r="180" fill="${badge.bg || '#EFF6FF'}" stroke="${rarity.ring}" stroke-width="6" opacity="0.6"/>
-                      <text x="400" y="300" dominant-baseline="middle" text-anchor="middle" font-size="180">${badge.icon || '🏅'}</text>
-                      <text x="400" y="520" dominant-baseline="middle" text-anchor="middle" font-size="42" font-family="Georgia,serif" font-weight="bold" fill="#111827">${badge.name}</text>
-                      <text x="400" y="575" dominant-baseline="middle" text-anchor="middle" font-size="24" font-family="sans-serif" fill="#6B7280">KL University • SAMAM Program</text>
-                      <rect x="160" y="620" width="480" height="2" fill="${rarity.ring}" opacity="0.4"/>
-                      <text x="400" y="660" dominant-baseline="middle" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#9CA3AF">Verified Digital Credential</text>
-                      <text x="400" y="690" dominant-baseline="middle" text-anchor="middle" font-size="16" font-family="monospace" fill="#6B7280">${badge.verificationId}</text>
-                      <text x="400" y="730" dominant-baseline="middle" text-anchor="middle" font-size="14" font-family="sans-serif" fill="#9CA3AF">${verifyUrl}</text>
-                      <text x="400" y="800" dominant-baseline="middle" text-anchor="middle" font-size="20" font-family="sans-serif" font-weight="bold" fill="${rarity.ring}">${badge.rarity || 'Common'} Badge</text>
+                      <rect width="800" height="960" fill="#ffffff" rx="32"/>
+                      <rect x="20" y="20" width="760" height="920" fill="url(#bg)" rx="24" stroke="${rarity.ring}" stroke-width="3"/>
+                      <rect x="0" y="0" width="800" height="64" fill="${rarity.ring}" rx="24"/>
+                      <rect x="0" y="40" width="800" height="24" fill="${rarity.ring}"/>
+                      <text x="400" y="36" dominant-baseline="middle" text-anchor="middle" font-size="16" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="3">KL UNIVERSITY — SAMAM PROGRAM</text>
+                      <circle cx="400" cy="300" r="170" fill="${bg}" stroke="${rarity.ring}" stroke-width="6" opacity="0.6"/>
+                      <text x="400" y="320" dominant-baseline="middle" text-anchor="middle" font-size="170">${safeIcon}</text>
+                      <text x="400" y="520" dominant-baseline="middle" text-anchor="middle" font-size="40" font-family="Georgia,serif" font-weight="bold" fill="#111827">${safeName}</text>
+                      <text x="400" y="565" dominant-baseline="middle" text-anchor="middle" font-size="20" font-family="sans-serif" fill="#6B7280">${safeDomain}</text>
+                      <rect x="290" y="595" width="220" height="34" rx="17" fill="${rarity.ring}"/>
+                      <text x="400" y="612" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="2">${safeRarity.toUpperCase()} BADGE</text>
+                      <rect x="160" y="660" width="480" height="2" fill="${rarity.ring}" opacity="0.4"/>
+                      <text x="400" y="695" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF" letter-spacing="2">VERIFIED DIGITAL CREDENTIAL</text>
+                      <rect x="150" y="715" width="500" height="40" rx="8" fill="${bg}"/>
+                      <text x="400" y="736" dominant-baseline="middle" text-anchor="middle" font-size="15" font-family="monospace" font-weight="bold" fill="${rarity.ring}">${safeVerificationId}</text>
+                      <text x="400" y="780" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF">${safeVerifyUrl}</text>
+                      <text x="400" y="920" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF">© ${new Date().getFullYear()} KL University · SAMAM Activity Management Program</text>
                     </svg>`;
                     const a = document.createElement("a");
                     a.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-                    a.download = `${badge.name.replace(/\s+/g, '_')}_Badge.svg`;
+                    a.download = `${(badge.name || "Badge").replace(/[^a-zA-Z0-9]/g, "_")}_SAMAM_Badge.svg`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
+                    toast.success("Badge downloaded!");
                 }}
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
                 <FiDownload size={13} /> Download
               </button>
-              <button 
+              <button
                 onClick={async () => {
+                    const verifyUrl = getVerifyUrl(badge);
+                    const copied = await copyToClipboard(verifyUrl);
+                    if (copied) toast.success("Verification link copied to clipboard!");
                     if (navigator.share) {
                         await navigator.share({
                             title: `I earned the ${badge.name} badge!`,
                             text: `Check out my new verified digital badge from KL University!`,
-                            url: badge.shareUrl
+                            url: verifyUrl
                         }).catch(() => {});
-                    } else {
-                        navigator.clipboard.writeText(badge.shareUrl);
-                        alert("Verification link copied to clipboard!");
+                    } else if (!copied) {
+                        toast.error("Could not copy the link. Please copy it manually.");
                     }
                 }}
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
                 <FiShare2 size={13} /> Share
               </button>
-              <a
-                href={`https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(`🎖️ I'm proud to share that I've earned the "${badge.name.replace(/&/g, 'and')}" digital badge from KL University's SAMAM Activity Management Program!\n\n📌 ${badge.description ? badge.description.replace(/&/g, 'and') : ''}\n\n🔒 Verify this credential: ${badge.shareUrl}\n\n#SAMAM #KLUniversity #DigitalBadge #Achievement`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={async () => {
+                    // Auto-generate a professional LinkedIn post, copy it to
+                    // the clipboard (LinkedIn's share intent doesn't reliably
+                    // pre-fill post text), confirm via toast, then open
+                    // LinkedIn pre-filled as a best-effort.
+                    const postText = buildLinkedInPostText(badge);
+                    const copied = await copyToClipboard(postText);
+                    if (copied) {
+                        toast.success("Post text copied! Paste it on LinkedIn.");
+                    } else {
+                        toast.error("Could not copy post text automatically. You can still share on LinkedIn.");
+                    }
+                    const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(postText)}`;
+                    window.open(linkedInUrl, "_blank", "noopener,noreferrer");
+                }}
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-colors"
                 style={{ backgroundColor: "#0077B5" }}
               >
                 Add to LinkedIn
-              </a>
+              </button>
             </div>
           )}
 

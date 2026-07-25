@@ -2,6 +2,7 @@ import pool from "@/lib/db";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
+import { safeMessage } from '@/lib/apiSecurity';
 
 export async function GET(req: Request) {
   try {
@@ -62,6 +63,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ success: true, submissions: rows, total });
   } catch (error: any) {
     console.error("Lead Submissions GET error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { safeMessage } from '@/lib/apiSecurity';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +10,7 @@ export async function GET(
 ) {
     try {
         const { verificationId } = await params;
-        if (!verificationId) {
+        if (!verificationId || typeof verificationId !== 'string' || verificationId.length > 100) {
             return NextResponse.json({ message: 'Verification ID is required' }, { status: 400 });
         }
 
@@ -133,6 +134,6 @@ export async function GET(
 
     } catch (error: any) {
         console.error('Badge verification error:', error);
-        return NextResponse.json({ error: 'Verification failed', details: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Verification failed') }, { status: 500 });
     }
 }

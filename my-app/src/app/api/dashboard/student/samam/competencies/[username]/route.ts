@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { getSessionUser, canAccessUsername, safeMessage } from '@/lib/apiSecurity';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,6 +8,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
     try {
         const { username } = await params;
         if (!username) return NextResponse.json({ message: "Username is required" }, { status: 400 });
+
+        const sessionUser = await getSessionUser();
+        if (!sessionUser) return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+        if (!canAccessUsername(sessionUser, username, ['admin', 'faculty', 'lead'])) {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+        }
 
         // Fetch all definitions joined with student scores
         const [rows] = await pool.execute(`
@@ -54,7 +61,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
     } catch (error: any) {
         console.error('Database error fetching competencies:', error);
-        return NextResponse.json({ error: 'Failed to fetch competencies', details: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Failed to fetch competencies') }, { status: 500 });
     }
 }
 

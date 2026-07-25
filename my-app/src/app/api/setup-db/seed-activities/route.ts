@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { ACTIVITIES } from '@/app/Data/activities-mock';
+import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 
-export async function POST() {
+export async function POST(request) {
+  const auth = await requireAuth(['admin']);
+  if (auth.response) return auth.response;
+
   let connection;
   try {
     connection = await pool.getConnection();
@@ -83,7 +87,7 @@ export async function POST() {
   } catch (error: any) {
     if (connection) await connection.rollback();
     console.error("Database Seeding Error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: safeMessage(error, 'Activity seeding failed') }, { status: 500 });
   } finally {
     if (connection) connection.release();
   }

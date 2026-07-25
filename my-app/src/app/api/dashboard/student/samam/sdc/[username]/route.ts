@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { getSessionUser, canAccessUsername, safeMessage } from '@/lib/apiSecurity';
 
 const DOMAIN_MAP: Record<string, { label: string, color: string }> = {
     'TEC': { label: 'Technical', color: '#2563EB' },
@@ -13,6 +14,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
     try {
         const { username } = await params;
         if (!username) return NextResponse.json({ message: "Username is required" }, { status: 400 });
+
+        const sessionUser = await getSessionUser();
+        if (!sessionUser) return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+        if (!canAccessUsername(sessionUser, username, ['admin', 'faculty', 'lead'])) {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+        }
 
         const sdcData = {
             total: 0,
@@ -103,6 +110,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
     } catch (error: any) {
         console.error('Database error fetching SDC stats:', error);
-        return NextResponse.json({ error: 'Failed to fetch SDC stats', details: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Failed to fetch SDC stats') }, { status: 500 });
     }
 }

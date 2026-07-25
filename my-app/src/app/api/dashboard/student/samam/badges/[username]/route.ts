@@ -1,12 +1,21 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { getSessionUser, canAccessUsername, safeMessage } from '@/lib/apiSecurity';
 
 export const dynamic = 'force-dynamic';
+
+const PRODUCTION_VERIFY_BASE_URL = 'https://sacactivities.kluniversity.in/badges/verify';
 
 export async function GET(request: Request, { params }: { params: Promise<{ username: string }> }) {
     try {
         const { username } = await params;
         if (!username) return NextResponse.json({ message: "Username is required" }, { status: 400 });
+
+        const sessionUser = await getSessionUser();
+        if (!sessionUser) return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+        if (!canAccessUsername(sessionUser, username, ['admin', 'faculty', 'lead'])) {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+        }
 
         // 1. Fetch earned badges
         const [earnedRows] = await pool.execute(`
@@ -34,7 +43,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             competencies: typeof row.competencies === 'string' ? JSON.parse(row.competencies) : row.competencies,
             description: row.description,
             verificationId: row.verification_id,
-            shareUrl: `https://sacactivities.kluniversity.in/badges/verify/${row.verification_id}`
+            // Always derive the share URL from the canonical production
+            // domain + verificationId. Never trust the raw `share_url`
+            // column, which may have been written during local dev and
+            // could contain a localhost URL.
+            shareUrl: row.verification_id ? `${PRODUCTION_VERIFY_BASE_URL}/${row.verification_id}` : null
         }));
 
         const earnedBadgeIds = earnedRows.map((row: any) => row.badge_id);
@@ -135,6 +148,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
     } catch (error: any) {
         console.error('Database error fetching badges:', error);
-        return NextResponse.json({ error: 'Failed to fetch badges', details: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Failed to fetch badges') }, { status: 500 });
     }
 }

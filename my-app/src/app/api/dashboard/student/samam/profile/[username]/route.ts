@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { getSessionUser, canAccessUsername, safeMessage } from '@/lib/apiSecurity';
 
 export async function GET(request: Request, { params }: { params: Promise<{ username: string }> }) {
     try {
@@ -7,6 +8,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
         if (!username) {
             return NextResponse.json({ message: "Username is required" }, { status: 400 });
+        }
+
+        const sessionUser = await getSessionUser();
+        if (!sessionUser) {
+            return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+        }
+        if (!canAccessUsername(sessionUser, username, ['admin', 'faculty', 'lead'])) {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         }
 
         // Fetch student base data + SAMAM extended profile
@@ -57,6 +66,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
     } catch (error: any) {
         console.error('Database error fetching SAMAM profile:', error);
-        return NextResponse.json({ error: 'Failed to fetch SAMAM profile', details: error.message }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Failed to fetch SAMAM profile') }, { status: 500 });
     }
 }

@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { requireAuth, safeMessage } from '@/lib/apiSecurity';
+
+// Columns callers are allowed to modify via PUT. Anything not in this list
+// (e.g. `id`, `code`, `badge_id`, `created_at`) is silently ignored, so a
+// caller can never use this endpoint to repoint a badge or forge an id via
+// mass assignment, even though the endpoint is admin-gated.
+const EDITABLE_ACTIVITY_FIELDS = new Set([
+    'title', 'description', 'domain', 'category', 'purpose', 'difficulty', 'level',
+    'sdc_credits', 'maxEnrollment', 'outcomes', 'timeline', 'resources', 'assignments',
+    'competencies', 'career', 'sdgs', 'ga', 'facultyFeedback', 'reflection',
+    'national_mission', 'pack'
+]);
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -57,22 +69,28 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ success: true, data: activity });
   } catch (error: any) {
     console.error("GET Activity Error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: safeMessage(error, 'Failed to fetch activity') }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth(['admin', 'faculty']);
+  if (auth.response) return auth.response;
+
   try {
     const { id } = await params;
     const data = await request.json();
-    
-    // The user might send partial updates, so we only update the fields provided
+
+    // The user might send partial updates, so we only update the fields provided.
+    // Only columns in the explicit allow-list can be written - this blocks
+    // mass-assignment attacks where extra/unexpected JSON keys are used to
+    // overwrite columns the caller shouldn't control (e.g. badge_id).
     const fields = [];
     const values = [];
 
     for (const [key, value] of Object.entries(data)) {
-      if (key === 'id' || key === 'created_at') continue;
-      
+      if (!EDITABLE_ACTIVITY_FIELDS.has(key)) continue;
+
       fields.push(`${key} = ?`);
       
       // Handle JSON stringification for array/object fields
@@ -95,22 +113,25 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ success: true, affectedRows: result.affectedRows });
   } catch (error: any) {
     console.error("PUT Activity Error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: safeMessage(error, 'Failed to update activity') }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth(['admin']);
+  if (auth.response) return auth.response;
+
   try {
     const { id } = await params;
-    
+
     const [result]: any = await pool.query(
-      `DELETE FROM activity_catalogue WHERE code = ? OR id = ?`, 
+      `DELETE FROM activity_catalogue WHERE code = ? OR id = ?`,
       [id, id]
     );
 
     return NextResponse.json({ success: true, affectedRows: result.affectedRows });
   } catch (error: any) {
     console.error("DELETE Activity Error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: safeMessage(error, 'Failed to delete activity') }, { status: 500 });
   }
 }

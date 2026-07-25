@@ -2,6 +2,7 @@ import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
+import { clampInt, safeMessage } from '@/lib/apiSecurity';
 
 async function checkAdmin(request: Request) {
     const cookieStore = await cookies();
@@ -19,12 +20,12 @@ export async function GET(request: Request) {
         }
 
         const { searchParams } = new URL(request.url);
-        const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '20');
-        const search = searchParams.get('search') || '';
-        const level = searchParams.get('level') || '';
-        const year = searchParams.get('year') || '';
-        const branch = searchParams.get('branch') || '';
+        const page = clampInt(searchParams.get('page'), { min: 1, max: 100000, fallback: 1 });
+        const limit = clampInt(searchParams.get('limit'), { min: 1, max: 100, fallback: 20 });
+        const search = (searchParams.get('search') || '').slice(0, 100);
+        const level = (searchParams.get('level') || '').slice(0, 50);
+        const year = (searchParams.get('year') || '').slice(0, 20);
+        const branch = (searchParams.get('branch') || '').slice(0, 100);
         const offset = (page - 1) * limit;
 
         const conditions: string[] = [];
@@ -77,6 +78,6 @@ export async function GET(request: Request) {
 
     } catch (error: any) {
         console.error('SAMAM students list error:', error);
-        return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
+        return NextResponse.json({ error: safeMessage(error, 'Failed to fetch students') }, { status: 500 });
     }
 }

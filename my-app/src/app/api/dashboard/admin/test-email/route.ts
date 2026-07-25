@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { sendTestWelcomeEmail } from '@/lib/email';
+import { safeMessage } from '@/lib/apiSecurity';
 
 export async function POST(request: Request) {
     try {
@@ -30,6 +31,6 @@ export async function POST(request: Request) {
         }
     } catch (error: any) {
         console.error('Test Email Error:', error);
-        return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
+        return NextResponse.json({ message: 'Internal Server Error', error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }
