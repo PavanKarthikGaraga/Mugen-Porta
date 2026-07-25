@@ -416,7 +416,14 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             </nav>
 
             {/* Sidebar footer */}
-            <div className="px-4 py-3 border-t border-gray-700/50">
+            <div className="px-4 py-3 border-t border-gray-700/50 space-y-1">
+              <button
+                onClick={() => { setChangePasswordOpen(true); setSidebarOpen(false); }}
+                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all duration-150"
+              >
+                <FiLock size={15} />
+                Change Password
+              </button>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all duration-150"

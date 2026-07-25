@@ -68,7 +68,6 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Students',          href: '/dashboard/admin/students', icon: FiFolder  },
         { name: 'SAMAM Dashboard',   href: '/dashboard/admin/samam',    icon: FiAward   },
         { name: 'Award Badges/Points', href: '/dashboard/admin/samam/award', icon: FiStar },
-        { name: 'Reset Password',    href: '/dashboard/admin/reset-password', icon: FiKey },
 
         // { name: 'Final Submissions', href: '/dashboard/admin/final-reports', icon: FiFileText },
         { name: 'Controls',          href: '/dashboard/admin/controls', icon: FiSettings }
@@ -79,6 +78,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Database Query', href: '/dashboard/admin/dev/db-query', icon: FiDatabase },
         { name: 'AI Bans', href: '/dashboard/admin/dev/ai-bans', icon: FiAlertCircle },
         { name: 'Lead Activities', href: '/dashboard/admin/dev/lead-activities', icon: FiAward },
+        { name: 'Reset Password', href: '/dashboard/admin/dev/reset-password', icon: FiKey },
     ];
 
     const handleLogout = async () => {

@@ -1,5 +1,6 @@
 "use client"
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { FiSearch, FiKey, FiUser, FiMail, FiShield, FiCheckCircle } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -11,8 +12,12 @@ const ROLE_BADGE: Record<string, string> = {
 };
 
 const RESET_PASSWORD = "sac@123";
+const API_BASE = "/api/dashboard/admin/dev/reset-password";
 
 export default function AdminResetPasswordPage() {
+    const router = useRouter();
+    const [hasAccess, setHasAccess] = useState<boolean | null>(null); // null = checking
+
     const [username, setUsername] = useState("");
     const [searching, setSearching] = useState(false);
     const [notFound, setNotFound] = useState(false);
@@ -20,6 +25,28 @@ export default function AdminResetPasswordPage() {
     const [resetting, setResetting] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [lastReset, setLastReset] = useState<string | null>(null);
+
+    // Client-side gate matching the other /dashboard/admin/dev/* pages —
+    // the API route enforces this too (verifyDevAccess), this just avoids
+    // flashing the page content at a non-dev admin before redirecting.
+    const checkAccess = useCallback(async () => {
+        try {
+            const res = await fetch('/api/auth/me');
+            if (!res.ok) { setHasAccess(false); router.push('/dashboard/admin'); return; }
+            const data = await res.json();
+            const envUsers = process.env.NEXT_PUBLIC_DEV_USERNAME ? process.env.NEXT_PUBLIC_DEV_USERNAME.split(',') : [];
+            const defaultUsers = ['2300032048', '2400030188', '240030188'];
+            const devUsernames = [...new Set([...envUsers, ...defaultUsers])].map((u) => u.trim());
+            const devOk = devUsernames.includes(data.user.username);
+            setHasAccess(devOk);
+            if (!devOk) router.push('/dashboard/admin');
+        } catch {
+            setHasAccess(false);
+            router.push('/dashboard/admin');
+        }
+    }, [router]);
+
+    useEffect(() => { checkAccess(); }, [checkAccess]);
 
     const search = async () => {
         const trimmed = username.trim();
@@ -32,7 +59,7 @@ export default function AdminResetPasswordPage() {
         setUser(null);
         setLastReset(null);
         try {
-            const res = await fetch(`/api/dashboard/admin/reset-password?username=${encodeURIComponent(trimmed)}`);
+            const res = await fetch(`${API_BASE}?username=${encodeURIComponent(trimmed)}`);
             const data = await res.json();
             if (!res.ok) {
                 toast.error(data.error || "Search failed");
@@ -54,7 +81,7 @@ export default function AdminResetPasswordPage() {
         if (!user) return;
         setResetting(true);
         try {
-            const res = await fetch("/api/dashboard/admin/reset-password", {
+            const res = await fetch(API_BASE, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username: user.username }),
@@ -74,10 +101,22 @@ export default function AdminResetPasswordPage() {
         }
     };
 
+    if (hasAccess === null) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
+            </div>
+        );
+    }
+    if (!hasAccess) return null; // redirecting
+
     return (
         <div className="space-y-6 max-w-2xl">
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Reset Password</h1>
+                <div className="flex items-center gap-2">
+                    <h1 className="text-2xl font-bold text-gray-900">Reset Password</h1>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-900 text-white uppercase tracking-wide">Dev Only</span>
+                </div>
                 <p className="text-sm text-gray-500 mt-1">
                     Look up any administrator, lead, faculty member, or student by username and reset their
                     password to the default (<span className="font-mono font-semibold text-gray-700">{RESET_PASSWORD}</span>).

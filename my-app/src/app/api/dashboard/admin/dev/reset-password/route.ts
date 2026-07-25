@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import pool from '@/lib/db';
-import { requireAuth, safeMessage } from '@/lib/apiSecurity';
+import { verifyDevAccess } from '../../auth-helper';
+import { safeMessage } from '@/lib/apiSecurity';
 
 // Fixed reset password requested by the admin team. Deliberately does NOT
 // need to satisfy the strength regex used by the self-service change-password
@@ -9,12 +10,16 @@ import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 const RESET_PASSWORD = 'sac@123';
 const SALT_ROUNDS = 12;
 
-// GET /api/dashboard/admin/reset-password?username=... — look up a user by
-// username across every role (admin/lead/faculty/student) so the admin can
+// Dev-only: this resets ANY user's password (including other admins), so it
+// is gated behind the same DEV_USERNAMES allowlist as the rest of
+// /dashboard/admin/dev/*, not just role === 'admin'.
+
+// GET /api/dashboard/admin/dev/reset-password?username=... — look up a user
+// by username across every role (admin/lead/faculty/student) so the dev can
 // confirm who they're about to reset before doing it.
 export async function GET(request: Request) {
-    const auth = await requireAuth(['admin']);
-    if (auth.response) return auth.response;
+    const auth = await verifyDevAccess(request);
+    if (!auth.success) return auth.response;
 
     try {
         const { searchParams } = new URL(request.url);
@@ -40,11 +45,11 @@ export async function GET(request: Request) {
     }
 }
 
-// POST /api/dashboard/admin/reset-password — resets the given user's
+// POST /api/dashboard/admin/dev/reset-password — resets the given user's
 // password to the fixed default. Works across every role.
 export async function POST(request: Request) {
-    const auth = await requireAuth(['admin']);
-    if (auth.response) return auth.response;
+    const auth = await verifyDevAccess(request);
+    if (!auth.success) return auth.response;
 
     try {
         const body = await request.json().catch(() => ({}));
