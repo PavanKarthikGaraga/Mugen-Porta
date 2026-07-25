@@ -8,6 +8,7 @@ import {
   FiCalendar, FiAward, FiTarget, FiGlobe, FiTrendingUp,
   FiDownload, FiExternalLink, FiZap, FiFlag, FiVideo, FiLink
 } from "react-icons/fi";
+import { toast } from "sonner";
 import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";
 import ProgressCard from "@/app/components/dashboard/ProgressCard";
 import EnrollModal from "@/app/components/dashboard/EnrollModal";
@@ -53,12 +54,24 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   const [reflectionText, setReflectionText] = useState("");
   const [reflectionSaved, setReflectionSaved] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
-  
+
   // Discussion state
   const [discussions, setDiscussions] = useState<any[]>([]);
   const [newDiscussion, setNewDiscussion] = useState("");
   const [postingDiscussion, setPostingDiscussion] = useState(false);
   const [submittingAssignment, setSubmittingAssignment] = useState(false);
+
+  // Assignment submissions (real, persisted via R2 upload + DB record)
+  const [submissions, setSubmissions] = useState<Record<string, any>>({});
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+
+  const fetchSubmissions = () => {
+    fetch(`/api/activities/${code}/submissions`)
+      .then(r => r.json())
+      .then(d => { if (d.success) setSubmissions(d.submissions || {}); })
+      .catch(() => {});
+  };
 
   useEffect(() => {
     fetch(`/api/activities/${code}`)
@@ -91,10 +104,11 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
 
     fetch(`/api/activities/${code}/enroll`)
       .then(r => r.json())
-      .then(d => { 
+      .then(d => {
         if (d.enrolled) {
           setEnrolled(true);
           setActivity((prev: any) => prev ? { ...prev, userAttendance: d.userAttendance } : prev);
+          fetchSubmissions();
         }
       })
       .catch(() => {});
@@ -169,16 +183,51 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   };
 
 
-  const handleAssignmentSubmit = (id: string) => {
+  const handleAssignmentSubmit = async (id: string) => {
+    if (!selectedFile) {
+      toast.error("Please choose a file to upload first.");
+      return;
+    }
     setSubmittingAssignment(true);
-    setTimeout(() => {
-      setSubmittingAssignment(false);
-      setSelectedTask(null);
-      setActivity((prev: any) => ({
+    setUploadingFile(true);
+    try {
+      // 1. Upload the file to R2 (falls back to local storage if R2 env vars
+      //    aren't configured) via the shared upload endpoint.
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || !uploadData.url) {
+        toast.error(uploadData.error || "File upload failed");
+        return;
+      }
+      setUploadingFile(false);
+
+      // 2. Record the submission against this assignment.
+      const res = await fetch(`/api/activities/${code}/submissions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignmentId: String(id), fileUrl: uploadData.url, fileName: selectedFile.name }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast.error(data.error || "Failed to record submission");
+        return;
+      }
+
+      toast.success("Assignment submitted successfully!");
+      setSubmissions((prev) => ({
         ...prev,
-        assignments: prev.assignments.map((a: any) => a.id === id ? { ...a, submitted: true } : a)
+        [String(id)]: { fileUrl: uploadData.url, fileName: selectedFile.name, submittedAt: new Date().toISOString() },
       }));
-    }, 1000);
+      setSelectedTask(null);
+      setSelectedFile(null);
+    } catch (err) {
+      toast.error("Network error while submitting. Please try again.");
+    } finally {
+      setSubmittingAssignment(false);
+      setUploadingFile(false);
+    }
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading activity details...</div>;
@@ -424,39 +473,60 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
           {/* ASSIGNMENTS */}
           {activeTab === "assignments" && (
             <div className="space-y-3">
-              {activity.assignments.map((a) => (
-                <div
-                  key={a.id}
-                  className={`p-4 border rounded-xl ${a.submitted ? "border-emerald-200 bg-emerald-50/30" : "border-gray-200"}`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{a.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Due: {a.dueDate}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {a.grade && (
-                        <span className="text-sm font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                          {a.grade}
-                        </span>
-                      )}
-                      {a.submitted ? (
-                        <span className="flex items-center gap-1 text-xs text-emerald-700">
-                          <FiCheckCircle size={13} /> Submitted
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => setSelectedTask(a)}
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-colors"
-                          style={{ backgroundColor: BRAND }}
-                        >
-                          View
-                        </button>
-                      )}
+              {activity.assignments.map((a) => {
+                const submission = submissions[String(a.id)];
+                const isSubmitted = !!submission;
+                return (
+                  <div
+                    key={a.id}
+                    className={`p-4 border rounded-xl ${isSubmitted ? "border-emerald-200 bg-emerald-50/30" : "border-gray-200"}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{a.title}</p>
+                        {a.description && <p className="text-xs text-gray-500 mt-1 leading-relaxed">{a.description}</p>}
+                        <p className="text-xs text-gray-400 mt-0.5">Due: {a.dueDate}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5">
+                        {a.grade && (
+                          <span className="text-sm font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                            {a.grade}
+                          </span>
+                        )}
+                        {isSubmitted ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="flex items-center gap-1 text-xs font-medium text-emerald-700">
+                              <FiCheckCircle size={13} /> Submitted
+                            </span>
+                            <a
+                              href={submission.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] text-blue-600 hover:underline truncate max-w-[160px]"
+                            >
+                              {submission.fileName || "View file"}
+                            </a>
+                            <button
+                              onClick={() => setSelectedTask(a)}
+                              className="text-[11px] text-gray-500 hover:text-gray-800 underline"
+                            >
+                              Resubmit
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setSelectedTask(a)}
+                            className="text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-colors"
+                            style={{ backgroundColor: BRAND }}
+                          >
+                            Submit
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -635,8 +705,8 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                 <h3 className="text-xl font-bold text-gray-900">{selectedTask.title}</h3>
                 <p className="text-sm text-gray-500 mt-1">Due: {selectedTask.dueDate}</p>
               </div>
-              <button 
-                onClick={() => setSelectedTask(null)}
+              <button
+                onClick={() => { setSelectedTask(null); setSelectedFile(null); }}
                 className="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
               >
                 ✕
@@ -645,16 +715,30 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             <div className="p-6 bg-gray-50">
               <div className="bg-white p-4 rounded-xl border mb-6 shadow-sm">
                 <p className="text-sm text-gray-700 leading-relaxed">
-                  Please complete the task as described by your mentor and submit your work below. Ensure your submission is formatted correctly.
+                  {selectedTask.description || "Please complete the task as described by your mentor and submit your work below. Ensure your submission is formatted correctly."}
                 </p>
               </div>
+
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Upload your work</label>
+              <label className="flex items-center gap-2 w-full p-3 mb-4 border-2 border-dashed rounded-xl cursor-pointer bg-white hover:bg-gray-50 transition-colors text-sm text-gray-600">
+                <FiFileText size={16} className="text-gray-400 flex-shrink-0" />
+                <span className="truncate">{selectedFile ? selectedFile.name : "Choose a PDF or image file…"}</span>
+                <input
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  disabled={submittingAssignment}
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                />
+              </label>
+
               <button
                 onClick={() => handleAssignmentSubmit(selectedTask.id)}
-                disabled={submittingAssignment}
-                className="w-full py-3 rounded-xl text-white font-bold transition-all shadow-md flex justify-center items-center gap-2"
+                disabled={submittingAssignment || !selectedFile}
+                className="w-full py-3 rounded-xl text-white font-bold transition-all shadow-md flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ backgroundColor: BRAND }}
               >
-                {submittingAssignment ? "Submitting..." : "Submit Task"}
+                {submittingAssignment ? (uploadingFile ? "Uploading file…" : "Submitting…") : "Submit Task"}
               </button>
             </div>
           </div>

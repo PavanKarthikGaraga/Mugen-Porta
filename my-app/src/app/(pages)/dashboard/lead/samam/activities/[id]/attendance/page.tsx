@@ -1,20 +1,22 @@
 "use client";
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { FiArrowLeft, FiCheck, FiSave, FiAlertCircle } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiSave, FiAlertCircle, FiDownload } from "react-icons/fi";
 import Link from "next/link";
 import { toast } from "sonner";
 
 export default function ActivityAttendancePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  
+
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState<any[]>([]);
   const [absentees, setAbsentees] = useState<Set<string>>(new Set());
   const [verifyMode, setVerifyMode] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [attendanceMarked, setAttendanceMarked] = useState(false);
+  const [activityInfo, setActivityInfo] = useState<{ code: string; title: string }>({ code: id, title: id });
 
   useEffect(() => {
     fetch(`/api/dashboard/lead/samam/activities/${id}/attendance`)
@@ -22,6 +24,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
       .then(d => {
         if (d.success) {
           setStudents(d.students);
+          if (d.activity) setActivityInfo(d.activity);
           if (d.students.length > 0 && d.students[0].attendance_marked) {
             setAttendanceMarked(true);
           }
@@ -35,6 +38,87 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
         setLoading(false);
       });
   }, [id]);
+
+  const handleExportExcel = async () => {
+    if (students.length === 0) {
+      toast.error("No enrolled students to export");
+      return;
+    }
+    setExporting(true);
+    try {
+      const ExcelJS = (await import("exceljs")).default;
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet("Attendance");
+
+      sheet.columns = [{ width: 20 }, { width: 32 }, { width: 16 }];
+
+      // Row 1: activity title + code, merged across all 3 columns.
+      sheet.mergeCells("A1:C1");
+      const titleCell = sheet.getCell("A1");
+      titleCell.value = `${activityInfo.title} (${activityInfo.code})`;
+      titleCell.font = { bold: true, size: 14, color: { argb: "FFFFFFFF" } };
+      titleCell.alignment = { horizontal: "center", vertical: "middle" };
+      titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF970003" } };
+      sheet.getRow(1).height = 30;
+
+      // Row 2: header row.
+      const headerRow = sheet.addRow(["Student ID", "Student Name", "Status (P/A)"]);
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: "FF111827" } };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE5E7EB" } };
+        cell.border = {
+          top: { style: "thin", color: { argb: "FFD1D5DB" } },
+          bottom: { style: "thin", color: { argb: "FFD1D5DB" } },
+          left: { style: "thin", color: { argb: "FFD1D5DB" } },
+          right: { style: "thin", color: { argb: "FFD1D5DB" } },
+        };
+      });
+      headerRow.height = 20;
+
+      // Data rows.
+      students.forEach((s) => {
+        const isAbsent = attendanceMarked ? s.attendance_percentage === 0 : absentees.has(s.username);
+        const row = sheet.addRow([s.username, s.name, isAbsent ? "A" : "P"]);
+        row.getCell(1).alignment = { horizontal: "center" };
+        row.getCell(2).alignment = { horizontal: "left" };
+        const statusCell = row.getCell(3);
+        statusCell.alignment = { horizontal: "center", vertical: "middle" };
+        statusCell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        statusCell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: isAbsent ? "FFDC2626" : "FF16A34A" },
+        };
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: "thin", color: { argb: "FFE5E7EB" } },
+            bottom: { style: "thin", color: { argb: "FFE5E7EB" } },
+            left: { style: "thin", color: { argb: "FFE5E7EB" } },
+            right: { style: "thin", color: { argb: "FFE5E7EB" } },
+          };
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${activityInfo.code}_Attendance.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Attendance sheet exported");
+    } catch (err) {
+      toast.error("Failed to export attendance sheet");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const toggleAbsent = (username: string) => {
     if (attendanceMarked) return;
@@ -81,15 +165,24 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
             <FiArrowLeft />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Mark Attendance: {id}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Mark Attendance: {activityInfo.title || id}</h1>
             <p className="text-sm text-gray-500 mt-1">Check the box if the student is ABSENT.</p>
           </div>
         </div>
-        {attendanceMarked && (
-          <span className="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-lg text-sm font-bold flex items-center gap-2">
-            <FiCheck /> Attendance Locked
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportExcel}
+            disabled={exporting || students.length === 0}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FiDownload /> {exporting ? "Exporting…" : "Export to Excel"}
+          </button>
+          {attendanceMarked && (
+            <span className="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-lg text-sm font-bold flex items-center gap-2">
+              <FiCheck /> Attendance Locked
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">

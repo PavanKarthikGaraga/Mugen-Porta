@@ -48,17 +48,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         }
 
         const categoryPlaceholders = lead.assigned_categories.map(() => '?').join(',');
-        
+
         // Ensure the activity belongs to one of their assigned categories
         const [actCheck]: any = await pool.execute(`
-            SELECT id FROM activity_catalogue 
+            SELECT id, code, title FROM activity_catalogue
             WHERE code = ? AND category IN (${categoryPlaceholders})
         `, [id, ...lead.assigned_categories]);
-        
+
         if (actCheck.length === 0) {
              return NextResponse.json({ message: 'Activity not found or not in your assigned categories' }, { status: 403 });
         }
-        
+
         // Fetch ALL students enrolled in this activity
         const [rows] = await pool.execute(`
             SELECT ae.id, ae.username, s.name, ae.attendance_percentage, ae.attendance_marked
@@ -68,7 +68,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             ORDER BY s.name ASC
         `, [id]);
 
-        return NextResponse.json({ success: true, students: rows });
+        return NextResponse.json({
+            success: true,
+            students: rows,
+            activity: { code: actCheck[0].code, title: actCheck[0].title },
+        });
 
     } catch (error: any) {
         console.error('Fetch attendance error:', error);
