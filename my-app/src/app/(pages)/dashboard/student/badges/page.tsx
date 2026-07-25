@@ -1,26 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
 import {
-  FiDownload, FiShare2, FiCheckCircle, FiLock, FiExternalLink, FiFilter,
-  FiCpu, FiBookOpen, FiHeart, FiZap, FiActivity, FiAward, FiSearch,
+  FiDownload, FiShare2, FiCheckCircle, FiLock, FiExternalLink, FiFilter, FiSearch,
 } from "react-icons/fi";
 import { toast } from "sonner";
 import SearchBar from "@/app/components/dashboard/SearchBar";
+import { BadgeIcon, badgeIconSvgMarkup } from "@/lib/badgeIcons";
 
 const BRAND = "rgb(151,0,3)";
 const VERIFY_ORIGIN = "https://sacactivities.kluniversity.in";
 const ISSUER_NAME = "KL SAC (Student Activity Center)";
 const ISSUER_NAME_SHORT = "KL SAC";
-
-// The DB's `icon` column still stores emoji glyphs for some badge domains —
-// the in-app wallet UI uses a professional icon per domain instead so badges
-// read as credentials, not stickers. (The downloadable credential SVG keeps
-// the DB-sourced icon, which is a separate migration.)
-const DOMAIN_ICON: Record<string, any> = { TEC: FiCpu, LCH: FiBookOpen, ESO: FiHeart, IIE: FiZap, HWB: FiActivity };
-function BadgeIcon({ domain, size = 24 }: { domain?: string; size?: number }) {
-  const Icon = DOMAIN_ICON[domain] || FiAward;
-  return <Icon size={size} />;
-}
 
 // Escape special XML characters so any text embedded in a downloaded SVG
 // always parses correctly (unescaped `&`, `<`, etc. caused
@@ -126,7 +116,6 @@ function buildBadgeSvg(badge, rarityRing, qrDataUrl) {
   const safeRarity = xmlEscape(badge.rarity || "Common");
   const safeVerificationId = xmlEscape(badge.verificationId || "");
   const safeVerifyUrl = xmlEscape(verifyUrl);
-  const safeIcon = badge.icon || "🏅";
   const bg = badge.bg || "#EFF6FF";
   const ringDark = shadeHex(rarityRing, -0.25);
 
@@ -204,7 +193,7 @@ function buildBadgeSvg(badge, rarityRing, qrDataUrl) {
   <circle cx="${W / 2}" cy="${medallionCy}" r="${medallionR}" fill="url(#medallion)" filter="url(#medallionGlow)"/>
   <circle cx="${W / 2}" cy="${medallionCy}" r="${medallionR}" fill="none" stroke="${rarityRing}" stroke-width="5"/>
   <circle cx="${W / 2}" cy="${medallionCy}" r="${medallionR - 18}" fill="none" stroke="${rarityRing}" stroke-width="1.5" opacity="0.45" stroke-dasharray="2 6"/>
-  <text x="${W / 2}" y="${medallionCy + 8}" text-anchor="middle" dominant-baseline="middle" font-size="150">${safeIcon}</text>
+  ${badgeIconSvgMarkup(badge.icon, badge.domain, W / 2, medallionCy, 150, ringDark)}
 
   <!-- Name / domain / rarity -->
   ${nameSvg}
@@ -356,7 +345,7 @@ function BadgeCard({ badge, onSelect }: { badge: any, onSelect: (b: any) => void
         className="w-16 h-16 rounded-full flex items-center justify-center text-3xl border-2 transition-transform group-hover:scale-110"
         style={{ backgroundColor: badge.bg, borderColor: rarity.ring, color: badge.color || BRAND }}
       >
-        <BadgeIcon domain={badge.domain} size={26} />
+        <BadgeIcon icon={badge.icon} domain={badge.domain} size={26} />
       </div>
       {/* Rarity stars */}
       <div className="flex gap-0.5">
@@ -391,7 +380,7 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
             className="w-20 h-20 rounded-full flex items-center justify-center mx-auto border-4 mb-3"
             style={{ backgroundColor: badge.bg, borderColor: rarity.ring, color: badge.color || BRAND }}
           >
-            <BadgeIcon domain={badge.domain} size={34} />
+            <BadgeIcon icon={badge.icon} domain={badge.domain} size={34} />
           </div>
           <h2 className="text-xl font-bold text-gray-900">{badge.name}</h2>
           <p className="text-xs font-semibold mt-1" style={{ color: rarity.ring }}>
@@ -688,7 +677,7 @@ export default function BadgesPage() {
                 className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col items-center gap-2 text-center opacity-70 hover:opacity-100 hover:shadow-md transition-all cursor-pointer"
               >
                 <div className="w-14 h-14 rounded-full flex items-center justify-center text-gray-500 bg-gray-200 border-2 border-gray-300 grayscale relative">
-                  <BadgeIcon domain={badge.domain} size={22} />
+                  <BadgeIcon icon={badge.icon} domain={badge.domain} size={22} />
                   {badge.progress > 0 && badge.progress < 100 && (
                     <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full ring-2 ring-white">
                       {badge.progress}%

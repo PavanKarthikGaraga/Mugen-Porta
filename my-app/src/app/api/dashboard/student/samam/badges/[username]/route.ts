@@ -34,7 +34,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             id: row.student_badge_id,
             code: row.code,
             name: row.name,
-            icon: row.icon || '🏅',
+            // Raw stored value; the client resolves it to a vector icon
+            // (see my-app/src/lib/badgeIcons.tsx), falling back to the
+            // badge's domain when it's empty or a legacy emoji.
+            icon: row.icon || null,
             domain: row.domain,
             rarity: row.rarity,
             color: row.color,
@@ -130,7 +133,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             return {
                 id: row.id,
                 name: row.name,
-                icon: row.icon || '🔒',
+                icon: row.icon || null,
                 rarity: row.rarity,
                 type: type,
                 requirement: row.requirement || `Complete requirements for ${row.name}`,
