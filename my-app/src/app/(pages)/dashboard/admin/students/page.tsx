@@ -115,20 +115,26 @@ export default function AdminStudents() {
         }
     };
 
+    const [downloading, setDownloading] = useState(false);
+
     const downloadExcel = async () => {
+        setDownloading(true);
         try {
-            // Build query parameters with current filters
+            // `all=true` bypasses the normal 500-row page-size clamp on the API
+            // (that clamp is what was capping this export at 500 students
+            // before) and sends back every student matching the currently
+            // applied filters, not just whatever's on the current page.
             const params = new URLSearchParams({
-                limit: '10000', // High limit to get all matching students
+                all: 'true',
                 search: searchTerm,
                 domain: filters.domain,
                 year: filters.year,
                 residenceType: filters.residenceType,
                 clubId: filters.clubId,
-                campus: filters.campus
+                campus: filters.campus,
+                careerChoice: filters.careerChoice
             });
 
-            // Fetch all students with current filters applied
             const response = await fetch(`/api/dashboard/admin/students?${params}`);
             const data = await response.json();
 
@@ -138,36 +144,89 @@ export default function AdminStudents() {
 
             const allStudents = data.data.students;
 
-            // Create CSV content
-            const headers = [
-                'ID', 'Username', 'Name', 'Gender', 'Year', 'Campus', 'Phone',
-                'Residence Type', 'Hostel Name', 'Domain', 'Project ID', 'Club', 'State', 'District'
+            const ExcelJS = (await import("exceljs")).default;
+            const workbook = new ExcelJS.Workbook();
+            const sheet = workbook.addWorksheet("Students");
+
+            const columns = [
+                { header: 'S.No', key: 'sno', width: 8 },
+                { header: 'Username', key: 'username', width: 16 },
+                { header: 'Name', key: 'name', width: 26 },
+                { header: 'Email', key: 'email', width: 30 },
+                { header: 'Gender', key: 'gender', width: 10 },
+                { header: 'Year', key: 'year', width: 8 },
+                { header: 'Branch', key: 'branch', width: 14 },
+                { header: 'Domain', key: 'domain', width: 10 },
+                { header: 'Club', key: 'club', width: 24 },
+                { header: 'Campus', key: 'campus', width: 20 },
+                { header: 'Phone', key: 'phone', width: 14 },
+                { header: 'Residence Type', key: 'residenceType', width: 16 },
+                { header: 'Hostel Name', key: 'hostelName', width: 18 },
+                { header: 'State', key: 'state', width: 16 },
+                { header: 'District', key: 'district', width: 16 },
+                { header: 'Career Choice', key: 'careerChoice', width: 24 },
             ];
+            sheet.columns = columns;
 
-            const csvContent = [
-                headers.join(','),
-                ...allStudents.map(student => [
-                    student.id,
-                    student.username,
-                    `"${student.name}"`,
-                    student.gender,
-                    student.year,
-                    `"${student.campus || 'N/A'}"`,
-                    student.phoneNumber,
-                    student.residenceType,
-                    `"${student.hostelName || 'N/A'}"`,
-                    student.selectedDomain,
-                    `"${student.clubName || 'N/A'}"`,
-                    student.state,
-                    student.district
-                ].join(','))
-            ].join('\n');
+            // Header row styling
+            const headerRow = sheet.getRow(1);
+            headerRow.eachCell((cell) => {
+                cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+                cell.alignment = { horizontal: "center", vertical: "middle" };
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF970003" } };
+                cell.border = {
+                    top: { style: "thin", color: { argb: "FFD1D5DB" } },
+                    bottom: { style: "thin", color: { argb: "FFD1D5DB" } },
+                    left: { style: "thin", color: { argb: "FFD1D5DB" } },
+                    right: { style: "thin", color: { argb: "FFD1D5DB" } },
+                };
+            });
+            headerRow.height = 22;
+            sheet.views = [{ state: "frozen", ySplit: 1 }];
+            sheet.autoFilter = { from: "A1", to: "P1" };
 
-            const blob = new Blob([csvContent], { type: 'text/csv' });
+            allStudents.forEach((student, index) => {
+                const row = sheet.addRow({
+                    sno: index + 1,
+                    username: student.username,
+                    name: student.name,
+                    email: student.email,
+                    gender: student.gender,
+                    year: student.year,
+                    branch: student.branch || 'N/A',
+                    domain: student.selectedDomain,
+                    club: student.clubName || 'Not Assigned',
+                    campus: student.campus || 'N/A',
+                    phone: student.phoneNumber,
+                    residenceType: student.residenceType,
+                    hostelName: student.hostelName || 'N/A',
+                    state: student.state,
+                    district: student.district,
+                    careerChoice: student.careerChoice || 'N/A',
+                });
+                row.eachCell((cell) => {
+                    cell.border = {
+                        top: { style: "thin", color: { argb: "FFE5E7EB" } },
+                        bottom: { style: "thin", color: { argb: "FFE5E7EB" } },
+                        left: { style: "thin", color: { argb: "FFE5E7EB" } },
+                        right: { style: "thin", color: { argb: "FFE5E7EB" } },
+                    };
+                });
+                if (index % 2 === 1) {
+                    row.eachCell((cell) => {
+                        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF9FAFB" } };
+                    });
+                }
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `students_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `students_${new Date().toISOString().split('T')[0]}.xlsx`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -177,6 +236,8 @@ export default function AdminStudents() {
         } catch (error) {
             console.error('Error downloading Excel:', error);
             toast.error('Error downloading file');
+        } finally {
+            setDownloading(false);
         }
     };
 
@@ -212,10 +273,11 @@ export default function AdminStudents() {
                     </button>
                     <button
                         onClick={downloadExcel}
-                        className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        disabled={downloading}
+                        className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        <FiDownload className="h-4 w-4" />
-                        <span>Download CSV</span>
+                        <FiDownload className={`h-4 w-4 ${downloading ? 'animate-bounce' : ''}`} />
+                        <span>{downloading ? 'Preparing…' : 'Download Excel'}</span>
                     </button>
                 </div>
             </div>

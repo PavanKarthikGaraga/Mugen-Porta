@@ -53,7 +53,7 @@ export async function GET(request) {
         const careerChoice = searchParams.get('careerChoice')?.trim() || '';
 
         const offset = all ? 0 : (page - 1) * limit;
-        const actualLimit = all ? 10000 : limit; // Large limit for "all" case
+        const actualLimit = all ? 20000 : limit; // High ceiling for "all" (export) case — bypasses the normal 500-row page-size clamp
 
         // Handle single student fetch by username
         if (username) {
