@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { getSessionUser, canAccessUsername, safeMessage } from '@/lib/apiSecurity';
+import { presentableRecognition } from '@/lib/badgeVerification';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,10 +20,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
         // 1. Fetch earned badges
         const [earnedRows] = await pool.execute(`
-            SELECT 
+            SELECT
                 sb.id as student_badge_id, sb.verification_id, sb.share_url, sb.earned_from, sb.issued_on,
-                bd.id as badge_id, bd.code, bd.name, bd.icon, bd.domain, bd.rarity, 
-                bd.color, bd.bg_color, bd.description, bd.competencies
+                bd.id as badge_id, bd.code, bd.name, bd.icon, bd.domain, bd.rarity,
+                bd.color, bd.bg_color, bd.description, bd.competencies, bd.requirement
             FROM student_badges sb
             JOIN badge_definitions bd ON sb.badge_id = bd.id
             WHERE sb.username = ?
@@ -39,7 +40,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             color: row.color,
             bg: row.bg_color,
             issuedOn: new Date(row.issued_on).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            earnedFrom: row.earned_from,
+            // Never surface "Awarded by admin: <username>" verbatim - fall
+            // back to the badge's requirement text instead.
+            earnedFrom: presentableRecognition(row.earned_from, row.requirement, row.name),
             competencies: typeof row.competencies === 'string' ? JSON.parse(row.competencies) : row.competencies,
             description: row.description,
             verificationId: row.verification_id,

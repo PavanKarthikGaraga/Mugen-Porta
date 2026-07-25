@@ -53,6 +53,99 @@ async function copyToClipboard(text) {
   }
 }
 
+// Builds a professional, Credly-style credential card as an SVG string.
+// All dynamic text is XML-escaped so the SVG always parses correctly.
+function buildBadgeSvg(badge, rarityRing) {
+  const verifyUrl = getVerifyUrl(badge);
+  const safeName = xmlEscape(badge.name);
+  const safeDomain = xmlEscape(badge.domain || "");
+  const safeRarity = xmlEscape(badge.rarity || "Common");
+  const safeVerificationId = xmlEscape(badge.verificationId || "");
+  const safeVerifyUrl = xmlEscape(verifyUrl);
+  const safeIcon = badge.icon || "🏅";
+  const bg = badge.bg || "#EFF6FF";
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960">
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="25%">
+      <stop offset="0%" stop-color="${bg}"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="960" fill="#ffffff" rx="32"/>
+  <rect x="20" y="20" width="760" height="920" fill="url(#bg)" rx="24" stroke="${rarityRing}" stroke-width="3"/>
+  <rect x="0" y="0" width="800" height="64" fill="${rarityRing}" rx="24"/>
+  <rect x="0" y="40" width="800" height="24" fill="${rarityRing}"/>
+  <text x="400" y="36" dominant-baseline="middle" text-anchor="middle" font-size="16" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="3">KL UNIVERSITY — SAMAM PROGRAM</text>
+  <circle cx="400" cy="300" r="170" fill="${bg}" stroke="${rarityRing}" stroke-width="6" opacity="0.6"/>
+  <circle cx="400" cy="300" r="150" fill="${bg}" stroke="${rarityRing}" stroke-width="1.5" opacity="0.5"/>
+  <text x="400" y="320" dominant-baseline="middle" text-anchor="middle" font-size="170">${safeIcon}</text>
+  <text x="400" y="520" dominant-baseline="middle" text-anchor="middle" font-size="40" font-family="Georgia,serif" font-weight="bold" fill="#111827">${safeName}</text>
+  <text x="400" y="565" dominant-baseline="middle" text-anchor="middle" font-size="20" font-family="sans-serif" fill="#6B7280">${safeDomain}</text>
+  <rect x="290" y="595" width="220" height="34" rx="17" fill="${rarityRing}"/>
+  <text x="400" y="612" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="2">${safeRarity.toUpperCase()} BADGE</text>
+  <rect x="160" y="660" width="480" height="2" fill="${rarityRing}" opacity="0.4"/>
+  <text x="400" y="695" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF" letter-spacing="2">VERIFIED DIGITAL CREDENTIAL</text>
+  <rect x="150" y="715" width="500" height="40" rx="8" fill="${bg}"/>
+  <text x="400" y="736" dominant-baseline="middle" text-anchor="middle" font-size="15" font-family="monospace" font-weight="bold" fill="${rarityRing}">${safeVerificationId}</text>
+  <text x="400" y="780" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF">${safeVerifyUrl}</text>
+  <text x="400" y="920" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF">© ${new Date().getFullYear()} KL University · SAMAM Activity Management Program</text>
+</svg>`;
+}
+
+// Rasterizes an SVG string to a PNG data URL via an offscreen canvas.
+// Uses a Blob URL (not a raw data: URI) for the intermediate <img> src -
+// Safari in particular does not reliably paint/decode `data:image/svg+xml`
+// images, which was the root cause of the previous "download" silently
+// producing nothing.
+function rasterizeSvg(svgString: string, width: number, height: number, scale = 2): Promise<{ pngDataUrl: string; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = width * scale;
+        canvas.height = height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, 0, 0, width, height);
+        const pngDataUrl = canvas.toDataURL("image/png", 1.0);
+        URL.revokeObjectURL(url);
+        resolve({ pngDataUrl, width, height });
+      } catch (err) {
+        URL.revokeObjectURL(url);
+        reject(err);
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to render badge image"));
+    };
+    img.src = url;
+  });
+}
+
+// Generates and downloads a professional, Credly-style PDF credential.
+async function downloadBadgePdf(badge, rarityRing) {
+  const svg = buildBadgeSvg(badge, rarityRing);
+  const { pngDataUrl } = await rasterizeSvg(svg, 800, 960, 2.5);
+
+  const { jsPDF } = await import("jspdf");
+  // Custom page size matching the badge card's aspect ratio (in points),
+  // so the PDF is a clean digital credential rather than a badge floating
+  // in the middle of a generic A4 sheet.
+  const pageWidth = 400;
+  const pageHeight = 480;
+  const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: [pageWidth, pageHeight] });
+  pdf.addImage(pngDataUrl, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
+
+  const fileName = `${(badge.name || "Badge").replace(/[^a-zA-Z0-9]/g, "_")}_SAMAM_Badge.pdf`;
+  pdf.save(fileName);
+}
+
 const RARITY_CONFIG: Record<string, any> = {
   Common:    { label: "Common",    stars: 1, ring: "#9CA3AF", glow: "rgba(156,163,175,0.15)" },
   Rare:      { label: "Rare",      stars: 2, ring: "#2563EB", glow: "rgba(37,99,235,0.15)"   },
@@ -121,6 +214,7 @@ function BadgeCard({ badge, onSelect }: { badge: any, onSelect: (b: any) => void
 
 function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
   const rarity = RARITY_CONFIG[badge.rarity] || RARITY_CONFIG.Common;
+  const [downloading, setDownloading] = useState(false);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div
@@ -217,55 +311,22 @@ function BadgeModal({ badge, onClose }: { badge: any, onClose: () => void }) {
           {badge.issuedOn && (
             <div className="flex gap-2">
               <button
-                onClick={() => {
-                    const rarity = RARITY_CONFIG[badge.rarity] || RARITY_CONFIG.Common;
-                    const verifyUrl = getVerifyUrl(badge);
-                    // All dynamic text is XML-escaped below - unescaped `&`/`<`/`>`
-                    // in a badge name or description previously produced an
-                    // invalid SVG file ("xmlParseEntityRef: no name").
-                    const safeName = xmlEscape(badge.name);
-                    const safeDomain = xmlEscape(badge.domain || "");
-                    const safeRarity = xmlEscape(badge.rarity || "Common");
-                    const safeVerificationId = xmlEscape(badge.verificationId || "");
-                    const safeVerifyUrl = xmlEscape(verifyUrl);
-                    const safeIcon = badge.icon || "🏅";
-                    const bg = badge.bg || "#EFF6FF";
-                    const svg = `<?xml version="1.0" encoding="UTF-8"?>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960">
-                      <defs>
-                        <radialGradient id="bg" cx="30%" cy="30%">
-                          <stop offset="0%" stop-color="${bg}"/>
-                          <stop offset="100%" stop-color="${bg}cc"/>
-                        </radialGradient>
-                      </defs>
-                      <rect width="800" height="960" fill="#ffffff" rx="32"/>
-                      <rect x="20" y="20" width="760" height="920" fill="url(#bg)" rx="24" stroke="${rarity.ring}" stroke-width="3"/>
-                      <rect x="0" y="0" width="800" height="64" fill="${rarity.ring}" rx="24"/>
-                      <rect x="0" y="40" width="800" height="24" fill="${rarity.ring}"/>
-                      <text x="400" y="36" dominant-baseline="middle" text-anchor="middle" font-size="16" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="3">KL UNIVERSITY — SAMAM PROGRAM</text>
-                      <circle cx="400" cy="300" r="170" fill="${bg}" stroke="${rarity.ring}" stroke-width="6" opacity="0.6"/>
-                      <text x="400" y="320" dominant-baseline="middle" text-anchor="middle" font-size="170">${safeIcon}</text>
-                      <text x="400" y="520" dominant-baseline="middle" text-anchor="middle" font-size="40" font-family="Georgia,serif" font-weight="bold" fill="#111827">${safeName}</text>
-                      <text x="400" y="565" dominant-baseline="middle" text-anchor="middle" font-size="20" font-family="sans-serif" fill="#6B7280">${safeDomain}</text>
-                      <rect x="290" y="595" width="220" height="34" rx="17" fill="${rarity.ring}"/>
-                      <text x="400" y="612" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="2">${safeRarity.toUpperCase()} BADGE</text>
-                      <rect x="160" y="660" width="480" height="2" fill="${rarity.ring}" opacity="0.4"/>
-                      <text x="400" y="695" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF" letter-spacing="2">VERIFIED DIGITAL CREDENTIAL</text>
-                      <rect x="150" y="715" width="500" height="40" rx="8" fill="${bg}"/>
-                      <text x="400" y="736" dominant-baseline="middle" text-anchor="middle" font-size="15" font-family="monospace" font-weight="bold" fill="${rarity.ring}">${safeVerificationId}</text>
-                      <text x="400" y="780" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF">${safeVerifyUrl}</text>
-                      <text x="400" y="920" dominant-baseline="middle" text-anchor="middle" font-size="13" font-family="sans-serif" fill="#9CA3AF">© ${new Date().getFullYear()} KL University · SAMAM Activity Management Program</text>
-                    </svg>`;
-                    const a = document.createElement("a");
-                    a.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-                    a.download = `${(badge.name || "Badge").replace(/[^a-zA-Z0-9]/g, "_")}_SAMAM_Badge.svg`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    toast.success("Badge downloaded!");
+                disabled={downloading}
+                onClick={async () => {
+                    setDownloading(true);
+                    const toastId = toast.loading("Preparing your badge PDF…");
+                    try {
+                        await downloadBadgePdf(badge, rarity.ring);
+                        toast.success("Badge downloaded as PDF!", { id: toastId });
+                    } catch (err) {
+                        console.error(err);
+                        toast.error("Could not generate the PDF. Please try again.", { id: toastId });
+                    } finally {
+                        setDownloading(false);
+                    }
                 }}
-                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
-                <FiDownload size={13} /> Download
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                <FiDownload size={13} /> {downloading ? "Generating…" : "Download PDF"}
               </button>
               <button
                 onClick={async () => {
