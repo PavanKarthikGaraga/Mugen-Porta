@@ -221,7 +221,7 @@ export default function CareerPage() {
       {/* ── AI Role Match Scan ── */}
       <DashboardCard
         title={<span className="flex items-center gap-2"><Sparkles size={18} className="text-amber-500" /> AI Career Role Match</span>}
-        subtitle="Groq AI scans your full profile and ranks the roles you're best suited for right now"
+        subtitle="SAMAM AI scans your full profile and ranks the roles you're best suited for right now"
         action={
           <button
             onClick={runRoleMatchAnalysis}
@@ -237,7 +237,7 @@ export default function CareerPage() {
         {analyzingRoles ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
             <Loader2 className="animate-spin mb-3" size={26} style={{ color: BRAND }} />
-            <p className="text-sm font-medium">Groq AI is analyzing your competencies, activities, and passport…</p>
+            <p className="text-sm font-medium">SAMAM AI is analyzing your competencies, activities, and passport…</p>
           </div>
         ) : !roleMatches ? (
           <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
@@ -327,7 +327,7 @@ export default function CareerPage() {
         {analyzingFit ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
             <Loader2 className="animate-spin mb-3" size={26} style={{ color: BRAND }} />
-            <p className="text-sm font-medium">Groq AI is checking your fit for &ldquo;{targetRole}&rdquo;…</p>
+            <p className="text-sm font-medium">SAMAM AI is checking your fit for &ldquo;{targetRole}&rdquo;…</p>
           </div>
         ) : fitAnalysis ? (
           <div className="space-y-5">
