@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from './lib/jwt';
 
-export async function proxy(request) {
+export async function middleware(request) {
     const pathname = request.nextUrl.pathname;
 
     // Check if the request is for auth routes (login, register, etc.)
@@ -35,12 +35,12 @@ export async function proxy(request) {
 
         try {
             const payload = await verifyToken(token);
-            
+
             // Check if token verification failed (expired or invalid)
             if (!payload) {
                 return NextResponse.redirect(new URL('/auth/login', request.url));
             }
-            
+
             // Check if accessing admin routes
             if (pathname.startsWith('/dashboard/admin')) {
                 if (payload.role !== 'admin') {

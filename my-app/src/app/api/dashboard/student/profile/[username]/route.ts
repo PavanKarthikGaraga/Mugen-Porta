@@ -71,8 +71,8 @@ export async function PATCH(request, { params }) {
         if (!sessionUser) {
             return NextResponse.json({ message: "Authentication required" }, { status: 401 });
         }
-        // Only the student themselves may update their own career choice.
-        if (sessionUser.username !== username) {
+        // Only the student themselves or an admin may update the career choice.
+        if (!canAccessUsername(sessionUser, username, ['admin'])) {
             return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         }
 
