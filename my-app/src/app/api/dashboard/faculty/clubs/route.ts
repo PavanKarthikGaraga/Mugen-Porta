@@ -55,8 +55,6 @@ export async function GET(request) {
     } catch (error) {
         console.error('Database error:', error);
         return NextResponse.json({
-            error: 'Failed to fetch faculty clubs',
-            details: error.message
-        }, { status: 500 });
+            error: 'Failed to fetch faculty clubs'}, { status: 500 });
     }
 }

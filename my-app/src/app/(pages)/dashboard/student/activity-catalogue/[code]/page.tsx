@@ -1,15 +1,18 @@
 "use client";
-import { useState, use } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   FiArrowLeft, FiStar, FiClock, FiUser, FiCheckCircle,
   FiBookOpen, FiFileText, FiMessageSquare, FiEdit3,
   FiCalendar, FiAward, FiTarget, FiGlobe, FiTrendingUp,
-  FiDownload, FiExternalLink, FiZap, FiFlag,
+  FiDownload, FiExternalLink, FiZap, FiFlag, FiVideo, FiLink,
+  FiAlertTriangle, FiBriefcase, FiHeart
 } from "react-icons/fi";
-import { ACTIVITIES, DOMAINS, LEVELS } from "@/app/Data/activities-mock";
+import { toast } from "sonner";
+import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";
 import ProgressCard from "@/app/components/dashboard/ProgressCard";
+import EnrollModal from "@/app/components/dashboard/EnrollModal";
 
 const BRAND = "rgb(151,0,3)";
 
@@ -21,7 +24,7 @@ const TABS = [
   { id: "discussion",  label: "Discussion",  icon: FiMessageSquare },
   { id: "reflection",  label: "Reflection",  icon: FiEdit3 },
   { id: "timeline",    label: "Timeline",    icon: FiCalendar },
-  { id: "faculty",     label: "Faculty",     icon: FiUser },
+  { id: "mentor",      label: "Mentor",      icon: FiUser },
   { id: "impact",      label: "Impact",      icon: FiTrendingUp },
 ];
 
@@ -31,19 +34,212 @@ const DIFFICULTY_COLOR = {
   Advanced:     { bg: "#FEF2F2", color: "#DC2626" },
 };
 
-export default function ActivityDetailPage({ params }) {
+function Section({ title, children }: { title: string, children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+export default function ActivityDetailPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
-  const activity = ACTIVITIES.find((a) => a.code === code);
-
-  if (!activity) return notFound();
-
+  const [activity, setActivity] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [enrolled, setEnrolled] = useState(false);
+  const [enrollLoading, setEnrollLoading] = useState(false);
+  const [enrolledCount, setEnrolledCount] = useState(0);
+  const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
-  const [reflectionText, setReflectionText] = useState(activity.reflection || "");
+  const [reflectionText, setReflectionText] = useState("");
   const [reflectionSaved, setReflectionSaved] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+
+  // Discussion state
+  const [discussions, setDiscussions] = useState<any[]>([]);
+  const [newDiscussion, setNewDiscussion] = useState("");
+  const [postingDiscussion, setPostingDiscussion] = useState(false);
+  const [submittingAssignment, setSubmittingAssignment] = useState(false);
+
+  // Assignment submissions (real, persisted via R2 upload + DB record)
+  const [submissions, setSubmissions] = useState<Record<string, any>>({});
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+
+  const fetchSubmissions = () => {
+    fetch(`/api/activities/${code}/submissions`)
+      .then(r => r.json())
+      .then(d => { if (d.success) setSubmissions(d.submissions || {}); })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetch(`/api/activities/${code}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const l = data.data.level?.toLowerCase() || '';
+          const calcHours = l === 'explorer' ? 25 :
+                            l === 'foundation' ? 30 :
+                            l === 'practitioner' ? 35 :
+                            l === 'leader' ? 40 : 50;
+
+          const mapped = {
+            ...data.data,
+            name: data.data.title,
+            enrolledCount: data.data.enrolledCount || 0,
+            maxEnrollment: data.data.max_seats,
+            credits: data.data.sdc_credits,
+            hours: calcHours
+          };
+          setActivity(mapped);
+          setReflectionText(mapped.reflection || "");
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching activity:", err);
+        setLoading(false);
+      });
+
+    fetch(`/api/activities/${code}/enroll`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.enrolled) {
+          setEnrolled(true);
+          setActivity((prev: any) => prev ? { ...prev, userAttendance: d.userAttendance } : prev);
+          fetchSubmissions();
+        }
+      })
+      .catch(() => {});
+  }, [code]);
+
+  useEffect(() => {
+    if (activeTab === "discussion" && code) {
+      fetch(`/api/activities/${code}/discussion`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.success) setDiscussions(d.messages);
+        })
+        .catch(err => console.error("Error fetching discussions:", err));
+    }
+  }, [activeTab, code]);
+
+  const handlePostDiscussion = async () => {
+    if (!newDiscussion.trim()) return;
+    setPostingDiscussion(true);
+    try {
+      const res = await fetch(`/api/activities/${code}/discussion`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: newDiscussion })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNewDiscussion("");
+        // Re-fetch discussions
+        const updated = await fetch(`/api/activities/${code}/discussion`).then(r => r.json());
+        if (updated.success) setDiscussions(updated.messages);
+      }
+    } catch (err) {
+      console.error("Error posting discussion:", err);
+    }
+    setPostingDiscussion(false);
+  };
+
+  const handleEnroll = async () => {
+    setEnrollLoading(true);
+    try {
+      const res = await fetch(`/api/activities/${code}/enroll`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setEnrolled(true);
+        setEnrolledCount(c => c + 1);
+        alert(data.message);
+      } else {
+        alert(data.message || "Enrollment failed");
+      }
+    } catch {
+      alert("Network error. Please try again.");
+    }
+    setEnrollLoading(false);
+    setEnrollModalOpen(false);
+  };
+
+  const handleUnenroll = async () => {
+    if (!confirm("Are you sure you want to unenroll from this activity?")) return;
+    setEnrollLoading(true);
+    try {
+      const res = await fetch(`/api/activities/${code}/enroll`, { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok) {
+        setEnrolled(false);
+        setEnrolledCount(c => Math.max(0, c - 1));
+      } else alert(data.message || "Failed");
+    } catch {
+      alert("Network error.");
+    }
+    setEnrollLoading(false);
+  };
+
+
+  const handleAssignmentSubmit = async (id: string) => {
+    if (!selectedFile) {
+      toast.error("Please choose a file to upload first.");
+      return;
+    }
+    setSubmittingAssignment(true);
+    setUploadingFile(true);
+    try {
+      // 1. Upload the file to R2 (falls back to local storage if R2 env vars
+      //    aren't configured) via the shared upload endpoint.
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || !uploadData.url) {
+        toast.error(uploadData.error || "File upload failed");
+        return;
+      }
+      setUploadingFile(false);
+
+      // 2. Record the submission against this assignment.
+      const res = await fetch(`/api/activities/${code}/submissions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignmentId: String(id), fileUrl: uploadData.url, fileName: selectedFile.name }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast.error(data.error || "Failed to record submission");
+        return;
+      }
+
+      toast.success("Assignment submitted successfully!");
+      setSubmissions((prev) => ({
+        ...prev,
+        [String(id)]: { fileUrl: uploadData.url, fileName: selectedFile.name, submittedAt: new Date().toISOString() },
+      }));
+      setSelectedTask(null);
+      setSelectedFile(null);
+    } catch (err) {
+      toast.error("Network error while submitting. Please try again.");
+    } finally {
+      setSubmittingAssignment(false);
+      setUploadingFile(false);
+    }
+  };
+
+  if (loading) return <div className="p-8 text-center text-gray-500">Loading activity details...</div>;
+  if (!activity) return notFound();
 
   const domain = DOMAINS[activity.domain] || DOMAINS.TEC;
   const diff   = DIFFICULTY_COLOR[activity.difficulty] || DIFFICULTY_COLOR.Beginner;
-  const fillPct = Math.round((activity.enrolledCount / activity.maxEnrollment) * 100);
+  const currentEnrolled = enrolledCount || activity.enrolledCount || 0;
+  const maxSeats = activity.maxEnrollment || activity.max_seats || 0;
+  const isFull = maxSeats > 0 && currentEnrolled >= maxSeats;
+  const fillPct = maxSeats > 0 ? Math.round((currentEnrolled / maxSeats) * 100) : 0;
 
   const handleSaveReflection = () => {
     setReflectionSaved(true);
@@ -52,8 +248,6 @@ export default function ActivityDetailPage({ params }) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
-
-      {/* ── Back link ── */}
       <Link
         href="/dashboard/student/activity-catalogue"
         className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
@@ -61,12 +255,10 @@ export default function ActivityDetailPage({ params }) {
         <FiArrowLeft size={13} /> Back to Catalogue
       </Link>
 
-      {/* ── Hero Card ── */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="h-1.5" style={{ backgroundColor: domain.color }} />
         <div className="p-6">
           <div className="flex items-start gap-4 flex-wrap">
-            {/* Domain icon */}
             <div
               className="w-16 h-16 rounded-xl flex items-center justify-center text-white text-2xl font-bold flex-shrink-0"
               style={{ backgroundColor: domain.color }}
@@ -75,7 +267,6 @@ export default function ActivityDetailPage({ params }) {
             </div>
 
             <div className="flex-1 min-w-0">
-              {/* Badges */}
               <div className="flex flex-wrap gap-1.5 mb-2">
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: domain.bg, color: domain.color }}>
                   {domain.name}
@@ -91,53 +282,72 @@ export default function ActivityDetailPage({ params }) {
               <p className="text-sm text-gray-500">{activity.purpose}</p>
             </div>
 
-            {/* Enroll CTA */}
-            <div className="flex-shrink-0">
-              <button
-                className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm"
-                style={{ backgroundColor: activity.enrolledCount >= activity.maxEnrollment ? "#9CA3AF" : BRAND }}
-                disabled={activity.enrolledCount >= activity.maxEnrollment}
-              >
-                {activity.userStatus === "not_enrolled"
-                  ? "Enroll Now"
-                  : activity.userStatus === "completed"
-                  ? "✓ Completed"
-                  : "View Progress"}
-              </button>
+            <div className="flex-shrink-0 flex flex-col items-end gap-2">
+              {enrolled ? (
+                <>
+                  <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700">
+                    <FiCheckCircle size={15} /> Enrolled
+                  </span>
+                  <button
+                    onClick={handleUnenroll}
+                    disabled={enrollLoading}
+                    className="text-xs text-gray-500 underline hover:text-red-600 transition-colors"
+                  >
+                    {enrollLoading ? "Please wait..." : "Unenroll"}
+                  </button>
+                </>
+              ) : isFull ? (
+                <button disabled className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg bg-gray-400 cursor-not-allowed">
+                  Activity Full
+                </button>
+              ) : (
+                <button
+                  onClick={() => setEnrollModalOpen(true)}
+                  disabled={enrollLoading}
+                  className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm hover:opacity-90 disabled:opacity-60"
+                  style={{ backgroundColor: BRAND }}
+                >
+                  {enrollLoading ? "Enrolling..." : "Enroll Now"}
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Stats strip */}
+          <EnrollModal
+            isOpen={enrollModalOpen}
+            onClose={() => setEnrollModalOpen(false)}
+            onConfirm={handleEnroll}
+            activityName={activity.name}
+            loading={enrollLoading}
+          />
+
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "SDC Credits", value: activity.credits, icon: <FiStar size={14} style={{ color: BRAND }} /> },
+              { label: "SAMAM Points", value: activity.credits, icon: <FiStar size={14} style={{ color: BRAND }} /> },
               { label: "Duration",    value: `${activity.hours}h`, icon: <FiClock size={14} className="text-blue-500" /> },
-              { label: "Enrolled",    value: `${activity.enrolledCount}/${activity.maxEnrollment}`, icon: <FiUser size={14} className="text-gray-400" /> },
+              { label: "Enrolled",    value: `${currentEnrolled}/${maxSeats || "∞"}`, icon: <FiUser size={14} className="text-gray-400" /> },
               { label: "Badge",       value: activity.badge, icon: <FiAward size={14} className="text-amber-500" /> },
             ].map((s) => (
               <div key={s.label} className="flex items-center gap-2.5 p-3 bg-gray-50 rounded-xl">
                 {s.icon}
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-500">{s.label}</p>
-                  <p className="text-sm font-bold text-gray-900 truncate">{s.value}</p>
+                  <p className="text-sm font-bold text-gray-900 break-words">{s.value}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Enrollment progress */}
           <div className="mt-4">
             <ProgressCard label="Seats filled" value={fillPct} color={domain.color} />
           </div>
         </div>
       </div>
 
-      {/* ── Tabs ── */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Tab bar */}
         <div className="border-b border-gray-100 overflow-x-auto">
           <div className="flex min-w-max">
-            {TABS.map((tab) => (
+            {TABS.filter(tab => enrolled || ["overview", "timeline", "mentor", "impact"].includes(tab.id)).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -155,10 +365,7 @@ export default function ActivityDetailPage({ params }) {
           </div>
         </div>
 
-        {/* Tab content */}
         <div className="p-6">
-
-          {/* OVERVIEW */}
           {activeTab === "overview" && (
             <div className="space-y-5">
               <Section title="Purpose">
@@ -176,6 +383,25 @@ export default function ActivityDetailPage({ params }) {
                   ))}
                 </ul>
               </Section>
+              
+              {activity.timeline && activity.timeline.length > 0 && (
+                <Section title="Activity Syllabus & Topics">
+                  <ul className="space-y-3">
+                    {activity.timeline.map((t: any, i: number) => {
+                      const topicText = typeof t === 'string' ? t : (t.topic || t.event);
+                      if (!topicText) return null;
+                      return (
+                        <li key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                          <div className="mt-0.5 w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-white border font-bold text-xs" style={{ borderColor: BRAND, color: BRAND }}>
+                            {i + 1}
+                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed font-medium">{topicText}</p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </Section>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Section title="Competencies Developed">
                   <div className="flex flex-wrap gap-2">
@@ -197,10 +423,11 @@ export default function ActivityDetailPage({ params }) {
                 </Section>
               </div>
               <Section title="Sustainable Development Goals">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-2">
                   {activity.sdgs.map((sdg) => (
-                    <span key={sdg} className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      🌍 SDG {sdg}
+                    <span key={sdg} className="text-sm font-semibold px-4 py-2 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-2 w-fit">
+                      <FiGlobe size={14} className="text-emerald-500" />
+                      SDG {sdg}: <span className="font-medium">{SDG_MAP[sdg] || "Sustainable Goal"}</span>
                     </span>
                   ))}
                 </div>
@@ -213,18 +440,19 @@ export default function ActivityDetailPage({ params }) {
             </div>
           )}
 
-          {/* RESOURCES */}
           {activeTab === "resources" && (
             <div className="space-y-3">
               {activity.resources.map((r) => {
-                const iconMap = { pdf: "📄", video: "🎬", link: "🔗" };
+                const IconComponent = r.type === "pdf" ? FiFileText : r.type === "video" ? FiVideo : FiLink;
                 return (
                   <div
                     key={r.id}
                     className="flex items-center justify-between p-3.5 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{iconMap[r.type] || "📎"}</span>
+                      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500">
+                        <IconComponent size={18} />
+                      </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">{r.title}</p>
                         <p className="text-xs text-gray-400 capitalize">{r.type} resource</p>
@@ -246,38 +474,60 @@ export default function ActivityDetailPage({ params }) {
           {/* ASSIGNMENTS */}
           {activeTab === "assignments" && (
             <div className="space-y-3">
-              {activity.assignments.map((a) => (
-                <div
-                  key={a.id}
-                  className={`p-4 border rounded-xl ${a.submitted ? "border-emerald-200 bg-emerald-50/30" : "border-gray-200"}`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{a.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Due: {a.dueDate}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {a.grade && (
-                        <span className="text-sm font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                          {a.grade}
-                        </span>
-                      )}
-                      {a.submitted ? (
-                        <span className="flex items-center gap-1 text-xs text-emerald-700">
-                          <FiCheckCircle size={13} /> Submitted
-                        </span>
-                      ) : (
-                        <button
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-colors"
-                          style={{ backgroundColor: BRAND }}
-                        >
-                          Submit
-                        </button>
-                      )}
+              {activity.assignments.map((a) => {
+                const submission = submissions[String(a.id)];
+                const isSubmitted = !!submission;
+                return (
+                  <div
+                    key={a.id}
+                    className={`p-4 border rounded-xl ${isSubmitted ? "border-emerald-200 bg-emerald-50/30" : "border-gray-200"}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{a.title}</p>
+                        {a.description && <p className="text-xs text-gray-500 mt-1 leading-relaxed">{a.description}</p>}
+                        <p className="text-xs text-gray-400 mt-0.5">Due: {a.dueDate}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5">
+                        {a.grade && (
+                          <span className="text-sm font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                            {a.grade}
+                          </span>
+                        )}
+                        {isSubmitted ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="flex items-center gap-1 text-xs font-medium text-emerald-700">
+                              <FiCheckCircle size={13} /> Submitted
+                            </span>
+                            <a
+                              href={submission.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] text-blue-600 hover:underline truncate max-w-[160px]"
+                            >
+                              {submission.fileName || "View file"}
+                            </a>
+                            <button
+                              onClick={() => setSelectedTask(a)}
+                              className="text-[11px] text-gray-500 hover:text-gray-800 underline"
+                            >
+                              Resubmit
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setSelectedTask(a)}
+                            className="text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-colors"
+                            style={{ backgroundColor: BRAND }}
+                          >
+                            Submit
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -292,10 +542,16 @@ export default function ActivityDetailPage({ params }) {
                 label="Attendance progress"
                 value={activity.userAttendance}
                 color={activity.userAttendance >= 75 ? "#059669" : BRAND}
-                sublabel={activity.userAttendance < 75 ? "⚠️ Minimum 75% required for certificate" : "✅ Eligible for certificate"}
+                sublabel={
+                  <span className="flex items-center gap-1">
+                    {activity.userAttendance < 75
+                      ? <><FiAlertTriangle size={11} /> Minimum 75% required for certificate</>
+                      : <><FiCheckCircle size={11} /> Eligible for certificate</>}
+                  </span>
+                }
               />
               <p className="text-xs text-gray-400 text-center">
-                Attendance is recorded by the faculty at each session.
+                Attendance is recorded by the mentor at each session.
               </p>
             </div>
           )}
@@ -303,33 +559,44 @@ export default function ActivityDetailPage({ params }) {
           {/* DISCUSSION */}
           {activeTab === "discussion" && (
             <div className="space-y-3">
-              {[
-                { user:"Ananya K.", time:"2 days ago", message:"Has anyone tried the additional resource links? The 3rd one is really helpful for understanding the concepts." },
-                { user:"Rahul M.",  time:"1 day ago",  message:"Yes! I found the handbook especially useful. Also, does anyone know if the final submission needs to be in a specific format?" },
-                { user:"Priya S.", time:"5 hours ago", message:"Faculty mentioned it should be a PDF with max 5 pages. Check the announcement section." },
-              ].map((msg, i) => (
-                <div key={i} className="flex items-start gap-3 p-3.5 bg-gray-50 rounded-xl">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: BRAND }}>
-                    {msg.user[0]}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-xs font-semibold text-gray-900">{msg.user}</p>
-                      <p className="text-[10px] text-gray-400">{msg.time}</p>
-                    </div>
-                    <p className="text-xs text-gray-700 leading-relaxed">{msg.message}</p>
-                  </div>
+              {discussions.length === 0 ? (
+                <div className="p-4 text-center text-gray-500 text-sm bg-gray-50 rounded-xl">
+                  No discussions yet. Start the conversation!
                 </div>
-              ))}
+              ) : (
+                discussions.map((msg, i) => (
+                  <div key={msg.id || i} className="flex items-start gap-3 p-3.5 bg-gray-50 rounded-xl">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: BRAND }}>
+                      {msg.user[0]}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-xs font-semibold text-gray-900">{msg.user}</p>
+                        <p className="text-[10px] text-gray-400">{msg.time}</p>
+                      </div>
+                      <p className="text-xs text-gray-700 leading-relaxed">{msg.message}</p>
+                    </div>
+                  </div>
+                ))
+              )}
               <div className="flex gap-2 mt-2">
                 <input
                   type="text"
                   placeholder="Add to discussion…"
+                  value={newDiscussion}
+                  onChange={(e) => setNewDiscussion(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handlePostDiscussion()}
                   className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-1"
-                  style={{ "--tw-ring-color": BRAND }}
+                  style={{ "--tw-ring-color": BRAND } as React.CSSProperties}
+                  disabled={postingDiscussion}
                 />
-                <button className="px-4 text-xs font-medium text-white rounded-lg" style={{ backgroundColor: BRAND }}>
-                  Post
+                <button 
+                  onClick={handlePostDiscussion}
+                  disabled={postingDiscussion || !newDiscussion.trim()}
+                  className="px-4 text-xs font-medium text-white rounded-lg disabled:opacity-50" 
+                  style={{ backgroundColor: BRAND }}
+                >
+                  {postingDiscussion ? "Posting..." : "Post"}
                 </button>
               </div>
             </div>
@@ -352,7 +619,7 @@ export default function ActivityDetailPage({ params }) {
                   onChange={(e) => setReflectionText(e.target.value)}
                   placeholder="Share your thoughts, learnings, and how this activity impacted you…"
                   className="w-full border border-gray-200 rounded-xl p-3.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 resize-none leading-relaxed"
-                  style={{ "--tw-ring-color": BRAND }}
+                  style={{ "--tw-ring-color": BRAND } as React.CSSProperties}
                 />
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-gray-400">{reflectionText.length} characters</span>
@@ -366,8 +633,8 @@ export default function ActivityDetailPage({ params }) {
                 </div>
               </div>
               {activity.facultyFeedback && (
-                <div className="p-4 rounded-xl border border-blue-200 bg-blue-50">
-                  <p className="text-xs font-semibold text-blue-800 mb-1">Faculty Feedback</p>
+                <div className="p-4 rounded-xl border border-blue-100 bg-blue-50">
+                  <p className="text-xs font-semibold text-blue-800 mb-1">Mentor Feedback</p>
                   <p className="text-sm text-blue-900 leading-relaxed">{activity.facultyFeedback}</p>
                 </div>
               )}
@@ -379,7 +646,7 @@ export default function ActivityDetailPage({ params }) {
             <div className="relative">
               <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200" />
               <div className="space-y-4">
-                {activity.timeline.map((t, i) => (
+                {activity.timeline.map((t: any, i: number) => (
                   <div key={i} className="flex items-start gap-4 relative">
                     <div
                       className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-[10px] font-bold flex-shrink-0 bg-white z-10"
@@ -388,8 +655,9 @@ export default function ActivityDetailPage({ params }) {
                       {i + 1}
                     </div>
                     <div className="pb-2">
-                      <p className="text-sm font-semibold text-gray-900">{t.event}</p>
-                      <p className="text-xs text-gray-400">{t.date}</p>
+                      <p className="text-sm font-semibold text-gray-900">{typeof t === 'string' ? t : (t.event || t.topic)}</p>
+                      {t.date && <p className="text-xs text-gray-400">{t.date}</p>}
+                      {t.week && <p className="text-xs text-gray-400">Week {t.week}</p>}
                     </div>
                   </div>
                 ))}
@@ -397,23 +665,16 @@ export default function ActivityDetailPage({ params }) {
             </div>
           )}
 
-          {/* FACULTY */}
-          {activeTab === "faculty" && (
-            <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-2xl text-white text-xl font-bold flex items-center justify-center flex-shrink-0" style={{ backgroundColor: BRAND }}>
-                {activity.faculty.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+          {/* MENTOR */}
+          {activeTab === "mentor" && (
+            <div className="p-10 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <FiUser size={24} className="text-gray-400" />
               </div>
-              <div>
-                <h3 className="text-base font-bold text-gray-900">{activity.faculty}</h3>
-                <p className="text-xs text-gray-500">{domain.name} Faculty · {activity.semester}</p>
-                <p className="text-sm text-gray-700 mt-3 leading-relaxed">
-                  An experienced faculty member specialising in {domain.name.split(" ")[0].toLowerCase()} education with over 8 years of teaching and research experience.
-                </p>
-                <div className="flex gap-3 mt-3">
-                  <span className="text-xs text-gray-500 bg-gray-50 border px-3 py-1 rounded-full">{activity.credits} SDC activities taught</span>
-                  <span className="text-xs text-gray-500 bg-gray-50 border px-3 py-1 rounded-full">⭐ {activity.rating} rating</span>
-                </div>
-              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Mentor Not Assigned Yet</h3>
+              <p className="text-sm text-gray-500 max-w-sm">
+                A mentor will be assigned soon. Please check back later when the administration updates the event details.
+              </p>
             </div>
           )}
 
@@ -421,9 +682,9 @@ export default function ActivityDetailPage({ params }) {
           {activeTab === "impact" && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { title: "Career Impact",  icon: "💼", color: "#2563EB", bg: "#EFF6FF", text: `This activity directly builds ${activity.competencies[0]} and ${activity.competencies[1]}, both critical for ${activity.career[0]} career path. 87% of students who completed this reported improved interview performance.` },
-                { title: "Life Impact",    icon: "🌱", color: "#059669", bg: "#ECFDF5", text: `Develops ${activity.ga[0] || "communication"} and personal resilience. Participants report improved confidence, time management, and ability to work in diverse teams.` },
-                { title: "Societal Impact",icon: "🌍", color: "#7C3AED", bg: "#F5F3FF", text: `Aligned with ${activity.sdgs.slice(0, 3).map(s => `SDG ${s}`).join(", ")}. Each participant contributes to ${activity.nationalMission} by developing skills that drive national growth.` },
+                { title: "Career Impact",  icon: FiBriefcase, color: "#2563EB", bg: "#EFF6FF", text: `This activity directly builds ${activity.competencies[0]} and ${activity.competencies[1]}, both critical for ${activity.career[0]} career path. 87% of students who completed this reported improved interview performance.` },
+                { title: "Life Impact",    icon: FiHeart,     color: "#059669", bg: "#ECFDF5", text: `Develops ${activity.ga[0] || "communication"} and personal resilience. Participants report improved confidence, time management, and ability to work in diverse teams.` },
+                { title: "Societal Impact",icon: FiGlobe,     color: "#7C3AED", bg: "#F5F3FF", text: `Aligned with ${activity.sdgs.slice(0, 3).map(s => `SDG ${s}`).join(", ")}. Each participant contributes to ${activity.nationalMission} by developing skills that drive national growth.` },
               ].map((card) => (
                 <div
                   key={card.title}
@@ -431,7 +692,7 @@ export default function ActivityDetailPage({ params }) {
                   style={{ backgroundColor: card.bg, borderColor: `${card.color}30` }}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">{card.icon}</span>
+                    <span style={{ color: card.color }}><card.icon size={18} /></span>
                     <h4 className="text-sm font-bold" style={{ color: card.color }}>{card.title}</h4>
                   </div>
                   <p className="text-xs text-gray-700 leading-relaxed">{card.text}</p>
@@ -441,16 +702,57 @@ export default function ActivityDetailPage({ params }) {
           )}
         </div>
       </div>
+
+      {/* ASSIGNMENT MODAL */}
+      {selectedTask && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+            <div className="p-6 border-b flex justify-between items-start">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">{selectedTask.title}</h3>
+                <p className="text-sm text-gray-500 mt-1">Due: {selectedTask.dueDate}</p>
+              </div>
+              <button
+                onClick={() => { setSelectedTask(null); setSelectedFile(null); }}
+                className="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 bg-gray-50">
+              <div className="bg-white p-4 rounded-xl border mb-6 shadow-sm">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {selectedTask.description || "Please complete the task as described by your mentor and submit your work below. Ensure your submission is formatted correctly."}
+                </p>
+              </div>
+
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Upload your work</label>
+              <label className="flex items-center gap-2 w-full p-3 mb-4 border-2 border-dashed rounded-xl cursor-pointer bg-white hover:bg-gray-50 transition-colors text-sm text-gray-600">
+                <FiFileText size={16} className="text-gray-400 flex-shrink-0" />
+                <span className="truncate">{selectedFile ? selectedFile.name : "Choose a PDF or image file…"}</span>
+                <input
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  disabled={submittingAssignment}
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                />
+              </label>
+
+              <button
+                onClick={() => handleAssignmentSubmit(selectedTask.id)}
+                disabled={submittingAssignment || !selectedFile}
+                className="w-full py-3 rounded-xl text-white font-bold transition-all shadow-md flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ backgroundColor: BRAND }}
+              >
+                {submittingAssignment ? (uploadingFile ? "Uploading file…" : "Submitting…") : "Submit Task"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ── Local helper ──────────────────────────────────────────────────────────────
-function Section({ title, children }) {
-  return (
-    <div>
-      <h3 className="text-sm font-semibold text-gray-900 mb-2">{title}</h3>
-      {children}
-    </div>
-  );
-}
+// End of file

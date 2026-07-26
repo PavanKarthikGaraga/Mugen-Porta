@@ -15,8 +15,8 @@ export default function ActivityHeatmap({
 
   const opacity = [0, 0.15, 0.35, 0.6, 0.9];
 
-  const totalW = cols * (cellSize + gap) - gap;
-  const totalH = rows * (cellSize + gap) - gap;
+  const totalW = Math.max(0, cols * (cellSize + gap) - gap);
+  const totalH = Math.max(0, rows * (cellSize + gap) - gap);
 
   return (
     <div className="overflow-x-auto">

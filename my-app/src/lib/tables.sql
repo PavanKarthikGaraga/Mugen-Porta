@@ -223,6 +223,32 @@ CREATE TABLE student_external_marks (
 
 CREATE INDEX idx_external_marks_username ON student_external_marks(username);
 
+/* =========================================================
+   ACTIVITY ASSIGNMENT SUBMISSIONS
+   (student uploads for the "Assignments" tab on an activity;
+    files are stored in Cloudflare R2 via /api/upload, this
+    table just records the resulting URL against the student +
+    assignment. Auto-created on first use by the submissions
+    API route as well, this definition is the source of truth.)
+   ========================================================= */
+
+CREATE TABLE IF NOT EXISTS activity_assignment_submissions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    activity_code VARCHAR(50) NOT NULL,
+    assignment_id VARCHAR(50) NOT NULL,
+    username VARCHAR(10) NOT NULL,
+    file_url VARCHAR(500) NOT NULL,
+    file_name VARCHAR(255) DEFAULT NULL,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_submission (activity_code, assignment_id, username),
+    FOREIGN KEY (username) REFERENCES students(username) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_submissions_activity ON activity_assignment_submissions(activity_code);
+CREATE INDEX idx_submissions_username ON activity_assignment_submissions(username);
+
+
 -- Example admin insert
 INSERT INTO users (username, name, email, password, role)
 VALUES (

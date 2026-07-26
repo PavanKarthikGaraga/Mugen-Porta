@@ -10,7 +10,7 @@ export default function WeeklyChart({ data, accentColor = "rgb(151,0,3)" }) {
   const chartH = 80;
   const barW = 24;
   const gap = 12;
-  const totalW = data.length * (barW + gap) - gap;
+  const totalW = Math.max(0, data.length * (barW + gap) - gap);
 
   return (
     <div className="flex flex-col gap-2">
@@ -24,7 +24,7 @@ export default function WeeklyChart({ data, accentColor = "rgb(151,0,3)" }) {
           const x = i * (barW + gap);
           const barH = Math.max(4, (d.hours / maxHours) * chartH);
           const y = chartH - barH;
-          const isToday = i === new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+          const isToday = i === (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
 
           return (
             <g key={d.day}>

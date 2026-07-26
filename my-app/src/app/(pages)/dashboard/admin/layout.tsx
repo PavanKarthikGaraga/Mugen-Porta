@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
-    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText,NotebookTabs
+    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiFileText, FiAward, FiAlertCircle, FiStar, FiKey
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
 import { toast } from "sonner";
@@ -62,18 +62,23 @@ export default function AdminDashboardLayout({ children }) {
     }, []);
 
     const navigation = [
-        { name: 'Overview', href: '/dashboard/admin', icon: FiHome },
-        { name: 'Users', href: '/dashboard/admin/users', icon: FiUsers },
-        { name: 'Clubs', href: '/dashboard/admin/clubs', icon: FiFolder },
-        { name: 'Students', href: '/dashboard/admin/students', icon: FiFolder },
-        { name: 'Submissions', href: '/dashboard/admin/reports', icon: FiFileText },
+        { name: 'Overview',         href: '/dashboard/admin',         icon: FiHome    },
+        { name: 'Users',             href: '/dashboard/admin/users',    icon: FiUsers   },
+        { name: 'Clubs',             href: '/dashboard/admin/clubs',    icon: FiFolder  },
+        { name: 'Students',          href: '/dashboard/admin/students', icon: FiFolder  },
+        { name: 'SAMAM Dashboard',   href: '/dashboard/admin/samam',    icon: FiAward   },
+        { name: 'Award Badges/Points', href: '/dashboard/admin/samam/award', icon: FiStar },
+
         // { name: 'Final Submissions', href: '/dashboard/admin/final-reports', icon: FiFileText },
-        { name: 'Controls', href: '/dashboard/admin/controls', icon: FiSettings }
+        { name: 'Controls',          href: '/dashboard/admin/controls', icon: FiSettings }
     ];
 
     const devNavigation = [
         { name: 'Email Queue', href: '/dashboard/admin/dev/email-queue', icon: FiMail },
         { name: 'Database Query', href: '/dashboard/admin/dev/db-query', icon: FiDatabase },
+        { name: 'AI Bans', href: '/dashboard/admin/dev/ai-bans', icon: FiAlertCircle },
+        { name: 'Lead Activities', href: '/dashboard/admin/dev/lead-activities', icon: FiAward },
+        { name: 'Reset Password', href: '/dashboard/admin/dev/reset-password', icon: FiKey },
     ];
 
     const handleLogout = async () => {
@@ -123,8 +128,8 @@ export default function AdminDashboardLayout({ children }) {
                             <button
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
                                 className="lg:hidden p-2 rounded-md transition-colors"
-                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}
                             >
                                 {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
                             </button>
@@ -148,8 +153,8 @@ export default function AdminDashboardLayout({ children }) {
                                 onClick={handleLogout}
                                 className="flex items-center space-x-2 px-3 py-2 rounded-md transition-colors text-sm"
                                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                                onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+                                onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
                             >
                                 <FiLogOut size={16} />
                                 <span>{isProxySession ? 'Exit Proxy' : 'Logout'}</span>
@@ -266,9 +271,11 @@ export default function AdminDashboardLayout({ children }) {
             {/* Footer - Fixed */}
             <footer className="text-white py-2 px-4 text-center text-sm flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
                 <div className="flex flex-col sm:flex-row justify-between items-center">
-                    <span>© 2025 KL University SAC Activities. All Rights Reserved.</span>
+                    <span>© 2026 KL University SAC Activities. All Rights Reserved.</span>
                     <span className="mt-1 sm:mt-0">
-                        Designed and Developed by Pavan Karthik Garaga | ZeroOne CodeClub
+                        Designed and Developed by{" "}
+                        <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors duration-200 font-medium underline-offset-2 hover:underline">Nischal Singana</a>
+                        {" "}| ZeroOne CodeClub
                     </span>
                 </div>
             </footer>

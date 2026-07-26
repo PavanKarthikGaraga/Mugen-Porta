@@ -1,8 +1,14 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { getSessionUser, safeMessage } from '@/lib/apiSecurity';
 
 export async function GET(request, { params }) {
     try {
+        const sessionUser = await getSessionUser();
+        if (!sessionUser) {
+            return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+        }
+
         const { id } = await params;
 
         if (!id) {
@@ -44,8 +50,7 @@ export async function GET(request, { params }) {
     } catch (error) {
         console.error('Database error:', error);
         return NextResponse.json({
-            error: 'Failed to fetch club data',
-            details: error.message
+            error: safeMessage(error, 'Failed to fetch club data')
         }, { status: 500 });
     }
 }

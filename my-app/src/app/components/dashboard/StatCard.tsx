@@ -4,7 +4,19 @@
  * StatCard — a premium animated stat tile.
  * Props: icon (ReactNode), label, value, trend ("+12% vs last month"), trendUp (bool), accent (hex color)
  */
-export default function StatCard({ icon, label, value, trend, trendUp, accent = "rgb(151,0,3)", className = "" }) {
+import { ReactNode } from "react";
+
+interface StatCardProps {
+  icon: ReactNode;
+  label: string;
+  value: string | number;
+  trend?: string;
+  trendUp?: boolean;
+  accent?: string;
+  className?: string;
+}
+
+export default function StatCard({ icon, label, value, trend, trendUp, accent = "rgb(151,0,3)", className = "" }: StatCardProps) {
   return (
     <div
       className={`relative bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden p-5 flex flex-col gap-3 ${className}`}

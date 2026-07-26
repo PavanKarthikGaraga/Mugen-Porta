@@ -75,8 +75,10 @@ export async function POST(req) {
         // Set original token in cookie (replacing proxy token)
         cookieStore.set("tck", originalToken, {
             httpOnly: true,
-            samesite: 'lax',
-            maxage: 45 * 60 // 45 minutes
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 45 * 60, // 45 minutes
+            path: '/'
         });
 
         return new Response(JSON.stringify({

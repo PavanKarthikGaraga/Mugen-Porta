@@ -1,18 +1,9 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/jwt';
+import { getSessionUser, canAccessUsername, safeMessage } from '@/lib/apiSecurity';
 
 export async function GET(request, { params }) {
     try {
-        const token = request.cookies.get('tck')?.value;
-        if (!token) {
-            return NextResponse.json({ error: 'No token provided' }, { status: 401 });
-        }
-        const caller = await verifyToken(token);
-        if (!caller) {
-            return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
-        }
-
         const { username } = await params;
 
         if (!username) {
@@ -22,35 +13,24 @@ export async function GET(request, { params }) {
             );
         }
 
+        const sessionUser = await getSessionUser();
+        if (!sessionUser) {
+            return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+        }
+        if (!canAccessUsername(sessionUser, username, ['admin', 'faculty', 'lead'])) {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+        }
+
         // Fetch student profile data
         const [studentData] = await pool.execute(
             `SELECT
-                s.username,
-                s.clubId,
-                s.name,
-                s.email,
-                s.branch,
-                s.gender,
-                s.cluster,
-                s.year,
-                s.phoneNumber,
-                s.residenceType,
-                s.hostelName,
-                s.busRoute,
-                s.country,
-                s.state,
-                s.district,
-                s.pincode,
-                s.selectedDomain,
-                s.pathway,
-                s.careerChoice,
-                s.created_at,
+                s.*,
                 c.name as clubName
              FROM students s
              LEFT JOIN clubs c ON s.clubId = c.id
              WHERE s.username = ?`,
             [username]
-        );
+        ) as any[];
 
         if (studentData.length === 0) {
             return NextResponse.json(
@@ -66,30 +46,15 @@ export async function GET(request, { params }) {
     } catch (error) {
         console.error('Database error:', error);
         return NextResponse.json({
-            error: 'Failed to fetch student profile',
-            details: error.message
+            error: safeMessage(error, 'Failed to fetch student profile')
         }, { status: 500 });
     }
 }
 
 export async function PATCH(request, { params }) {
     try {
-        const token = request.cookies.get('tck')?.value;
-        if (!token) {
-            return NextResponse.json({ error: 'No token provided' }, { status: 401 });
-        }
-        const caller = await verifyToken(token);
-        if (!caller) {
-            return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
-        }
-
         const { username } = await params;
         const { careerChoice } = await request.json();
-
-        // Only the student themselves or an admin may update the career choice
-        if (caller.username !== username && caller.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
 
         if (!username || !careerChoice) {
             return NextResponse.json(
@@ -98,10 +63,23 @@ export async function PATCH(request, { params }) {
             );
         }
 
+        if (typeof careerChoice !== 'string' || careerChoice.length > 200) {
+            return NextResponse.json({ message: "Invalid careerChoice value" }, { status: 400 });
+        }
+
+        const sessionUser = await getSessionUser();
+        if (!sessionUser) {
+            return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+        }
+        // Only the student themselves or an admin may update the career choice.
+        if (!canAccessUsername(sessionUser, username, ['admin'])) {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+        }
+
         const [result] = await pool.execute(
             'UPDATE students SET careerChoice = ? WHERE username = ?',
             [careerChoice, username]
-        );
+        ) as any;
 
         if (result.affectedRows === 0) {
             return NextResponse.json(
@@ -114,8 +92,7 @@ export async function PATCH(request, { params }) {
     } catch (error) {
         console.error('Database error:', error);
         return NextResponse.json({
-            error: 'Failed to update student profile',
-            details: error.message
+            error: safeMessage(error, 'Failed to update student profile')
         }, { status: 500 });
     }
 }

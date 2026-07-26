@@ -4,7 +4,7 @@
  * DashboardCard — generic card wrapper with optional header action button.
  * Props: title, subtitle, action (ReactNode), children, className
  */
-export default function DashboardCard({ title, subtitle, action, children, className = "" }) {
+export default function DashboardCard({ title, subtitle, action = null, children, className = "" }) {
   return (
     <div className={`bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden ${className}`}>
       {title && (

@@ -1,6 +1,9 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * Registration Data API - Read Only
  *
@@ -41,7 +44,7 @@ export async function GET(request) {
         // Default: Return all registration data
         
         // Fetch clubs
-        const [clubs] = await pool.execute('SELECT * FROM clubs ORDER BY id');
+        const [clubs] = await pool.execute('SELECT * FROM clubs ORDER BY id') as [any[], any];
 
         // Get member counts for all clubs
         const clubIds = clubs.map(c => c.id);
@@ -55,7 +58,7 @@ export async function GET(request) {
                  WHERE clubId IN (${placeholders})
                  GROUP BY clubId`,
                 clubIds
-            );
+            ) as [any[], any];
 
             // Convert to object for easy lookup
             clubMemberCounts = memberCounts.reduce((acc, count) => {
@@ -97,19 +100,19 @@ export async function GET(request) {
         
         const response = NextResponse.json(registrationData);
         
-        // Add security headers
+        // Add security headers and prevent caching for accurate member counts
         response.headers.set('X-Content-Type-Options', 'nosniff');
         response.headers.set('X-Frame-Options', 'DENY');
-        response.headers.set('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
+        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
         
         return response;
         
     } catch (error) {
         console.error('Database error:', error);
         return NextResponse.json({ 
-            error: 'Failed to fetch registration data',
-            details: error.message 
-        }, { status: 500 });
+            error: 'Failed to fetch registration data'}, { status: 500 });
     }
 }
 

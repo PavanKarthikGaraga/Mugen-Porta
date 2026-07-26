@@ -6,12 +6,14 @@ import {
   FiHome, FiBookOpen, FiGrid, FiList, FiZap, FiStar, FiAward,
   FiFileText, FiBriefcase, FiCpu, FiEdit3, FiCheckSquare,
   FiBarChart2, FiBell, FiUser, FiSettings, FiLogOut, FiMenu,
-  FiX, FiLock, FiSearch, FiChevronDown, FiFolder, FiSend
+  FiX, FiLock, FiSearch, FiChevronDown, FiFolder, FiSend,
+  FiClipboard, FiInfo
 } from "react-icons/fi";
+
+const NOTIF_ICON: Record<string, any> = { activity: FiClipboard, badge: FiAward, sdc: FiStar, reminder: FiBell, system: FiInfo };
 import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
 import Breadcrumbs from "@/app/components/dashboard/Breadcrumbs";
-import { mockNotifications } from "@/app/Data/samam-mock";
 import CommandPalette from "@/app/components/dashboard/CommandPalette";
 
 // ─── Navigation definition ────────────────────────────────────────────────────
@@ -21,11 +23,10 @@ const navigation = [
   { name: "Activity Catalogue",         href: "/dashboard/student/activity-catalogue",icon: FiGrid },
   { name: "My Activities",              href: "/dashboard/student/my-activities",     icon: FiList },
   { name: "Competencies",               href: "/dashboard/student/competencies",      icon: FiZap },
-  { name: "Student Dev. Credits",       href: "/dashboard/student/sdc",              icon: FiStar },
+  { name: "Student Activity Management and Achievement Model", href: "/dashboard/student/sdc", icon: FiStar },
   { name: "Badge Wallet",               href: "/dashboard/student/badges",           icon: FiAward },
   { name: "Excellence Passport",        href: "/dashboard/student/passport",         icon: FiFileText },
   { name: "Career Dashboard",           href: "/dashboard/student/career",           icon: FiBriefcase },
-  { name: "AI Mentor",                  href: "/dashboard/student/ai-mentor",        icon: FiCpu },
   { name: "Reflection Journal",         href: "/dashboard/student/journal",          icon: FiEdit3 },
   { name: "Certificates",               href: "/dashboard/student/certificates",     icon: FiCheckSquare },
   { name: "Analytics",                  href: "/dashboard/student/analytics",        icon: FiBarChart2 },
@@ -57,7 +58,8 @@ export default function SAMAMStudentDashboardLayout({ children }) {
   const pathname = usePathname();
   const router   = useRouter();
 
-  const unreadCount = mockNotifications.filter((n) => !n.read).length;
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // ── Fetch user data ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -80,6 +82,13 @@ export default function SAMAMStudentDashboardLayout({ children }) {
               }
             }
           }
+        }
+        
+        // Fetch notifications
+        const notifRes = await fetch("/api/student/notifications");
+        if (notifRes.ok) {
+          const notifData = await notifRes.json();
+          if (Array.isArray(notifData)) setNotifications(notifData);
         }
       } catch (err) {
         console.error("Failed to fetch user data:", err);
@@ -222,23 +231,11 @@ export default function SAMAMStudentDashboardLayout({ children }) {
                 <div className="w-7 h-7 bg-white/20 rounded-md flex items-center justify-center">
                   <span className="text-white font-bold text-xs">S</span>
                 </div>
-                <span className="font-bold text-base hidden sm:block">SAMAM</span>
+                <span className="font-bold text-base hidden sm:block">SAMAM <span className="text-xs font-normal text-white/80">(Student Activity Management and Achievement Model)</span></span>
               </div>
             </div>
 
-            {/* Center — search */}
-            <div className="flex-1 max-w-xs hidden md:block">
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60" size={14} />
-                <input
-                  type="text"
-                  placeholder="Search activities, badges…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-white/50 focus:outline-none focus:bg-white/20 transition-colors"
-                />
-              </div>
-            </div>
+            {/* Center — removed search */}
 
             {/* Right — notifications + user */}
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -270,21 +267,29 @@ export default function SAMAMStudentDashboardLayout({ children }) {
                       )}
                     </div>
                     <div className="max-h-72 overflow-y-auto">
-                      {mockNotifications.map((n) => {
-                        const icons = { activity: "📋", badge: "🏆", sdc: "⭐", reminder: "🔔", system: "ℹ️" };
+                      {notifications.length === 0 ? (
+                        <div className="py-8 text-center text-gray-500 text-xs">
+                          No notifications yet.
+                        </div>
+                      ) : notifications.slice(0, 5).map((n) => {
+                        const NIcon = NOTIF_ICON[n.type] || FiBell;
                         return (
                           <div
                             key={n.id}
                             className={`flex items-start gap-3 px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors ${!n.read ? "bg-red-50/40" : ""}`}
                           >
-                            <div className="text-base flex-shrink-0 mt-0.5">{icons[n.type]}</div>
+                            <div className="w-7 h-7 flex-shrink-0 mt-0.5 rounded-full flex items-center justify-center text-gray-500 bg-gray-100"><NIcon size={13} /></div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <p className="text-xs font-semibold text-gray-900">{n.title}</p>
                                 {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-red-600" />}
                               </div>
                               <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
-                              <p className="text-xs text-gray-400 mt-0.5">{n.time}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {new Date(n.time || n.created_at).toLocaleString('en-US', {
+                                  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                })}
+                              </p>
                             </div>
                           </div>
                         );
@@ -414,7 +419,14 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             </nav>
 
             {/* Sidebar footer */}
-            <div className="px-4 py-3 border-t border-gray-700/50">
+            <div className="px-4 py-3 border-t border-gray-700/50 space-y-1">
+              <button
+                onClick={() => { setChangePasswordOpen(true); setSidebarOpen(false); }}
+                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all duration-150"
+              >
+                <FiLock size={15} />
+                Change Password
+              </button>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all duration-150"
@@ -433,9 +445,24 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             <div className="bg-white border-b border-gray-100 px-4 sm:px-6">
               <Breadcrumbs />
             </div>
-            <div className="px-4 py-5 sm:px-6 lg:px-8 text-black">
-              {children}
-            </div>
+            {userData.username !== "2400000000" && userData.username !== "" ? (
+              <div className="px-4 py-16 sm:px-6 lg:px-8 flex items-center justify-center">
+                 <div className="text-center space-y-4 max-w-md">
+                   <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <FiZap size={24} />
+                   </div>
+                   <h2 className="text-2xl font-bold text-gray-900">Under Development</h2>
+                   <p className="text-gray-500 text-sm leading-relaxed">
+                     The Student Dashboard is currently undergoing active development. We are rolling out features progressively. 
+                     Please check back later or contact administration.
+                   </p>
+                 </div>
+              </div>
+            ) : (
+              <div className="px-4 py-5 sm:px-6 lg:px-8 text-black">
+                {children}
+              </div>
+            )}
           </main>
         </div>
       </div>
@@ -446,8 +473,8 @@ export default function SAMAMStudentDashboardLayout({ children }) {
         style={{ backgroundColor: "rgb(151,0,3)" }}
       >
         <div className="flex flex-col sm:flex-row justify-between items-center gap-1">
-          <span>© 2025 KL University SAC Activities. All Rights Reserved.</span>
-          <span>Designed and Developed by Pavan Karthik Garaga | ZeroOne CodeClub</span>
+          <span>© 2026 KL University SAC Activities. All Rights Reserved.</span>
+          <span>Designed and Developed by{" "}<a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors duration-200 font-medium underline-offset-2 hover:underline">Nischal Singana</a>{" "}| ZeroOne CodeClub</span>
         </div>
       </footer>
 

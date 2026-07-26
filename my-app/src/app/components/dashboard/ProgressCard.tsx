@@ -1,10 +1,12 @@
 "use client";
+import type { ReactNode } from "react";
 
 /**
  * ProgressCard — labeled progress bar tile.
- * Props: label, value (0-100), max (number, default 100), color (hex), showPercentage
+ * Props: label, value (0-100), max (number, default 100), color (hex), showPercentage,
+ * sublabel (string or JSX — e.g. an icon + text)
  */
-export default function ProgressCard({ label, value, max = 100, color = "rgb(151,0,3)", showPercentage = true, suffix = "", sublabel = "" }) {
+export default function ProgressCard({ label, value, max = 100, color = "rgb(151,0,3)", showPercentage = true, suffix = "", sublabel = "" as ReactNode }) {
   const pct = Math.min(100, Math.round((value / max) * 100));
 
   return (

@@ -1,8 +1,11 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { verifyAdminToken } from '../auth-helper';
+import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 
 // GET - Fetch current controls
+// Intentionally public (no auth): the unauthenticated /auth/register page
+// needs to read `registrationsEnabled` before a user has logged in. This
+// only ever exposes a single boolean flag, never write access.
 export async function GET() {
     let db;
     try {
@@ -38,8 +41,8 @@ export async function GET() {
 
 // PUT - Update controls
 export async function PUT(request) {
-    const auth = await verifyAdminToken(request);
-    if (!auth.success) return auth.response;
+    const auth = await requireAuth(['admin']);
+    if (auth.response) return auth.response;
 
     let db;
     try {

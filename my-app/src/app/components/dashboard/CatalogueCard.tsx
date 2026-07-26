@@ -1,7 +1,9 @@
 "use client";
+import React, { useState } from "react";
 import Link from "next/link";
-import { FiBookmark, FiClock, FiStar, FiUser, FiZap } from "react-icons/fi";
-import { DOMAINS } from "@/app/Data/activities-mock";
+import { FiBookmark, FiClock, FiStar, FiUser, FiZap, FiTarget, FiActivity, FiAward, FiSettings, FiFeather, FiTrendingUp, FiGlobe } from "react-icons/fi";
+import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";
+import EnrollModal from "./EnrollModal";
 
 const DIFFICULTY_COLOR = {
   Beginner:     "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -16,18 +18,40 @@ const STATUS_COLOR = {
   Ongoing:  "bg-amber-500",
 };
 
-const LEVEL_EMOJI = {
-  explorer: "🔭", foundation: "🌱", practitioner: "⚙️",
-  leader: "🏅", mentor: "🎓", innovator: "🚀",
+const LEVEL_ICON: Record<string, React.ElementType> = {
+  explorer: FiTarget, foundation: FiFeather, practitioner: FiSettings,
+  leader: FiAward, mentor: FiUser, innovator: FiTrendingUp,
 };
 
-export default function CatalogueCard({ activity, bookmarked = false, onBookmark }) {
+export default function CatalogueCard({ activity, bookmarked = false, onBookmark, isEnrolled = false }: any) {
+  const [enrollModalOpen, setEnrollModalOpen] = useState(false);
+  const [enrollLoading, setEnrollLoading] = useState(false);
+  const [localEnrolled, setLocalEnrolled] = useState(isEnrolled);
+
   const domain = DOMAINS[activity.domain] || DOMAINS.TEC;
-  const enrolled = activity.enrolledCount;
+  const enrolled = (activity.enrolledCount || 0) + (localEnrolled && !isEnrolled ? 1 : 0);
   const max = activity.maxEnrollment;
   const fillPct = Math.round((enrolled / max) * 100);
   const isFull = enrolled >= max;
   const statusLabel = isFull ? "Full" : "Open";
+
+  const handleEnroll = async () => {
+    setEnrollLoading(true);
+    try {
+      const res = await fetch(`/api/activities/${activity.code}/enroll`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        setLocalEnrolled(true);
+      } else {
+        alert(data.message || "Enrollment failed");
+      }
+    } catch {
+      alert("Network error. Please try again.");
+    }
+    setEnrollLoading(false);
+    setEnrollModalOpen(false);
+  };
 
   return (
     <div className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col">
@@ -54,15 +78,17 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
               {activity.difficulty}
             </span>
             {/* Level */}
-            <span className="text-[10px] text-gray-500">
-              {LEVEL_EMOJI[activity.level]} {activity.level.charAt(0).toUpperCase() + activity.level.slice(1)}
+            <span className="text-[10px] text-gray-500 flex items-center gap-1">
+              {LEVEL_ICON[activity.level] && React.createElement(LEVEL_ICON[activity.level], { size: 10 })}
+              {activity.level.charAt(0).toUpperCase() + activity.level.slice(1)}
             </span>
           </div>
           {/* Bookmark */}
           <button
-            onClick={() => onBookmark?.(activity.id)}
+            onClick={() => onBookmark?.(activity.code)}
             className="flex-shrink-0 p-1 rounded hover:bg-gray-100 transition-colors"
-            aria-label="Bookmark"
+            aria-label={bookmarked ? "Remove from saved" : "Save activity"}
+            title={bookmarked ? "Remove from saved" : "Save for later"}
           >
             <FiBookmark
               size={14}
@@ -87,7 +113,7 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
         <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
           <span className="flex items-center gap-1">
             <FiStar size={11} style={{ color: "rgb(151,0,3)" }} />
-            <span className="font-semibold text-gray-700">{activity.credits}</span> SDC
+            <span className="font-semibold text-gray-700">{activity.credits}</span> SAMAM Points
           </span>
           <span className="flex items-center gap-1">
             <FiClock size={11} className="text-gray-400" />
@@ -104,19 +130,20 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
         </div>
 
         {/* Faculty */}
-        <p className="text-xs text-gray-400 truncate">
-          👤 {activity.faculty}
+        <p className="text-xs text-gray-400 truncate flex items-center gap-1">
+          <FiUser size={11} /> {activity.faculty}
         </p>
 
         {/* SDGs */}
-        <div className="flex flex-wrap gap-1">
-          {activity.sdgs.slice(0, 4).map((sdg) => (
-            <span key={sdg} className="text-[9px] font-medium bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded">
-              SDG {sdg}
+        <div className="flex flex-col gap-1.5 mt-1">
+          {activity.sdgs.slice(0, 3).map((sdg: number) => (
+            <span key={sdg} className="text-[10px] font-medium text-gray-600 flex items-center gap-1.5">
+              <FiGlobe size={11} className="text-blue-500" />
+              <span className="font-semibold">SDG {sdg}:</span> {SDG_MAP[sdg] || "Sustainable Goal"}
             </span>
           ))}
-          {activity.sdgs.length > 4 && (
-            <span className="text-[9px] text-gray-400">+{activity.sdgs.length - 4}</span>
+          {activity.sdgs.length > 3 && (
+            <span className="text-[10px] text-gray-400 italic">+{activity.sdgs.length - 3} more goals...</span>
           )}
         </div>
 
@@ -143,14 +170,23 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
             View Details
           </Link>
           <button
-            disabled={isFull}
+            disabled={isFull || localEnrolled}
+            onClick={() => setEnrollModalOpen(true)}
             className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: isFull ? "#9CA3AF" : "rgb(151,0,3)" }}
+            style={{ backgroundColor: isFull ? "#9CA3AF" : localEnrolled ? "#10B981" : "rgb(151,0,3)" }}
           >
-            {isFull ? "Full" : activity.userStatus === "not_enrolled" ? "Enroll" : "Enrolled ✓"}
+            {localEnrolled ? "Enrolled" : isFull ? "Full" : "Enroll"}
           </button>
         </div>
       </div>
+
+      <EnrollModal 
+        isOpen={enrollModalOpen} 
+        onClose={() => setEnrollModalOpen(false)} 
+        onConfirm={handleEnroll} 
+        activityName={activity.name} 
+        loading={enrollLoading} 
+      />
     </div>
   );
 }

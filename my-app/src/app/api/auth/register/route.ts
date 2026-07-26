@@ -2,8 +2,18 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import pool from "@/lib/db";
 import { sendRegistrationEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { safeMessage } from "@/lib/apiSecurity";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9]+$/;
 
 export async function POST(req) {
+    // Registration creates a DB record and sends email - protect against
+    // automated mass-registration / abuse.
+    const rateLimit = checkRateLimit(req, 'register', { limit: 5, windowMs: 60 * 1000 });
+    if (rateLimit.limited) return rateLimit.response;
+
     try {
         const {
             // Personal Details
@@ -41,6 +51,28 @@ export async function POST(req) {
             erpFeeReceiptRef
         } = await req.json();
 
+        // Type / format validation - reject anything that isn't the plain
+        // string shape we expect before it ever reaches a query or email.
+        if (typeof username !== 'string' || typeof name !== 'string' || typeof email !== 'string' || typeof phoneNumber !== 'string') {
+            return NextResponse.json({ message: "Invalid request data" }, { status: 400 });
+        }
+
+        if (!USERNAME_REGEX.test(username) || username.length < 3 || username.length > 20) {
+            return NextResponse.json({ message: "Username must be alphanumeric" }, { status: 400 });
+        }
+
+        if (!EMAIL_REGEX.test(email) || email.length > 150) {
+            return NextResponse.json({ message: "Please provide a valid email address" }, { status: 400 });
+        }
+
+        if (!/^\d{7,15}$/.test(phoneNumber)) {
+            return NextResponse.json({ message: "Please provide a valid phone number" }, { status: 400 });
+        }
+
+        if (name.trim().length < 2 || name.length > 100) {
+            return NextResponse.json({ message: "Please provide a valid name" }, { status: 400 });
+        }
+
         // Check if it's Y22, Y23, Y24, Y25 or Y26 student based on username
         const isY22Student = username.startsWith('22');
         const isY23Student = username.startsWith('23');
@@ -68,7 +100,9 @@ export async function POST(req) {
 
         // Validation based on student year - unified logic matching frontend
 
-        if (!isY22Student && !isY23Student && !isY24Student && !isY25Student && !isY26Student) {
+        const isCDOEBranch = branch === "KL CDOE Management (OL) BBA" || branch === "KL CDOE Humanities (OL) BCA";
+
+        if (!isCDOEBranch && !isY22Student && !isY23Student && !isY24Student && !isY25Student && !isY26Student) {
             return NextResponse.json(
                 { message: "Invalid username format. Must start with 22, 23, 24, 25, or 26" },
                 { status: 400 }
@@ -94,7 +128,12 @@ export async function POST(req) {
         // ERP Fee Receipt is no longer required
 
         // Additional validations
-        if (username.length > 10) {
+        if (isCDOEBranch && username.length > 11) {
+            return NextResponse.json(
+                { message: "CDOE username must be 11 characters or less" },
+                { status: 400 }
+            );
+        } else if (!isCDOEBranch && username.length > 10) {
             return NextResponse.json(
                 { message: "Username must be 10 characters or less" },
                 { status: 400 }
@@ -126,7 +165,7 @@ export async function POST(req) {
         const [existingUsers] = await pool.execute(
             "SELECT id FROM users WHERE username = ? OR email = ?",
             [username, email]
-        );
+        ) as any[];
 
         if (existingUsers.length > 0) {
             return NextResponse.json(
@@ -139,7 +178,7 @@ export async function POST(req) {
         const [existingStudents] = await pool.execute(
             "SELECT id FROM students WHERE phoneNumber = ?",
             [phoneNumber]
-        );
+        ) as any[];
 
         if (existingStudents.length > 0) {
             return NextResponse.json(
@@ -272,8 +311,8 @@ export async function POST(req) {
                     message: emailResult.success
                         ? "Registration successful! Check your email for login credentials."
                         : "Registration successful! However, there was an issue queuing the confirmation email. Please contact support.",
-                    userId: userResult.insertId,
-                    studentId: studentResult.insertId,
+                    userId: (userResult as any).insertId,
+                    studentId: (studentResult as any).insertId,
                     username: username,
                     emailQueued: emailResult.success
                 },

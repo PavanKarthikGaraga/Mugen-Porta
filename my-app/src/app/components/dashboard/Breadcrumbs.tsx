@@ -10,7 +10,7 @@ const routeLabels = {
   "activity-catalogue": "Activity Catalogue",
   "my-activities": "My Activities",
   competencies: "Competencies",
-  sdc: "Student Development Credits",
+  sdc: "SAMAM Points",
   badges: "Badge Wallet",
   passport: "Student Excellence Passport",
   career: "Career Dashboard",
