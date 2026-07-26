@@ -1,17 +1,38 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FiSearch, FiAward, FiStar, FiCheckCircle, FiUser, FiZap, FiLoader } from "react-icons/fi";
+import {
+  FiSearch, FiAward, FiStar, FiCheckCircle, FiUser, FiZap, FiLoader,
+  FiFileText, FiAlertTriangle, FiExternalLink,
+} from "react-icons/fi";
 import { toast } from "sonner";
 
 const BRAND = "rgb(151,0,3)";
+
+const DOMAIN_NAMES: Record<string, string> = {
+  TEC: "Technology & Emerging Technologies",
+  LCH: "Literary, Cultural & Heritage",
+  ESO: "Extension & Social Outreach",
+  IIE: "Innovation & Entrepreneurship",
+  HWB: "Health & Well-being",
+};
 
 export default function AdminAwardPage() {
   const [studentId, setStudentId] = useState("");
   const [loadingStudent, setLoadingStudent] = useState(false);
   const [student, setStudent] = useState<any>(null);
 
-  const [activeTab, setActiveTab] = useState<"badge" | "points">("badge");
+  const [activeTab, setActiveTab] = useState<"badge" | "points" | "certificate">("badge");
+
+  // Certificate state — activity chosen by domain → category → activity
+  const [catalogue, setCatalogue] = useState<any[]>([]);
+  const [certDomain, setCertDomain] = useState("");
+  const [certCategory, setCertCategory] = useState("");
+  const [certActivity, setCertActivity] = useState("");
+  const [certStatus, setCertStatus] = useState<any>(null);
+  const [checkingCert, setCheckingCert] = useState(false);
+  const [issuingCert, setIssuingCert] = useState(false);
+  const [issuedCert, setIssuedCert] = useState<any>(null);
 
   // Badge state
   const [badges, setBadges] = useState<any[]>([]);
@@ -34,7 +55,62 @@ export default function AdminAwardPage() {
         if (data.badges) setBadges(data.badges);
       })
       .catch(err => console.error("Failed to load badges", err));
+
+    // Catalogue drives the domain → category → activity pickers.
+    fetch("/api/activities")
+      .then(res => res.json())
+      .then(data => { if (data.success) setCatalogue(data.data || []); })
+      .catch(err => console.error("Failed to load activities", err));
   }, []);
+
+  // Derived option lists for the cascading selects.
+  const certDomains = Array.from(new Set(catalogue.map((a: any) => a.domain).filter(Boolean))).sort() as string[];
+  const certCategories = Array.from(new Set(
+    catalogue.filter((a: any) => !certDomain || a.domain === certDomain)
+             .map((a: any) => a.category).filter(Boolean)
+  )).sort() as string[];
+  const certActivities = catalogue.filter((a: any) =>
+    (!certDomain || a.domain === certDomain) && (!certCategory || a.category === certCategory)
+  );
+  const selectedActivity = catalogue.find((a: any) => a.code === certActivity);
+
+  // Whenever the student or activity changes, check for an existing
+  // certificate and the student's enrollment state before issuing.
+  useEffect(() => {
+    setIssuedCert(null);
+    setCertStatus(null);
+    if (!student?.username || !certActivity) return;
+    setCheckingCert(true);
+    fetch(`/api/dashboard/admin/samam/award-certificate?username=${encodeURIComponent(student.username)}&code=${encodeURIComponent(certActivity)}`)
+      .then(res => res.json())
+      .then(data => { if (data.success) setCertStatus(data); })
+      .catch(() => { /* the issue call reports failures anyway */ })
+      .finally(() => setCheckingCert(false));
+  }, [student?.username, certActivity]);
+
+  const handleIssueCertificate = async () => {
+    if (!certActivity) return toast.error("Please select an activity");
+    setIssuingCert(true);
+    try {
+      const res = await fetch("/api/dashboard/admin/samam/award-certificate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: student.username, activityCode: certActivity }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast.error(data.message || data.error || "Failed to issue certificate");
+        return;
+      }
+      setIssuedCert(data);
+      if (data.alreadyIssued) toast.info(data.message);
+      else toast.success(data.message);
+    } catch (err) {
+      toast.error("An error occurred");
+    } finally {
+      setIssuingCert(false);
+    }
+  };
 
   const handleFetchStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,11 +263,17 @@ export default function AdminAwardPage() {
             >
               <FiAward /> Award Digital Badge
             </button>
-            <button 
+            <button
               className={`flex-1 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${activeTab === 'points' ? 'text-gray-900 border-b-2 border-red-600 bg-gray-50/50' : 'text-gray-400 hover:bg-gray-50'}`}
               onClick={() => setActiveTab('points')}
             >
               <FiStar /> Award SAMAM Points
+            </button>
+            <button
+              className={`flex-1 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${activeTab === 'certificate' ? 'text-gray-900 border-b-2 border-red-600 bg-gray-50/50' : 'text-gray-400 hover:bg-gray-50'}`}
+              onClick={() => setActiveTab('certificate')}
+            >
+              <FiFileText /> Issue Certificate
             </button>
           </div>
 
@@ -230,7 +312,7 @@ export default function AdminAwardPage() {
                   {awardingBadge ? <FiLoader className="animate-spin" /> : <><FiAward /> Award Badge to {student.name}</>}
                 </button>
               </div>
-            ) : (
+            ) : activeTab === 'points' ? (
               <div className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -288,6 +370,145 @@ export default function AdminAwardPage() {
                 >
                   {awardingPoints ? <FiLoader className="animate-spin" /> : <><FiStar /> Award Points to {student.name}</>}
                 </button>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Narrow down by domain and category, then pick the activity. The certificate is
+                  issued immediately and appears in the student&apos;s certificates wallet with a
+                  verifiable link.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Domain</label>
+                    <select
+                      value={certDomain}
+                      onChange={(e) => { setCertDomain(e.target.value); setCertCategory(""); setCertActivity(""); }}
+                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-red-600 focus:bg-white transition-colors text-sm"
+                    >
+                      <option value="">All domains</option>
+                      {certDomains.map((d) => (
+                        <option key={d} value={d}>{d} — {DOMAIN_NAMES[d] || d}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Category</label>
+                    <select
+                      value={certCategory}
+                      onChange={(e) => { setCertCategory(e.target.value); setCertActivity(""); }}
+                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-red-600 focus:bg-white transition-colors text-sm"
+                    >
+                      <option value="">All categories</option>
+                      {certCategories.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                      Activity <span className="text-gray-400 normal-case font-normal">({certActivities.length})</span>
+                    </label>
+                    <select
+                      value={certActivity}
+                      onChange={(e) => setCertActivity(e.target.value)}
+                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-red-600 focus:bg-white transition-colors text-sm"
+                    >
+                      <option value="">-- Choose an activity --</option>
+                      {certActivities.map((a: any) => (
+                        <option key={a.code} value={a.code}>{a.code} — {a.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {selectedActivity && (
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                    <p className="text-[10px] font-mono text-gray-400">{selectedActivity.code}</p>
+                    <p className="text-sm font-bold text-gray-900 mt-0.5">{selectedActivity.title}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {[selectedActivity.category, selectedActivity.domain,
+                        selectedActivity.sdc_credits ? `${selectedActivity.sdc_credits} SAMAM Points` : null]
+                        .filter(Boolean).join("  ·  ")}
+                    </p>
+                  </div>
+                )}
+
+                {checkingCert && (
+                  <p className="text-xs text-gray-500 flex items-center gap-2">
+                    <FiLoader className="animate-spin" size={12} /> Checking existing certificates…
+                  </p>
+                )}
+
+                {/* Existing certificate — issuing again would be a no-op */}
+                {certStatus?.existing && (
+                  <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 flex items-start gap-2.5">
+                    <FiAlertTriangle className="text-amber-600 flex-shrink-0 mt-0.5" size={15} />
+                    <div className="text-xs text-amber-800 leading-relaxed">
+                      <p className="font-semibold">This student already has a certificate for this activity.</p>
+                      <p className="mt-0.5">
+                        ID <span className="font-mono">{certStatus.existing.verificationId}</span>. Issuing again
+                        will not create a duplicate.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual issuance bypasses the usual completed-enrollment rule,
+                    so make the actual state visible before the admin commits. */}
+                {certStatus && !certStatus.existing && certStatus.enrollmentStatus !== 'completed' && (
+                  <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 flex items-start gap-2.5">
+                    <FiAlertTriangle className="text-amber-600 flex-shrink-0 mt-0.5" size={15} />
+                    <div className="text-xs text-amber-800 leading-relaxed">
+                      <p className="font-semibold">
+                        {certStatus.enrollmentStatus
+                          ? `This student's enrollment is "${certStatus.enrollmentStatus}", not completed.`
+                          : "This student is not enrolled in this activity."}
+                      </p>
+                      <p className="mt-0.5">
+                        Leads can only issue for completed enrollments. As an admin you can still issue
+                        manually — just confirm this is intended.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {certStatus && !certStatus.existing && certStatus.enrollmentStatus === 'completed' && (
+                  <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-start gap-2.5">
+                    <FiCheckCircle className="text-emerald-600 flex-shrink-0 mt-0.5" size={15} />
+                    <p className="text-xs text-emerald-800">
+                      Enrollment is marked completed — this student is eligible.
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleIssueCertificate}
+                  disabled={issuingCert || !certActivity}
+                  className="w-full py-3 text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+                  style={{ backgroundColor: BRAND }}
+                >
+                  {issuingCert
+                    ? <FiLoader className="animate-spin" />
+                    : <><FiFileText /> Issue Certificate to {student.name}</>}
+                </button>
+
+                {issuedCert && (
+                  <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50">
+                    <p className="text-sm font-semibold text-emerald-900 flex items-center gap-2">
+                      <FiCheckCircle size={15} />
+                      {issuedCert.alreadyIssued ? "Certificate already existed" : "Certificate issued"}
+                    </p>
+                    <p className="text-xs text-emerald-800 mt-1 font-mono break-all">{issuedCert.verificationId}</p>
+                    <a
+                      href={issuedCert.verifyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:underline mt-2"
+                    >
+                      <FiExternalLink size={12} /> Open verification page
+                    </a>
+                  </div>
+                )}
               </div>
             )}
           </div>

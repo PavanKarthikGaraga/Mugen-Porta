@@ -6,7 +6,7 @@ import {
 import { toast } from "sonner";
 import SearchBar from "@/app/components/dashboard/SearchBar";
 import { BadgeIcon, badgeIconSvgMarkup } from "@/lib/badgeIcons";
-import { loadLogoDataUrl } from "@/lib/credentialExport";
+import { loadLogoDataUrl, LOGO_ASPECT } from "@/lib/credentialExport";
 
 const BRAND = "rgb(151,0,3)";
 const VERIFY_ORIGIN = "https://sacactivities.kluniversity.in";
@@ -195,7 +195,7 @@ function buildBadgeSvg(badge, rarityRing, qrDataUrl, logoDataUrl = null) {
   <!-- Issuer lockup, on the white card body (the logo contains black type,
        so it must not sit on the coloured header bar) -->
   ${logoDataUrl
-    ? `<image href="${logoDataUrl}" x="${(W - 250) / 2}" y="${headerH + 22}" width="250" height="${Math.round(250 / 3.9409)}" preserveAspectRatio="xMidYMid meet"/>`
+    ? `<image href="${logoDataUrl}" x="${(W - 250) / 2}" y="${headerH + 22}" width="250" height="${Math.round(250 / LOGO_ASPECT)}" preserveAspectRatio="xMidYMid meet"/>`
     : ""}
 
   <!-- Medallion -->

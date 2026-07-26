@@ -1,6 +1,6 @@
 import {
     xmlEscape, loadLogoDataUrl, generateVerifyQrDataUrl, svgToPdf,
-    safeFileName, VERIFY_ORIGIN, ISSUER_NAME, BRAND_HEX,
+    safeFileName, VERIFY_ORIGIN, ISSUER_NAME, BRAND_HEX, LOGO_ASPECT,
 } from "./credentialExport";
 
 /**
@@ -152,7 +152,7 @@ export function buildCertificateSvg(
 
     // Logo keeps its 1600x406 aspect ratio (≈3.94:1).
     const logoW = 380;
-    const logoH = Math.round(logoW / 3.9409);
+    const logoH = Math.round(logoW / LOGO_ASPECT);
     const logoBlock = logoDataUrl
         ? `<image href="${logoDataUrl}" x="${(W - logoW) / 2}" y="86" width="${logoW}" height="${logoH}" preserveAspectRatio="xMidYMid meet"/>`
         : `<text x="${W / 2}" y="140" text-anchor="middle" font-family="Georgia, serif" font-size="34" font-weight="bold" fill="${BRAND_HEX}">${xmlEscape(ISSUER_NAME)}</text>`;

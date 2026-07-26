@@ -13,8 +13,17 @@ export const ISSUER_NAME_SHORT = "KL SAC";
 export const BRAND = "rgb(151,0,3)";
 export const BRAND_HEX = "#970003";
 
-/** Public path of the cropped SAC lockup (transparent background). */
+/** Public path of the SAC lockup (trimmed, transparent background). */
 export const LOGO_PATH = "/sac-logo.png";
+
+/**
+ * Width-to-height ratio of LOGO_PATH (currently 1600x408).
+ * Kept here as the single source of truth: the badge and certificate artwork
+ * both derive the logo's drawn height from its width, and a stale value
+ * stretches or squashes the lockup in the exported PDF. Update this if the
+ * asset is ever replaced with one of a different shape.
+ */
+export const LOGO_ASPECT = 1600 / 408;
 
 /**
  * Escapes text for safe inclusion in an SVG document. An unescaped `&`
