@@ -149,6 +149,7 @@ export default function ActivityCataloguePage() {
   const clearAll = () => {
     setActiveFilters({ ...EMPTY_FILTERS });
     setSearch("");
+    setSavedOnly(false);
     setVisible(PAGE_SIZE);
   };
 
@@ -184,7 +185,7 @@ export default function ActivityCataloguePage() {
       sorted.sort((a, b) => left(b) - left(a));
     }
     return sorted;
-  }, [search, activeFilters, activities, sort]);
+  }, [search, activeFilters, activities, sort, savedOnly, bookmarks]);
 
   // Pagination is applied before grouping, so "Load more" reveals results
   // progressively instead of rendering all 240+ cards on first paint.
@@ -287,6 +288,26 @@ export default function ActivityCataloguePage() {
               {activeChips.length > 0 && (
                 <span className="w-4 h-4 text-[10px] flex items-center justify-center rounded-full bg-white" style={{ color: BRAND }}>
                   {activeChips.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => { setSavedOnly((s) => !s); setVisible(PAGE_SIZE); }}
+              title={savedOnly ? "Show all activities" : "Show only saved activities"}
+              className={`flex items-center gap-1.5 h-10 px-3 text-[13px] font-medium rounded-lg border transition-colors ${
+                savedOnly ? "text-white border-transparent" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+              }`}
+              style={savedOnly ? { backgroundColor: BRAND } : {}}
+            >
+              <FiBookmark size={14} className={savedOnly ? "fill-current" : ""} />
+              <span className="hidden sm:inline">Saved</span>
+              {bookmarks.size > 0 && (
+                <span
+                  className={`w-4 h-4 text-[10px] flex items-center justify-center rounded-full ${savedOnly ? "bg-white" : "text-white"}`}
+                  style={savedOnly ? { color: BRAND } : { backgroundColor: BRAND }}
+                >
+                  {bookmarks.size}
                 </span>
               )}
             </button>
@@ -405,7 +426,15 @@ export default function ActivityCataloguePage() {
                   </button>
                 </span>
               ))}
-              {(activeChips.length > 0 || search) && (
+              {savedOnly && (
+                <span className="flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: BRAND }}>
+                  Saved only
+                  <button onClick={() => setSavedOnly(false)} className="hover:opacity-75" aria-label="Show all activities">
+                    <FiX size={10} />
+                  </button>
+                </span>
+              )}
+              {(activeChips.length > 0 || search || savedOnly) && (
                 <button onClick={clearAll} className="text-[11px] font-medium text-gray-500 hover:text-gray-800 px-1.5">
                   Clear all
                 </button>
@@ -437,16 +466,35 @@ export default function ActivityCataloguePage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm text-center py-20 px-6">
-            <FiSearch size={30} className="mx-auto mb-3 text-gray-300" />
-            <p className="text-sm font-semibold text-gray-700">No activities match your filters</p>
-            <p className="text-xs text-gray-500 mt-1.5">Try removing a filter or searching for something broader.</p>
-            <button
-              onClick={clearAll}
-              className="mt-4 text-xs font-semibold px-4 py-2 rounded-lg text-white"
-              style={{ backgroundColor: BRAND }}
-            >
-              Clear all filters
-            </button>
+            {savedOnly && bookmarks.size === 0 ? (
+              <>
+                <FiBookmark size={30} className="mx-auto mb-3 text-gray-300" />
+                <p className="text-sm font-semibold text-gray-700">You haven&apos;t saved any activities yet</p>
+                <p className="text-xs text-gray-500 mt-1.5 max-w-sm mx-auto leading-relaxed">
+                  Tap the bookmark icon on any activity to save it here for later. Saved activities stay on your account.
+                </p>
+                <button
+                  onClick={() => setSavedOnly(false)}
+                  className="mt-4 text-xs font-semibold px-4 py-2 rounded-lg text-white"
+                  style={{ backgroundColor: BRAND }}
+                >
+                  Browse all activities
+                </button>
+              </>
+            ) : (
+              <>
+                <FiSearch size={30} className="mx-auto mb-3 text-gray-300" />
+                <p className="text-sm font-semibold text-gray-700">No activities match your filters</p>
+                <p className="text-xs text-gray-500 mt-1.5">Try removing a filter or searching for something broader.</p>
+                <button
+                  onClick={clearAll}
+                  className="mt-4 text-xs font-semibold px-4 py-2 rounded-lg text-white"
+                  style={{ backgroundColor: BRAND }}
+                >
+                  Clear all filters
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-8">
@@ -471,7 +519,7 @@ export default function ActivityCataloguePage() {
                         key={a.id}
                         activity={a}
                         isEnrolled={a.isEnrolled}
-                        bookmarked={bookmarks.has(a.id)}
+                        bookmarked={bookmarks.has(a.code)}
                         onBookmark={toggleBookmark}
                       />
                     ))}
