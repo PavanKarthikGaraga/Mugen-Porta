@@ -214,12 +214,17 @@ export function buildCertificateSvg(
 
   ${logoBlock}
 
-  <!-- Title block. textLength pins these fixed strings to an exact width so
-       they can never overflow, whatever font the renderer substitutes. -->
-  <text x="${W / 2 - 270}" y="262" font-family="Georgia, 'Times New Roman', serif" font-size="54" font-weight="bold" fill="${INK}"
-        textLength="540" lengthAdjust="spacingAndGlyphs">CERTIFICATE</text>
-  <text x="${W / 2 - 150}" y="302" font-family="sans-serif" font-size="18" fill="${MUTED}"
-        textLength="300" lengthAdjust="spacingAndGlyphs">OF COMPLETION</text>
+  <!-- Title block: centred with text-anchor="middle" only.
+       Deliberately avoids the textLength and letter-spacing attributes, as
+       neither is handled consistently across SVG rasterisers. textLength is
+       silently ignored by some, leaving the text anchored at its left edge and
+       visibly off-centre. letter-spacing is applied at very different
+       strengths, and it also breaks centring, because the trailing advance
+       after the final glyph is counted in the width being centred. Plain
+       centred text renders identically everywhere, so what is proofed here is
+       what is actually produced. -->
+  <text x="${W / 2}" y="262" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="56" font-weight="bold" fill="${INK}">CERTIFICATE</text>
+  <text x="${W / 2}" y="304" text-anchor="middle" font-family="sans-serif" font-size="19" fill="${MUTED}">OF COMPLETION</text>
   <rect x="${W / 2 - 190}" y="328" width="380" height="2.5" fill="url(#rule)"/>
 
   <text x="${W / 2}" y="${certifyY}" text-anchor="middle" font-family="sans-serif" font-size="19" fill="${MUTED}">This is to certify that</text>
