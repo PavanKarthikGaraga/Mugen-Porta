@@ -85,9 +85,10 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
           </div>
           {/* Bookmark */}
           <button
-            onClick={() => onBookmark?.(activity.id)}
+            onClick={() => onBookmark?.(activity.code)}
             className="flex-shrink-0 p-1 rounded hover:bg-gray-100 transition-colors"
-            aria-label="Bookmark"
+            aria-label={bookmarked ? "Remove from saved" : "Save activity"}
+            title={bookmarked ? "Remove from saved" : "Save for later"}
           >
             <FiBookmark
               size={14}

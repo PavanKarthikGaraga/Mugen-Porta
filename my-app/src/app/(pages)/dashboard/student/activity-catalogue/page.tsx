@@ -2,8 +2,9 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   FiGrid, FiList, FiX, FiSliders, FiSearch, FiChevronDown,
-  FiAlertCircle, FiLayers, FiArrowUp,
+  FiAlertCircle, FiLayers, FiArrowUp, FiBookmark,
 } from "react-icons/fi";
+import { toast } from "sonner";
 import { DOMAINS, LEVELS } from "@/app/Data/activities-mock";
 import CatalogueCard from "@/app/components/dashboard/CatalogueCard";
 
@@ -54,7 +55,8 @@ export default function ActivityCataloguePage() {
   const [loadError, setLoadError] = useState(false);
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState({ ...EMPTY_FILTERS });
-  const [bookmarks, setBookmarks] = useState<Set<any>>(new Set());
+  const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
+  const [savedOnly, setSavedOnly] = useState(false);
   const [view, setView] = useState("grid");
   const [sort, setSort] = useState("default");
   const [visible, setVisible] = useState(PAGE_SIZE);
@@ -93,18 +95,50 @@ export default function ActivityCataloguePage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Saved activities persist per student, so they survive a refresh.
+  useEffect(() => {
+    fetch("/api/student/bookmarks")
+      .then((r) => r.json())
+      .then((d) => { if (d?.success) setBookmarks(new Set(d.codes || [])); })
+      .catch(() => { /* saving still works; the list just starts empty */ });
+  }, []);
+
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 700);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const toggleBookmark = (id: any) => {
+  // Optimistic: the icon responds immediately, and reverts if the write fails,
+  // so the UI never claims something was saved when it wasn't.
+  const toggleBookmark = async (code: string) => {
+    if (!code) return;
+    const wasSaved = bookmarks.has(code);
+
     setBookmarks((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (wasSaved) next.delete(code); else next.add(code);
       return next;
     });
+
+    try {
+      const res = wasSaved
+        ? await fetch(`/api/student/bookmarks?code=${encodeURIComponent(code)}`, { method: "DELETE" })
+        : await fetch("/api/student/bookmarks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ activityCode: code }),
+          });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || "failed");
+    } catch (e) {
+      setBookmarks((prev) => {
+        const next = new Set(prev);
+        if (wasSaved) next.add(code); else next.delete(code);
+        return next;
+      });
+      toast.error(wasSaved ? "Could not remove this activity" : "Could not save this activity");
+    }
   };
 
   const setFilter = (key: string, value: string) => {
@@ -122,6 +156,7 @@ export default function ActivityCataloguePage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     const out = activities.filter((a) => {
+      if (savedOnly && !bookmarks.has(a.code)) return false;
       if (q && !a.name?.toLowerCase().includes(q)
             && !a.code?.toLowerCase().includes(q)
             && !a.purpose?.toLowerCase().includes(q)) return false;
