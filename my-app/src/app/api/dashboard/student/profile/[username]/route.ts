@@ -1,8 +1,18 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { verifyToken } from '@/lib/jwt';
 
 export async function GET(request, { params }) {
     try {
+        const token = request.cookies.get('tck')?.value;
+        if (!token) {
+            return NextResponse.json({ error: 'No token provided' }, { status: 401 });
+        }
+        const caller = await verifyToken(token);
+        if (!caller) {
+            return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+        }
+
         const { username } = await params;
 
         if (!username) {
@@ -64,8 +74,22 @@ export async function GET(request, { params }) {
 
 export async function PATCH(request, { params }) {
     try {
+        const token = request.cookies.get('tck')?.value;
+        if (!token) {
+            return NextResponse.json({ error: 'No token provided' }, { status: 401 });
+        }
+        const caller = await verifyToken(token);
+        if (!caller) {
+            return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+        }
+
         const { username } = await params;
         const { careerChoice } = await request.json();
+
+        // Only the student themselves or an admin may update the career choice
+        if (caller.username !== username && caller.role !== 'admin') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
 
         if (!username || !careerChoice) {
             return NextResponse.json(

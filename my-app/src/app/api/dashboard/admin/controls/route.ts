@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { verifyAdminToken } from '../auth-helper';
 
 // GET - Fetch current controls
 export async function GET() {
@@ -37,6 +38,9 @@ export async function GET() {
 
 // PUT - Update controls
 export async function PUT(request) {
+    const auth = await verifyAdminToken(request);
+    if (!auth.success) return auth.response;
+
     let db;
     try {
         const body = await request.json();
