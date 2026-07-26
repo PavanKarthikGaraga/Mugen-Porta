@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { FiCheckCircle, FiXCircle, FiExternalLink, FiCopy, FiAward, FiCalendar, FiUser, FiBookOpen, FiShield, FiHash, FiCheck } from "react-icons/fi";
 
 // The credential is usually already resolved server-side (via `initialData`)
@@ -211,14 +212,16 @@ export default function BadgeVerifyClient({ verificationId, initialData = null }
             <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
                 <div className="max-w-5xl mx-auto px-6 py-3.5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
-                            <span className="text-white font-extrabold text-sm">S</span>
-                        </div>
-                        <div>
-                            <span className="text-[13px] font-bold text-gray-900">{ISSUER_NAME}</span>
-                            <span className="text-gray-300 mx-2">·</span>
-                            <span className="text-[12px] text-gray-500">SAMAM Program</span>
-                        </div>
+                        <Image
+                            src="/sac-logo.png"
+                            alt={ISSUER_NAME}
+                            width={150}
+                            height={38}
+                            priority
+                            className="h-[34px] w-auto"
+                        />
+                        <span className="text-gray-200 hidden sm:inline">|</span>
+                        <span className="text-[12px] text-gray-500 hidden sm:inline">SAMAM Program</span>
                     </div>
                     <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1.5">
                         <FiCheckCircle size={13} className="text-emerald-600" />

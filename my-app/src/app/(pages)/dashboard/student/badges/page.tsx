@@ -6,6 +6,7 @@ import {
 import { toast } from "sonner";
 import SearchBar from "@/app/components/dashboard/SearchBar";
 import { BadgeIcon, badgeIconSvgMarkup } from "@/lib/badgeIcons";
+import { loadLogoDataUrl } from "@/lib/credentialExport";
 
 const BRAND = "rgb(151,0,3)";
 const VERIFY_ORIGIN = "https://sacactivities.kluniversity.in";
@@ -109,7 +110,7 @@ function fitBadgeName(text, maxWidth, startSize = 46, minSize = 26) {
 // including an embedded scannable QR code linking to the verify page.
 // All dynamic text is XML-escaped so the SVG always parses correctly, and
 // the badge name is measured + wrapped so long titles never get clipped.
-function buildBadgeSvg(badge, rarityRing, qrDataUrl) {
+function buildBadgeSvg(badge, rarityRing, qrDataUrl, logoDataUrl = null) {
   const W = 820;
   const verifyUrl = getVerifyUrl(badge);
   const safeDomain = xmlEscape((badge.domain || "").toUpperCase());
@@ -124,7 +125,9 @@ function buildBadgeSvg(badge, rarityRing, qrDataUrl) {
 
   // --- Layout (computed top-to-bottom so nothing overlaps or gets cut off) ---
   const headerH = 84;
-  const medallionCy = headerH + 220;
+  // Leaves room for the issuer lockup that sits between the header bar and
+  // the medallion (logo block ends at headerH + 22 + ~64).
+  const medallionCy = headerH + 300;
   const medallionR = 158;
   const nameTop = medallionCy + medallionR + 60;
   const nameBlockH = nameLines.length * nameLineHeight;
@@ -188,6 +191,12 @@ function buildBadgeSvg(badge, rarityRing, qrDataUrl) {
   <!-- Header -->
   <path d="M 20 48 A 28 28 0 0 1 48 20 L ${W - 48} 20 A 28 28 0 0 1 ${W - 20} 48 L ${W - 20} ${headerH} L 20 ${headerH} Z" fill="url(#header)"/>
   <text x="${W / 2}" y="${headerH / 2}" text-anchor="middle" dominant-baseline="middle" font-size="17" font-family="sans-serif" font-weight="bold" fill="white" letter-spacing="3">${ISSUER_NAME_SHORT.toUpperCase()} — SAMAM PROGRAM</text>
+
+  <!-- Issuer lockup, on the white card body (the logo contains black type,
+       so it must not sit on the coloured header bar) -->
+  ${logoDataUrl
+    ? `<image href="${logoDataUrl}" x="${(W - 250) / 2}" y="${headerH + 22}" width="250" height="${Math.round(250 / 3.9409)}" preserveAspectRatio="xMidYMid meet"/>`
+    : ""}
 
   <!-- Medallion -->
   <circle cx="${W / 2}" cy="${medallionCy}" r="${medallionR}" fill="url(#medallion)" filter="url(#medallionGlow)"/>
@@ -271,8 +280,11 @@ function rasterizeSvg(svgString: string, width: number, height: number, scale = 
 // complete with a real, scannable QR code linking to the verify page.
 async function downloadBadgePdf(badge, rarityRing) {
   const verifyUrl = getVerifyUrl(badge);
-  const qrDataUrl = await generateVerifyQrDataUrl(verifyUrl, 340).catch(() => null);
-  const { svg, width, height } = buildBadgeSvg(badge, rarityRing, qrDataUrl);
+  const [qrDataUrl, logoDataUrl] = await Promise.all([
+    generateVerifyQrDataUrl(verifyUrl, 340).catch(() => null),
+    loadLogoDataUrl().catch(() => null),
+  ]);
+  const { svg, width, height } = buildBadgeSvg(badge, rarityRing, qrDataUrl, logoDataUrl);
   const { pngDataUrl } = await rasterizeSvg(svg, width, height, 2.5);
 
   const { jsPDF } = await import("jspdf");
