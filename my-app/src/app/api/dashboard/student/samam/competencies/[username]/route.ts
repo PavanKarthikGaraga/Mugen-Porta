@@ -4,6 +4,51 @@ import { getSessionUser, canAccessUsername, safeMessage } from '@/lib/apiSecurit
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Competency profile for a student.
+ *
+ * Scores come from student_competencies when an administrator has recorded
+ * one. Nothing in the application currently writes to that table, so for
+ * virtually every student it is empty — which previously left this page
+ * showing 0% across the board with no way for it to ever change.
+ *
+ * So when there is no recorded score, one is derived from evidence the
+ * student has actually accumulated: completed activities and earned badges
+ * whose own `competencies` list names that competency. Derived scores are
+ * flagged as such and returned alongside the evidence they were computed
+ * from, so the number is always explainable rather than arbitrary.
+ *
+ * Each competency also carries the catalogue activities that develop it,
+ * which turns the page from a read-only report into something actionable.
+ */
+
+const POINTS_PER_ACTIVITY = 20;
+const POINTS_PER_BADGE = 25;
+const MAX_SUGGESTIONS = 4;
+
+function safeJsonArray(val: any): string[] {
+    if (!val) return [];
+    if (Array.isArray(val)) return val.map(String);
+    if (typeof val === 'string') {
+        try {
+            const parsed = JSON.parse(val);
+            return Array.isArray(parsed) ? parsed.map(String) : [];
+        } catch { return []; }
+    }
+    return [];
+}
+
+const norm = (s: string) => String(s || '').trim().toLowerCase();
+
+function levelFor(score: number) {
+    if (score >= 90) return 'Innovator';
+    if (score >= 75) return 'Mentor';
+    if (score >= 60) return 'Leader';
+    if (score >= 40) return 'Practitioner';
+    if (score >= 20) return 'Foundation';
+    return 'Explorer';
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ username: string }> }) {
     try {
         const { username } = await params;
@@ -15,7 +60,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         }
 
-        // Fetch all definitions joined with student scores
         const [rows] = await pool.execute(`
             SELECT
                 cd.id as comp_id, cd.name, cd.category_id, cd.category_name,
@@ -28,13 +72,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             ORDER BY cd.category_id, cd.sort_order
         `, [username]) as any[];
 
-        // Real evidence: completed activities + earned badges, matched against
-        // each competency's name via the free-text `competencies` JSON arrays
-        // stored on activity_catalogue and badge_definitions. This replaces the
-        // old hardcoded mock evidence with data actually earned by the student.
-        const evidenceByCompetency = await getRealEvidence(username);
+        const { evidenceByName, enrolledCodes } = await getEvidence(username);
+        const catalogueByName = await getCatalogueIndex();
 
-        // Group by category
         const categoriesMap: Record<string, any> = {};
 
         rows.forEach(row => {
@@ -48,23 +88,43 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
                 };
             }
 
-            const normalizedName = String(row.name || '').trim().toLowerCase();
+            const key = norm(row.name);
+            const evidence = evidenceByName.get(key) || [];
+
+            const activityCount = evidence.filter((e) => e.type === 'activity').length;
+            const badgeCount = evidence.filter((e) => e.type === 'badge').length;
+
+            const recorded = Number(row.score) > 0 ? Number(row.score) : null;
+            const derived = Math.min(
+                100,
+                activityCount * POINTS_PER_ACTIVITY + badgeCount * POINTS_PER_BADGE
+            );
+            const score = recorded ?? derived;
+
+            // Catalogue activities that build this competency but which the
+            // student has not enrolled in — the concrete "what do I do next".
+            const all = catalogueByName.get(key) || [];
+            const suggestions = all
+                .filter((a) => !enrolledCodes.has(a.code))
+                .slice(0, MAX_SUGGESTIONS);
 
             categoriesMap[catId].competencies.push({
                 id: row.comp_id,
                 name: row.name,
-                score: row.score || 0,
+                score,
+                scoreSource: recorded != null ? 'recorded' : 'derived',
                 trend: row.trend || 0,
-                level: row.level || 'Explorer',
+                level: recorded != null ? (row.level || levelFor(score)) : levelFor(score),
                 color: row.color,
-                evidence: evidenceByCompetency.get(normalizedName) || []
+                evidence,
+                activityCount,
+                badgeCount,
+                opportunityCount: all.length,
+                suggestions,
             });
         });
 
-        // Convert map to array
-        const categories = Object.values(categoriesMap);
-
-        return NextResponse.json(categories);
+        return NextResponse.json(Object.values(categoriesMap));
 
     } catch (error: any) {
         console.error('Database error fetching competencies:', error);
@@ -72,70 +132,81 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
     }
 }
 
-function safeJsonArray(val: any): string[] {
-    if (!val) return [];
-    if (Array.isArray(val)) return val.map(String);
-    if (typeof val === 'string') {
-        try {
-            const parsed = JSON.parse(val);
-            return Array.isArray(parsed) ? parsed.map(String) : [];
-        } catch {
-            return [];
-        }
-    }
-    return [];
-}
+/**
+ * Evidence the student has actually earned, keyed by normalised competency
+ * name, plus every activity code they're enrolled in (so suggestions never
+ * recommend something they're already doing).
+ */
+async function getEvidence(username: string) {
+    const evidenceByName = new Map<string, { title: string; type: string; code: string | null; date: string | null }[]>();
+    const enrolledCodes = new Set<string>();
 
-// Builds a map of normalized-competency-name -> evidence[] from the
-// student's actually-completed activities and actually-earned badges,
-// so the Competencies page can show real proof of growth instead of
-// invented examples.
-async function getRealEvidence(username: string): Promise<Map<string, { title: string; type: string; code: string | null }[]>> {
-    const map = new Map<string, { title: string; type: string; code: string | null }[]>();
-
-    const addEvidence = (competencyNames: string[], entry: { title: string; type: string; code: string | null }) => {
-        for (const rawName of competencyNames) {
-            const key = String(rawName).trim().toLowerCase();
+    const add = (names: string[], entry: any) => {
+        for (const raw of names) {
+            const key = norm(raw);
             if (!key) continue;
-            if (!map.has(key)) map.set(key, []);
-            const list = map.get(key)!;
-            if (list.length < 6 && !list.some((e) => e.title === entry.title)) list.push(entry);
+            if (!evidenceByName.has(key)) evidenceByName.set(key, []);
+            const list = evidenceByName.get(key)!;
+            if (!list.some((e) => e.title === entry.title)) list.push(entry);
         }
     };
 
     try {
-        const [activityRows]: any = await pool.execute(
-            `SELECT ac.code, ac.title, ac.competencies
+        const [rows]: any = await pool.execute(
+            `SELECT ac.code, ac.title, ac.competencies, ae.status, ae.enrolled_at
              FROM activity_enrollments ae
              JOIN activity_catalogue ac ON ae.activity_code = ac.code
-             WHERE ae.username = ? AND ae.status = 'completed'`,
+             WHERE ae.username = ?`,
             [username]
         );
-        for (const row of activityRows) {
-            const names = safeJsonArray(row.competencies);
-            if (names.length) addEvidence(names, { title: row.title, type: 'activity', code: row.code });
+        for (const r of rows) {
+            enrolledCodes.add(r.code);
+            if (r.status !== 'completed') continue;
+            add(safeJsonArray(r.competencies), {
+                title: r.title, type: 'activity', code: r.code,
+                date: r.enrolled_at ? new Date(r.enrolled_at).toISOString() : null,
+            });
         }
-    } catch {
-        // activity_enrollments / activity_catalogue.competencies unavailable — skip gracefully
-    }
+    } catch { /* table unavailable — degrade to no evidence */ }
 
     try {
-        const [badgeRows]: any = await pool.execute(
-            `SELECT bd.name, bd.code, bd.competencies
+        const [rows]: any = await pool.execute(
+            `SELECT bd.name, bd.code, bd.competencies, sb.issued_on
              FROM student_badges sb
              JOIN badge_definitions bd ON sb.badge_id = bd.id
              WHERE sb.username = ?`,
             [username]
         );
-        for (const row of badgeRows) {
-            const names = safeJsonArray(row.competencies);
-            if (names.length) addEvidence(names, { title: row.name, type: 'badge', code: row.code || null });
+        for (const r of rows) {
+            add(safeJsonArray(r.competencies), {
+                title: r.name, type: 'badge', code: r.code || null,
+                date: r.issued_on ? new Date(r.issued_on).toISOString() : null,
+            });
         }
-    } catch {
-        // badge tables unavailable — skip gracefully
-    }
+    } catch { /* badge tables unavailable */ }
 
-    return map;
+    return { evidenceByName, enrolledCodes };
+}
+
+/** Catalogue activities indexed by each competency they claim to develop. */
+async function getCatalogueIndex() {
+    const index = new Map<string, { code: string; title: string; domain: string | null; credits: number | null }[]>();
+    try {
+        const [rows]: any = await pool.execute(
+            `SELECT code, title, category, sdc_credits, competencies
+             FROM activity_catalogue WHERE competencies IS NOT NULL`
+        );
+        for (const r of rows) {
+            const entry = { code: r.code, title: r.title, domain: r.category || null, credits: r.sdc_credits ?? null };
+            for (const raw of safeJsonArray(r.competencies)) {
+                const key = norm(raw);
+                if (!key) continue;
+                if (!index.has(key)) index.set(key, []);
+                index.get(key)!.push(entry);
+            }
+        }
+    } catch { /* catalogue unavailable — no suggestions */ }
+    return index;
 }
 
 function getCategoryDescription(catId: string) {
