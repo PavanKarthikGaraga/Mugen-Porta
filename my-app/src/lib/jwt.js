@@ -11,7 +11,7 @@ const tck=new TextEncoder().encode(TCK);
 export const generateToken= async(payload) => {
     return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime('30m')
+    .setExpirationTime('7d')
     .sign(tck);
 }
 
