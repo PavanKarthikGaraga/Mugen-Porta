@@ -101,8 +101,8 @@ export function buildCertificateSvg(
     // lines, so the block is measured and the type shrunk until it fits —
     // otherwise a long name plus a long title overruns the signature line
     // and the QR panel.
-    const REGION_TOP = 366;
-    const REGION_BOTTOM = 742;
+    const REGION_TOP = 340;
+    const REGION_BOTTOM = 715;
     const AVAILABLE = REGION_BOTTOM - REGION_TOP;
 
     function layout(nameSize: number, titleSize: number) {
