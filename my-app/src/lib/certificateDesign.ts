@@ -127,9 +127,9 @@ export function buildCertificateSvg(
         return { name, title, nameLineH, titleLineH, certifyY, nameFirstY, ruleY, branchY, forY, titleFirstY, metaY, height: metaY };
     }
 
-    let L = layout(76, 42);
+    let L = layout(58, 42);
     for (let step = 1; step <= 6 && L.height > AVAILABLE; step++) {
-        L = layout(76 - step * 6, 42 - step * 3);
+        L = layout(58 - step * 4, 42 - step * 2);
     }
 
     // Centre the block in the region; never start above REGION_TOP.
@@ -228,36 +228,36 @@ export function buildCertificateSvg(
   <text x="${W / 2}" y="304" text-anchor="middle" font-family="sans-serif" font-size="19" fill="${MUTED}">OF COMPLETION</text>
   <rect x="${W / 2 - 190}" y="328" width="380" height="2.5" fill="url(#rule)"/>
 
-  <text x="${W / 2}" y="${certifyY}" text-anchor="middle" font-family="sans-serif" font-size="19" fill="${MUTED}">This is to certify that</text>
+  <text x="${W / 2}" y="${certifyY}" text-anchor="middle" font-family="sans-serif" font-size="23" fill="${MUTED}">This is to certify that</text>
 
   ${nameSvg}
   <rect x="${W / 2 - 260}" y="${ruleY}" width="520" height="1.5" fill="${GOLD}" opacity="0.6"/>
-  <text x="${W / 2}" y="${branchY}" text-anchor="middle" font-family="sans-serif" font-size="16" fill="${MUTED}">${
+  <text x="${W / 2}" y="${branchY}" text-anchor="middle" font-family="sans-serif" font-size="20" fill="${MUTED}">${
       xmlEscape(cert.branch ? `${cert.branch}  ·  ${cert.studentUsername}` : cert.studentUsername)
   }</text>
 
-  <text x="${W / 2}" y="${forY}" text-anchor="middle" font-family="sans-serif" font-size="19" fill="${MUTED}">has successfully completed</text>
+  <text x="${W / 2}" y="${forY}" text-anchor="middle" font-family="sans-serif" font-size="23" fill="${MUTED}">has successfully completed</text>
 
   ${titleSvg}
 
-  <text x="${W / 2}" y="${metaY}" text-anchor="middle" font-family="sans-serif" font-size="15" fill="${MUTED}">${xmlEscape(metaBits)}</text>
+  <text x="${W / 2}" y="${metaY}" text-anchor="middle" font-family="sans-serif" font-size="19" fill="${MUTED}">${xmlEscape(metaBits)}</text>
 
   <!-- Signature -->
   ${signatureDataUrl
-    ? `<image href="${signatureDataUrl}" x="${sigCx - 280}" y="${baseY - 178}" width="560" height="180" preserveAspectRatio="xMidYMid meet"/>`
+    ? `<image href="${signatureDataUrl}" x="${sigCx - 280}" y="${baseY - 155}" width="560" height="180" preserveAspectRatio="xMidYMid meet"/>`
     : ""}
   <line x1="${sigCx - 160}" y1="${baseY}" x2="${sigCx + 160}" y2="${baseY}" stroke="${INK}" stroke-width="1.2" opacity="0.6"/>
-  <text x="${sigCx}" y="${baseY + 28}" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="${INK}">Er. P Sai Vijay</text>
-  <text x="${sigCx}" y="${baseY + 50}" text-anchor="middle" font-family="sans-serif" font-size="13" fill="${MUTED}">Director-SAC</text>
+  <text x="${sigCx}" y="${baseY + 32}" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="${INK}">Er. P Sai Vijay</text>
+  <text x="${sigCx}" y="${baseY + 56}" text-anchor="middle" font-family="sans-serif" font-size="17" fill="${MUTED}">Director-SAC</text>
 
   <!-- Issue date (no rule above — cleaner look) -->
-  <text x="${dateCx}" y="${baseY + 28}" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="${INK}">${xmlEscape(cert.issuedOn)}</text>
-  <text x="${dateCx}" y="${baseY + 50}" text-anchor="middle" font-family="sans-serif" font-size="13" fill="${MUTED}">Date of Issue</text>
+  <text x="${dateCx}" y="${baseY + 32}" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="${INK}">${xmlEscape(cert.issuedOn)}</text>
+  <text x="${dateCx}" y="${baseY + 56}" text-anchor="middle" font-family="sans-serif" font-size="17" fill="${MUTED}">Date of Issue</text>
 
   <!-- Verification: its own column, so the ID can never run into the date -->
   ${qrBlock}
-  <text x="${qrCx}" y="${baseY + 28}" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="${INK}">${xmlEscape(cert.verificationId)}</text>
-  <text x="${qrCx}" y="${baseY + 50}" text-anchor="middle" font-family="sans-serif" font-size="11" fill="${MUTED}">Scan to verify</text>
+  <text x="${qrCx}" y="${baseY + 32}" text-anchor="middle" font-family="monospace" font-size="17" font-weight="bold" fill="${INK}">${xmlEscape(cert.verificationId)}</text>
+  <text x="${qrCx}" y="${baseY + 56}" text-anchor="middle" font-family="sans-serif" font-size="14" fill="${MUTED}">Scan to verify</text>
 
   <!-- Footer (kept clear of the inner border rule at y=${H - 52}) -->
   <text x="${W / 2}" y="${H - 100}" text-anchor="middle" font-family="sans-serif" font-size="12" fill="${MUTED}">Issued by ${xmlEscape(ISSUER_NAME)} · SAMAM Activity Management Program</text>
