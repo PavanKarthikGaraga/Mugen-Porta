@@ -3,10 +3,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
+  // Applies to both Server Actions AND route handlers in Next.js 15+
+  serverActions: {
+    bodySizeLimit: '10mb',
   },
 };
 

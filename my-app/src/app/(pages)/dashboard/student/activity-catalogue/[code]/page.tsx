@@ -184,27 +184,42 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   };
 
 
+  const MAX_UPLOAD_MB = 8;
+  const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+
   const handleAssignmentSubmit = async (id: string) => {
     if (!selectedFile) {
       toast.error("Please choose a file to upload first.");
       return;
     }
+    if (selectedFile.size > MAX_UPLOAD_BYTES) {
+      toast.error(`File is too large (${(selectedFile.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed size is ${MAX_UPLOAD_MB} MB.`);
+      return;
+    }
     setSubmittingAssignment(true);
     setUploadingFile(true);
     try {
-      // 1. Upload the file to R2 (falls back to local storage if R2 env vars
-      //    aren't configured) via the shared upload endpoint.
       const formData = new FormData();
       formData.append("file", selectedFile);
       const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+
+      if (!uploadRes.ok) {
+        if (uploadRes.status === 413) {
+          toast.error(`File too large for the server. Please use a file under ${MAX_UPLOAD_MB} MB.`);
+          return;
+        }
+        const uploadData = await uploadRes.json().catch(() => ({}));
+        toast.error(uploadData.error || `Upload failed (${uploadRes.status})`);
+        return;
+      }
+
       const uploadData = await uploadRes.json();
-      if (!uploadRes.ok || !uploadData.url) {
-        toast.error(uploadData.error || "File upload failed");
+      if (!uploadData.url) {
+        toast.error("Upload failed — no URL returned.");
         return;
       }
       setUploadingFile(false);
 
-      // 2. Record the submission against this assignment.
       const res = await fetch(`/api/activities/${code}/submissions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -729,7 +744,11 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">Upload your work</label>
               <label className="flex items-center gap-2 w-full p-3 mb-4 border-2 border-dashed rounded-xl cursor-pointer bg-white hover:bg-gray-50 transition-colors text-sm text-gray-600">
                 <FiFileText size={16} className="text-gray-400 flex-shrink-0" />
-                <span className="truncate">{selectedFile ? selectedFile.name : "Choose a file (PDF, Word, PPT, image…)"}</span>
+                <span className="truncate flex-1">
+                  {selectedFile
+                    ? `${selectedFile.name} (${(selectedFile.size / 1024 / 1024).toFixed(2)} MB)`
+                    : "Choose a file — PDF, Word, PPT, image… max 8 MB"}
+                </span>
                 <input
                   type="file"
                   accept="application/pdf,image/jpeg,image/png,image/webp,image/gif,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.pdf,.txt"
