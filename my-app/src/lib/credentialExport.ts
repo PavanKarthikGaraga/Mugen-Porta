@@ -72,7 +72,7 @@ export function loadSignatureDataUrl(): Promise<string | null> {
     if (signPromise) return signPromise;
     signPromise = (async () => {
         try {
-            const res = await fetch("/Sign.png");
+            const res = await fetch("/signature.png");
             if (!res.ok) return null;
             const blob = await res.blob();
             return await new Promise<string | null>((resolve) => {
