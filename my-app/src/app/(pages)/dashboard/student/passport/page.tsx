@@ -8,6 +8,7 @@ import {
   FiHeart, FiStar, FiCalendar, FiFileText, FiCheckCircle,
   FiMapPin, FiTrendingUp, FiEye, FiEyeOff, FiShare2, FiCheck, FiLock,
 } from "react-icons/fi";
+import { BadgeIcon } from "@/lib/badgeIcons";
 import { PASSPORT } from "@/app/Data/development-mock";
 
 const BRAND = "rgb(151,0,3)";
@@ -262,8 +263,28 @@ export default function PassportPage() {
         </div>
       </div>
 
+      {/* Mobile horizontal section nav */}
+      <div className="lg:hidden mb-3 -mx-1">
+        <div className="overflow-x-auto pb-1">
+          <div className="flex gap-2 px-1" style={{ minWidth: "max-content" }}>
+            {NAV_SECTIONS.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => scrollTo(id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                  activeSection === id ? "text-white shadow-sm" : "text-gray-600 bg-white border border-gray-200"
+                }`}
+                style={activeSection === id ? { backgroundColor: BRAND } : {}}
+              >
+                <Icon size={11} /> {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="flex gap-5 items-start">
-        {/* Sticky sidebar nav */}
+        {/* Sticky sidebar nav (desktop only) */}
         <div className="hidden lg:block w-44 flex-shrink-0">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2 sticky top-4">
             {NAV_SECTIONS.map(({ id, label, icon: Icon }) => (
@@ -313,7 +334,7 @@ export default function PassportPage() {
                     className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold"
                     style={{ backgroundColor: b.bg_color || '#f9fafb', borderColor: b.color || '#e5e7eb', color: b.color || '#374151' }}
                   >
-                    <span className="text-base">{b.icon || '🏅'}</span>
+                    <BadgeIcon icon={b.icon} domain={b.domain} size={18} style={{ color: b.color || BRAND }} />
                     <div>
                       <p className="font-bold">{b.name}</p>
                       <p className="text-[10px] font-normal opacity-70">{b.rarity}</p>

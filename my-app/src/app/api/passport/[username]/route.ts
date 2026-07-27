@@ -62,7 +62,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             pool.execute('SELECT COALESCE(SUM(credits), 0) as total FROM sdc_transactions WHERE username = ?', [username]),
             pool.execute('SELECT COUNT(*) as count FROM activity_enrollments WHERE username = ?', [username]),
             pool.execute('SELECT COUNT(*) as count FROM student_badges WHERE username = ?', [username]),
-            pool.execute(`SELECT bd.name, bd.icon, bd.rarity, bd.color, bd.bg_color, sb.issued_on
+            pool.execute(`SELECT bd.name, bd.icon, bd.domain, bd.rarity, bd.color, bd.bg_color, sb.issued_on
                           FROM student_badges sb JOIN badge_definitions bd ON sb.badge_id = bd.id
                           WHERE sb.username = ? ORDER BY sb.issued_on DESC LIMIT 12`, [username]),
         ] as any[]);

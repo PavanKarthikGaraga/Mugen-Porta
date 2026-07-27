@@ -8,6 +8,7 @@ import {
   FiHeart, FiStar, FiCalendar, FiFileText, FiCheckCircle,
   FiMapPin, FiTrendingUp, FiShield, FiLock,
 } from "react-icons/fi";
+import { BadgeIcon } from "@/lib/badgeIcons";
 
 const BRAND = "rgb(151,0,3)";
 const TECH_COLORS = ["#2563EB","#7C3AED","#059669","#D97706","#DC2626","#0891B2"];
@@ -231,7 +232,7 @@ export default function PublicPassportPage() {
                   <div key={i}
                     className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold"
                     style={{ backgroundColor: b.bg_color || "#f9fafb", borderColor: b.color || "#e5e7eb", color: b.color || "#374151" }}>
-                    <span className="text-base">{b.icon || "🏅"}</span>
+                    <BadgeIcon icon={b.icon} domain={b.domain} size={18} style={{ color: b.color || BRAND }} />
                     <div>
                       <p className="font-bold">{b.name}</p>
                       <p className="text-[10px] font-normal opacity-70" style={{ color: RarityColor(b.rarity) }}>{b.rarity}</p>

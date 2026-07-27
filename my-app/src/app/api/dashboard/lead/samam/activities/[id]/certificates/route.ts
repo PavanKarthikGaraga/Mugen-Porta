@@ -62,14 +62,14 @@ async function checkIssuer() {
 async function loadPermittedActivity(issuer: any, code: string) {
     if (issuer.unrestricted) {
         const [rows]: any = await pool.execute(
-            'SELECT code, title, category, sdc_credits FROM activity_catalogue WHERE code = ? LIMIT 1', [code]
+            'SELECT code, title, domain, category, sdc_credits FROM activity_catalogue WHERE code = ? LIMIT 1', [code]
         );
         return rows[0] || null;
     }
     if (!issuer.assigned_categories || issuer.assigned_categories.length === 0) return null;
     const placeholders = issuer.assigned_categories.map(() => '?').join(',');
     const [rows]: any = await pool.execute(
-        `SELECT code, title, category, sdc_credits FROM activity_catalogue
+        `SELECT code, title, domain, category, sdc_credits FROM activity_catalogue
          WHERE code = ? AND category IN (${placeholders}) LIMIT 1`,
         [code, ...issuer.assigned_categories]
     );
@@ -106,7 +106,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
         return NextResponse.json({
             success: true,
-            activity: { code: activity.code, title: activity.title, domain: activity.category, credits: activity.sdc_credits },
+            activity: { code: activity.code, title: activity.title, domain: activity.domain, credits: activity.sdc_credits },
             students: rows.map((r: any) => ({
                 username: r.username,
                 name: r.name,
@@ -175,7 +175,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
                     (username, activity_code, activity_title, domain, credits, verification_id, issued_by, issued_by_name)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    username, activity.code, activity.title, activity.category,
+                    username, activity.code, activity.title, activity.domain ?? null,
                     activity.sdc_credits ?? null, newCertificateVerificationId(),
                     issuer.decoded.username, issuerName,
                 ]

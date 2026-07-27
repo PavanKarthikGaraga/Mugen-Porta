@@ -92,7 +92,7 @@ export async function POST(request: Request) {
         }
 
         const [acts]: any = await pool.execute(
-            `SELECT code, title, category, sdc_credits FROM activity_catalogue WHERE code = ? LIMIT 1`, [code]
+            `SELECT code, title, domain, sdc_credits FROM activity_catalogue WHERE code = ? LIMIT 1`, [code]
         );
         if (acts.length === 0) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
                 (username, activity_code, activity_title, domain, credits, verification_id, issued_by, issued_by_name)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                username, activity.code, activity.title, activity.category,
+                username, activity.code, activity.title, activity.domain ?? null,
                 activity.sdc_credits ?? null, verificationId,
                 admin.username, admin.name || admin.username,
             ]

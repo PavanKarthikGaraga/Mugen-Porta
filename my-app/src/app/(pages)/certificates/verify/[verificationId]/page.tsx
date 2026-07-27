@@ -29,10 +29,10 @@ export async function generateMetadata({ params }: { params: Promise<{ verificat
 /** Shared page chrome so both the valid and invalid states look the same. */
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-gray-50 py-8 sm:py-10 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-6">
-          <Image src="/sac-logo.png" alt="KL SAC — Student Activity Center" width={240} height={61} className="mx-auto" priority />
+          <Image src="/sac-logo.png" alt="KL SAC — Student Activity Center" width={240} height={61} className="mx-auto max-w-[180px] sm:max-w-[240px] h-auto" priority />
           <p className="text-xs text-gray-500 mt-3 tracking-wide">SAMAM ACTIVITY MANAGEMENT PROGRAM</p>
         </div>
         {children}
@@ -54,9 +54,9 @@ export default async function CertificateVerifyPage({ params }: { params: Promis
       <Shell>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="h-1.5 bg-gray-300" />
-          <div className="px-8 py-14 text-center">
-            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-              <FiXCircle size={30} className="text-red-500" />
+          <div className="px-5 py-10 sm:px-8 sm:py-14 text-center">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <FiXCircle size={28} className="text-red-500" />
             </div>
             <h1 className="text-lg font-bold text-gray-900">Certificate could not be verified</h1>
             <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto leading-relaxed">{result.message}</p>
@@ -92,26 +92,26 @@ export default async function CertificateVerifyPage({ params }: { params: Promis
           <p className="text-sm font-semibold text-emerald-800">Verified Certificate</p>
         </div>
 
-        <div className="px-8 py-8 text-center">
+        <div className="px-5 py-6 sm:px-8 sm:py-8 text-center">
           <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5"
             style={{ backgroundColor: "rgba(151,0,3,0.07)", border: "1.5px solid rgba(151,0,3,0.15)", color: BRAND }}
           >
-            <FiAward size={28} />
+            <FiAward size={26} />
           </div>
 
           <p className="text-xs text-gray-400 uppercase tracking-widest">This certifies that</p>
-          <h1 className="text-2xl font-bold text-gray-900 mt-2">{recipient.name}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mt-2">{recipient.name}</h1>
           <p className="text-xs text-gray-500 mt-1">
             {[recipient.branch, recipient.username].filter(Boolean).join("  ·  ")}
           </p>
 
-          <p className="text-xs text-gray-400 uppercase tracking-widest mt-6">has successfully completed</p>
-          <h2 className="text-lg font-bold mt-2" style={{ color: BRAND }}>{certificate.activityTitle}</h2>
-          {meta && <p className="text-xs text-gray-500 mt-1.5">{meta}</p>}
+          <p className="text-xs text-gray-400 uppercase tracking-widest mt-5 sm:mt-6">has successfully completed</p>
+          <h2 className="text-base sm:text-lg font-bold mt-2" style={{ color: BRAND }}>{certificate.activityTitle}</h2>
+          {meta && <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{meta}</p>}
         </div>
 
-        <div className="px-8 pb-8">
+        <div className="px-5 pb-6 sm:px-8 sm:pb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {details.map((d) => (
               <div key={d.label} className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 text-left">
