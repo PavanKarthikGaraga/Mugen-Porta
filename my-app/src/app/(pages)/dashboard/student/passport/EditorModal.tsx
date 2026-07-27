@@ -122,6 +122,7 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                         <div className="grid grid-cols-2 gap-4">
                             <div><label className="text-xs font-semibold text-gray-600">Tagline *</label><input required value={data.profile?.tagline || ""} onChange={e => updateProfile("tagline", e.target.value)} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg mt-1" /></div>
                             <div><label className="text-xs font-semibold text-gray-600">CGPA</label><input type="number" step="0.01" value={data.profile?.cgpa || ""} onChange={e => updateProfile("cgpa", e.target.value)} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg mt-1" /></div>
+                            <div><label className="text-xs font-semibold text-gray-600">Graduation Year</label><input type="number" min="2020" max="2035" value={data.profile?.graduation_year || ""} onChange={e => updateProfile("graduation_year", e.target.value)} placeholder="e.g. 2026" className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg mt-1" /></div>
                             <div className="col-span-2">
                                 <label className="text-xs font-semibold text-gray-600">Skills *</label>
                                 <SkillInput 
@@ -157,6 +158,10 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                                         <input placeholder="Location" value={exp.location} onChange={e => updateArray('internships', i, 'location', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
                                     </div>
                                     <textarea placeholder="Description" value={exp.description} onChange={e => updateArray('internships', i, 'description', e.target.value)} rows={2} className="w-full mt-3 p-3 text-sm border border-gray-200 rounded-lg" />
+                                    <div className="mt-2">
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1">Skills Used</label>
+                                        <SkillInput value={exp.skills || []} onChange={(s) => updateArray('internships', i, 'skills', s)} />
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -267,7 +272,8 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                                 <div key={i} className="p-4 border border-gray-200 rounded-lg relative bg-gray-50">
                                     <button onClick={() => removeArrayItem('achievements', i)} className="absolute top-3 right-3 text-red-500 hover:text-red-700 p-1"><FiTrash2 size={14}/></button>
                                     <div className="grid grid-cols-2 gap-3 pr-8">
-                                        <input required placeholder="Title *" value={a.title} onChange={e => updateArray('achievements', i, 'title', e.target.value)} className="col-span-2 h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input placeholder="Icon (emoji, e.g. 🥇)" value={a.icon || ""} onChange={e => updateArray('achievements', i, 'icon', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
+                                        <input required placeholder="Title *" value={a.title} onChange={e => updateArray('achievements', i, 'title', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
                                         <input placeholder="Organisation / Event" value={a.organisation} onChange={e => updateArray('achievements', i, 'organisation', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
                                         <input placeholder="Year" value={a.achievement_year} onChange={e => updateArray('achievements', i, 'achievement_year', e.target.value)} className="h-9 px-3 text-sm border border-gray-200 rounded-lg" />
                                     </div>

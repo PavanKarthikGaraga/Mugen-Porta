@@ -33,13 +33,23 @@ export async function GET(request: Request) {
             profile.name = (studentRows as any)[0]?.name || username;
         }
 
-        // Fetch other sections
-        const [projects] = await pool.execute('SELECT * FROM passport_projects WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
-        const [internships] = await pool.execute('SELECT * FROM passport_internships WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
-        const [research] = await pool.execute('SELECT * FROM passport_research WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
-        const [leadership] = await pool.execute('SELECT * FROM passport_leadership WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
-        const [community] = await pool.execute('SELECT * FROM passport_community WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
-        const [achievements] = await pool.execute('SELECT * FROM passport_achievements WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]);
+        // Fetch passport sections + stats in parallel
+        const results = await Promise.all([
+            pool.execute('SELECT * FROM passport_projects WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]),
+            pool.execute('SELECT * FROM passport_internships WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]),
+            pool.execute('SELECT * FROM passport_research WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]),
+            pool.execute('SELECT * FROM passport_leadership WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]),
+            pool.execute('SELECT * FROM passport_community WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]),
+            pool.execute('SELECT * FROM passport_achievements WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [username] as string[]),
+            pool.execute('SELECT COALESCE(SUM(credits), 0) as total FROM sdc_transactions WHERE username = ?', [username] as string[]),
+            pool.execute('SELECT COUNT(*) as count FROM activity_enrollments WHERE username = ?', [username] as string[]),
+            pool.execute('SELECT COUNT(*) as count FROM student_badges WHERE username = ?', [username] as string[]),
+            pool.execute(`SELECT bd.name, bd.icon, bd.rarity, bd.color, bd.bg_color, sb.issued_on
+                          FROM student_badges sb JOIN badge_definitions bd ON sb.badge_id = bd.id
+                          WHERE sb.username = ? ORDER BY sb.issued_on DESC LIMIT 12`, [username] as string[]),
+        ]);
+        const [[projects], [internships], [research], [leadership], [community], [achievements],
+               [sdcRows], [actRows], [badgeRows], [badgeDetails]] = results as any[][];
 
         const safeParse = (val: any) => {
             if (!val) return [];
@@ -60,7 +70,13 @@ export async function GET(request: Request) {
             leadership,
             community,
             achievements,
-            timeline: safeParse(profile.timeline)
+            timeline: safeParse(profile.timeline),
+            badges: badgeDetails,
+            stats: {
+                sdc_total: Number((sdcRows as any)[0]?.total) || 0,
+                activities_count: Number((actRows as any)[0]?.count) || 0,
+                badges_count: Number((badgeRows as any)[0]?.count) || 0,
+            },
         });
 
     } catch (error: any) {
@@ -157,9 +173,17 @@ export async function PUT(request: Request) {
             // 7. Achievements
             if (achievements) {
                 await syncTable('passport_achievements', achievements,
-                    'INSERT INTO passport_achievements (username, title, organisation, achievement_year, sort_order) VALUES (?, ?, ?, ?, ?)',
-                    (a, i) => [username, a.title, a.organisation, cleanNum(a.achievement_year), i]
-                );
+                    'INSERT INTO passport_achievements (username, title, organisation, achievement_year, icon, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
+                    (a, i) => [username, a.title, a.organisation, cleanNum(a.achievement_year), a.icon || null, i]
+                ).catch(async (err: any) => {
+                    // icon column may not exist yet — fall back to without it
+                    if (err.code === 'ER_BAD_FIELD_ERROR') {
+                        await syncTable('passport_achievements', achievements,
+                            'INSERT INTO passport_achievements (username, title, organisation, achievement_year, sort_order) VALUES (?, ?, ?, ?, ?)',
+                            (a, i) => [username, a.title, a.organisation, cleanNum(a.achievement_year), i]
+                        );
+                    } else { throw err; }
+                });
             }
 
             await conn.commit();
