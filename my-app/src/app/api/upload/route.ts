@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSessionUser, safeMessage } from '@/lib/apiSecurity';
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
@@ -75,19 +76,25 @@ export async function POST(request: Request) {
             return NextResponse.json({ url: `/uploads/${finalFilename}` });
         }
 
-        const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
         const S3 = new S3Client({
             region: "auto",
             endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
             credentials: { accessKeyId, secretAccessKey },
         });
 
-        await S3.send(new PutObjectCommand({
-            Bucket: bucketName,
-            Key: finalFilename,
-            Body: buffer,
-            ContentType: file.type || 'application/octet-stream',
-        }));
+        try {
+            await S3.send(new PutObjectCommand({
+                Bucket: bucketName,
+                Key: finalFilename,
+                Body: buffer,
+                ContentType: file.type || 'application/octet-stream',
+            }));
+        } catch (r2Err: any) {
+            console.error("Upload: R2 error:", r2Err?.message, r2Err?.Code, r2Err?.$metadata);
+            return NextResponse.json({
+                error: `R2 upload failed: ${r2Err?.Code || r2Err?.message || 'unknown error'}`,
+            }, { status: 500 });
+        }
 
         const prefix = publicUrlPrefix
             ? (publicUrlPrefix.endsWith('/') ? publicUrlPrefix : `${publicUrlPrefix}/`)

@@ -7,6 +7,9 @@ const nextConfig = {
   serverActions: {
     bodySizeLimit: '10mb',
   },
+  // Keep heavy Node.js-native packages out of the webpack bundle so they
+  // resolve correctly from node_modules at runtime in production.
+  serverExternalPackages: ['@aws-sdk/client-s3'],
 };
 
 export default nextConfig;
