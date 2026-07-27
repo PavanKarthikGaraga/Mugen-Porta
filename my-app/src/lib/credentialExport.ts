@@ -39,9 +39,9 @@ export function xmlEscape(str: unknown): string {
         .replace(/'/g, "&apos;");
 }
 
-// The logo is fetched once per page load and reused — every certificate in a
-// list would otherwise re-download it.
+// The logo and signature are fetched once per page load and reused.
 let logoPromise: Promise<string | null> | null = null;
+let signPromise: Promise<string | null> | null = null;
 
 /**
  * Loads the SAC logo as a base64 data URL so it can be embedded directly in
@@ -66,6 +66,26 @@ export function loadLogoDataUrl(): Promise<string | null> {
         }
     })();
     return logoPromise;
+}
+
+export function loadSignatureDataUrl(): Promise<string | null> {
+    if (signPromise) return signPromise;
+    signPromise = (async () => {
+        try {
+            const res = await fetch("/Sign.png");
+            if (!res.ok) return null;
+            const blob = await res.blob();
+            return await new Promise<string | null>((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(typeof reader.result === "string" ? reader.result : null);
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(blob);
+            });
+        } catch {
+            return null;
+        }
+    })();
+    return signPromise;
 }
 
 /** Scannable QR (PNG data URL) pointing at a credential's verify link. */

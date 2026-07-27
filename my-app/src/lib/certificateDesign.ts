@@ -1,5 +1,5 @@
 import {
-    xmlEscape, loadLogoDataUrl, generateVerifyQrDataUrl, svgToPdf,
+    xmlEscape, loadLogoDataUrl, loadSignatureDataUrl, generateVerifyQrDataUrl, svgToPdf,
     safeFileName, VERIFY_ORIGIN, ISSUER_NAME, BRAND_HEX, LOGO_ASPECT,
 } from "./credentialExport";
 
@@ -90,7 +90,8 @@ function fitLines(
 export function buildCertificateSvg(
     cert: CertificateData,
     logoDataUrl: string | null,
-    qrDataUrl: string | null
+    qrDataUrl: string | null,
+    signatureDataUrl: string | null = null
 ): { svg: string; width: number; height: number } {
     const verifyUrl = certificateVerifyUrl(cert.verificationId);
     const CONTENT_W = W - 300; // generous side margins inside the ornamental frame
@@ -242,12 +243,14 @@ export function buildCertificateSvg(
   <text x="${W / 2}" y="${metaY}" text-anchor="middle" font-family="sans-serif" font-size="15" fill="${MUTED}">${xmlEscape(metaBits)}</text>
 
   <!-- Signature -->
+  ${signatureDataUrl
+    ? `<image href="${signatureDataUrl}" x="${sigCx - 90}" y="${baseY - 72}" width="180" height="64" preserveAspectRatio="xMidYMid meet"/>`
+    : ""}
   <line x1="${sigCx - 160}" y1="${baseY}" x2="${sigCx + 160}" y2="${baseY}" stroke="${INK}" stroke-width="1.2" opacity="0.6"/>
-  <text x="${sigCx}" y="${baseY + 28}" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="${INK}">${xmlEscape(cert.issuedByName || "SAC Coordinator")}</text>
-  <text x="${sigCx}" y="${baseY + 50}" text-anchor="middle" font-family="sans-serif" font-size="13" fill="${MUTED}">Student Activity Center</text>
+  <text x="${sigCx}" y="${baseY + 28}" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="${INK}">Er. P Sai Vijay</text>
+  <text x="${sigCx}" y="${baseY + 50}" text-anchor="middle" font-family="sans-serif" font-size="13" fill="${MUTED}">Director-SAC</text>
 
-  <!-- Issue date -->
-  <line x1="${dateCx - 130}" y1="${baseY}" x2="${dateCx + 130}" y2="${baseY}" stroke="${INK}" stroke-width="1.2" opacity="0.6"/>
+  <!-- Issue date (no rule above — cleaner look) -->
   <text x="${dateCx}" y="${baseY + 28}" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="${INK}">${xmlEscape(cert.issuedOn)}</text>
   <text x="${dateCx}" y="${baseY + 50}" text-anchor="middle" font-family="sans-serif" font-size="13" fill="${MUTED}">Date of Issue</text>
 
@@ -266,11 +269,12 @@ export function buildCertificateSvg(
 
 /** Builds the artwork and saves it as a landscape PDF. */
 export async function downloadCertificatePdf(cert: CertificateData): Promise<void> {
-    const [logoDataUrl, qrDataUrl] = await Promise.all([
+    const [logoDataUrl, qrDataUrl, signatureDataUrl] = await Promise.all([
         loadLogoDataUrl(),
         generateVerifyQrDataUrl(certificateVerifyUrl(cert.verificationId), 340),
+        loadSignatureDataUrl(),
     ]);
-    const { svg, width, height } = buildCertificateSvg(cert, logoDataUrl, qrDataUrl);
+    const { svg, width, height } = buildCertificateSvg(cert, logoDataUrl, qrDataUrl, signatureDataUrl);
     await svgToPdf(svg, width, height, {
         pageWidth: 842, // A4 landscape width in points
         orientation: "landscape",
