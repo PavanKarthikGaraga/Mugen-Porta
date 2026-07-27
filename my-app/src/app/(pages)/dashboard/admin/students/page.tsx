@@ -11,6 +11,7 @@ export default function AdminStudents() {
     const [filters, setFilters] = useState({
         domain: "",
         year: "",
+        branch: "",
         residenceType: "",
         clubId: "",
         campus: "",
@@ -23,6 +24,7 @@ export default function AdminStudents() {
         pages: 0
     });
     const [clubStats, setClubStats] = useState([]);
+    const [branchList, setBranchList] = useState<string[]>([]);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [studentToDelete, setStudentToDelete] = useState(null);
     const [showViewModal, setShowViewModal] = useState(false);
@@ -37,6 +39,7 @@ export default function AdminStudents() {
                 search: searchTerm,
                 domain: filters.domain,
                 year: filters.year,
+                branch: filters.branch,
                 residenceType: filters.residenceType,
                 clubId: filters.clubId,
                 campus: filters.campus,
@@ -54,6 +57,7 @@ export default function AdminStudents() {
                 setStudents(data.data.students);
                 setPagination(data.data.pagination);
                 setClubStats(data.data.clubStats || []);
+                if (data.data.branchList?.length) setBranchList(data.data.branchList);
             } else {
                 console.error('Error fetching students:', data.error);
             }
@@ -129,6 +133,7 @@ export default function AdminStudents() {
                 search: searchTerm,
                 domain: filters.domain,
                 year: filters.year,
+                branch: filters.branch,
                 residenceType: filters.residenceType,
                 clubId: filters.clubId,
                 campus: filters.campus,
@@ -285,7 +290,7 @@ export default function AdminStudents() {
 
             {/* Search and Filters */}
             <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-4">
                     {/* Search */}
                     <div className="lg:col-span-1">
                         <div className="relative">
@@ -343,6 +348,20 @@ export default function AdminStudents() {
                             <option value="2nd">2nd Year</option>
                             <option value="3rd">3rd Year</option>
                             <option value="4th">4th Year</option>
+                        </select>
+                    </div>
+
+                    {/* Branch Filter */}
+                    <div>
+                        <select
+                            value={filters.branch}
+                            onChange={(e) => setFilters({...filters, branch: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                            <option value="">All Branches</option>
+                            {branchList.map((b) => (
+                                <option key={b} value={b}>{b}</option>
+                            ))}
                         </select>
                     </div>
 
@@ -405,6 +424,7 @@ export default function AdminStudents() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Club</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -425,6 +445,9 @@ export default function AdminStudents() {
                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getDomainBadgeClass(student.selectedDomain)}`}>
                                             {student.selectedDomain}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {student.branch || 'N/A'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {student.clubName || 'Not Assigned'}

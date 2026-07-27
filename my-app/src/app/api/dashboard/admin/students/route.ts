@@ -299,12 +299,18 @@ export async function GET(request) {
 
         const [clubStatsResult] = await connection.execute(clubStatsQuery, queryParams);
 
+        // Distinct branch list (unfiltered — always show all branches so the dropdown is stable)
+        const [branchListResult] = await connection.execute(
+            `SELECT DISTINCT branch FROM students WHERE branch IS NOT NULL AND branch != '' ORDER BY branch`
+        ) as any[];
+
         return NextResponse.json({
             success: true,
             data: {
                 students: transformedStudents,
                 stats,
                 clubStats: clubStatsResult,
+                branchList: (branchListResult as any[]).map((r: any) => r.branch),
                 pagination: all ? null : {
                     page,
                     limit,
