@@ -62,17 +62,16 @@ export default function PublicPassportPage() {
         }
         // Construct academic data from profile
         const p = json.profile;
-        const y = p?.student_year;
-        const grad = p?.graduation_year || (y ? new Date().getFullYear() + (4 - y) : null);
-        const start = grad ? grad - 4 : null;
-        const suffix = y === 1 ? 'st' : y === 2 ? 'nd' : y === 3 ? 'rd' : 'th';
+        const yRaw = p?.student_year;
+        const yNum = parseInt(yRaw, 10);
+        const suffix = yNum === 1 ? 'st' : yNum === 2 ? 'nd' : yNum === 3 ? 'rd' : 'th';
         json.academic = {
           institution: "KL University",
           campus: "Vijayawada",
           degree: p?.branch ? `B.Tech ${p.branch}` : "B.Tech",
           cgpa: p?.cgpa,
           rollNo: p?.username,
-          year: y ? `${y}${suffix} Year${start && grad ? ` (${start}–${grad})` : ""}` : "—",
+          year: !isNaN(yNum) ? `${yNum}${suffix} Year` : (yRaw ? String(yRaw) : "—"),
         };
         json.timeline = json.timeline || [];
         setData(json);

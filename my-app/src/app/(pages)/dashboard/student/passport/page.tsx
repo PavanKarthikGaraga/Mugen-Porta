@@ -73,11 +73,14 @@ export default function PassportPage() {
          if (json.profile?.username) json.academic.rollNo = json.profile.username;
          if (json.profile?.branch) json.academic.degree = `B.Tech ${json.profile.branch}`;
          if (json.profile?.student_year) {
-             const y = json.profile.student_year;
-             const grad = json.profile.graduation_year || (new Date().getFullYear() + (4 - y));
-             const start = grad - 4;
-             const suffix = y === 1 ? 'st' : y === 2 ? 'nd' : y === 3 ? 'rd' : 'th';
-             json.academic.year = `${y}${suffix} Year (${start}–${grad})`;
+             const raw = json.profile.student_year;
+             const y = parseInt(raw, 10);
+             if (!isNaN(y)) {
+                 const suffix = y === 1 ? 'st' : y === 2 ? 'nd' : y === 3 ? 'rd' : 'th';
+                 json.academic.year = `${y}${suffix} Year`;
+             } else {
+                 json.academic.year = String(raw);
+             }
          }
          json.timeline = json.timeline || [];
          setData(json);
