@@ -1,116 +1,159 @@
 "use client";
 import Link from "next/link";
-import { FiChevronRight, FiClock, FiStar, FiAward, FiCheckCircle, FiAlertCircle, FiUser } from "react-icons/fi";
-import ProgressCard from "./ProgressCard";
+import {
+  FiChevronRight, FiClock, FiStar, FiAward, FiCheckCircle, FiAlertCircle,
+  FiCpu, FiBookOpen, FiHeart, FiZap, FiActivity,
+} from "react-icons/fi";
 import { DOMAINS } from "@/app/Data/activities-mock";
 
-const STATUS_CONFIG = {
-  registered:      { label: "Registered",      bg: "bg-blue-50",    text: "text-blue-700",   border: "border-blue-200"   },
-  ongoing:         { label: "Ongoing",          bg: "bg-amber-50",   text: "text-amber-700",  border: "border-amber-200"  },
-  completed:       { label: "Completed",        bg: "bg-emerald-50", text: "text-emerald-700",border: "border-emerald-200"},
-  pending_review:  { label: "Pending Review",   bg: "bg-purple-50",  text: "text-purple-700", border: "border-purple-200" },
-  certificates:    { label: "Certificate Ready",bg: "bg-green-50",   text: "text-green-700",  border: "border-green-200"  },
-  archived:        { label: "Archived",         bg: "bg-gray-50",    text: "text-gray-500",   border: "border-gray-200"   },
+const BRAND = "rgb(151,0,3)";
+
+const DOMAIN_ICON: Record<string, React.ElementType> = {
+  TEC: FiCpu,
+  LCH: FiBookOpen,
+  ESO: FiHeart,
+  IIE: FiZap,
+  HWB: FiActivity,
 };
 
-export default function MyActivityRow({ activity, tabKey }) {
+const STATUS_CONFIG: Record<string, { label: string; cls: string; dot: string }> = {
+  registered:     { label: "Registered",   cls: "text-blue-700 bg-blue-50 border-blue-200",       dot: "bg-blue-500" },
+  ongoing:        { label: "Ongoing",      cls: "text-amber-700 bg-amber-50 border-amber-200",     dot: "bg-amber-500" },
+  completed:      { label: "Completed",    cls: "text-emerald-700 bg-emerald-50 border-emerald-200", dot: "bg-emerald-500" },
+  pending_review: { label: "Under Review", cls: "text-purple-700 bg-purple-50 border-purple-200",  dot: "bg-purple-500" },
+  certificates:   { label: "Cert Ready",  cls: "text-green-700 bg-green-50 border-green-200",     dot: "bg-green-500" },
+  archived:       { label: "Archived",     cls: "text-gray-500 bg-gray-50 border-gray-200",        dot: "bg-gray-400" },
+};
+
+export default function MyActivityRow({ activity, tabKey }: any) {
   const domainCode = activity?.domain || "TEC";
   const domain = DOMAINS[domainCode] || DOMAINS.TEC;
+  const DomainIcon = DOMAIN_ICON[domainCode] || FiCpu;
   const statusKey = activity?.enrollment_status || tabKey || "registered";
   const config = STATUS_CONFIG[statusKey] || STATUS_CONFIG.registered;
-  
-  // Ensure assignments is always an array
-  const assignments = Array.isArray(activity?.assignments) ? activity.assignments : 
-                      (typeof activity?.assignments === 'string' ? JSON.parse(activity.assignments || '[]') : []);
+
+  const assignments: any[] = Array.isArray(activity?.assignments)
+    ? activity.assignments
+    : typeof activity?.assignments === "string"
+    ? (() => { try { return JSON.parse(activity.assignments || "[]"); } catch { return []; } })()
+    : [];
+
+  const submittedCount = assignments.filter((a) => a.submitted).length;
+  const totalAssignments = assignments.length;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all p-4">
-      <div className="flex items-start gap-4">
-        {/* Domain color pill */}
+    <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200 p-4">
+      <div className="flex items-start gap-3">
+        {/* Domain icon */}
         <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg flex-shrink-0"
-          style={{ backgroundColor: domain.color }}
+          className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5"
+          style={{ backgroundColor: domain.bg }}
         >
-          {domainCode[0]}
+          <DomainIcon size={19} style={{ color: domain.color }} />
         </div>
 
         <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-3 flex-wrap">
-            <div>
-              <p className="text-[10px] font-mono text-gray-400">{activity?.code}</p>
-              <h4 className="text-sm font-semibold text-gray-900 leading-snug">{activity?.name}</h4>
-              <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1"><FiUser size={11} /> {activity?.faculty} · {activity?.semester}</p>
+          {/* Header row */}
+          <div className="flex items-start justify-between gap-2 flex-wrap">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                <span className="text-[10px] font-mono text-gray-400">{activity?.code}</span>
+                <span
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
+                  style={{ color: domain.color, backgroundColor: domain.bg }}
+                >
+                  {domainCode}
+                </span>
+              </div>
+              <h4 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-red-800 transition-colors">
+                {activity?.name}
+              </h4>
+              {activity?.category && (
+                <p className="text-[10px] text-gray-400 mt-0.5 truncate">{activity.category}</p>
+              )}
             </div>
-            <span className={`text-[10px] font-medium px-2.5 py-1 rounded-full border flex-shrink-0 ${config.bg} ${config.text} ${config.border}`}>
+
+            <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border flex-shrink-0 flex items-center gap-1.5 ${config.cls}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
               {config.label}
             </span>
           </div>
 
           {/* Stats row */}
-          <div className="flex items-center gap-4 mt-2.5 text-xs text-gray-500 flex-wrap">
-            <span className="flex items-center gap-1">
-              <FiStar size={11} style={{ color: "rgb(151,0,3)" }} />
-              <span className="font-semibold text-gray-700">{activity?.credits_earned || activity?.credits || 0}</span> SAMAM Points
+          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 flex-wrap">
+            <span className="flex items-center gap-1 font-bold" style={{ color: BRAND }}>
+              <FiStar size={11} />
+              {activity?.credits_earned || activity?.credits || 0} pts
             </span>
             <span className="flex items-center gap-1">
-              <FiClock size={11} /> {activity?.hours || 0}h
+              <FiClock size={11} />
+              {activity?.hours || 0}h
             </span>
-            {activity?.userAttendance > 0 && (
-              <span className="flex items-center gap-1">
-                <FiCheckCircle size={11} className="text-emerald-500" />
-                Attendance: {activity.userAttendance}%
-              </span>
-            )}
-            {activity?.badgeEarned && (
-              <span className="flex items-center gap-1">
-                <FiAward size={11} className="text-amber-500" />
-                <span className="text-amber-700 font-medium">{activity.badge}</span>
-              </span>
-            )}
-            {activity?.certificateReady && (
-              <span className="flex items-center gap-1">
-                <FiCheckCircle size={11} className="text-green-500" />
-                <span className="text-green-700 font-medium">Certificate Ready</span>
+            {(activity?.userAttendance ?? 0) > 0 && (
+              <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                <FiCheckCircle size={11} />
+                {activity.userAttendance}% attendance
               </span>
             )}
           </div>
 
-          {/* Progress bar */}
-          {activity?.userProgress > 0 && (
-            <div className="mt-3">
-              <ProgressCard label="Progress" value={activity.userProgress} />
+          {/* Assignment progress dots */}
+          {totalAssignments > 0 && (
+            <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+              <span className="text-[10px] font-medium text-gray-500">
+                {submittedCount}/{totalAssignments} assignments
+              </span>
+              <div className="flex gap-1">
+                {assignments.map((a: any, idx: number) => (
+                  <span
+                    key={a.id || idx}
+                    title={a.title || `Assignment ${idx + 1}`}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      a.submitted ? "bg-emerald-400" : "bg-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              {submittedCount === totalAssignments && totalAssignments > 0 && (
+                <span className="text-[10px] font-semibold text-emerald-600 flex items-center gap-0.5">
+                  <FiCheckCircle size={9} /> All done
+                </span>
+              )}
             </div>
           )}
 
-          {/* Faculty feedback snippet */}
+          {/* Faculty feedback */}
           {activity?.facultyFeedback && (
-            <div className="mt-3 p-2.5 bg-blue-50 border border-blue-100 rounded-lg">
-              <p className="text-[10px] font-semibold text-blue-700 mb-0.5">Faculty Feedback</p>
-              <p className="text-xs text-blue-800 line-clamp-2">{activity.facultyFeedback}</p>
+            <div className="mt-2.5 px-3 py-2 bg-blue-50 border border-blue-100 rounded-xl">
+              <p className="text-[10px] font-bold text-blue-600 mb-0.5">Faculty Feedback</p>
+              <p className="text-xs text-blue-800 line-clamp-2 leading-relaxed">
+                {activity.facultyFeedback}
+              </p>
             </div>
           )}
 
-          {/* Assignment status */}
-          <div className="mt-3 flex items-center gap-3 flex-wrap">
-            {assignments.map((a: any) => (
-              <span
-                key={a.id}
-                className={`flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border ${
-                  a.submitted ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-50 text-gray-500 border-gray-200"
-                }`}
-              >
-                {a.submitted ? <FiCheckCircle size={9} /> : <FiAlertCircle size={9} />}
-                {a.title}
-              </span>
-            ))}
-          </div>
+          {/* Badges / certs */}
+          {(activity?.badgeEarned || activity?.certificateReady) && (
+            <div className="flex gap-2 mt-2.5 flex-wrap">
+              {activity?.badgeEarned && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                  <FiAward size={10} /> {activity.badge || "Badge Earned"}
+                </span>
+              )}
+              {activity?.certificateReady && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <FiCheckCircle size={10} /> Certificate Ready
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* View arrow */}
         <Link
-          href={`/dashboard/student/activity-catalogue/${activity.code}`}
-          className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-700"
+          href={`/dashboard/student/activity-catalogue/${activity?.code}`}
+          className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors text-gray-300 hover:text-gray-600 mt-0.5"
+          aria-label="View activity details"
         >
           <FiChevronRight size={16} />
         </Link>

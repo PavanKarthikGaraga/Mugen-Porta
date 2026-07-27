@@ -1,39 +1,48 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { FiBookmark, FiClock, FiStar, FiUser, FiZap, FiTarget, FiActivity, FiAward, FiSettings, FiFeather, FiTrendingUp, FiGlobe } from "react-icons/fi";
-import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";
+import {
+  FiBookmark, FiClock, FiStar, FiUsers, FiCheckCircle,
+  FiCpu, FiBookOpen, FiHeart, FiZap, FiActivity,
+  FiArrowRight,
+} from "react-icons/fi";
+import { DOMAINS } from "@/app/Data/activities-mock";
 import EnrollModal from "./EnrollModal";
 
-const DIFFICULTY_COLOR = {
-  Beginner:     "bg-emerald-50 text-emerald-700 border-emerald-200",
-  Intermediate: "bg-amber-50 text-amber-700 border-amber-200",
-  Advanced:     "bg-red-50 text-red-700 border-red-200",
+const BRAND = "rgb(151,0,3)";
+
+const DOMAIN_ICON: Record<string, React.ElementType> = {
+  TEC: FiCpu,
+  LCH: FiBookOpen,
+  ESO: FiHeart,
+  IIE: FiZap,
+  HWB: FiActivity,
 };
 
-const STATUS_COLOR = {
-  Open:     "bg-emerald-500",
-  Closed:   "bg-gray-400",
-  Upcoming: "bg-blue-500",
-  Ongoing:  "bg-amber-500",
+const DIFFICULTY_CONFIG: Record<string, { cls: string }> = {
+  Beginner:     { cls: "text-emerald-700 bg-emerald-50 border-emerald-200" },
+  Intermediate: { cls: "text-amber-700 bg-amber-50 border-amber-200" },
+  Advanced:     { cls: "text-red-700 bg-red-50 border-red-200" },
 };
 
-const LEVEL_ICON: Record<string, React.ElementType> = {
-  explorer: FiTarget, foundation: FiFeather, practitioner: FiSettings,
-  leader: FiAward, mentor: FiUser, innovator: FiTrendingUp,
+const LEVEL_LABEL: Record<string, string> = {
+  explorer: "Explorer", foundation: "Foundation", practitioner: "Practitioner",
+  leader: "Leader", innovator: "Innovator",
 };
 
-export default function CatalogueCard({ activity, bookmarked = false, onBookmark, isEnrolled = false }: any) {
+export default function CatalogueCard({ activity, bookmarked = false, onBookmark, isEnrolled = false, listMode = false }: any) {
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [localEnrolled, setLocalEnrolled] = useState(isEnrolled);
 
   const domain = DOMAINS[activity.domain] || DOMAINS.TEC;
+  const DomainIcon = DOMAIN_ICON[activity.domain] || FiCpu;
   const enrolled = (activity.enrolledCount || 0) + (localEnrolled && !isEnrolled ? 1 : 0);
-  const max = activity.maxEnrollment;
-  const fillPct = Math.round((enrolled / max) * 100);
-  const isFull = enrolled >= max;
-  const statusLabel = isFull ? "Full" : "Open";
+  const max = activity.maxEnrollment || 0;
+  const fillPct = max > 0 ? Math.min(100, Math.round((enrolled / max) * 100)) : 0;
+  const isFull = max > 0 && enrolled >= max;
+  const diffConf = DIFFICULTY_CONFIG[activity.difficulty] || DIFFICULTY_CONFIG.Beginner;
+  const levelLabel = LEVEL_LABEL[activity.level?.toLowerCase()] || activity.level;
 
   const handleEnroll = async () => {
     setEnrollLoading(true);
@@ -41,7 +50,6 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
       const res = await fetch(`/api/activities/${activity.code}/enroll`, { method: "POST" });
       const data = await res.json();
       if (res.ok) {
-        alert(data.message);
         setLocalEnrolled(true);
       } else {
         alert(data.message || "Enrollment failed");
@@ -53,139 +61,218 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
     setEnrollModalOpen(false);
   };
 
-  return (
-    <div className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col">
-      {/* Header strip */}
-      <div
-        className="h-1.5 w-full"
-        style={{ backgroundColor: domain.color }}
-      />
-
-      {/* Body */}
-      <div className="p-4 flex flex-col flex-1 gap-3">
-        {/* Top row */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {/* Domain badge */}
-            <span
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-full border"
-              style={{ color: domain.color, backgroundColor: domain.bg, borderColor: `${domain.color}30` }}
-            >
-              {activity.domain}
-            </span>
-            {/* Difficulty */}
-            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${DIFFICULTY_COLOR[activity.difficulty]}`}>
-              {activity.difficulty}
-            </span>
-            {/* Level */}
-            <span className="text-[10px] text-gray-500 flex items-center gap-1">
-              {LEVEL_ICON[activity.level] && React.createElement(LEVEL_ICON[activity.level], { size: 10 })}
-              {activity.level.charAt(0).toUpperCase() + activity.level.slice(1)}
-            </span>
+  // ── List-mode row ──────────────────────────────────────────────────────────
+  if (listMode) {
+    return (
+      <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200">
+        <div className="flex items-center gap-3 px-4 py-3">
+          {/* Icon */}
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: domain.bg }}
+          >
+            <DomainIcon size={17} style={{ color: domain.color }} />
           </div>
+
+          {/* Main info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+              <span className="text-[10px] font-mono text-gray-400">{activity.code}</span>
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${diffConf.cls}`}>
+                {activity.difficulty}
+              </span>
+              {levelLabel && (
+                <span className="text-[10px] text-gray-400">{levelLabel}</span>
+              )}
+            </div>
+            <h3 className="text-sm font-bold text-gray-900 leading-tight group-hover:text-red-800 transition-colors truncate">
+              {activity.name}
+            </h3>
+          </div>
+
+          {/* Stats */}
+          <div className="hidden sm:flex items-center gap-5 text-xs text-gray-500 flex-shrink-0">
+            <span className="flex items-center gap-1 font-bold" style={{ color: BRAND }}>
+              <FiStar size={11} /> {activity.credits}
+            </span>
+            <span className="flex items-center gap-1">
+              <FiClock size={11} /> {activity.hours}h
+            </span>
+            {max > 0 && (
+              <span className="flex items-center gap-1">
+                <FiUsers size={11} /> {enrolled}/{max}
+              </span>
+            )}
+          </div>
+
           {/* Bookmark */}
           <button
             onClick={() => onBookmark?.(activity.code)}
-            className="flex-shrink-0 p-1 rounded hover:bg-gray-100 transition-colors"
-            aria-label={bookmarked ? "Remove from saved" : "Save activity"}
-            title={bookmarked ? "Remove from saved" : "Save for later"}
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
           >
             <FiBookmark
-              size={14}
+              size={13}
               className={bookmarked ? "fill-current" : ""}
-              style={{ color: bookmarked ? "rgb(151,0,3)" : "#9CA3AF" }}
+              style={{ color: bookmarked ? BRAND : "#D1D5DB" }}
             />
           </button>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Link
+              href={`/dashboard/student/activity-catalogue/${activity.code}`}
+              className="hidden sm:flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Details
+            </Link>
+            <button
+              disabled={isFull || localEnrolled}
+              onClick={() => !localEnrolled && !isFull && setEnrollModalOpen(true)}
+              className="text-xs font-bold px-3 py-1.5 rounded-xl text-white transition-all disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: localEnrolled ? "#10B981" : isFull ? "#D1D5DB" : BRAND,
+              }}
+            >
+              {localEnrolled ? "✓" : isFull ? "Full" : "Enroll"}
+            </button>
+          </div>
         </div>
 
-        {/* Code + Name */}
+        <EnrollModal
+          isOpen={enrollModalOpen}
+          onClose={() => setEnrollModalOpen(false)}
+          onConfirm={handleEnroll}
+          activityName={activity.name}
+          loading={enrollLoading}
+        />
+      </div>
+    );
+  }
+
+  // ── Grid-mode card ─────────────────────────────────────────────────────────
+  return (
+    <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col">
+      {/* Top: domain icon + bookmark */}
+      <div className="px-4 pt-4 pb-2 flex items-start justify-between gap-2">
+        <div
+          className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: domain.bg }}
+        >
+          <DomainIcon size={20} style={{ color: domain.color }} />
+        </div>
+
+        <button
+          onClick={() => onBookmark?.(activity.code)}
+          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors"
+          aria-label={bookmarked ? "Remove bookmark" : "Save activity"}
+        >
+          <FiBookmark
+            size={14}
+            className={bookmarked ? "fill-current" : ""}
+            style={{ color: bookmarked ? BRAND : "#D1D5DB" }}
+          />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="px-4 pb-4 flex flex-col flex-1 gap-2.5">
+        {/* Badges row */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span
+            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+            style={{ color: domain.color, backgroundColor: domain.bg }}
+          >
+            {activity.domain}
+          </span>
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${diffConf.cls}`}>
+            {activity.difficulty}
+          </span>
+          {levelLabel && (
+            <span className="text-[10px] text-gray-400 font-medium">{levelLabel}</span>
+          )}
+        </div>
+
+        {/* Code + Title */}
         <div>
           <p className="text-[10px] font-mono text-gray-400 mb-0.5">{activity.code}</p>
-          <h3 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 group-hover:text-red-800 transition-colors">
+          <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-red-800 transition-colors">
             {activity.name}
           </h3>
         </div>
 
         {/* Description */}
-        <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{activity.purpose}</p>
-
-        {/* Meta row */}
-        <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
-          <span className="flex items-center gap-1">
-            <FiStar size={11} style={{ color: "rgb(151,0,3)" }} />
-            <span className="font-semibold text-gray-700">{activity.credits}</span> SAMAM Points
-          </span>
-          <span className="flex items-center gap-1">
-            <FiClock size={11} className="text-gray-400" />
-            {activity.hours}h
-          </span>
-          <span className="flex items-center gap-1">
-            <FiUser size={11} className="text-gray-400" />
-            {enrolled}/{max}
-          </span>
-          <span className="flex items-center gap-1">
-            <FiZap size={11} className="text-amber-500" />
-            {activity.rating}
-          </span>
-        </div>
-
-        {/* Faculty */}
-        <p className="text-xs text-gray-400 truncate flex items-center gap-1">
-          <FiUser size={11} /> {activity.faculty}
+        <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
+          {activity.purpose}
         </p>
 
-        {/* SDGs */}
-        <div className="flex flex-col gap-1.5 mt-1">
-          {activity.sdgs.slice(0, 3).map((sdg: number) => (
-            <span key={sdg} className="text-[10px] font-medium text-gray-600 flex items-center gap-1.5">
-              <FiGlobe size={11} className="text-blue-500" />
-              <span className="font-semibold">SDG {sdg}:</span> {SDG_MAP[sdg] || "Sustainable Goal"}
+        {/* Stats */}
+        <div className="flex items-center gap-3 text-xs">
+          <span className="flex items-center gap-1 font-bold" style={{ color: BRAND }}>
+            <FiStar size={11} /> {activity.credits} pts
+          </span>
+          <span className="flex items-center gap-1 text-gray-500">
+            <FiClock size={11} /> {activity.hours}h
+          </span>
+          {max > 0 && (
+            <span className="flex items-center gap-1 text-gray-500">
+              <FiUsers size={11} /> {enrolled}/{max}
             </span>
-          ))}
-          {activity.sdgs.length > 3 && (
-            <span className="text-[10px] text-gray-400 italic">+{activity.sdgs.length - 3} more goals...</span>
           )}
         </div>
 
         {/* Enrollment bar */}
-        <div>
-          <div className="flex items-center justify-between text-[10px] mb-1">
-            <span className="text-gray-400">Seats filled</span>
-            <span className={`font-medium ${isFull ? "text-red-600" : "text-gray-600"}`}>{fillPct}%</span>
+        {max > 0 && (
+          <div className="space-y-1">
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${fillPct}%`,
+                  backgroundColor: isFull ? "#DC2626" : fillPct > 80 ? "#D97706" : domain.color,
+                }}
+              />
+            </div>
+            <p className="text-[9px] text-gray-400">
+              {isFull
+                ? "No seats available"
+                : `${max - enrolled} seat${max - enrolled !== 1 ? "s" : ""} remaining`}
+            </p>
           </div>
-          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{ width: `${fillPct}%`, backgroundColor: isFull ? "#DC2626" : "rgb(151,0,3)" }}
-            />
-          </div>
-        </div>
+        )}
 
-        {/* Actions */}
+        {/* Category label */}
+        {activity.category && (
+          <p className="text-[10px] text-gray-400 truncate">{activity.category}</p>
+        )}
+
+        {/* Actions — pinned to bottom */}
         <div className="flex gap-2 mt-auto pt-2">
           <Link
             href={`/dashboard/student/activity-catalogue/${activity.code}`}
-            className="flex-1 text-center text-xs font-medium py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center justify-center gap-1 flex-1 text-xs font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
           >
-            View Details
+            Details <FiArrowRight size={11} />
           </Link>
           <button
             disabled={isFull || localEnrolled}
-            onClick={() => setEnrollModalOpen(true)}
-            className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: isFull ? "#9CA3AF" : localEnrolled ? "#10B981" : "rgb(151,0,3)" }}
+            onClick={() => !localEnrolled && !isFull && setEnrollModalOpen(true)}
+            className="flex-1 text-xs font-bold py-2.5 rounded-xl text-white transition-all disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: localEnrolled ? "#10B981" : isFull ? "#D1D5DB" : BRAND,
+            }}
           >
-            {localEnrolled ? "Enrolled" : isFull ? "Full" : "Enroll"}
+            {localEnrolled ? <span className="flex items-center justify-center gap-1"><FiCheckCircle size={11} /> Enrolled</span>
+              : isFull ? "Full" : "Enroll"}
           </button>
         </div>
       </div>
 
-      <EnrollModal 
-        isOpen={enrollModalOpen} 
-        onClose={() => setEnrollModalOpen(false)} 
-        onConfirm={handleEnroll} 
-        activityName={activity.name} 
-        loading={enrollLoading} 
+      <EnrollModal
+        isOpen={enrollModalOpen}
+        onClose={() => setEnrollModalOpen(false)}
+        onConfirm={handleEnroll}
+        activityName={activity.name}
+        loading={enrollLoading}
       />
     </div>
   );
