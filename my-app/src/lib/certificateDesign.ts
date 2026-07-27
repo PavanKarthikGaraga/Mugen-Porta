@@ -244,7 +244,7 @@ export function buildCertificateSvg(
 
   <!-- Signature -->
   ${signatureDataUrl
-    ? `<image href="${signatureDataUrl}" x="${sigCx - 250}" y="${baseY - 162}" width="500" height="158" preserveAspectRatio="xMidYMid meet"/>`
+    ? `<image href="${signatureDataUrl}" x="${sigCx - 280}" y="${baseY - 178}" width="560" height="180" preserveAspectRatio="xMidYMid meet"/>`
     : ""}
   <line x1="${sigCx - 160}" y1="${baseY}" x2="${sigCx + 160}" y2="${baseY}" stroke="${INK}" stroke-width="1.2" opacity="0.6"/>
   <text x="${sigCx}" y="${baseY + 28}" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="${INK}">Er. P Sai Vijay</text>
