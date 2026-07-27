@@ -143,8 +143,10 @@ export default function ResumePage() {
                         <ul className="list-disc list-outside ml-4 space-y-1">
                             {research.map((r: any) => (
                                 <li key={`r-${r.id}`} className="text-sm text-gray-800">
-                                    <span className="font-bold">{r.title}</span> - {r.journal} ({r.publication_year}) 
-                                    <span className="italic"> [{r.status}]</span>
+                                    <span className="font-bold">{r.title}</span>
+                                    {r.journal ? ` — ${r.journal}` : ''}
+                                    {r.publication_year ? ` (${r.publication_year})` : ''}
+                                    {r.status ? <span className="italic"> [{r.status}]</span> : ''}
                                 </li>
                             ))}
                         </ul>
@@ -158,12 +160,17 @@ export default function ResumePage() {
                         <ul className="list-disc list-outside ml-4 space-y-1">
                             {leadership?.map((l: any, idx: number) => (
                                 <li key={`l-${idx}`} className="text-sm text-gray-800">
-                                    <span className="font-bold">{l.role}</span>, {l.organisation} ({l.period}) - {l.impact}
+                                    <span className="font-bold">{l.role}</span>
+                                    {l.organisation ? `, ${l.organisation}` : ''}
+                                    {l.period ? ` (${l.period})` : ''}
+                                    {l.impact ? ` — ${l.impact}` : ''}
                                 </li>
                             ))}
                             {achievements?.map((a: any, idx: number) => (
                                 <li key={`a-${idx}`} className="text-sm text-gray-800">
-                                    <span className="font-bold">{a.title}</span>, {a.organisation} ({a.achievement_year})
+                                    <span className="font-bold">{a.title}</span>
+                                    {a.organisation ? `, ${a.organisation}` : ''}
+                                    {a.achievement_year ? ` (${a.achievement_year})` : ''}
                                 </li>
                             ))}
                             {community?.map((c: any, idx: number) => (
