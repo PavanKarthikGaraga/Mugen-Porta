@@ -1,219 +1,148 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FiFolder, FiUsers, FiCalendar, FiInfo } from "react-icons/fi";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FiUsers, FiGlobe, FiUser, FiPhone, FiMail, FiHash, FiInfo } from "react-icons/fi";
 
-export default function StudentClubDetailsPage() {
-    const [clubData, setClubData] = useState(null);
+const BRAND = "rgb(151,0,3)";
+
+const DOMAIN_COLORS: Record<string, { color: string; bg: string }> = {
+    TEC: { color: "#2563EB", bg: "#EFF6FF" },
+    LCH: { color: "#7C3AED", bg: "#F5F3FF" },
+    ESO: { color: "#059669", bg: "#ECFDF5" },
+    IIE: { color: "#D97706", bg: "#FFFBEB" },
+    HWB: { color: "#DC2626", bg: "#FEF2F2" },
+};
+
+function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+    return (
+        <div className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
+            <span className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#FFF1F1" }}>
+                <Icon size={14} style={{ color: BRAND }} />
+            </span>
+            <div className="min-w-0">
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{label}</p>
+                <p className="text-sm font-semibold text-gray-800 mt-0.5 break-all">{value}</p>
+            </div>
+        </div>
+    );
+}
+
+export default function ClubInfoPage() {
+    const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [errorMsg, setErrorMsg] = useState(null);
 
     useEffect(() => {
-        const fetchClubDetails = async () => {
-            try {
-                // Fetch user data first
-                const userResponse = await fetch('/api/auth/me');
-                if (!userResponse.ok) {
-                    throw new Error('Failed to fetch user data');
-                }
-
-                const userData = await userResponse.json();
-                const username = userData.user?.username;
-
-                // Fetch student details including club information
-                const studentResponse = await fetch(`/api/dashboard/student/profile/${username}`, { credentials: 'include' });
-                if (studentResponse.ok) {
-                    const studentDetails = await studentResponse.json();
-
-                    // Fetch club information
-                    if (studentDetails.clubId && studentDetails.clubId !== "null" && studentDetails.clubId !== "undefined") {
-                        try {
-                            const clubResponse = await fetch(`/api/dashboard/student/clubs/${studentDetails.clubId}`, { credentials: 'include' });
-                            if (clubResponse.ok) {
-                                const clubInfo = await clubResponse.json();
-                                setClubData({
-                                    ...clubInfo,
-                                    studentDetails: studentDetails
-                                });
-                            } else {
-                                // Fallback if club data is not found in the DB (e.g., custom KLH clubs not yet inserted)
-                                setClubData({
-                                    id: studentDetails.clubId,
-                                    name: studentDetails.clubName || "Club Pending Configuration",
-                                    domain: studentDetails.selectedDomain || "Unknown",
-                                    studentDetails: studentDetails
-                                });
-                            }
-                        } catch (error) {
-                            console.error('Error fetching club data:', error);
-                            // Set fallback even on error
-                            setClubData({
-                                id: studentDetails.clubId,
-                                name: studentDetails.clubName || "Club Pending Configuration",
-                                domain: studentDetails.selectedDomain || "Unknown",
-                                studentDetails: studentDetails
-                            });
-                        }
-                    } else {
-                        // Fallback for students who registered but clubId is missing or invalid, or no matching club record
-                        setClubData({
-                            id: studentDetails.clubId || null,
-                            name: studentDetails.clubName || studentDetails.clubId || "Club Pending Configuration",
-                            domain: studentDetails.selectedDomain || "Unknown",
-                            studentDetails: studentDetails
-                        });
-                    }
-                } else {
-                    const errData = await studentResponse.json();
-                    setErrorMsg(`Could not find your student profile (Error: ${errData.message || 'Unknown'}). Please contact support.`);
-                }
-            } catch (error) {
-                console.error('Failed to fetch club details:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchClubDetails();
+        fetch("/api/dashboard/student/club")
+            .then(r => r.json())
+            .then(d => { setData(d); setLoading(false); })
+            .catch(() => setLoading(false));
     }, []);
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="max-w-2xl mx-auto space-y-4 animate-pulse">
+                <div className="h-36 bg-gray-100 rounded-2xl" />
+                <div className="h-32 bg-gray-100 rounded-2xl" />
+                <div className="h-48 bg-gray-100 rounded-2xl" />
             </div>
         );
     }
 
-    return (
-        <div className="p-6">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Club Details</h1>
-                <p className="mt-2 text-gray-600">Your club information</p>
+    if (!data?.success || !data?.club) {
+        return (
+            <div className="max-w-2xl mx-auto">
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
+                    <span className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: "#FFF1F1" }}>
+                        <FiUsers size={24} style={{ color: BRAND }} />
+                    </span>
+                    <h2 className="text-lg font-bold text-gray-800 mb-1">No Club Assigned</h2>
+                    <p className="text-sm text-gray-400">You haven&apos;t been assigned to a club yet. Please contact the admin.</p>
+                </div>
             </div>
+        );
+    }
 
-            {/* Club Information */}
-            {errorMsg ? (
-                <Card className="mb-8 border-red-200">
-                    <CardContent className="p-8 text-center">
-                        <FiInfo className="mx-auto h-12 w-12 text-red-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Error</h3>
-                        <p className="text-red-500">{errorMsg}</p>
-                    </CardContent>
-                </Card>
-            ) : clubData ? (
-                <Card className="mb-8">
-                    <CardHeader>
-                        <CardTitle className="flex items-center">
-                            <FiFolder className="mr-2" />
-                            Club Information
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
+    const { club, lead } = data;
+    const domainStyle = DOMAIN_COLORS[club.domain] || { color: BRAND, bg: "#FFF1F1" };
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Club Name</label>
-                                <p className="text-lg font-semibold text-gray-900">{clubData.name}</p>
-                            </div>
+    return (
+        <div className="max-w-2xl mx-auto space-y-4">
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Domain</label>
-                                <p className="text-gray-700">
-                                    {clubData.domain
-                                        ? {
-                                            TEC: "Technical",
-                                            LCH: "Literary, Cultural & Heritage",
-                                            ESO: "Extension & Social Outreach",
-                                            IIE: "Innovation, Incubation & Entrepreneurship",
-                                            HWB: "Health & Well-being",
-                                          }[clubData.domain] || clubData.domain
-                                        : "N/A"}
-                                </p>
-                            </div>
-
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Member Limit</label>
-                                <p className="text-gray-700">{clubData.memberLimit || 'N/A'}</p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Registration Date</label>
-                                <p className="text-gray-700">
-                                    {clubData.studentDetails?.created_at
-                                        ? new Date(clubData.studentDetails.created_at).toLocaleDateString()
-                                        : 'N/A'}
-                                </p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Active Member
-                                </span>
-                            </div>
-                            
-                            {clubData.studentDetails?.pathway && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Pathway</label>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        {clubData.studentDetails.pathway}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
+            {/* Club header card */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${BRAND} 0%, #7C3AED 100%)` }} />
+                <div className="p-6 flex items-start gap-5">
+                    <div
+                        className="w-16 h-16 rounded-2xl flex items-center justify-center text-white flex-shrink-0"
+                        style={{ background: `linear-gradient(135deg, ${BRAND} 0%, #7C3AED 100%)` }}
+                    >
+                        <FiUsers size={28} />
                     </div>
-
-                    {/* Club Description */}
-                    <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Club Description</label>
-                        <p className="text-gray-600 bg-gray-50 p-4 rounded-lg">
-                            {clubData.description || 'No description available.'}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                            <span
+                                className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide"
+                                style={{ backgroundColor: domainStyle.bg, color: domainStyle.color }}
+                            >
+                                {club.domain}
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-mono bg-gray-50 px-2 py-0.5 rounded-full">{club.id}</span>
+                        </div>
+                        <h1 className="text-xl font-black text-gray-900 leading-snug">{club.name}</h1>
+                        <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-1">
+                            <FiGlobe size={12} /> {club.domainName}
                         </p>
                     </div>
-                    </CardContent>
-                </Card>
-            ) : (
-                <Card className="mb-8">
-                    <CardContent>
-                        <div className="text-center py-8">
-                            <FiFolder className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Club Information</h3>
-                            <p className="text-gray-600">You haven&apos;t been assigned to a club yet.</p>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
-
-            {/* Summary Card */}
-            {/* {clubData && (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                        <FiInfo className="mr-2" />
-                        Summary
-                    </h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {clubData && (
-                            <div className="bg-blue-50 p-4 rounded-lg">
-                                <div className="flex items-center">
-                                    <FiFolder className="h-8 w-8 text-blue-600 mr-3" />
-                                    <div>
-                                        <p className="text-sm font-medium text-blue-600">Club</p>
-                                        <p className="text-lg font-semibold text-blue-900">{clubData.name}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                    </div>
                 </div>
-            )} */}
+            </div>
+
+            {/* About */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <FiInfo size={12} /> About
+                </h2>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                    {club.description && club.description !== club.name
+                        ? club.description
+                        : `${club.name} is a student club under the ${club.domainName} domain, focused on fostering skills and building community.`}
+                </p>
+            </div>
+
+            {/* Club lead card */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <FiUser size={12} /> Club Lead
+                </h2>
+
+                {lead ? (
+                    <>
+                        <div className="flex items-center gap-3 mb-1 pb-4 border-b border-gray-50">
+                            <div
+                                className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-lg flex-shrink-0"
+                                style={{ background: `linear-gradient(135deg, ${BRAND} 0%, #7C3AED 100%)` }}
+                            >
+                                {lead.name?.[0]?.toUpperCase() || "L"}
+                            </div>
+                            <div>
+                                <p className="font-bold text-gray-900">{lead.name}</p>
+                                <p className="text-xs text-gray-400">Club Lead · {club.name}</p>
+                            </div>
+                        </div>
+                        <InfoRow icon={FiHash}  label="Student ID"    value={lead.idNumber} />
+                        <InfoRow icon={FiPhone} label="Phone Number"  value={lead.phone} />
+                        <InfoRow icon={FiMail}  label="Email Address" value={lead.email} />
+                    </>
+                ) : (
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-gray-50">
+                        <div className="w-10 h-10 rounded-xl bg-gray-200 flex items-center justify-center flex-shrink-0">
+                            <FiUser size={18} className="text-gray-400" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-gray-500">Lead Not Assigned</p>
+                            <p className="text-xs text-gray-400 mt-0.5">No club lead has been assigned to this club yet.</p>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

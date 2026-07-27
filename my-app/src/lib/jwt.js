@@ -1,26 +1,25 @@
-import { SignJWT,jwtVerify } from "jose"; 
+import { SignJWT, jwtVerify } from "jose";
 
-const TCK=process.env.TCK;
+const TCK = process.env.TCK;
 
-if(!TCK){
-    throw new Error("TCK is not defined in environment variables");
+function getKey() {
+    if (!TCK) throw new Error("TCK environment variable is not defined");
+    return new TextEncoder().encode(TCK);
 }
 
-const tck=new TextEncoder().encode(TCK);
-
-export const generateToken= async(payload) => {
+export const generateToken = async (payload) => {
     return await new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime('7d')
-    .sign(tck);
-}
+        .setProtectedHeader({ alg: "HS256" })
+        .setExpirationTime('7d')
+        .sign(getKey());
+};
 
-export const verifyToken = async(token) => {
+export const verifyToken = async (token) => {
     try {
-        const { payload } = await jwtVerify(token, tck);
+        const { payload } = await jwtVerify(token, getKey());
         return payload;
     } catch (error) {
         console.error("Token verification failed:", error);
-        return null; // Return null instead of throwing error
+        return null;
     }
-}
+};

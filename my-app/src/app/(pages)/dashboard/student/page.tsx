@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   FiZap, FiStar, FiAward, FiBookOpen, FiChevronRight,
   FiBriefcase, FiActivity, FiCalendar, FiHome,
-  FiCheckCircle, FiCompass, FiUser,
+  FiCheckCircle, FiCompass, FiUser, FiUsers,
 } from "react-icons/fi";
 import ProgressCard    from "@/app/components/dashboard/ProgressCard";
 import CompetencyRadar from "@/app/components/dashboard/CompetencyRadar";
@@ -89,8 +89,14 @@ export default function SAMAMDashboardPage() {
   const flatComps       = competenciesData.flatMap((cat: any) => cat.competencies || []);
   const unlockedCount   = flatComps.filter((c: any) => c.score > 0).length;
   const earnedBadges    = badgesData.earned || [];
-  const h               = new Date().getHours();
-  const greeting        = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  const istHour         = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })).getHours();
+  const greeting        = istHour >= 5 && istHour < 12
+    ? "Good morning"
+    : istHour >= 12 && istHour < 17
+    ? "Good afternoon"
+    : istHour >= 17 && istHour < 21
+    ? "Good evening"
+    : "Keep hustling!";
 
   const stats = [
     { label: "SAMAM Points",   value: sdcData.total,    icon: FiStar,     color: BRAND,     bg: "#FFF1F1" },
@@ -108,6 +114,7 @@ export default function SAMAMDashboardPage() {
     { label: "Competencies",     icon: FiZap,         href: "/dashboard/student/competencies",       color: "#0891B2", bg: "#ECFEFF" },
     { label: "Badges",           icon: FiAward,       href: "/dashboard/student/badges",             color: "#9333EA", bg: "#FAF5FF" },
     { label: "Career",           icon: FiBriefcase,   href: "/dashboard/student/career",             color: "#6B7280", bg: "#F9FAFB" },
+    { label: "My Club",          icon: FiUsers,       href: "/dashboard/student/club",               color: "#0891B2", bg: "#ECFEFF" },
   ];
 
   return (

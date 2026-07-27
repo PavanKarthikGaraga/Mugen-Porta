@@ -729,10 +729,10 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">Upload your work</label>
               <label className="flex items-center gap-2 w-full p-3 mb-4 border-2 border-dashed rounded-xl cursor-pointer bg-white hover:bg-gray-50 transition-colors text-sm text-gray-600">
                 <FiFileText size={16} className="text-gray-400 flex-shrink-0" />
-                <span className="truncate">{selectedFile ? selectedFile.name : "Choose a PDF or image file…"}</span>
+                <span className="truncate">{selectedFile ? selectedFile.name : "Choose a file (PDF, Word, PPT, image…)"}</span>
                 <input
                   type="file"
-                  accept="application/pdf,image/jpeg,image/png,image/webp,image/gif"
+                  accept="application/pdf,image/jpeg,image/png,image/webp,image/gif,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.pdf,.txt"
                   className="hidden"
                   disabled={submittingAssignment}
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}

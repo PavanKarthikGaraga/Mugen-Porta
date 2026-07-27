@@ -7,7 +7,7 @@ import {
   FiFileText, FiBriefcase, FiCpu, FiEdit3, FiCheckSquare,
   FiBarChart2, FiBell, FiUser, FiSettings, FiLogOut, FiMenu,
   FiX, FiLock, FiSearch, FiChevronDown, FiFolder, FiSend,
-  FiClipboard, FiInfo
+  FiClipboard, FiInfo, FiUsers
 } from "react-icons/fi";
 
 const NOTIF_ICON: Record<string, any> = { activity: FiClipboard, badge: FiAward, sdc: FiStar, reminder: FiBell, system: FiInfo };
@@ -33,8 +33,8 @@ const navigation = [
   { name: "Notifications",              href: "/dashboard/student/notifications",    icon: FiBell },
   { name: "Profile",                    href: "/dashboard/student/profile",          icon: FiUser },
   { name: "Settings",                   href: "/dashboard/student/settings",         icon: FiSettings },
+  { name: "My Club",                     href: "/dashboard/student/club",             icon: FiUsers },
   // Legacy routes preserved
-  { name: "Club Details",               href: "/dashboard/student/club",             icon: FiFolder, hidden: true },
   { name: "Submissions",                href: "/dashboard/student/reports",          icon: FiFileText, hidden: true },
   { name: "Final Submission",           href: "/dashboard/student/final-submission", icon: FiSend, hidden: true },
 ];

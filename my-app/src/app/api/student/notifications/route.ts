@@ -20,7 +20,7 @@ export async function GET() {
 
         const [rows] = await pool.execute(`
             SELECT id, type, title, message, is_read as 'read', created_at as time
-            FROM notifications 
+            FROM notifications
             WHERE username = ?
             ORDER BY created_at DESC
         `, [user.username] as any[]);
@@ -29,12 +29,16 @@ export async function GET() {
         const notifications = (rows as any[]).map(row => ({
             ...row,
             read: Boolean(row.read),
-            time: new Date(row.time).toLocaleString() // Or a relative time formatter if preferred
+            time: new Date(row.time).toLocaleString()
         }));
 
         return NextResponse.json({ success: true, notifications });
 
     } catch (error: any) {
+        // Table hasn't been created yet — return empty list instead of 500
+        if (error?.code === 'ER_NO_SUCH_TABLE') {
+            return NextResponse.json({ success: true, notifications: [] });
+        }
         console.error('Fetch notifications error:', error);
         return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
