@@ -70,8 +70,8 @@ export default function RootLayout({ children }) {
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
+          defaultTheme="system"
+          enableSystem
           disableTransitionOnChange
         >
           {children}

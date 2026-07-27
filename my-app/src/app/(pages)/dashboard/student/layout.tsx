@@ -440,9 +440,9 @@ export default function SAMAMStudentDashboardLayout({ children }) {
 
         {/* ═══ Main Content ════════════════════════════════════════════════════ */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <main className="flex-1 bg-gray-50 overflow-y-auto">
+          <main className="flex-1 bg-gray-50 dark:bg-zinc-900 overflow-y-auto">
             {/* Breadcrumb bar */}
-            <div className="bg-white border-b border-gray-100 px-4 sm:px-6">
+            <div className="bg-white dark:bg-zinc-950 border-b border-gray-100 dark:border-zinc-800 px-4 sm:px-6">
               <Breadcrumbs />
             </div>
             {userData.username !== "2400000000" && userData.username !== "" ? (
@@ -459,7 +459,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
                  </div>
               </div>
             ) : (
-              <div className="px-4 py-5 sm:px-6 lg:px-8 text-black">
+              <div className="px-4 py-5 sm:px-6 lg:px-8 text-gray-900 dark:text-gray-100">
                 {children}
               </div>
             )}
