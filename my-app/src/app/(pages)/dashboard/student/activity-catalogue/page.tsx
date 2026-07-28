@@ -7,14 +7,14 @@ import {
   FiStar,
 } from "react-icons/fi";
 import { toast } from "sonner";
-import { DOMAINS, LEVELS } from "@/app/Data/activities-mock";
+import { DOMAINS } from "@/app/Data/activities-mock";
 import CatalogueCard from "@/app/components/dashboard/CatalogueCard";
 
 const BRAND = "rgb(151,0,3)";
 const PAGE_SIZE = 24;
 
 const EMPTY_FILTERS: Record<string, string> = {
-  domain: "", difficulty: "", level: "", pack: "", sdg: "", status: "",
+  domain: "", difficulty: "", pack: "", sdg: "", status: "",
 };
 
 const DOMAIN_META: Record<string, { name: string; short: string; Icon: React.ElementType }> = {
@@ -79,14 +79,11 @@ export default function ActivityCataloguePage() {
       .then((data) => {
         if (!data.success) throw new Error("failed");
         const mapped = data.data.map((a: any) => {
-          const l = a.level?.toLowerCase() || "";
-          const calcHours = l === "explorer" ? 25 : l === "foundation" ? 30
-            : l === "practitioner" ? 35 : l === "leader" ? 40 : 50;
           return {
             ...a,
             name: a.title,
             credits: a.sdc_credits,
-            hours: calcHours,
+            hours: 30,
             enrolledCount: a.enrolledCount || 0,
             maxEnrollment: a.max_seats || 0,
             isEnrolled: a.isEnrolled || false,
@@ -163,7 +160,6 @@ export default function ActivityCataloguePage() {
             && !a.purpose?.toLowerCase().includes(q)) return false;
       if (activeFilters.domain && a.domain !== activeFilters.domain) return false;
       if (activeFilters.difficulty && a.difficulty !== activeFilters.difficulty) return false;
-      if (activeFilters.level && a.level !== activeFilters.level.toLowerCase()) return false;
       if (activeFilters.pack && a.category !== activeFilters.pack) return false;
       if (activeFilters.status) {
         const isFull = a.maxEnrollment > 0 && a.enrolledCount >= a.maxEnrollment;
@@ -377,11 +373,6 @@ export default function ActivityCataloguePage() {
                   label: "Difficulty", key: "difficulty",
                   opts: ["Beginner", "Intermediate", "Advanced"].map((d) => ({ value: d, label: d })),
                   placeholder: "Any difficulty",
-                },
-                {
-                  label: "Journey Level", key: "level",
-                  opts: LEVELS.map((l: any) => ({ value: l.name, label: l.name })),
-                  placeholder: "Any level",
                 },
                 {
                   label: "Availability", key: "status",

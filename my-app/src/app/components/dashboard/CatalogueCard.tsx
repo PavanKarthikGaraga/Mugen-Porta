@@ -25,11 +25,6 @@ const DIFFICULTY_CONFIG: Record<string, { cls: string }> = {
   Advanced:     { cls: "text-red-700 bg-red-50 border-red-200" },
 };
 
-const LEVEL_LABEL: Record<string, string> = {
-  explorer: "Explorer", foundation: "Foundation", practitioner: "Practitioner",
-  leader: "Leader", innovator: "Innovator",
-};
-
 export default function CatalogueCard({ activity, bookmarked = false, onBookmark, isEnrolled = false, listMode = false }: any) {
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [enrollLoading, setEnrollLoading] = useState(false);
@@ -42,7 +37,6 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
   const fillPct = max > 0 ? Math.min(100, Math.round((enrolled / max) * 100)) : 0;
   const isFull = max > 0 && enrolled >= max;
   const diffConf = DIFFICULTY_CONFIG[activity.difficulty] || DIFFICULTY_CONFIG.Beginner;
-  const levelLabel = LEVEL_LABEL[activity.level?.toLowerCase()] || activity.level;
 
   const handleEnroll = async () => {
     setEnrollLoading(true);
@@ -81,9 +75,6 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${diffConf.cls}`}>
                 {activity.difficulty}
               </span>
-              {levelLabel && (
-                <span className="text-[10px] text-gray-400">{levelLabel}</span>
-              )}
             </div>
             <h3 className="text-sm font-bold text-gray-900 leading-tight group-hover:text-red-800 transition-colors truncate">
               {activity.name}
@@ -187,9 +178,6 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${diffConf.cls}`}>
             {activity.difficulty}
           </span>
-          {levelLabel && (
-            <span className="text-[10px] text-gray-400 font-medium">{levelLabel}</span>
-          )}
         </div>
 
         {/* Code + Title */}
