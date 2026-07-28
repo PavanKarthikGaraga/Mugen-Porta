@@ -202,16 +202,6 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
-            <select name="level" value={formData.level} onChange={handleChange} className="w-full p-2 border rounded">
-              <option value="explorer">Explorer (Level 1)</option>
-              <option value="foundation">Foundation (Level 2)</option>
-              <option value="practitioner">Practitioner (Level 3)</option>
-              <option value="leader">Leader (Level 4)</option>
-              <option value="fellow">Fellow (Level 5)</option>
-            </select>
-          </div>
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">SAMAM Points</label>
             <input type="number" name="sdc_credits" value={formData.sdc_credits} onChange={handleChange} className="w-full p-2 border rounded" />
           </div>

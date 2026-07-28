@@ -91,15 +91,14 @@ export default function AdminActivitiesPage() {
                 <th className="p-4 font-semibold">Code</th>
                 <th className="p-4 font-semibold">Title</th>
                 <th className="p-4 font-semibold">Domain</th>
-                <th className="p-4 font-semibold">Level</th>
                 <th className="p-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={5} className="p-8 text-center text-gray-500">Loading activities...</td></tr>
+                <tr><td colSpan={4} className="p-8 text-center text-gray-500">Loading activities...</td></tr>
               ) : filteredActivities.length === 0 ? (
-                <tr><td colSpan={5} className="p-8 text-center text-gray-500">No activities found.</td></tr>
+                <tr><td colSpan={4} className="p-8 text-center text-gray-500">No activities found.</td></tr>
               ) : (
                 filteredActivities.map((activity) => (
                   <tr key={activity.id} className="hover:bg-gray-50 transition-colors group">
@@ -111,7 +110,6 @@ export default function AdminActivitiesPage() {
                     <td className="p-4 text-sm text-gray-600">
                       <span className="px-2 py-1 bg-gray-100 rounded-md text-xs font-semibold">{activity.domain}</span>
                     </td>
-                    <td className="p-4 text-sm text-gray-600 capitalize">{activity.level}</td>
                     <td className="p-4 text-sm text-right space-x-2">
                       <Link href={`/dashboard/admin/activities/${activity.id}/attendance`} className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors" title="Mark Attendance">
                         <FiCheckSquare size={14} />
