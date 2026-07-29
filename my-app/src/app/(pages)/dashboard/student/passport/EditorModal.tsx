@@ -2,36 +2,53 @@ import { useState, useRef } from "react";
 import { FiX, FiPlus, FiTrash2, FiUploadCloud } from "react-icons/fi";
 import { toast } from "sonner";
 import SkillInput from "./SkillInput";
+import ImageCropper from "@/app/components/ImageCropper";
 
 const BRAND = "rgb(151,0,3)";
 
 export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
     const [data, setData] = useState(initialData);
     const [saving, setSaving] = useState(false);
-    
+    const [uploading, setUploading] = useState<'avatar' | 'banner' | null>(null);
+    const [cropSrc, setCropSrc] = useState<string | null>(null);
+    const [cropType, setCropType] = useState<'avatar' | 'banner'>('avatar');
+
     // File upload refs
     const avatarRef = useRef<HTMLInputElement>(null);
     const bannerRef = useRef<HTMLInputElement>(null);
 
     if (!isOpen) return null;
 
-    const handleUpload = async (file: File, type: 'avatar' | 'banner') => {
+    const handleFileSelect = (file: File, type: 'avatar' | 'banner') => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            setCropSrc(e.target?.result as string);
+            setCropType(type);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleCropConfirm = async (blob: Blob) => {
+        setCropSrc(null);
+        setUploading(cropType);
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", new File([blob], `${cropType}-${Date.now()}.jpg`, { type: "image/jpeg" }));
         try {
             const res = await fetch("/api/upload/r2", { method: "POST", body: formData });
             const json = await res.json();
             if (res.ok) {
                 setData((prev: any) => ({
                     ...prev,
-                    profile: { ...prev.profile, [type === 'avatar' ? 'avatar_url' : 'banner_url']: json.url }
+                    profile: { ...prev.profile, [cropType === 'avatar' ? 'avatar_url' : 'banner_url']: json.url }
                 }));
-                toast.success(`${type} uploaded successfully`);
+                toast.success(`${cropType === 'avatar' ? 'Avatar' : 'Banner'} uploaded!`);
             } else {
-                toast.error("Upload failed");
+                toast.error(json.error || "Upload failed");
             }
-        } catch (err) {
-            toast.error("Upload failed");
+        } catch {
+            toast.error("Upload failed — check your connection");
+        } finally {
+            setUploading(null);
         }
     };
 
@@ -82,6 +99,15 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
     };
 
     return (
+        <>
+        {cropSrc && (
+            <ImageCropper
+                src={cropSrc}
+                type={cropType}
+                onConfirm={handleCropConfirm}
+                onCancel={() => { setCropSrc(null); }}
+            />
+        )}
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden">
                 {/* Header */}
@@ -101,17 +127,31 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                                 <label className="block text-xs font-semibold text-gray-600 mb-1">Banner Image</label>
                                 <div className="flex gap-2 items-center">
                                     <input type="text" value={data.profile?.banner_url || ""} onChange={e => updateProfile("banner_url", e.target.value)} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg" placeholder="URL or upload..." />
-                                    <input type="file" ref={bannerRef} className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'banner')} />
-                                    <button onClick={() => bannerRef.current?.click()} className="h-9 px-3 bg-gray-100 rounded-lg flex items-center gap-1 text-xs font-semibold hover:bg-gray-200"><FiUploadCloud size={14} /> Upload</button>
+                                    <input type="file" ref={bannerRef} className="hidden" accept="image/*" onChange={e => { if (e.target.files?.[0]) { handleFileSelect(e.target.files[0], 'banner'); e.target.value = ''; } }} />
+                                    <button onClick={() => bannerRef.current?.click()} disabled={uploading === 'banner'} className="h-9 px-3 bg-gray-100 rounded-lg flex items-center gap-1 text-xs font-semibold hover:bg-gray-200 disabled:opacity-50 whitespace-nowrap">
+                                        <FiUploadCloud size={14} /> {uploading === 'banner' ? 'Uploading…' : 'Upload'}
+                                    </button>
                                 </div>
+                                {data.profile?.banner_url && (
+                                    <div className="mt-2 h-12 w-full rounded-lg overflow-hidden border border-gray-200">
+                                        <img src={data.profile.banner_url} alt="banner preview" className="w-full h-full object-cover" />
+                                    </div>
+                                )}
                             </div>
                             <div className="flex-1">
                                 <label className="block text-xs font-semibold text-gray-600 mb-1">Avatar Image</label>
                                 <div className="flex gap-2 items-center">
                                     <input type="text" value={data.profile?.avatar_url || ""} onChange={e => updateProfile("avatar_url", e.target.value)} className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg" placeholder="URL or upload..." />
-                                    <input type="file" ref={avatarRef} className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'avatar')} />
-                                    <button onClick={() => avatarRef.current?.click()} className="h-9 px-3 bg-gray-100 rounded-lg flex items-center gap-1 text-xs font-semibold hover:bg-gray-200"><FiUploadCloud size={14} /> Upload</button>
+                                    <input type="file" ref={avatarRef} className="hidden" accept="image/*" onChange={e => { if (e.target.files?.[0]) { handleFileSelect(e.target.files[0], 'avatar'); e.target.value = ''; } }} />
+                                    <button onClick={() => avatarRef.current?.click()} disabled={uploading === 'avatar'} className="h-9 px-3 bg-gray-100 rounded-lg flex items-center gap-1 text-xs font-semibold hover:bg-gray-200 disabled:opacity-50 whitespace-nowrap">
+                                        <FiUploadCloud size={14} /> {uploading === 'avatar' ? 'Uploading…' : 'Upload'}
+                                    </button>
                                 </div>
+                                {data.profile?.avatar_url && (
+                                    <div className="mt-2 w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
+                                        <img src={data.profile.avatar_url} alt="avatar preview" className="w-full h-full object-cover" />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -321,5 +361,6 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                 </div>
             </div>
         </div>
+        </>
     );
 }
