@@ -1,9 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { FiLock, FiCheckCircle, FiArrowRight, FiZap, FiAward } from "react-icons/fi";
+import { FiLock, FiCheckCircle, FiArrowRight, FiZap } from "react-icons/fi";
 import { Compass, Layers, Briefcase, Award, Lightbulb, Star } from "lucide-react";
-import { JOURNEY_STAGES, DOMAINS } from "@/app/Data/activities-mock";
+import { JOURNEY_STAGES } from "@/app/Data/activities-mock";
 
 const BRAND = "rgb(151,0,3)";
 
@@ -26,7 +25,6 @@ function pts(n: number) {
 
 export default function LearningJourneyPage() {
   const [activeStage,    setActiveStage   ] = useState("explorer");
-  const [activeTab,      setActiveTab     ] = useState("activities");
   const [studentCredits, setStudentCredits] = useState(0);
   const [loading,        setLoading       ] = useState(true);
 
@@ -47,8 +45,6 @@ export default function LearningJourneyPage() {
       setLoading(false);
     })();
   }, []);
-
-  const activeStageData = JOURNEY_STAGES.find((s) => s.id === activeStage);
 
   // Determine which level the student is currently at
   const currentLevelIdx = [...JOURNEY_STAGES]
@@ -279,129 +275,6 @@ export default function LearningJourneyPage() {
         </div>
       </div>
 
-      {/* ── Active Stage Detail ── */}
-      {activeStageData && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="h-1" style={{ backgroundColor: activeStageData.color }} />
-          <div className="p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: activeStageData.bg, color: activeStageData.color }}
-              >
-                {getIcon(activeStageData.icon, 24)}
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-gray-900">{activeStageData.name} — Activities</h2>
-                <p className="text-xs text-gray-400">
-                  {activeStageData.activities.length} activities in this stage ·{" "}
-                  {activeStageData.credits_required === 0
-                    ? "Starting level"
-                    : `Requires ${pts(activeStageData.credits_required)}`}
-                </p>
-              </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex gap-1 mb-4 bg-gray-50 p-1 rounded-xl w-fit">
-              {["activities", "competencies", "badges"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`text-xs font-medium px-3 py-1.5 rounded-lg capitalize transition-all ${
-                    activeTab === tab ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-
-            {activeTab === "activities" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {activeStageData.activities.slice(0, 9).map((a: any) => {
-                  const dom = DOMAINS[a.domain] || DOMAINS.TEC;
-                  return (
-                    <Link
-                      key={a.id}
-                      href={`/dashboard/student/activity-catalogue/${a.code}`}
-                      className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-300 hover:shadow-sm transition-all bg-gray-50 hover:bg-white"
-                    >
-                      <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                        style={{ backgroundColor: dom.color }}
-                      >
-                        {a.domain[0]}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-gray-900 line-clamp-2 leading-snug">{a.name}</p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">
-                          <span className="font-bold" style={{ color: BRAND }}>{a.credits} pts</span>
-                          {a.difficulty ? ` · ${a.difficulty}` : ""}
-                        </p>
-                        {a.userStatus === "completed" && (
-                          <span className="text-[10px] text-emerald-600 flex items-center gap-0.5 mt-0.5">
-                            <FiCheckCircle size={9} /> Completed
-                          </span>
-                        )}
-                      </div>
-                    </Link>
-                  );
-                })}
-                {activeStageData.activities.length === 0 && (
-                  <p className="text-sm text-gray-400 italic col-span-3">No activities in this stage.</p>
-                )}
-              </div>
-            )}
-
-            {activeTab === "competencies" && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[...new Set(activeStageData.activities.flatMap((a: any) => a.competencies || []))].slice(0, 8).map((c: any) => (
-                  <div
-                    key={c}
-                    className="p-3 rounded-xl border text-center"
-                    style={{ backgroundColor: activeStageData.bg, borderColor: activeStageData.border }}
-                  >
-                    <p className="text-xs font-semibold" style={{ color: activeStageData.color }}>{c}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === "badges" && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {activeStageData.activities.slice(0, 8).map((a: any) => (
-                  <div
-                    key={a.id}
-                    className={`p-3 rounded-xl border text-center ${!a.badgeEarned ? "opacity-50" : ""}`}
-                    style={
-                      a.badgeEarned
-                        ? { backgroundColor: activeStageData.bg, borderColor: activeStageData.color }
-                        : { backgroundColor: "#F9FAFB", borderColor: "#E5E7EB" }
-                    }
-                  >
-                    <p className="mb-1 flex justify-center" style={{ color: a.badgeEarned ? activeStageData.color : "#9CA3AF" }}>
-                      {a.badgeEarned ? <FiAward size={22} /> : <FiLock size={22} />}
-                    </p>
-                    <p className="text-[11px] font-semibold text-gray-800">{a.badge}</p>
-                    <p className="text-[9px] text-gray-400 mt-0.5 truncate">{a.code}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-4 text-center">
-              <Link
-                href="/dashboard/student/activity-catalogue"
-                className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
-                style={{ color: BRAND }}
-              >
-                View all activities in catalogue <FiArrowRight size={12} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
