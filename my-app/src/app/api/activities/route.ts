@@ -9,19 +9,55 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const domain = searchParams.get('domain');
 
-    let query = `
-      SELECT ac.*, 
-             (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count 
-      FROM activity_catalogue ac
-    `;
+    // Resolve the calling student's club so we can filter by mappings
+    let studentClubId: number | null = null;
+    let hasMappings = false;
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get('tck')?.value;
+      if (token) {
+        const decoded = await verifyToken(token);
+        if (decoded && decoded.role === 'student') {
+          const [clubRows]: any = await pool.query(
+            `SELECT clubId FROM students WHERE username = ?`, [decoded.username]
+          );
+          const clubId = clubRows[0]?.clubId;
+          if (clubId) {
+            studentClubId = clubId;
+            const [mapCount]: any = await pool.query(
+              `SELECT COUNT(*) as cnt FROM club_activity_mappings WHERE club_id = ?`, [clubId]
+            );
+            hasMappings = (mapCount[0]?.cnt || 0) > 0;
+          }
+        }
+      }
+    } catch (e) { /* non-student or table missing — show all */ }
+
+    const conditions: string[] = [`ac.approval_status = 'active'`];
     const params: any[] = [];
 
     if (domain && domain !== 'all') {
-      query += ` WHERE ac.domain = ?`;
+      conditions.push(`ac.domain = ?`);
       params.push(domain);
     }
-    
-    query += ` ORDER BY ac.id ASC`;
+
+    // If student's club has mappings, restrict to only mapped activities
+    if (studentClubId && hasMappings) {
+      conditions.push(`EXISTS (
+        SELECT 1 FROM club_activity_mappings cam
+        WHERE cam.club_id = ? AND cam.activity_code = ac.code
+      )`);
+      params.push(studentClubId);
+    }
+
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const query = `
+      SELECT ac.*,
+             (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count
+      FROM activity_catalogue ac
+      ${where}
+      ORDER BY ac.id ASC
+    `;
 
     const [rows]: any = await pool.query(query, params);
 

@@ -85,7 +85,7 @@ export async function GET(request: Request) {
             SELECT id, code, title, description, domain, category,
                    sdc_credits as points, max_seats as max_participants, status,
                    difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
-                   created_at
+                   approval_status, submitted_by, created_at
             FROM activity_catalogue
             ${where}
             ORDER BY created_at DESC
@@ -126,15 +126,15 @@ export async function POST(request: Request) {
             (code, title, description, domain, category, sdc_credits, max_seats, status,
              difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
              purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
-             created_by, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+             created_by, submitted_by, approval_status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_approval', NOW())
         `, [
             code, title, description || '', domain, category, points, max_participants || null, status || 'upcoming',
             difficulty || 'Beginner', journey_level || 'Explorer', activity_pack || null, faculty_name || null,
             safeJson(sdgs), hours || 0.0,
             purpose || null, safeJson(learning_outcomes), safeJson(competencies), safeJson(graduate_attributes),
             safeJson(resources), safeJson(assignments), safeJson(timeline),
-            leadData.decoded.username || 'lead'
+            leadData.decoded.username || 'lead', leadData.decoded.username || 'lead'
         ]);
 
         const insertId = (result as any).insertId;
