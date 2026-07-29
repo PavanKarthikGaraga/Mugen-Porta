@@ -83,7 +83,6 @@ export default function ActivityCataloguePage() {
             ...a,
             name: a.title,
             credits: a.sdc_credits,
-            hours: 30,
             enrolledCount: a.enrolledCount || 0,
             maxEnrollment: a.max_seats || 0,
             isEnrolled: a.isEnrolled || false,

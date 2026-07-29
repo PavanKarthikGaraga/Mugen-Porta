@@ -3,7 +3,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  FiArrowLeft, FiStar, FiClock, FiUser, FiCheckCircle,
+  FiArrowLeft, FiStar, FiUser, FiCheckCircle,
   FiBookOpen, FiFileText, FiMessageSquare, FiEdit3,
   FiCalendar, FiAward, FiTarget, FiGlobe, FiTrendingUp,
   FiDownload, FiExternalLink, FiZap, FiFlag, FiVideo, FiLink,
@@ -79,19 +79,12 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          const l = data.data.level?.toLowerCase() || '';
-          const calcHours = l === 'explorer' ? 25 :
-                            l === 'foundation' ? 30 :
-                            l === 'practitioner' ? 35 :
-                            l === 'leader' ? 40 : 50;
-
           const mapped = {
             ...data.data,
             name: data.data.title,
             enrolledCount: data.data.enrolledCount || 0,
             maxEnrollment: data.data.max_seats,
             credits: data.data.sdc_credits,
-            hours: calcHours
           };
           setActivity(mapped);
           setReflectionText(mapped.reflection || "");
@@ -339,7 +332,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: "SAMAM Points", value: activity.credits, icon: <FiStar size={14} style={{ color: BRAND }} /> },
-              { label: "Duration",    value: `${activity.hours}h`, icon: <FiClock size={14} className="text-blue-500" /> },
               { label: "Enrolled",    value: `${currentEnrolled}/${maxSeats || "∞"}`, icon: <FiUser size={14} className="text-gray-400" /> },
               { label: "Badge",       value: activity.badge, icon: <FiAward size={14} className="text-amber-500" /> },
             ].map((s) => (

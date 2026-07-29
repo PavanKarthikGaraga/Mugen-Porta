@@ -108,14 +108,6 @@ export default function AdminActivityDetailPage({ params }) {
                 {activity.sdc_credits || activity.points}
               </p>
             </div>
-            {activity.hours > 0 && (
-              <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Duration</p>
-                <p className="font-semibold text-gray-700 flex items-center gap-1.5">
-                  <FiClock className="text-gray-400"/> {activity.hours}h
-                </p>
-              </div>
-            )}
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Enrolled</p>
               <div className="flex items-center gap-2">

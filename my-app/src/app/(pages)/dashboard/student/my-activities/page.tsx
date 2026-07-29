@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   FiCheckCircle, FiClock, FiAward, FiStar, FiSearch, FiX,
-  FiAlertCircle, FiCompass, FiArrowRight, FiActivity,
+  FiAlertCircle, FiCompass, FiArrowRight,
 } from "react-icons/fi";
 import MyActivityRow from "@/app/components/dashboard/MyActivityRow";
 
@@ -71,13 +71,11 @@ export default function MyActivitiesPage() {
   );
 
   const totalCreditsEarned = completed.reduce((s, a) => s + (a.credits_earned || 0), 0);
-  const totalHours = completed.reduce((s, a) => s + (a.hours || 0), 0);
 
   const stats = [
     { label: "Ongoing",       value: ongoing.length,   icon: FiClock,        color: "#D97706", bg: "#FFFBEB" },
     { label: "Completed",     value: completed.length, icon: FiCheckCircle,  color: "#059669", bg: "#ECFDF5" },
     { label: "SAMAM Points",  value: totalCreditsEarned, icon: FiStar,        color: BRAND,     bg: "#FFF1F1" },
-    { label: "Hours",         value: totalHours ? `${totalHours}h` : "0h", icon: FiActivity, color: "#2563EB", bg: "#EFF6FF" },
   ];
 
   return (

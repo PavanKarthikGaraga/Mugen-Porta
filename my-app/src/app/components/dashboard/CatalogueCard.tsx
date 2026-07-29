@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import {
-  FiBookmark, FiClock, FiStar, FiUsers, FiCheckCircle,
+  FiBookmark, FiStar, FiUsers, FiCheckCircle,
   FiCpu, FiBookOpen, FiHeart, FiZap, FiActivity,
   FiArrowRight,
 } from "react-icons/fi";
@@ -85,9 +85,6 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
           <div className="hidden sm:flex items-center gap-5 text-xs text-gray-500 flex-shrink-0">
             <span className="flex items-center gap-1 font-bold" style={{ color: BRAND }}>
               <FiStar size={11} /> {activity.credits}
-            </span>
-            <span className="flex items-center gap-1">
-              <FiClock size={11} /> {activity.hours}h
             </span>
             {max > 0 && (
               <span className="flex items-center gap-1">
@@ -197,9 +194,6 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
         <div className="flex items-center gap-3 text-xs">
           <span className="flex items-center gap-1 font-bold" style={{ color: BRAND }}>
             <FiStar size={11} /> {activity.credits} pts
-          </span>
-          <span className="flex items-center gap-1 text-gray-500">
-            <FiClock size={11} /> {activity.hours}h
           </span>
           {max > 0 && (
             <span className="flex items-center gap-1 text-gray-500">

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import {
-  FiChevronRight, FiClock, FiStar, FiAward, FiCheckCircle, FiAlertCircle,
+  FiChevronRight, FiStar, FiAward, FiCheckCircle, FiAlertCircle,
   FiCpu, FiBookOpen, FiHeart, FiZap, FiActivity,
 } from "react-icons/fi";
 import { DOMAINS } from "@/app/Data/activities-mock";
@@ -84,10 +84,6 @@ export default function MyActivityRow({ activity, tabKey }: any) {
             <span className="flex items-center gap-1 font-bold" style={{ color: BRAND }}>
               <FiStar size={11} />
               {activity?.credits_earned || activity?.credits || 0} pts
-            </span>
-            <span className="flex items-center gap-1">
-              <FiClock size={11} />
-              {activity?.hours || 0}h
             </span>
             {(activity?.userAttendance ?? 0) > 0 && (
               <span className="flex items-center gap-1 text-emerald-600 font-medium">
