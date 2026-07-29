@@ -2,14 +2,12 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 
-// Files must already be uploaded via /api/upload (R2) before calling this
-// route - this route only ever persists a URL, never raw file bytes, and
-// never accepts arbitrary hosts (see isAcceptableFileUrl below).
+// Files are uploaded via /api/upload (server local storage) before calling this
+// route — this route only persists a URL, never raw file bytes.
 const MAX_ASSIGNMENT_ID_LEN = 50;
 
 function isAcceptableFileUrl(url: unknown): url is string {
     if (typeof url !== 'string' || url.length === 0 || url.length > 500) return false;
-    // Either a same-origin upload fallback path, or an https URL (R2 public URL).
     return url.startsWith('/uploads/') || /^https:\/\//i.test(url);
 }
 

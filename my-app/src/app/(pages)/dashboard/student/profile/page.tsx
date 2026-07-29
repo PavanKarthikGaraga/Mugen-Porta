@@ -152,7 +152,7 @@ export default function ProfilePage() {
     formData.append("file", file);
 
     try {
-      const res = await fetch("/api/upload/r2", { method: "POST", body: formData });
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
       const data = await res.json();
       if (res.ok && data.url) {
         set("avatar_url", data.url);

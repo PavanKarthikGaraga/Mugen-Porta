@@ -16,7 +16,7 @@ async function getStudentUser() {
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = await getStudentUser();
-        if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        if (!user || !user.username) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         const { id } = await params;
 
         await pool.execute(`

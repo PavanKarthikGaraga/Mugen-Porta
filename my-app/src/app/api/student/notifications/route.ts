@@ -16,10 +16,10 @@ async function getStudentUser() {
 export async function GET() {
     try {
         const user = await getStudentUser();
-        if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        if (!user || !user.username) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const [rows] = await pool.execute(`
-            SELECT id, type, title, message, is_read as 'read', created_at as time
+            SELECT id, type, title, message, is_read as \`read\`, created_at as time
             FROM notifications
             WHERE username = ?
             ORDER BY created_at DESC
@@ -35,8 +35,8 @@ export async function GET() {
         return NextResponse.json({ success: true, notifications });
 
     } catch (error: any) {
-        // Table hasn't been created yet — return empty list instead of 500
-        if (error?.code === 'ER_NO_SUCH_TABLE') {
+        // Table hasn't been created yet or has schema issues — return empty list instead of 500
+        if (error?.code === 'ER_NO_SUCH_TABLE' || error?.code === 'ER_BAD_FIELD_ERROR') {
             return NextResponse.json({ success: true, notifications: [] });
         }
         console.error('Fetch notifications error:', error);
