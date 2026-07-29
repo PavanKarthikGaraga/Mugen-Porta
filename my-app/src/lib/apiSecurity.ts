@@ -18,7 +18,7 @@ export async function getSessionUser() {
     const cookieStore = await cookies();
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
-    const decoded = await verifyToken(token);
+    const decoded = await verifyToken(token) as any;
     if (!decoded || !decoded.username || !decoded.role) return null;
     return decoded;
 }
@@ -29,7 +29,7 @@ export async function getSessionUser() {
  * @param {string[]} allowedRoles
  * @returns {Promise<null | Record<string, any>>}
  */
-export async function getAuthorizedUser(allowedRoles) {
+export async function getAuthorizedUser(allowedRoles: string[]) {
     const user = await getSessionUser();
     if (!user) return null;
     if (Array.isArray(allowedRoles) && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
@@ -38,11 +38,11 @@ export async function getAuthorizedUser(allowedRoles) {
     return user;
 }
 
-export function unauthorizedResponse(message = 'Unauthorized') {
+export function unauthorizedResponse(message: string = 'Unauthorized') {
     return NextResponse.json({ error: message }, { status: 401 });
 }
 
-export function forbiddenResponse(message = 'Forbidden') {
+export function forbiddenResponse(message: string = 'Forbidden') {
     return NextResponse.json({ error: message }, { status: 403 });
 }
 
@@ -53,7 +53,7 @@ export function forbiddenResponse(message = 'Forbidden') {
  *   if (auth.response) return auth.response;
  *   const user = auth.user;
  */
-export async function requireAuth(allowedRoles) {
+export async function requireAuth(allowedRoles: string[]) {
     const user = await getSessionUser();
     if (!user) {
         return { user: null, response: unauthorizedResponse('Authentication required') };
@@ -69,7 +69,7 @@ export async function requireAuth(allowedRoles) {
  * (matching :username in the URL) or has an elevated role allowed to view
  * other users' data (admin/faculty/lead by default).
  */
-export function canAccessUsername(sessionUser, targetUsername, elevatedRoles = ['admin', 'faculty']) {
+export function canAccessUsername(sessionUser: any, targetUsername: string, elevatedRoles: string[] = ['admin', 'faculty']) {
     if (!sessionUser) return false;
     if (sessionUser.username === targetUsername) return true;
     return elevatedRoles.includes(sessionUser.role);
@@ -80,7 +80,7 @@ export function canAccessUsername(sessionUser, targetUsername, elevatedRoles = [
  * logged via console.error by the caller. In production, generic messages
  * only -- never leak error.message/stack, DB error codes, or SQL text.
  */
-export function safeMessage(error, fallback = 'Something went wrong. Please try again later.') {
+export function safeMessage(error: any, fallback: string = 'Something went wrong. Please try again later.') {
     if (process.env.NODE_ENV !== 'production') {
         return (error && error.message) ? `${fallback} (${error.message})` : fallback;
     }
@@ -91,7 +91,7 @@ export function safeMessage(error, fallback = 'Something went wrong. Please try 
  * Clamp a pagination-style integer param to a safe numeric range, preventing
  * NaN / negative / unbounded values from reaching raw SQL (e.g. LIMIT/OFFSET).
  */
-export function clampInt(value, { min = 0, max = Number.MAX_SAFE_INTEGER, fallback = min } = {}) {
+export function clampInt(value: any, { min = 0, max = Number.MAX_SAFE_INTEGER, fallback = min }: { min?: number, max?: number, fallback?: number } = {}) {
     const n = parseInt(value, 10);
     if (!Number.isFinite(n) || Number.isNaN(n)) return fallback;
     return Math.min(max, Math.max(min, n));
