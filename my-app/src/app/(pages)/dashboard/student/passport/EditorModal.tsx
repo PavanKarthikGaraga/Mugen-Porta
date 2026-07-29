@@ -12,6 +12,7 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
     const [uploading, setUploading] = useState<'avatar' | 'banner' | null>(null);
     const [cropSrc, setCropSrc] = useState<string | null>(null);
     const [cropType, setCropType] = useState<'avatar' | 'banner'>('avatar');
+    const [previewV, setPreviewV] = useState(0);
 
     // File upload refs
     const avatarRef = useRef<HTMLInputElement>(null);
@@ -41,6 +42,7 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                     ...prev,
                     profile: { ...prev.profile, [cropType === 'avatar' ? 'avatar_url' : 'banner_url']: json.url }
                 }));
+                setPreviewV(v => v + 1);
                 toast.success(`${cropType === 'avatar' ? 'Avatar' : 'Banner'} uploaded!`);
             } else {
                 toast.error(json.error || "Upload failed");
@@ -133,8 +135,8 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                                     </button>
                                 </div>
                                 {data.profile?.banner_url && (
-                                    <div className="mt-2 h-12 w-full rounded-lg overflow-hidden border border-gray-200">
-                                        <img src={data.profile.banner_url} alt="banner preview" className="w-full h-full object-cover" />
+                                    <div className="mt-2 h-12 w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                                        <img src={`${data.profile.banner_url}?v=${previewV}`} alt="banner preview" className="w-full h-full object-cover" />
                                     </div>
                                 )}
                             </div>
@@ -148,8 +150,8 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                                     </button>
                                 </div>
                                 {data.profile?.avatar_url && (
-                                    <div className="mt-2 w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
-                                        <img src={data.profile.avatar_url} alt="avatar preview" className="w-full h-full object-cover" />
+                                    <div className="mt-2 w-12 h-12 rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-100">
+                                        <img src={`${data.profile.avatar_url}?v=${previewV}`} alt="avatar preview" className="w-full h-full object-cover" />
                                     </div>
                                 )}
                             </div>
