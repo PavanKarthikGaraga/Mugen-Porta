@@ -19,7 +19,7 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
         const formData = new FormData();
         formData.append("file", file);
         try {
-            const res = await fetch("/api/upload", { method: "POST", body: formData });
+            const res = await fetch("/api/upload/r2", { method: "POST", body: formData });
             const json = await res.json();
             if (res.ok) {
                 setData((prev: any) => ({

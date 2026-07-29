@@ -36,7 +36,6 @@ const navigation = [
   { name: "My Club",                     href: "/dashboard/student/club",             icon: FiUsers },
   // Legacy routes preserved
   { name: "Submissions",                href: "/dashboard/student/reports",          icon: FiFileText, hidden: true },
-  { name: "Final Submission",           href: "/dashboard/student/final-submission", icon: FiSend, hidden: true },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────

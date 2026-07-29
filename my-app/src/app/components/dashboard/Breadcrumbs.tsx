@@ -23,7 +23,6 @@ const routeLabels = {
   settings: "Settings",
   club: "Club Details",
   reports: "Submissions",
-  "final-submission": "Final Submission",
 };
 
 export default function Breadcrumbs() {
