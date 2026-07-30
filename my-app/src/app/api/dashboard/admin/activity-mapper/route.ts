@@ -36,40 +36,38 @@ export async function POST(request: Request) {
     if (auth.response) return auth.response;
 
     try {
-        await ensureActivitySchema();
+        // Best-effort migration — table should already exist after first GET
+        try { await ensureActivitySchema(); } catch (me) {
+            console.warn('ensureActivitySchema skipped in POST:', (me as any)?.message);
+        }
 
-        const { clubId, activityCodes } = await request.json();
+        const body = await request.json().catch(() => ({}));
+        const { clubId, activityCodes } = body;
         if (!clubId) return NextResponse.json({ success: false, error: 'clubId required' }, { status: 400 });
 
         const codes: string[] = Array.isArray(activityCodes) ? activityCodes : [];
+        const username: string = (auth.user as any)?.username ?? 'admin';
 
-        const conn = await (pool as any).getConnection();
-        try {
-            await conn.beginTransaction();
+        // Delete existing mappings for this club then re-insert
+        await pool.execute(`DELETE FROM club_activity_mappings WHERE club_id = ?`, [clubId]);
 
-            await conn.execute(`DELETE FROM club_activity_mappings WHERE club_id = ?`, [clubId]);
-
-            if (codes.length > 0) {
-                // Standard parameterized placeholders — works on all mysql2 versions
-                const placeholders = codes.map(() => '(?, ?, ?)').join(', ');
-                const params = codes.flatMap((code: string) => [clubId, code, auth.user.username]);
-                await conn.query(
-                    `INSERT INTO club_activity_mappings (club_id, activity_code, created_by) VALUES ${placeholders}`,
-                    params
-                );
-            }
-
-            await conn.commit();
-        } catch (e) {
-            await conn.rollback();
-            throw e;
-        } finally {
-            conn.release();
+        if (codes.length > 0) {
+            const placeholders = codes.map(() => '(?, ?, ?)').join(', ');
+            const params = codes.flatMap((code: string) => [clubId, code, username]);
+            await pool.execute(
+                `INSERT INTO club_activity_mappings (club_id, activity_code, created_by) VALUES ${placeholders}`,
+                params
+            );
         }
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true, mapped: codes.length });
     } catch (error: any) {
         console.error('Activity mapper POST error:', error);
-        return NextResponse.json({ success: false, error: safeMessage(error) }, { status: 500 });
+        // Include SQL error code in response body to help diagnose production failures
+        return NextResponse.json({
+            success: false,
+            error: safeMessage(error),
+            code: error?.code ?? error?.sqlState ?? 'UNKNOWN',
+        }, { status: 500 });
     }
 }

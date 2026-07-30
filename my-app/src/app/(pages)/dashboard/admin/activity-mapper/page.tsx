@@ -110,7 +110,7 @@ export default function ActivityMapperPage() {
       });
       const d = await res.json();
       if (d.success) {
-        toast.success(`Saved mappings for ${selectedClub.name}`);
+        toast.success(`Saved ${d.mapped ?? mapped.size} mappings for ${selectedClub.name}`);
         setOriginalMapped(new Set(mapped));
         // Update local mappings cache
         setMappingsData(prev => [
@@ -118,7 +118,8 @@ export default function ActivityMapperPage() {
           ...Array.from(mapped).map(code => ({ club_id: selectedClub.id, activity_code: code })),
         ]);
       } else {
-        toast.error(d.error || "Save failed");
+        // Show error code so we can diagnose production failures
+        toast.error(`${d.error || "Save failed"}${d.code ? ` [${d.code}]` : ""}`);
       }
     } catch {
       toast.error("Save failed");
