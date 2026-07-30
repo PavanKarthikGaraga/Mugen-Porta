@@ -36,22 +36,29 @@ export async function POST(request: Request) {
     if (auth.response) return auth.response;
 
     try {
+        await ensureActivitySchema();
+
         const { clubId, activityCodes } = await request.json();
         if (!clubId) return NextResponse.json({ success: false, error: 'clubId required' }, { status: 400 });
+
+        const codes: string[] = Array.isArray(activityCodes) ? activityCodes : [];
 
         const conn = await (pool as any).getConnection();
         try {
             await conn.beginTransaction();
-            // Remove old mappings for this club
+
             await conn.execute(`DELETE FROM club_activity_mappings WHERE club_id = ?`, [clubId]);
-            // Insert new ones
-            if (activityCodes && activityCodes.length > 0) {
-                const values = activityCodes.map((code: string) => [clubId, code, auth.user.username]);
+
+            if (codes.length > 0) {
+                // Standard parameterized placeholders — works on all mysql2 versions
+                const placeholders = codes.map(() => '(?, ?, ?)').join(', ');
+                const params = codes.flatMap((code: string) => [clubId, code, auth.user.username]);
                 await conn.query(
-                    `INSERT INTO club_activity_mappings (club_id, activity_code, created_by) VALUES ?`,
-                    [values]
+                    `INSERT INTO club_activity_mappings (club_id, activity_code, created_by) VALUES ${placeholders}`,
+                    params
                 );
             }
+
             await conn.commit();
         } catch (e) {
             await conn.rollback();
