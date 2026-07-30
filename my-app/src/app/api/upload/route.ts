@@ -54,8 +54,9 @@ export async function POST(request: Request) {
         const cleanFileName = (file.name || 'file').replace(/[^a-zA-Z0-9.\-_]/g, '_');
         const finalFilename = `${uniqueSuffix}-${cleanFileName}`;
 
-        // Local filesystem save
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+        // Save to UPLOAD_DIR env var (production persistent mount) or <cwd>/uploads/
+        // The /uploads/[...path] route handler serves these files regardless of location.
+        const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
         try {
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir, { recursive: true });
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
             console.error("Upload: local write error:", fsErr);
             return NextResponse.json({ error: 'File storage failed on the server. Please contact support.' }, { status: 500 });
         }
-        
+
         return NextResponse.json({ url: `/uploads/${finalFilename}` });
 
     } catch (error: any) {
