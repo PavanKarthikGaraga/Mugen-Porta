@@ -3,9 +3,11 @@ import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
+import { ensureActivitySchema } from '@/lib/dbMigrate';
 
 export async function GET(request: Request) {
   try {
+    await ensureActivitySchema();
     const { searchParams } = new URL(request.url);
     const domain = searchParams.get('domain');
 

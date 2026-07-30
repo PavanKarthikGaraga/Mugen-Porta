@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
+import { ensureActivitySchema } from '@/lib/dbMigrate';
 
 // GET: all pending activities
 export async function GET() {
@@ -8,6 +9,7 @@ export async function GET() {
     if (auth.response) return auth.response;
 
     try {
+        await ensureActivitySchema();
         const [rows]: any = await pool.execute(`
             SELECT ac.id, ac.code, ac.title, ac.description, ac.domain, ac.category,
                    ac.sdc_credits, ac.max_seats, ac.difficulty, ac.submitted_by,

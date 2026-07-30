@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
+import { ensureActivitySchema } from '@/lib/dbMigrate';
 
 // GET: all clubs + all activities + current mappings
 export async function GET() {
@@ -8,6 +9,7 @@ export async function GET() {
     if (auth.response) return auth.response;
 
     try {
+        await ensureActivitySchema();
         const [[clubs], [activities], [mappings]] = await Promise.all([
             pool.execute(`SELECT id, name, domain FROM clubs ORDER BY name ASC`),
             pool.execute(`
