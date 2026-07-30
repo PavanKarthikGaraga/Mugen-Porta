@@ -7,14 +7,15 @@ import { checkRateLimit } from '@/lib/rateLimit';
 export const dynamic = 'force-dynamic';
 
 const SYSTEM_PROMPT = `You are the SAMAM Career Advisor at KL University's Student Activity Center (SAC).
-A student has answered an interest questionnaire. Using their answers AND their branch/program, generate a
-comprehensive, personalized career roadmap.
+A student has answered a career interest questionnaire. Using their answers AND their branch/program, generate a
+comprehensive, highly personalised career roadmap.
 
 Return ONLY a single valid JSON object — no markdown fences, no extra text — matching exactly this shape:
 {
   "headline": string,
   "overview": string,
   "primaryDomain": string,
+  "careerDirection": string,
   "personalityTraits": string[],
   "careerPaths": [
     { "title": string, "description": string, "relevanceScore": number, "timeToReach": string }
@@ -33,21 +34,34 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
     { "clubName": string, "reason": string, "domain": string }
   ],
   "socialImpactOpportunities": string[],
-  "motivationalMessage": string
+  "motivationalMessage": string,
+  "researchAreas": [
+    { "area": string, "description": string, "subfields": string[] }
+  ],
+  "engineeringProjectIdeas": [
+    { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
+  ],
+  "topUniversities": [
+    { "name": string, "country": string, "program": string, "ranking": string, "highlights": string }
+  ]
 }
 
 Rules:
-- headline: concise role identity (e.g. "AI & Data Science Innovator")
-- overview: 2-3 sentences tailored to this student's specific answers and branch
-- primaryDomain: exactly one of TEC / LCH / ESO / HWB / IIE
-- personalityTraits: 4-6 short traits inferred from their answers
-- careerPaths: exactly 3, ordered by relevanceScore descending (0-100)
+- headline: concise professional role identity (e.g. "AI & Systems Engineer", "Research Scholar in ML")
+- overview: 2-3 sentences tailored to this student's specific answers, branch, and declared career direction
+- primaryDomain: exactly one of TEC / LCH / ESO / HWB / IIE based on their interests
+- careerDirection: 2-4 word summary of their primary post-graduation goal (e.g. "Industry Placement", "Research & PhD", "Entrepreneurship")
+- personalityTraits: 4-6 short professional traits inferred from their answers (e.g. "Analytical Thinker", "Systems Builder")
+- careerPaths: exactly 3, ordered by relevanceScore descending (0-100), specific to their domain and direction
 - yearwiseRoadmap: year1..year4 goals/skills arrays must have 3-4 items each; samamTip is one sentence about which SAC club type to join that year
-- skillsToLearn: 5-7 skills
-- topCompanies: 6-8 real companies that hire for these career paths
+- skillsToLearn: 5-7 skills with realistic timeframes
+- topCompanies: 6-8 real companies that actively hire for these specific career paths
 - clubRecommendations: EXACTLY 3 clubs, chosen ONLY from the provided clubs list — use the exact club names given
-- socialImpactOpportunities: 3-4 concrete ways to create social impact using their strengths
-- motivationalMessage: 2-3 sentences, inspiring, specific to their interests
+- socialImpactOpportunities: 3-4 concrete, actionable ways to create social impact using their strengths
+- motivationalMessage: 2-3 sentences, aspirational, specific to their interests and goals
+- researchAreas: 3-4 active research areas relevant to the student's domain and interests; subfields should be 3-5 specific sub-topics
+- engineeringProjectIdeas: 3-4 practical project ideas a college student can build; tools must be real, specific technologies; impact is one sentence on real-world value
+- topUniversities: 5-7 globally or nationally reputed universities for Masters/PhD matching student interests; include both global (MIT, Stanford, NUS, TU Delft etc.) and Indian (IISc, IIT Bombay etc.) options; ranking like "#3 in CS (QS 2024)"
 - Do not invent club names. Do not use clubs not in the provided list.`;
 
 export async function POST(request: Request) {
@@ -111,6 +125,7 @@ Generate a personalized 4-year career roadmap for this student.`;
             headline: String(result.headline || '').slice(0, 100),
             overview: String(result.overview || '').slice(0, 600),
             primaryDomain: String(result.primaryDomain || 'TEC'),
+            careerDirection: String(result.careerDirection || '').slice(0, 60),
             personalityTraits: Array.isArray(result.personalityTraits)
                 ? result.personalityTraits.slice(0, 6).map((t: any) => String(t).slice(0, 60))
                 : [],
@@ -156,6 +171,31 @@ Generate a personalized 4-year career roadmap for this student.`;
                 ? result.socialImpactOpportunities.slice(0, 4).map((s: any) => String(s).slice(0, 200))
                 : [],
             motivationalMessage: String(result.motivationalMessage || '').slice(0, 400),
+            researchAreas: Array.isArray(result.researchAreas)
+                ? result.researchAreas.slice(0, 4).map((r: any) => ({
+                    area: String(r.area || '').slice(0, 100),
+                    description: String(r.description || '').slice(0, 300),
+                    subfields: Array.isArray(r.subfields) ? r.subfields.slice(0, 5).map((s: any) => String(s).slice(0, 60)) : [],
+                }))
+                : [],
+            engineeringProjectIdeas: Array.isArray(result.engineeringProjectIdeas)
+                ? result.engineeringProjectIdeas.slice(0, 4).map((p: any) => ({
+                    title: String(p.title || '').slice(0, 120),
+                    description: String(p.description || '').slice(0, 300),
+                    difficulty: ['Beginner', 'Intermediate', 'Advanced'].includes(p.difficulty) ? p.difficulty : 'Intermediate',
+                    tools: Array.isArray(p.tools) ? p.tools.slice(0, 6).map((t: any) => String(t).slice(0, 40)) : [],
+                    impact: String(p.impact || '').slice(0, 200),
+                }))
+                : [],
+            topUniversities: Array.isArray(result.topUniversities)
+                ? result.topUniversities.slice(0, 7).map((u: any) => ({
+                    name: String(u.name || '').slice(0, 100),
+                    country: String(u.country || '').slice(0, 50),
+                    program: String(u.program || '').slice(0, 100),
+                    ranking: String(u.ranking || '').slice(0, 50),
+                    highlights: String(u.highlights || '').slice(0, 200),
+                }))
+                : [],
         };
 
         return NextResponse.json({ success: true, roadmap, student: { name: student.name, branch: student.branch, year: student.student_year } });
