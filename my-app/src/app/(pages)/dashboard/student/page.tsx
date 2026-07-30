@@ -87,7 +87,8 @@ export default function SAMAMDashboardPage() {
   const level           = LEVEL_CFG[levelStr] || LEVEL_CFG.Explorer;
   const sdcPct          = sdcData.target > 0 ? Math.round((sdcData.total / sdcData.target) * 100) : 0;
   const flatComps       = competenciesData.flatMap((cat: any) => cat.competencies || []);
-  const unlockedCount   = flatComps.filter((c: any) => c.score > 0).length;
+  const scoredComps     = flatComps.filter((c: any) => !c.isOpportunity && c.score > 0);
+  const unlockedCount   = scoredComps.length;
   const earnedBadges    = badgesData.earned || [];
   const istHour         = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })).getHours();
   const greeting        = istHour >= 5 && istHour < 12
@@ -230,7 +231,7 @@ export default function SAMAMDashboardPage() {
             <div>
               <h3 className="text-sm font-bold text-gray-900">Competency Profile</h3>
               <p className="text-xs text-gray-400 mt-0.5">
-                {unlockedCount} of {flatComps.length} unlocked
+                {unlockedCount} of {flatComps.filter((c: any) => !c.isOpportunity).length} unlocked
               </p>
             </div>
             <Link
@@ -242,17 +243,20 @@ export default function SAMAMDashboardPage() {
             </Link>
           </div>
           <div className="p-5">
-            {flatComps.length > 0 ? (
+            {scoredComps.length > 0 ? (
               <div className="flex flex-col sm:flex-row gap-6 items-center">
                 <div className="flex-shrink-0">
                   <CompetencyRadar
-                    data={flatComps.map((c: any) => ({ name: c.name, score: c.score }))}
+                    data={[...scoredComps]
+                      .sort((a: any, b: any) => b.score - a.score)
+                      .slice(0, 8)
+                      .map((c: any) => ({ name: c.name, score: c.score }))}
                     accentColor={BRAND}
                   />
                 </div>
                 <div className="w-full space-y-2">
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Top Competencies</p>
-                  {flatComps
+                  {[...scoredComps]
                     .sort((a: any, b: any) => b.score - a.score)
                     .slice(0, 5)
                     .map((c: any) => (
