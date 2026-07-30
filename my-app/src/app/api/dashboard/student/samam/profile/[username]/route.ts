@@ -24,6 +24,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
                 s.username, s.name, s.email, s.branch, s.year, s.gender, s.residenceType,
                 sp.tagline, sp.about, sp.linkedin_url, sp.github_url, sp.portfolio_url, sp.resume_url,
                 sp.level, sp.level_progress, sp.next_level, sp.career_choice, sp.cgpa, sp.graduation_year,
+                sp.avatar_url, sp.banner_url,
                 c.name as clubName
              FROM students s
              LEFT JOIN student_profiles sp ON s.username = sp.username
@@ -60,7 +61,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
                 nextLevel: student.next_level || 'Foundation',
                 careerChoice: student.career_choice || '',
                 cgpa: student.cgpa || 0,
-                graduationYear: student.graduation_year || ''
+                graduationYear: student.graduation_year || '',
+                avatarUrl: student.avatar_url || '',
+                bannerUrl: student.banner_url || '',
             }
         });
 

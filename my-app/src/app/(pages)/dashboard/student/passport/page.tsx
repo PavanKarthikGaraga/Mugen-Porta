@@ -158,12 +158,21 @@ export default function PassportPage() {
 
         <div className="px-5 pb-5">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between -mt-12 sm:-mt-10 mb-4 gap-4 relative z-10">
-            {/* Avatar */}
+            {/* Avatar — layered: initial behind, photo on top */}
             <div
-              className="w-24 h-24 rounded-2xl border-4 border-white flex items-center justify-center text-3xl font-bold text-white shadow-md overflow-hidden"
-              style={{ backgroundColor: BRAND, backgroundImage: profile.avatar_url ? `url(${profile.avatar_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}
+              className="relative w-24 h-24 rounded-2xl border-4 border-white flex items-center justify-center text-3xl font-bold text-white shadow-md overflow-hidden"
+              style={{ backgroundColor: BRAND }}
             >
-              {profile.avatar_url ? '' : (profile.name || profile.username)?.charAt(0).toUpperCase()}
+              <span className="select-none">
+                {(profile.name || profile.username)?.charAt(0).toUpperCase()}
+              </span>
+              {profile.avatar_url && (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.name || "Avatar"}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              )}
             </div>
 
             {/* Actions */}

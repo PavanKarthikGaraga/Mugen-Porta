@@ -150,8 +150,14 @@ export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
                                     </button>
                                 </div>
                                 {data.profile?.avatar_url && (
-                                    <div className="mt-2 w-12 h-12 rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-100">
-                                        <img src={`${data.profile.avatar_url}?v=${previewV}`} alt="avatar preview" className="w-full h-full object-cover" />
+                                    <div className="mt-2 w-16 h-16 rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-100 flex-shrink-0">
+                                        <img
+                                            key={previewV}
+                                            src={data.profile.avatar_url}
+                                            alt="Avatar preview"
+                                            className="w-full h-full object-cover"
+                                            onError={e => { (e.currentTarget as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' fill='%23ccc'%3E%3Crect width='64' height='64'/%3E%3C/svg%3E"; }}
+                                        />
                                     </div>
                                 )}
                             </div>

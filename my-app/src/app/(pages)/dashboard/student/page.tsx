@@ -125,12 +125,20 @@ export default function SAMAMDashboardPage() {
         <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${BRAND} 0%, #7C3AED 50%, #2563EB 100%)` }} />
         <div className="p-5 flex items-start gap-5 flex-wrap">
 
-          {/* Avatar */}
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-black flex-shrink-0"
+          {/* Avatar — square, photo on top of initial fallback */}
+          <div className="relative w-16 h-16 rounded-2xl flex-shrink-0 overflow-hidden border-2 border-white shadow-md flex items-center justify-center"
             style={{ background: `linear-gradient(135deg, ${BRAND} 0%, #7C3AED 100%)` }}
           >
-            {firstName?.[0]?.toUpperCase() || "U"}
+            <span className="text-white text-2xl font-black select-none">
+              {firstName?.[0]?.toUpperCase() || "U"}
+            </span>
+            {profileData.samam?.avatarUrl && (
+              <img
+                src={profileData.samam.avatarUrl}
+                alt={profileData.name || "Profile photo"}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
           </div>
 
           <div className="flex-1 min-w-0">
