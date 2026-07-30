@@ -5,16 +5,28 @@ import { toast } from "sonner";
 
 const BRAND = "rgb(151,0,3)";
 
+const DOMAIN_META: Record<string, { label: string; color: string }> = {
+  TEC: { label: "Technical",            color: "#2563eb" },
+  LCH: { label: "Cultural & Heritage",  color: "#7c3aed" },
+  ESO: { label: "Social Outreach",      color: "#16a34a" },
+  HWB: { label: "Health & Wellbeing",   color: "#ea580c" },
+  IIE: { label: "Innovation",           color: "#d97706" },
+};
+
 export default function ActivityMapperPage() {
   const [clubs, setClubs] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
+  const [mappingsData, setMappingsData] = useState<any[]>([]);
+
+  const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
   const [selectedClub, setSelectedClub] = useState<any>(null);
   const [mapped, setMapped] = useState<Set<string>>(new Set());
   const [originalMapped, setOriginalMapped] = useState<Set<string>>(new Set());
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetch("/api/dashboard/admin/activity-mapper")
@@ -23,33 +35,50 @@ export default function ActivityMapperPage() {
         if (d.success) {
           setClubs(d.clubs);
           setActivities(d.activities);
-        } else toast.error("Failed to load data");
+          setMappingsData(d.mappings);
+        } else {
+          toast.error("Failed to load data");
+        }
         setLoading(false);
       })
       .catch(() => { toast.error("Failed to load"); setLoading(false); });
   }, []);
 
-  const loadClubMappings = (clubId: number) => {
-    fetch("/api/dashboard/admin/activity-mapper")
-      .then(r => r.json())
-      .then(d => {
-        if (!d.success) return;
-        const codes = new Set<string>(
-          d.mappings.filter((m: any) => m.club_id === clubId).map((m: any) => m.activity_code)
-        );
-        setMapped(codes);
-        setOriginalMapped(new Set(codes));
-      });
+  // Derived: unique SAC domains (order: TEC, LCH, ESO, HWB, IIE then others)
+  const domains = useMemo(() => {
+    const ORDER = ["TEC", "LCH", "ESO", "HWB", "IIE"];
+    const found = [...new Set(clubs.map((c: any) => c.domain))];
+    return [
+      ...ORDER.filter(d => found.includes(d)),
+      ...found.filter(d => !ORDER.includes(d)).sort(),
+    ];
+  }, [clubs]);
+
+  const clubsInDomain = useMemo(
+    () => clubs.filter((c: any) => c.domain === selectedDomain),
+    [clubs, selectedDomain]
+  );
+
+  const handleSelectDomain = (domain: string) => {
+    if (hasUnsavedChanges && !confirm("You have unsaved changes. Discard and switch domain?")) return;
+    setSelectedDomain(domain);
+    setSelectedClub(null);
+    setMapped(new Set());
+    setOriginalMapped(new Set());
+    setSearch("");
+    setCollapsed(new Set());
   };
 
   const handleSelectClub = (club: any) => {
-    if (hasUnsavedChanges) {
-      if (!confirm("You have unsaved changes. Discard and switch club?")) return;
-    }
+    if (hasUnsavedChanges && !confirm("You have unsaved changes. Discard and switch club?")) return;
     setSelectedClub(club);
     setSearch("");
-    setCollapsedCategories(new Set());
-    loadClubMappings(club.id);
+    setCollapsed(new Set());
+    const codes = new Set<string>(
+      mappingsData.filter((m: any) => m.club_id === club.id).map((m: any) => m.activity_code)
+    );
+    setMapped(codes);
+    setOriginalMapped(new Set(codes));
   };
 
   const toggleActivity = (code: string) => {
@@ -60,11 +89,11 @@ export default function ActivityMapperPage() {
     });
   };
 
-  const toggleCategory = (category: string, codes: string[]) => {
-    const allMapped = codes.every(c => mapped.has(c));
+  const toggleGroup = (codes: string[]) => {
+    const allOn = codes.every(c => mapped.has(c));
     setMapped(prev => {
       const next = new Set(prev);
-      if (allMapped) codes.forEach(c => next.delete(c));
+      if (allOn) codes.forEach(c => next.delete(c));
       else codes.forEach(c => next.add(c));
       return next;
     });
@@ -83,6 +112,11 @@ export default function ActivityMapperPage() {
       if (d.success) {
         toast.success(`Saved mappings for ${selectedClub.name}`);
         setOriginalMapped(new Set(mapped));
+        // Update local mappings cache
+        setMappingsData(prev => [
+          ...prev.filter((m: any) => m.club_id !== selectedClub.id),
+          ...Array.from(mapped).map(code => ({ club_id: selectedClub.id, activity_code: code })),
+        ]);
       } else {
         toast.error(d.error || "Save failed");
       }
@@ -92,17 +126,21 @@ export default function ActivityMapperPage() {
     setSaving(false);
   };
 
+  // Activities grouped: domain → category
   const grouped = useMemo(() => {
     const q = search.toLowerCase();
     const filtered = activities.filter(a =>
-      !q || a.title.toLowerCase().includes(q) || a.code.toLowerCase().includes(q) || a.category.toLowerCase().includes(q)
+      !q || a.title.toLowerCase().includes(q) || a.code.toLowerCase().includes(q) || (a.category || "").toLowerCase().includes(q)
     );
-    return filtered.reduce((acc: Record<string, any[]>, a) => {
+    const byDomain: Record<string, Record<string, any[]>> = {};
+    for (const a of filtered) {
+      const dom = a.domain || "Other";
       const cat = a.category || "General";
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(a);
-      return acc;
-    }, {});
+      if (!byDomain[dom]) byDomain[dom] = {};
+      if (!byDomain[dom][cat]) byDomain[dom][cat] = [];
+      byDomain[dom][cat].push(a);
+    }
+    return byDomain;
   }, [activities, search]);
 
   const hasUnsavedChanges = useMemo(() => {
@@ -111,181 +149,277 @@ export default function ActivityMapperPage() {
     return false;
   }, [mapped, originalMapped]);
 
-  const totalMapped = mapped.size;
-
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading…</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-7 h-7 rounded-full border-2 border-gray-200 border-t-red-700 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-5">
+
       {/* Header */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex items-start justify-between flex-wrap gap-4">
+      <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Activity Mapper</h1>
-          <p className="text-sm text-gray-500 mt-1">Map activities to clubs. Students will only see their club's activities.</p>
+          <h1 className="text-xl font-bold text-gray-900">Activity Mapper</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Select a domain → club → assign activities students of that club can see.
+          </p>
         </div>
         {selectedClub && (
           <button
             onClick={handleSave}
             disabled={saving || !hasUnsavedChanges}
-            className="flex items-center gap-2 px-5 py-2 rounded-lg text-white font-medium transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm text-white font-semibold transition-all disabled:opacity-50 shadow-sm"
             style={{ backgroundColor: BRAND }}
           >
-            <FiSave size={15} />
-            {saving ? "Saving…" : `Save Mappings${hasUnsavedChanges ? " *" : ""}`}
+            <FiSave size={14} />
+            {saving ? "Saving…" : `Save${hasUnsavedChanges ? " *" : ""}`}
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
-        {/* Club list */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-gray-100">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Select Club</p>
-          </div>
-          <div className="divide-y divide-gray-50 max-h-[70vh] overflow-y-auto">
-            {clubs.map(club => (
+      {/* Step 1: Domain tabs */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Step 1 — Select Domain</p>
+        <div className="flex flex-wrap gap-2">
+          {domains.map(domain => {
+            const meta = DOMAIN_META[domain] || { label: domain, color: "#6b7280" };
+            const active = selectedDomain === domain;
+            const clubCount = clubs.filter((c: any) => c.domain === domain).length;
+            return (
               <button
-                key={club.id}
-                onClick={() => handleSelectClub(club)}
-                className={`w-full text-left px-4 py-3 text-sm transition-colors ${
-                  selectedClub?.id === club.id
-                    ? "font-bold text-white"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-                style={selectedClub?.id === club.id ? { backgroundColor: BRAND } : {}}
+                key={domain}
+                onClick={() => handleSelectDomain(domain)}
+                className="flex flex-col items-start px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all"
+                style={active
+                  ? { backgroundColor: meta.color, borderColor: meta.color, color: "#fff" }
+                  : { borderColor: "#e5e7eb", color: "#374151" }
+                }
               >
-                <div className="font-medium">{club.name}</div>
-                {club.domain && <div className={`text-[11px] mt-0.5 ${selectedClub?.id === club.id ? "text-red-200" : "text-gray-400"}`}>{club.domain}</div>}
+                <span>{domain}</span>
+                <span className="text-[11px] font-normal mt-0.5" style={{ color: active ? "rgba(255,255,255,0.75)" : "#9ca3af" }}>
+                  {meta.label} · {clubCount} clubs
+                </span>
               </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Activity panel */}
-        <div className="lg:col-span-3 space-y-4">
-          {!selectedClub ? (
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
-              <p className="text-gray-400 text-sm">← Select a club to manage its activity mappings</p>
-            </div>
-          ) : (
-            <>
-              {/* Club stats bar */}
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-6 flex-wrap">
-                <div>
-                  <p className="text-xs text-gray-400">Selected Club</p>
-                  <p className="font-bold text-gray-900">{selectedClub.name}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400">Mapped Activities</p>
-                  <p className="font-bold" style={{ color: BRAND }}>{totalMapped} / {activities.length}</p>
-                </div>
-                <div className="flex-1" />
-                <button
-                  onClick={() => setMapped(new Set(activities.map(a => a.code)))}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50"
-                >
-                  Select All
-                </button>
-                <button
-                  onClick={() => setMapped(new Set())}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50"
-                >
-                  Clear All
-                </button>
-              </div>
-
-              {/* Search */}
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
-                <input
-                  type="text"
-                  placeholder="Search activities…"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-full h-10 pl-9 pr-4 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400"
-                />
-              </div>
-
-              {/* Category groups */}
-              <div className="space-y-3">
-                {Object.entries(grouped).map(([category, items]) => {
-                  const codes = items.map(a => a.code);
-                  const allChecked = codes.every(c => mapped.has(c));
-                  const someChecked = codes.some(c => mapped.has(c));
-                  const isCollapsed = collapsedCategories.has(category);
-
-                  return (
-                    <div key={category} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                      {/* Category header */}
-                      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-50">
-                        <button
-                          onClick={() => toggleCategory(category, codes)}
-                          className="flex-shrink-0"
-                        >
-                          {allChecked ? (
-                            <FiCheckSquare size={16} style={{ color: BRAND }} />
-                          ) : someChecked ? (
-                            <FiCheckSquare size={16} className="text-gray-400" />
-                          ) : (
-                            <FiSquare size={16} className="text-gray-300" />
-                          )}
-                        </button>
-                        <span className="flex-1 font-semibold text-sm text-gray-800">{category}</span>
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                          {codes.filter(c => mapped.has(c)).length}/{codes.length}
-                        </span>
-                        <button
-                          onClick={() => setCollapsedCategories(prev => {
-                            const n = new Set(prev);
-                            n.has(category) ? n.delete(category) : n.add(category);
-                            return n;
-                          })}
-                          className="text-gray-400 hover:text-gray-600"
-                        >
-                          {isCollapsed ? <FiChevronRight size={15} /> : <FiChevronDown size={15} />}
-                        </button>
-                      </div>
-
-                      {/* Activity rows */}
-                      {!isCollapsed && (
-                        <div className="divide-y divide-gray-50">
-                          {items.map(activity => (
-                            <label
-                              key={activity.code}
-                              className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={mapped.has(activity.code)}
-                                onChange={() => toggleActivity(activity.code)}
-                                className="rounded border-gray-300 accent-red-700 w-4 h-4 flex-shrink-0"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">{activity.title}</p>
-                                <p className="text-[11px] text-gray-400">{activity.code} · {activity.domain} · {activity.sdc_credits} pts</p>
-                              </div>
-                              {activity.difficulty && (
-                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 flex-shrink-0">
-                                  {activity.difficulty}
-                                </span>
-                              )}
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                {Object.keys(grouped).length === 0 && (
-                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center text-gray-400 text-sm">
-                    No activities match your search.
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+            );
+          })}
         </div>
       </div>
+
+      {selectedDomain && (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+
+          {/* Step 2: Club list */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden h-fit">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Step 2 — Select Club</p>
+              <p className="text-xs text-gray-500 mt-0.5">{clubsInDomain.length} clubs in {selectedDomain}</p>
+            </div>
+            <div className="divide-y divide-gray-50 max-h-[65vh] overflow-y-auto">
+              {clubsInDomain.map(club => {
+                const isSelected = selectedClub?.id === club.id;
+                const mappedCount = mappingsData.filter((m: any) => m.club_id === club.id).length;
+                const meta = DOMAIN_META[club.domain] || { color: "#6b7280", label: club.domain };
+                return (
+                  <button
+                    key={club.id}
+                    onClick={() => handleSelectClub(club)}
+                    className={`w-full text-left px-4 py-3 transition-colors ${
+                      isSelected ? "text-white" : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                    style={isSelected ? { backgroundColor: meta.color } : {}}
+                  >
+                    <p className="text-sm font-semibold leading-snug">{club.name}</p>
+                    <p className={`text-[11px] mt-0.5 ${isSelected ? "text-white/70" : "text-gray-400"}`}>
+                      {mappedCount > 0 ? `${mappedCount} activities mapped` : "No mappings yet"}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Step 3: Activities */}
+          <div className="lg:col-span-3 space-y-4">
+            {!selectedClub ? (
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
+                <p className="text-gray-400 text-sm">← Select a club to manage its activity mappings</p>
+              </div>
+            ) : (
+              <>
+                {/* Club info bar */}
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-6 flex-wrap">
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Club</p>
+                    <p className="font-bold text-gray-900 text-sm">{selectedClub.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Mapped</p>
+                    <p className="font-bold text-sm" style={{ color: BRAND }}>{mapped.size} / {activities.length}</p>
+                  </div>
+                  <div className="flex-1" />
+                  <button
+                    onClick={() => setMapped(new Set(activities.map((a: any) => a.code)))}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={() => setMapped(new Set())}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  >
+                    Clear All
+                  </button>
+                </div>
+
+                {/* Search */}
+                <div className="relative">
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                  <input
+                    type="text"
+                    placeholder="Search activities by title, code or category…"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full h-10 pl-9 pr-4 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+
+                {/* Activities: domain → category */}
+                <div className="space-y-4">
+                  {Object.entries(grouped).map(([domain, categories]) => {
+                    const domainMeta = DOMAIN_META[domain] || { label: domain, color: "#6b7280" };
+                    const allDomainCodes = Object.values(categories).flat().map((a: any) => a.code);
+                    const domainKey = `domain:${domain}`;
+                    const isDomainCollapsed = collapsed.has(domainKey);
+
+                    return (
+                      <div key={domain} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                        {/* Domain header */}
+                        <button
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                          style={{ backgroundColor: domainMeta.color + "10", borderBottom: `2px solid ${domainMeta.color}30` }}
+                          onClick={() => {
+                            setCollapsed(prev => {
+                              const n = new Set(prev);
+                              n.has(domainKey) ? n.delete(domainKey) : n.add(domainKey);
+                              return n;
+                            });
+                          }}
+                        >
+                          <span
+                            className="text-xs font-bold px-2 py-0.5 rounded-md text-white"
+                            style={{ backgroundColor: domainMeta.color }}
+                          >
+                            {domain}
+                          </span>
+                          <span className="text-sm font-semibold text-gray-700">{domainMeta.label}</span>
+                          <span className="text-[11px] text-gray-400 ml-1">
+                            {allDomainCodes.filter(c => mapped.has(c)).length}/{allDomainCodes.length}
+                          </span>
+                          <div className="flex-1" />
+                          <button
+                            className="text-xs font-semibold px-2 py-0.5 rounded border mr-2"
+                            style={{ borderColor: domainMeta.color + "60", color: domainMeta.color }}
+                            onClick={e => { e.stopPropagation(); toggleGroup(allDomainCodes); }}
+                          >
+                            {allDomainCodes.every(c => mapped.has(c)) ? "Deselect All" : "Select All"}
+                          </button>
+                          {isDomainCollapsed ? <FiChevronRight size={14} className="text-gray-400" /> : <FiChevronDown size={14} className="text-gray-400" />}
+                        </button>
+
+                        {!isDomainCollapsed && (
+                          <div className="divide-y divide-gray-50">
+                            {Object.entries(categories).map(([category, items]) => {
+                              const catCodes = (items as any[]).map((a: any) => a.code);
+                              const allCatOn = catCodes.every(c => mapped.has(c));
+                              const someCatOn = catCodes.some(c => mapped.has(c));
+                              const catKey = `${domain}:${category}`;
+                              const isCatCollapsed = collapsed.has(catKey);
+
+                              return (
+                                <div key={category}>
+                                  {/* Category sub-header */}
+                                  <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100">
+                                    <button onClick={() => toggleGroup(catCodes)} className="flex-shrink-0">
+                                      {allCatOn
+                                        ? <FiCheckSquare size={14} style={{ color: BRAND }} />
+                                        : someCatOn
+                                        ? <FiCheckSquare size={14} className="text-gray-400" />
+                                        : <FiSquare size={14} className="text-gray-300" />
+                                      }
+                                    </button>
+                                    <span className="flex-1 text-xs font-bold text-gray-600">{category}</span>
+                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-500">
+                                      {catCodes.filter(c => mapped.has(c)).length}/{catCodes.length}
+                                    </span>
+                                    <button
+                                      onClick={() => setCollapsed(prev => {
+                                        const n = new Set(prev);
+                                        n.has(catKey) ? n.delete(catKey) : n.add(catKey);
+                                        return n;
+                                      })}
+                                      className="text-gray-400 ml-1"
+                                    >
+                                      {isCatCollapsed ? <FiChevronRight size={13} /> : <FiChevronDown size={13} />}
+                                    </button>
+                                  </div>
+
+                                  {/* Activity rows */}
+                                  {!isCatCollapsed && (items as any[]).map((activity: any) => (
+                                    <label
+                                      key={activity.code}
+                                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={mapped.has(activity.code)}
+                                        onChange={() => toggleActivity(activity.code)}
+                                        className="rounded border-gray-300 accent-red-700 w-4 h-4 flex-shrink-0"
+                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate">{activity.title}</p>
+                                        <p className="text-[11px] text-gray-400">{activity.code} · {activity.sdc_credits} pts</p>
+                                      </div>
+                                      {activity.approval_status === 'pending_approval' && (
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 flex-shrink-0">
+                                          Pending
+                                        </span>
+                                      )}
+                                      {activity.difficulty && (
+                                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 flex-shrink-0">
+                                          {activity.difficulty}
+                                        </span>
+                                      )}
+                                    </label>
+                                  ))}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {Object.keys(grouped).length === 0 && (
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center text-gray-400 text-sm">
+                      No activities match your search.
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {!selectedDomain && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
+          <p className="text-gray-400 text-sm">↑ Select a domain above to get started</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -11,12 +11,14 @@ export async function GET() {
     try {
         await ensureActivitySchema();
         const [[clubs], [activities], [mappings]] = await Promise.all([
-            pool.execute(`SELECT id, name, domain FROM clubs ORDER BY name ASC`),
+            // Only SAC clubs — exclude departmental clubs
+            pool.execute(`SELECT id, name, domain FROM clubs WHERE domain != 'DEPT. CLUBS' ORDER BY domain ASC, name ASC`),
+            // All activities except rejected (include pending so new additions are mappable)
             pool.execute(`
                 SELECT code, title, domain, category, sdc_credits, difficulty, approval_status
                 FROM activity_catalogue
-                WHERE approval_status = 'active'
-                ORDER BY category ASC, title ASC
+                WHERE approval_status IN ('active', 'pending_approval')
+                ORDER BY domain ASC, category ASC, title ASC
             `),
             pool.execute(`SELECT club_id, activity_code FROM club_activity_mappings`),
         ]) as any[];
