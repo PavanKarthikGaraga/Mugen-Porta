@@ -7,7 +7,7 @@ import {
   FiFileText, FiBriefcase, FiCpu, FiEdit3, FiCheckSquare,
   FiBarChart2, FiBell, FiUser, FiSettings, FiLogOut, FiMenu,
   FiX, FiLock, FiSearch, FiChevronDown, FiFolder, FiSend,
-  FiClipboard, FiInfo, FiUsers
+  FiClipboard, FiInfo, FiUsers, FiMap
 } from "react-icons/fi";
 
 const NOTIF_ICON: Record<string, any> = { activity: FiClipboard, badge: FiAward, sdc: FiStar, reminder: FiBell, system: FiInfo };
@@ -27,6 +27,7 @@ const navigation = [
   { name: "Badge Wallet",               href: "/dashboard/student/badges",           icon: FiAward },
   { name: "Excellence Passport",        href: "/dashboard/student/passport",         icon: FiFileText },
   { name: "Career Dashboard",           href: "/dashboard/student/career",           icon: FiBriefcase },
+  { name: "Career Roadmap",             href: "/dashboard/student/career-roadmap",   icon: FiMap },
   { name: "Reflection Journal",         href: "/dashboard/student/journal",          icon: FiEdit3 },
   { name: "Certificates",               href: "/dashboard/student/certificates",     icon: FiCheckSquare },
   { name: "Analytics",                  href: "/dashboard/student/analytics",        icon: FiBarChart2 },
