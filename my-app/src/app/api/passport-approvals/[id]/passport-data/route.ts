@@ -69,12 +69,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
         // Fetch projects, internships, research, leadership, community, achievements
         const [[projects], [internships], [research], [leadership], [community], [achievements]]: any[] = await Promise.all([
-            pool.execute('SELECT * FROM student_projects WHERE username = ? ORDER BY created_at DESC', [studentUsername]),
-            pool.execute('SELECT * FROM student_internships WHERE username = ? ORDER BY created_at DESC', [studentUsername]),
-            pool.execute('SELECT * FROM student_research WHERE username = ? ORDER BY created_at DESC', [studentUsername]),
-            pool.execute('SELECT * FROM student_leadership WHERE username = ? ORDER BY created_at DESC', [studentUsername]),
-            pool.execute('SELECT * FROM student_community WHERE username = ? ORDER BY created_at DESC', [studentUsername]),
-            pool.execute('SELECT * FROM student_achievements WHERE username = ? ORDER BY created_at DESC', [studentUsername]),
+            pool.execute('SELECT * FROM passport_projects WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [studentUsername]),
+            pool.execute('SELECT * FROM passport_internships WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [studentUsername]),
+            pool.execute('SELECT * FROM passport_research WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [studentUsername]),
+            pool.execute('SELECT * FROM passport_leadership WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [studentUsername]),
+            pool.execute('SELECT * FROM passport_community WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [studentUsername]),
+            pool.execute('SELECT * FROM passport_achievements WHERE username = ? ORDER BY sort_order ASC, created_at DESC', [studentUsername]),
         ]);
 
         return NextResponse.json({ profile, projects, internships, research, leadership, community, achievements });
