@@ -6,7 +6,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
         const { username } = await params;
         if (!username) return NextResponse.json({ error: 'Username required' }, { status: 400 });
 
-        // Check visibility
+        // Check visibility: must be is_public=1 AND have an approved verification
         let isPublic = false;
         try {
             const [visRows] = await pool.execute(
@@ -16,7 +16,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             isPublic = !!(visRows as any[])[0]?.is_public;
         } catch (err: any) {
             if (err.code === 'ER_BAD_FIELD_ERROR') {
-                // Migration not yet run — treat all as private
                 return NextResponse.json({ error: 'This passport is private' }, { status: 403 });
             }
             throw err;
@@ -24,6 +23,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
         if (!isPublic) {
             return NextResponse.json({ error: 'This passport is private' }, { status: 403 });
+        }
+
+        // Even if is_public=1, require an approved verification request
+        try {
+            const [verRows] = await pool.execute(
+                'SELECT status FROM passport_verification_requests WHERE username = ?',
+                [username]
+            ) as any[];
+            const verStatus = (verRows as any[])[0]?.status;
+            if (verStatus !== 'approved') {
+                return NextResponse.json({ error: 'This passport is pending verification' }, { status: 403 });
+            }
+        } catch {
+            // If table doesn't exist yet, block access — verification required
+            return NextResponse.json({ error: 'This passport is pending verification' }, { status: 403 });
         }
 
         // Fetch profile

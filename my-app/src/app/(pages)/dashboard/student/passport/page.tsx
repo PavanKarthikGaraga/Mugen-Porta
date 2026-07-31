@@ -154,6 +154,7 @@ export default function PassportPage() {
       const data = await res.json();
       if (res.ok) {
         setVerificationStatus('pending');
+        setIsPublic(false); // forced private server-side while pending
         setShowVerificationModal(false);
         toast.success("Passport submitted for verification! You will be notified once reviewed.");
       } else {

@@ -82,6 +82,11 @@ export async function POST(request: Request) {
             [username]
         );
 
+        // Force passport private while pending — prevent public access before approval
+        try {
+            await pool.execute('UPDATE student_profiles SET is_public = 0 WHERE username = ?', [username]);
+        } catch {}
+
         return NextResponse.json({ success: true, message: 'Passport submitted for verification. You will be notified once reviewed.' });
     } catch (error: any) {
         return NextResponse.json({ error: safeMessage(error, 'Failed to process verification request') }, { status: 500 });
