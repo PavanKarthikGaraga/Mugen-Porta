@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   FiTrendingUp, FiSearch, FiCheckCircle, FiAlertCircle, FiArrowRight, FiClock,
+  FiLock,
 } from "react-icons/fi";
 import { Sparkles, Loader2, Target, Award } from "lucide-react";
 import DashboardCard from "@/app/components/dashboard/DashboardCard";
@@ -61,11 +62,14 @@ export default function CareerPage() {
   const [roleMatches, setRoleMatches] = useState<RoleMatch[] | null>(null);
   const [analyzingRoles, setAnalyzingRoles] = useState(false);
   const [rolesGeneratedAt, setRolesGeneratedAt] = useState<string | null>(null);
+  const [canRerunAnalysis, setCanRerunAnalysis] = useState(true);
+  const [loadingCache, setLoadingCache] = useState(true);
 
   // Role fit checker
   const [targetRole, setTargetRole] = useState("");
   const [fitAnalysis, setFitAnalysis] = useState<RoleFitAnalysis | null>(null);
   const [analyzingFit, setAnalyzingFit] = useState(false);
+  const [fitFromCache, setFitFromCache] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -76,32 +80,49 @@ export default function CareerPage() {
         const uname = authData.user.username;
         setUsername(uname);
 
-        const compRes = await fetch(`/api/dashboard/student/samam/competencies/${uname}`);
+        // Fetch competencies and cached role matches in parallel
+        const [compRes, cacheRes] = await Promise.all([
+          fetch(`/api/dashboard/student/samam/competencies/${uname}`),
+          fetch("/api/dashboard/student/career/role-matches"),
+        ]);
+
         if (compRes.ok) {
           const data = await compRes.json();
           setCategories(data);
+        }
+
+        if (cacheRes.ok) {
+          const cd = await cacheRes.json();
+          if (cd.roles && Array.isArray(cd.roles) && cd.roles.length > 0) {
+            setRoleMatches(cd.roles);
+            setRolesGeneratedAt(cd.generatedAt);
+          }
+          setCanRerunAnalysis(cd.canRerun ?? true);
         }
       } catch (e) {
         console.error(e);
       } finally {
         setLoadingCompetencies(false);
+        setLoadingCache(false);
       }
     };
     load();
   }, []);
 
   const runRoleMatchAnalysis = async () => {
+    if (!canRerunAnalysis) return;
     setAnalyzingRoles(true);
     try {
       const res = await fetch("/api/dashboard/student/career/role-matches", { method: "POST" });
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok && data.roles?.length > 0) {
         setRoleMatches(data.roles);
-        setRolesGeneratedAt(data.generatedAt);
+        setRolesGeneratedAt(data.generatedAt ?? new Date().toISOString());
+        setCanRerunAnalysis(false);
       } else {
         toast.error(data.error || "Could not run AI analysis right now.");
       }
-    } catch (e) {
+    } catch {
       toast.error("Network error while running AI analysis.");
     } finally {
       setAnalyzingRoles(false);
@@ -115,6 +136,7 @@ export default function CareerPage() {
     }
     setAnalyzingFit(true);
     setFitAnalysis(null);
+    setFitFromCache(false);
     try {
       const res = await fetch("/api/dashboard/student/career/role-fit", {
         method: "POST",
@@ -124,17 +146,17 @@ export default function CareerPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         setFitAnalysis(data.analysis);
+        setFitFromCache(!!data.fromCache);
       } else {
         toast.error(data.error || "Could not analyze this role right now.");
       }
-    } catch (e) {
+    } catch {
       toast.error("Network error while analyzing role fit.");
     } finally {
       setAnalyzingFit(false);
     }
   };
 
-  // Flatten competencies with a score for the "skills attained" summary.
   const allScoredCompetencies = categories
     .flatMap((c: any) => c.competencies.map((comp: any) => ({ ...comp, category: c.title })))
     .filter((c: any) => c.score > 0)
@@ -146,6 +168,9 @@ export default function CareerPage() {
       ? Math.round(c.competencies.reduce((s: number, x: any) => s + x.score, 0) / c.competencies.length)
       : 0,
   }));
+
+  // Whether cached data exists but new skills have been added since
+  const hasCachedButStale = roleMatches !== null && canRerunAnalysis;
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">
@@ -178,7 +203,6 @@ export default function CareerPage() {
           </div>
         ) : (
           <>
-            {/* Category averages */}
             <div className="flex flex-wrap gap-2 mb-5">
               {overallScores.map((c: any) => (
                 <div key={c.id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border bg-gray-50 border-gray-100">
@@ -188,8 +212,6 @@ export default function CareerPage() {
                 </div>
               ))}
             </div>
-
-            {/* Top skills grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
               {allScoredCompetencies.slice(0, 12).map((comp: any) => {
                 const lc = LEVEL_CONFIG[comp.level] || LEVEL_CONFIG.Explorer;
@@ -223,18 +245,28 @@ export default function CareerPage() {
         title={<span className="flex items-center gap-2"><Sparkles size={18} className="text-amber-500" /> AI Career Role Match</span>}
         subtitle="SAMAM AI scans your full profile and ranks the roles you're best suited for right now"
         action={
-          <button
-            onClick={runRoleMatchAnalysis}
-            disabled={analyzingRoles}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            style={{ backgroundColor: BRAND }}
-          >
-            {analyzingRoles ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-            {analyzingRoles ? "Analyzing…" : roleMatches ? "Re-run Analysis" : "Run AI Analysis"}
-          </button>
+          canRerunAnalysis ? (
+            <button
+              onClick={runRoleMatchAnalysis}
+              disabled={analyzingRoles}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ backgroundColor: BRAND }}
+            >
+              {analyzingRoles ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+              {analyzingRoles ? "Analyzing…" : hasCachedButStale ? "Update Analysis" : "Run AI Analysis"}
+            </button>
+          ) : (
+            <span className="flex items-center gap-1.5 text-xs font-medium text-gray-400 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg cursor-default">
+              <FiLock size={12} /> Analysis locked
+            </span>
+          )
         }
       >
-        {analyzingRoles ? (
+        {loadingCache ? (
+          <div className="flex justify-center py-10">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: BRAND }} />
+          </div>
+        ) : analyzingRoles ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
             <Loader2 className="animate-spin mb-3" size={26} style={{ color: BRAND }} />
             <p className="text-sm font-medium">SAMAM AI is analyzing your competencies, activities, and passport…</p>
@@ -249,11 +281,23 @@ export default function CareerPage() {
           </div>
         ) : (
           <>
-            {rolesGeneratedAt && (
-              <p className="text-[10px] text-gray-400 mb-3">
-                Generated {new Date(rolesGeneratedAt).toLocaleString()}
-              </p>
-            )}
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              {rolesGeneratedAt && (
+                <p className="text-[10px] text-gray-400">
+                  Generated {new Date(rolesGeneratedAt).toLocaleString()}
+                </p>
+              )}
+              {!canRerunAnalysis && (
+                <p className="text-[10px] text-amber-600 flex items-center gap-1">
+                  <FiLock size={10} /> Attain/gain more competencies or skills to use the analysis again
+                </p>
+              )}
+              {hasCachedButStale && (
+                <p className="text-[10px] text-emerald-600 flex items-center gap-1">
+                  <Sparkles size={10} /> New competencies detected — update your analysis
+                </p>
+              )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {roleMatches.map((r, i) => (
                 <div key={i} className="border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow">
@@ -305,7 +349,7 @@ export default function CareerPage() {
           <input
             type="text"
             value={targetRole}
-            onChange={(e) => setTargetRole(e.target.value)}
+            onChange={(e) => { setTargetRole(e.target.value); setFitAnalysis(null); setFitFromCache(false); }}
             onKeyDown={(e) => e.key === "Enter" && !analyzingFit && runRoleFitAnalysis()}
             placeholder="e.g. Data Analyst, Product Manager, UX Designer…"
             maxLength={100}
@@ -331,6 +375,11 @@ export default function CareerPage() {
           </div>
         ) : fitAnalysis ? (
           <div className="space-y-5">
+            {fitFromCache && (
+              <p className="text-[10px] text-gray-400 flex items-center gap-1">
+                <FiClock size={10} /> Showing saved analysis for this role — gain new competencies to refresh it
+              </p>
+            )}
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 p-4 rounded-xl border border-gray-100 bg-gray-50">
               <RingProgress value={fitAnalysis.matchPercentage} size={100} strokeWidth={10} color={matchColor(fitAnalysis.matchPercentage)} />
               <div className="flex-1 text-center sm:text-left">

@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText
+    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText,
+    FiCheckSquare, FiActivity, FiAward,
 } from "react-icons/fi";
 
 export default function FacultyDashboardLayout({ children }) {
@@ -33,11 +34,13 @@ export default function FacultyDashboardLayout({ children }) {
     }, []);
 
     const navigation = [
-        { name: 'Overview', href: '/dashboard/faculty', icon: FiHome },
-        { name: 'Profile', href: '/dashboard/faculty/profile', icon: FiUser },
-        { name: 'Students', href: '/dashboard/faculty/students', icon: FiUsers },
-        { name: 'Submissions', href: '/dashboard/faculty/reports', icon: FiFileText },
-        // { name: 'Final Submissions', href: '/dashboard/faculty/final-reports', icon: FiFileText }
+        { name: 'Overview',            href: '/dashboard/faculty',                  icon: FiHome        },
+        { name: 'Profile',             href: '/dashboard/faculty/profile',           icon: FiUser        },
+        { name: 'Students',            href: '/dashboard/faculty/students',          icon: FiUsers       },
+        { name: 'Submissions',         href: '/dashboard/faculty/reports',           icon: FiFileText    },
+        { name: 'Attendance',          href: '/dashboard/faculty/attendance',        icon: FiCheckSquare },
+        { name: 'Attendance Records',  href: '/dashboard/faculty/attendance-records',icon: FiActivity    },
+        { name: 'Passport Approvals',  href: '/dashboard/faculty/passport-approvals',icon: FiAward       },
     ];
 
     const handleLogout = async () => {

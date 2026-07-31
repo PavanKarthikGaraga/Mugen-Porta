@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
-    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiAward, FiStar, FiKey, FiMap, FiCheckSquare
+    FiTool, FiChevronDown, FiChevronUp, FiLock, FiSettings, FiUsers, FiAward, FiStar, FiKey, FiMap, FiCheckSquare,
+    FiActivity, FiFileText,
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
 import { toast } from "sonner";
@@ -69,10 +70,10 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'SAMAM Dashboard',   href: '/dashboard/admin/samam',    icon: FiAward   },
         { name: 'Award Badges/Points', href: '/dashboard/admin/samam/award', icon: FiStar },
         { name: 'Activity Mapper',   href: '/dashboard/admin/activity-mapper', icon: FiMap },
-        { name: 'Activity Approvals', href: '/dashboard/admin/activity-approvals', icon: FiCheckSquare },
-
-        // { name: 'Final Submissions', href: '/dashboard/admin/final-reports', icon: FiFileText },
-        { name: 'Controls',          href: '/dashboard/admin/controls', icon: FiSettings }
+        { name: 'Activity Approvals',   href: '/dashboard/admin/activity-approvals',  icon: FiCheckSquare },
+        { name: 'Attendance Records',   href: '/dashboard/admin/attendance-records',  icon: FiActivity    },
+        { name: 'Passport Approvals',   href: '/dashboard/admin/passport-approvals',  icon: FiFileText    },
+        { name: 'Controls',             href: '/dashboard/admin/controls',            icon: FiSettings    }
     ];
 
     const devNavigation = [

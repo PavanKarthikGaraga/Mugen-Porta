@@ -392,9 +392,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             <nav className="flex-1 overflow-y-auto py-1 scrollbar-thin">
               {visibleNav.map((item) => {
                 const isActive =
-                  item.href === "/dashboard/student"
-                    ? pathname === item.href
-                    : pathname.startsWith(item.href);
+                  pathname === item.href || pathname.startsWith(item.href + '/');
 
                 return (
                   <Link

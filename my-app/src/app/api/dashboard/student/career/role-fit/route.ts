@@ -1,3 +1,4 @@
+import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { checkRateLimit } from '@/lib/rateLimit';
@@ -7,6 +8,18 @@ import { callGroqJSON, GroqConfigError } from '@/lib/groq';
 export const dynamic = 'force-dynamic';
 
 const MAX_ROLE_LEN = 100;
+
+const CREATE_CACHE_TABLE = `
+  CREATE TABLE IF NOT EXISTS career_role_fit_cache (
+    username            VARCHAR(10)  NOT NULL,
+    role_name           VARCHAR(100) NOT NULL,
+    result              JSON         NOT NULL,
+    competency_fingerprint BIGINT    NOT NULL DEFAULT 0,
+    generated_at        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (username, role_name)
+  )
+`;
 
 const SYSTEM_PROMPT = `You are the SAMAM AI Career Advisor for KL SAC (Student Activity Center) at KL University.
 A student has told you a specific role or position they are interested in. Using their real profile —
@@ -29,6 +42,22 @@ Rules:
 - Respond with ONLY a single JSON object, no markdown fences, no commentary, matching exactly this shape:
 {"role":string,"matchPercentage":number,"verdict":string,"summary":string,"strengths":string[],"gaps":string[],"improvementPlan":[{"action":string,"why":string}],"timeframeMonths":number}`;
 
+async function ensureTable() {
+    try { await pool.execute(CREATE_CACHE_TABLE); } catch {}
+}
+
+async function getFingerprint(username: string): Promise<number> {
+    try {
+        const [rows]: any = await pool.execute(
+            'SELECT COALESCE(SUM(score), 0) AS fp FROM student_competencies WHERE username = ?',
+            [username]
+        );
+        return Number(rows[0]?.fp ?? 0);
+    } catch {
+        return 0;
+    }
+}
+
 export async function POST(request: Request) {
     const auth = await requireAuth(['student']);
     if (auth.response) return auth.response;
@@ -37,6 +66,8 @@ export async function POST(request: Request) {
     if (rl.limited) return rl.response;
 
     try {
+        await ensureTable();
+
         const body = await request.json().catch(() => ({}));
         const role = typeof body?.role === 'string' ? body.role.trim() : '';
 
@@ -47,8 +78,24 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: `Role must be under ${MAX_ROLE_LEN} characters` }, { status: 400 });
         }
 
-        const context = await getStudentCareerContext(auth.user.username);
+        const username = auth.user.username as string;
+        const [currentFp] = await Promise.all([getFingerprint(username)]);
 
+        // Check cache for this (username, role, fingerprint)
+        try {
+            const [cached]: any = await pool.execute(
+                'SELECT result, competency_fingerprint, generated_at FROM career_role_fit_cache WHERE username = ? AND role_name = ?',
+                [username, role.toLowerCase()]
+            );
+            if (cached.length > 0 && Number(cached[0].competency_fingerprint) === currentFp) {
+                const analysis = typeof cached[0].result === 'string'
+                    ? JSON.parse(cached[0].result)
+                    : cached[0].result;
+                return NextResponse.json({ success: true, analysis, generatedAt: cached[0].generated_at, fromCache: true });
+            }
+        } catch {}
+
+        const context = await getStudentCareerContext(username);
         const userPrompt = `Here is the student's profile:\n\n${context.contextText}\n\nTarget role I'm interested in: "${role}"\n\nAnalyze how well I currently fit this specific role and what I should improve to get there.`;
 
         const result = await callGroqJSON({ systemPrompt: SYSTEM_PROMPT, userPrompt, temperature: 0.5, maxTokens: 1500 });
@@ -60,7 +107,7 @@ export async function POST(request: Request) {
         const ALLOWED_VERDICTS = new Set(['Strong Fit', 'Good Fit', 'Developing Fit', 'Early Stage']);
 
         const analysis = {
-            role: role,
+            role,
             matchPercentage: Math.max(0, Math.min(100, Math.round(result.matchPercentage))),
             verdict: ALLOWED_VERDICTS.has(result.verdict) ? result.verdict : 'Developing Fit',
             summary: typeof result.summary === 'string' ? result.summary.slice(0, 800) : '',
@@ -75,7 +122,22 @@ export async function POST(request: Request) {
             timeframeMonths: Number.isFinite(result.timeframeMonths) ? Math.max(0, Math.round(result.timeframeMonths)) : null,
         };
 
-        return NextResponse.json({ success: true, analysis, generatedAt: new Date().toISOString() });
+        const generatedAt = new Date().toISOString();
+
+        // Store in cache
+        try {
+            await pool.execute(
+                `INSERT INTO career_role_fit_cache (username, role_name, result, competency_fingerprint)
+                 VALUES (?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE
+                   result = VALUES(result),
+                   competency_fingerprint = VALUES(competency_fingerprint),
+                   generated_at = CURRENT_TIMESTAMP`,
+                [username, role.toLowerCase(), JSON.stringify(analysis), currentFp]
+            );
+        } catch {}
+
+        return NextResponse.json({ success: true, analysis, generatedAt, fromCache: false });
     } catch (error: any) {
         console.error('Career role-fit error:', error);
         if (error instanceof GroqConfigError) {

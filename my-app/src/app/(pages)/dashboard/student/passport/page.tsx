@@ -7,6 +7,7 @@ import {
   FiUser, FiBookOpen, FiCode, FiBriefcase, FiAward,
   FiHeart, FiStar, FiCalendar, FiFileText, FiCheckCircle,
   FiMapPin, FiTrendingUp, FiEye, FiEyeOff, FiShare2, FiCheck, FiLock,
+  FiAlertTriangle, FiClock, FiXCircle,
 } from "react-icons/fi";
 import { BadgeIcon } from "@/lib/badgeIcons";
 import { PASSPORT } from "@/app/Data/development-mock";
@@ -63,6 +64,10 @@ export default function PassportPage() {
   const [isPublic, setIsPublic] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
+  const [verificationNotes, setVerificationNotes] = useState<string>('');
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [submittingVerification, setSubmittingVerification] = useState(false);
 
   useEffect(() => {
     fetch("/api/dashboard/student/passport")
@@ -86,6 +91,16 @@ export default function PassportPage() {
          setData(json);
          setIsPublic(!!json.profile?.is_public);
          setLoading(false);
+         // Fetch verification status
+         fetch("/api/dashboard/student/passport/verification-status")
+           .then(r => r.json())
+           .then(vs => {
+             if (vs.status && vs.status !== 'none') {
+               setVerificationStatus(vs.status);
+               if (vs.reviewerNotes) setVerificationNotes(vs.reviewerNotes);
+             }
+           })
+           .catch(() => {});
       })
       .catch(err => {
          console.error(err);
@@ -99,6 +114,14 @@ export default function PassportPage() {
   };
 
   const handleTogglePublic = async () => {
+    if (verificationStatus === 'pending') {
+      toast.info("Your passport is awaiting verification. Please wait for approval before making it public.");
+      return;
+    }
+    if (!isPublic && verificationStatus !== 'approved') {
+      setShowVerificationModal(true);
+      return;
+    }
     setToggling(true);
     try {
       const res = await fetch("/api/dashboard/student/passport/visibility", {
@@ -117,6 +140,47 @@ export default function PassportPage() {
       toast.error("Failed to update visibility");
     } finally {
       setToggling(false);
+    }
+  };
+
+  const handleSubmitForVerification = async () => {
+    setSubmittingVerification(true);
+    try {
+      const res = await fetch("/api/dashboard/student/passport/verification-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "submit" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setVerificationStatus('pending');
+        setShowVerificationModal(false);
+        toast.success("Passport submitted for verification! You will be notified once reviewed.");
+      } else {
+        toast.error(data.error || "Failed to submit for verification.");
+      }
+    } catch {
+      toast.error("Failed to submit for verification.");
+    } finally {
+      setSubmittingVerification(false);
+    }
+  };
+
+  const handleEditorSave = async (newData: any) => {
+    setData(newData);
+    setIsPublic(!!newData.profile?.is_public);
+    if (verificationStatus === 'approved') {
+      // Reset verification — student edited after approval
+      try {
+        await fetch("/api/dashboard/student/passport/verification-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "reset" }),
+        });
+      } catch {}
+      setVerificationStatus('none');
+      setIsPublic(false);
+      toast.info("Passport updated. You'll need to re-submit for verification before making it public again.");
     }
   };
 
@@ -139,7 +203,48 @@ export default function PassportPage() {
 
   return (
     <>
-      <EditorModal isOpen={isEditing} onClose={() => setIsEditing(false)} initialData={data} onSave={(newData) => { setData(newData); setIsPublic(!!newData.profile?.is_public); }} />
+      {/* Verification Warning Modal */}
+      {showVerificationModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
+                <FiAlertTriangle size={20} className="text-amber-600" />
+              </div>
+              <h2 className="text-base font-bold text-gray-900">Submit Excellence Passport for Verification</h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">
+              If you want to make your Excellence Passport public, it requires <strong>admin&rsquo;s verification and approval</strong>. All data must be true and accurate.
+            </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-5 text-xs text-red-800 leading-relaxed">
+              <strong>⚠️ Important Notice:</strong> If fake data, skills, or achievements are found in your Excellence Passport, we reserve all rights to <strong>permanently terminate your account</strong>. Please ensure all information is accurate and verifiable before submitting.
+            </div>
+            {verificationStatus === 'rejected' && verificationNotes && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 text-xs text-orange-800">
+                <strong>Previous rejection reason:</strong> {verificationNotes}
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowVerificationModal(false)}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitForVerification}
+                disabled={submittingVerification}
+                className="flex-1 px-4 py-2.5 text-sm font-bold text-white rounded-lg transition-colors disabled:opacity-60"
+                style={{ backgroundColor: BRAND }}
+              >
+                {submittingVerification ? "Submitting…" : "Submit for Verification"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <EditorModal isOpen={isEditing} onClose={() => setIsEditing(false)} initialData={data} onSave={handleEditorSave} />
 
     <div className="max-w-5xl mx-auto">
 
@@ -184,19 +289,33 @@ export default function PassportPage() {
                 <FiUser size={13} /> Edit Profile
               </button>
 
-              {/* Public/Private toggle */}
-              <button
-                onClick={handleTogglePublic}
-                disabled={toggling}
-                className={`flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all border ${
-                  isPublic
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    : "bg-gray-50 text-gray-500 border-gray-200"
-                }`}
-              >
-                {isPublic ? <FiEye size={13} /> : <FiLock size={13} />}
-                {toggling ? "Saving..." : isPublic ? "Public" : "Private"}
-              </button>
+              {/* Verification-aware public/private toggle */}
+              {verificationStatus === 'pending' ? (
+                <span className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 cursor-default">
+                  <FiClock size={13} /> Pending Verification
+                </span>
+              ) : verificationStatus === 'approved' ? (
+                <button
+                  onClick={handleTogglePublic}
+                  disabled={toggling}
+                  className={`flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all border ${
+                    isPublic
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-gray-50 text-gray-500 border-gray-200"
+                  }`}
+                >
+                  {isPublic ? <FiEye size={13} /> : <FiLock size={13} />}
+                  {toggling ? "Saving..." : isPublic ? "Public ✓" : "Private"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowVerificationModal(true)}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100 hover:text-gray-700 transition-all"
+                >
+                  {verificationStatus === 'rejected' ? <FiXCircle size={13} className="text-red-400" /> : <FiLock size={13} />}
+                  {verificationStatus === 'rejected' ? "Re-submit for Verification" : "Make Public"}
+                </button>
+              )}
 
               {/* Copy share link (only when public) */}
               {isPublic && (

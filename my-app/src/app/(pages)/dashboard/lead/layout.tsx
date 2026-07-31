@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText, FiUserCheck, FiActivity
+    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText, FiUserCheck, FiActivity,
+    FiDatabase, FiAward,
 } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -48,12 +49,13 @@ export default function LeadDashboardLayout({ children }) {
     }, []);
 
     const navigation = [
-        { name: 'Overview', href: '/dashboard/lead', icon: FiHome },
-        { name: 'Profile', href: '/dashboard/lead/profile', icon: FiUser },
-        { name: 'Students', href: '/dashboard/lead/students', icon: FiUsers },
-        { name: 'SAMAM', href: '/dashboard/lead/samam', icon: FiActivity },
-        { name: 'Submissions', href: '/dashboard/lead/reports', icon: FiFileText },
-        // { name: 'Final Submissions', href: '/dashboard/lead/final-reports', icon: FiFileText }
+        { name: 'Overview',            href: '/dashboard/lead',                  icon: FiHome     },
+        { name: 'Profile',             href: '/dashboard/lead/profile',          icon: FiUser     },
+        { name: 'Students',            href: '/dashboard/lead/students',         icon: FiUsers    },
+        { name: 'SAMAM',               href: '/dashboard/lead/samam',            icon: FiActivity },
+        { name: 'Submissions',         href: '/dashboard/lead/reports',          icon: FiFileText },
+        { name: 'Attendance Records',  href: '/dashboard/lead/attendance-records', icon: FiDatabase },
+        { name: 'Passport Approvals',  href: '/dashboard/lead/passport-approvals', icon: FiAward    },
     ];
 
     const handleLogout = async () => {
