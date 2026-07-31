@@ -1,69 +1,52 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 
-export async function GET(request) {
+export async function GET() {
     try {
-        const { searchParams } = new URL(request.url);
-        const clubId = searchParams.get('clubId');
+        // Auth: get clubId from JWT — no longer a client-supplied param
+        const cookieStore = await cookies();
+        const token = cookieStore.get('tck')?.value;
+        if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        if (!clubId) {
-            return NextResponse.json(
-                { error: 'Club ID is required' },
-                { status: 400 }
-            );
-        }
+        const payload = await verifyToken(token);
+        if (!payload || payload.role !== 'lead') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        // Get total students in the club
-        const [totalStudentsResult] = await pool.execute(
-            'SELECT COUNT(*) as count FROM students WHERE clubId = ?',
-            [clubId]
+        const [leadRows]: any = await pool.execute(
+            'SELECT clubId FROM leads WHERE username = ?',
+            [payload.username]
         );
+        if (leadRows.length === 0 || !leadRows[0].clubId) {
+            return NextResponse.json({ error: 'No club assigned' }, { status: 403 });
+        }
+        const clubId = leadRows[0].clubId;
 
-        // Get recent registrations (last 30 days)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const [recentRegistrationsResult] = await pool.execute(
-            'SELECT COUNT(*) as count FROM students WHERE clubId = ? AND created_at >= ?',
-            [clubId, thirtyDaysAgo.toISOString().slice(0, 19).replace('T', ' ')]
-        );
+        // Run all queries in parallel
+        const [[totalRes], [recentRes], [yearRes], [domainRes]]: any[] = await Promise.all([
+            pool.execute('SELECT COUNT(*) as count FROM students WHERE clubId = ?', [clubId]),
+            pool.execute('SELECT COUNT(*) as count FROM students WHERE clubId = ? AND created_at >= ?', [clubId, thirtyDaysAgo.toISOString().slice(0, 19).replace('T', ' ')]),
+            pool.execute('SELECT year, COUNT(*) as count FROM students WHERE clubId = ? GROUP BY year ORDER BY year', [clubId]),
+            pool.execute('SELECT selectedDomain, COUNT(*) as count FROM students WHERE clubId = ? GROUP BY selectedDomain ORDER BY count DESC', [clubId]),
+        ]);
 
-        // Get year-wise count
-        const [yearWiseResult] = await pool.execute(
-            'SELECT year, COUNT(*) as count FROM students WHERE clubId = ? GROUP BY year ORDER BY year',
-            [clubId]
-        );
+        const yearWiseCount: Record<string, number> = {};
+        (yearRes as any[]).forEach(row => { yearWiseCount[row.year] = row.count; });
 
-        // Get domain-wise count
-        const [domainWiseResult] = await pool.execute(
-            'SELECT selectedDomain, COUNT(*) as count FROM students WHERE clubId = ? GROUP BY selectedDomain ORDER BY count DESC',
-            [clubId]
-        );
+        const domainWiseCount: Record<string, number> = {};
+        (domainRes as any[]).forEach(row => { domainWiseCount[row.selectedDomain] = row.count; });
 
-        // Convert results to objects
-        const yearWiseCount = {};
-        yearWiseResult.forEach(row => {
-            yearWiseCount[row.year] = row.count;
-        });
-
-        const domainWiseCount = {};
-        domainWiseResult.forEach(row => {
-            domainWiseCount[row.selectedDomain] = row.count;
-        });
-
-        const stats = {
-            totalStudents: totalStudentsResult[0].count,
-            recentRegistrations: recentRegistrationsResult[0].count,
-            yearWiseCount,
-            domainWiseCount
-        };
-
-        return NextResponse.json(stats);
-
-    } catch (error) {
-        console.error('Database error:', error);
         return NextResponse.json({
-            error: 'Failed to fetch lead dashboard stats'}, { status: 500 });
+            totalStudents: (totalRes as any[])[0].count,
+            recentRegistrations: (recentRes as any[])[0].count,
+            yearWiseCount,
+            domainWiseCount,
+        });
+    } catch (error) {
+        console.error('Lead stats error:', error);
+        return NextResponse.json({ error: 'Failed to fetch lead dashboard stats' }, { status: 500 });
     }
 }

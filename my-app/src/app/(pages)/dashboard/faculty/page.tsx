@@ -52,30 +52,17 @@ export default function FacultyOverviewPage() {
     domainWiseCount: {} as Record<string, number>,
   });
   const [loading, setLoading]   = useState(true);
-  const [userData, setUserData] = useState({ assignedClubs: [] as string[] });
   const [clubs, setClubs]       = useState<Club[]>([]);
   const [selectedClub, setSelectedClub] = useState("");
 
-  useEffect(() => { fetchUserData(); }, []);
+  // Fetch clubs and initial stats in parallel on mount — no auth pre-fetch needed
+  useEffect(() => {
+    Promise.all([fetchClubs(), fetchStats("")]);
+  }, []);
 
   useEffect(() => {
-    if (userData.assignedClubs.length > 0) {
-      fetchClubs();
-      fetchStats(selectedClub);
-    }
-  }, [userData.assignedClubs, selectedClub]);
-
-  const fetchUserData = async () => {
-    try {
-      const res = await fetch("/api/auth/me");
-      if (res.ok) {
-        const data = await res.json();
-        setUserData({ assignedClubs: data.user?.assignedClubs ?? [] });
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+    fetchStats(selectedClub);
+  }, [selectedClub]);
 
   const fetchClubs = async () => {
     try {
@@ -106,9 +93,9 @@ export default function FacultyOverviewPage() {
   const maxYear   = Math.max(...yearOrder.map((y) => stats.yearWiseCount[y] ?? 0), 1);
   const maxDomain = Math.max(...domainMeta.map((d) => stats.domainWiseCount[d.key] ?? 0), 1);
 
-  const noClubs = !loading && userData.assignedClubs.length === 0;
+  const noClubs = !loading && clubs.length === 0;
 
-  if (loading && !stats.totalStudents && userData.assignedClubs.length === 0) return <Skeleton />;
+  if (loading && !stats.totalStudents) return <Skeleton />;
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
@@ -122,9 +109,9 @@ export default function FacultyOverviewPage() {
             <p className="text-xs text-gray-500 mt-0.5">
               {selectedClubName
                 ? `Viewing: ${selectedClubName}`
-                : userData.assignedClubs.length > 1
-                  ? `All ${userData.assignedClubs.length} clubs combined`
-                  : userData.assignedClubs.length === 1
+                : clubs.length > 1
+                  ? `All ${clubs.length} clubs combined`
+                  : clubs.length === 1
                     ? clubs[0]?.name ?? "Your club"
                     : "No clubs assigned"}
             </p>
@@ -168,7 +155,7 @@ export default function FacultyOverviewPage() {
         </div>
       )}
 
-      {userData.assignedClubs.length > 0 && (
+      {!noClubs && (
         <>
           {/* Stat tiles */}
           <div className="grid grid-cols-2 gap-3">

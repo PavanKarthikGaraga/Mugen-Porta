@@ -49,22 +49,14 @@ export default function SAMAMDashboardPage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/auth/me");
-        if (!res.ok) throw new Error("Not auth");
-        const authData = await res.json();
-        setUserData(authData.user);
-        const username = authData.user.username;
-
-        const [pRes, sRes, cRes, bRes] = await Promise.all([
-          fetch(`/api/dashboard/student/samam/profile/${username}`),
-          fetch(`/api/dashboard/student/samam/sdc/${username}`),
-          fetch(`/api/dashboard/student/samam/competencies/${username}`),
-          fetch(`/api/dashboard/student/samam/badges/${username}`),
-        ]);
-        if (pRes.ok) setProfileData(await pRes.json());
-        if (sRes.ok) setSdcData(await sRes.json());
-        if (cRes.ok) setCompetenciesData(await cRes.json());
-        if (bRes.ok) setBadgesData(await bRes.json());
+        const res = await fetch("/api/dashboard/student/overview");
+        if (!res.ok) throw new Error("Overview fetch failed");
+        const d = await res.json();
+        setUserData({ username: d.profile.username, name: d.profile.name });
+        setProfileData(d.profile);
+        setSdcData(d.sdc);
+        setCompetenciesData(d.competencies);
+        setBadgesData(d.badges);
       } catch (e) {
         console.error(e);
       } finally {

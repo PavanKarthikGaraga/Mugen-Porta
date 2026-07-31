@@ -50,28 +50,11 @@ export default function LeadOverviewPage() {
     domainWiseCount: {} as Record<string, number>,
   });
   const [loading, setLoading] = useState(true);
-  const [userData, setUserData] = useState({ clubId: null as string | null, clubName: "" });
-
-  const fetchUserData = async () => {
-    try {
-      const res = await fetch("/api/auth/me");
-      if (res.ok) {
-        const data = await res.json();
-        setUserData({
-          clubId: data.user?.clubId ?? null,
-          clubName: data.user?.clubName ?? "",
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const fetchStats = useCallback(async () => {
-    if (!userData.clubId) return;
     try {
       setLoading(true);
-      const res = await fetch(`/api/dashboard/lead/stats?clubId=${userData.clubId}`);
+      const res = await fetch("/api/dashboard/lead/stats");
       if (await handleApiError(res)) return;
       if (res.ok) setStats(await res.json());
     } catch (e) {
@@ -79,9 +62,8 @@ export default function LeadOverviewPage() {
     } finally {
       setLoading(false);
     }
-  }, [userData.clubId]);
+  }, []);
 
-  useEffect(() => { fetchUserData(); }, []);
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
   const maxYear   = Math.max(...yearOrder.map((y) => stats.yearWiseCount[y] ?? 0), 1);
@@ -99,7 +81,7 @@ export default function LeadOverviewPage() {
           <div>
             <h1 className="text-xl font-bold text-gray-900">Club Overview</h1>
             <p className="text-xs text-gray-500 mt-0.5">
-              {userData.clubName ? userData.clubName : "Your club"} · Lead Control Panel
+              Your club · Lead Control Panel
             </p>
           </div>
           <button
