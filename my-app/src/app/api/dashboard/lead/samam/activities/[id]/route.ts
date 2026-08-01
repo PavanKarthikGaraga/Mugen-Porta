@@ -72,8 +72,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         const { id } = await params;
 
         const [rows] = await pool.execute(`
-            SELECT * FROM activity_catalogue WHERE code = ? OR id = ?
-        `, [id, id]);
+            SELECT * FROM activity_catalogue WHERE code = ?
+        `, [id]);
 
         if ((rows as any[]).length === 0) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
@@ -109,10 +109,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const {
             code, title, description, domain, category, sdc_credits, max_seats, status,
             difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
-            purpose, outcomes, competencies, graduate_attributes, resources, assignments, timeline
+            purpose, competencies, graduate_attributes, resources, assignments, timeline
         } = body;
+        // Form may send either 'outcomes' (ActivityEditor field name) or 'learning_outcomes' (DB column name)
+        const outcomes = body.outcomes ?? body.learning_outcomes;
 
-        const [checkRows] = await pool.execute('SELECT category, code FROM activity_catalogue WHERE code = ? OR id = ?', [id, id]);
+        const [checkRows] = await pool.execute('SELECT category, code FROM activity_catalogue WHERE code = ?', [id]);
         if ((checkRows as any[]).length === 0) return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
         const { category: originalCategory, code: activityCode } = (checkRows as any[])[0];
 
@@ -130,7 +132,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 faculty_name = ?, sdgs = ?, hours = ?,
                 purpose = ?, learning_outcomes = ?, competencies = ?,
                 graduate_attributes = ?, resources = ?, assignments = ?, timeline = ?
-            WHERE code = ? OR id = ?
+            WHERE code = ?
         `, [
             code, title, description, domain, category,
             sdc_credits, max_seats, status,
@@ -138,7 +140,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             faculty_name, safeJson(sdgs), hours,
             purpose, safeJson(outcomes), safeJson(competencies),
             safeJson(graduate_attributes), safeJson(resources), safeJson(assignments), safeJson(timeline),
-            id, id
+            id
         ]);
 
         if ((result as any).affectedRows === 0) {
@@ -160,7 +162,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
         const { id } = await params;
 
-        const [checkRows] = await pool.execute('SELECT category, code FROM activity_catalogue WHERE code = ? OR id = ?', [id, id]);
+        const [checkRows] = await pool.execute('SELECT category, code FROM activity_catalogue WHERE code = ?', [id]);
         if ((checkRows as any[]).length === 0) return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
         const { category: originalCategory, code: activityCode } = (checkRows as any[])[0];
 
@@ -168,7 +170,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
             return NextResponse.json({ message: 'You are not authorized to delete this activity' }, { status: 403 });
         }
 
-        const [result] = await pool.execute('DELETE FROM activity_catalogue WHERE code = ? OR id = ?', [id, id]);
+        const [result] = await pool.execute('DELETE FROM activity_catalogue WHERE code = ?', [id]);
 
         if ((result as any).affectedRows === 0) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
