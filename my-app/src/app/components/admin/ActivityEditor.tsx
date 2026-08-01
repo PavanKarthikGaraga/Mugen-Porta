@@ -40,8 +40,17 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
       fetch(`${apiPrefix}/${activityId}`)
         .then(r => r.json())
         .then(d => {
-          if (d.success) setFormData(prev => ({ ...prev, ...d.data }));
-          else toast.error("Failed to load activity");
+          if (d.error || d.message) {
+            toast.error(d.error || d.message || "Failed to load activity");
+          } else if (d.success && d.data) {
+            // Admin API: wrapped in { success, data }
+            setFormData(prev => ({ ...prev, ...d.data }));
+          } else if (d.code || d.title) {
+            // Lead API: returns activity object directly
+            setFormData(prev => ({ ...prev, ...d }));
+          } else {
+            toast.error("Failed to load activity");
+          }
           setLoading(false);
         })
         .catch(() => {
@@ -133,7 +142,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
       const data = await res.json();
       if (data.success) {
         toast.success(isNew ? "Activity created successfully" : "Activity updated successfully");
-        router.push("/dashboard/admin/activities");
+        router.push(role === "lead" ? "/dashboard/lead/samam" : "/dashboard/admin/activities");
       } else {
         toast.error(`Error: ${data.error}`);
       }
@@ -150,7 +159,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     <div className="max-w-5xl mx-auto p-6 space-y-6 pb-24">
       <div className="flex justify-between items-center bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/admin/activities" className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+          <Link href={role === "lead" ? "/dashboard/lead/samam" : "/dashboard/admin/activities"} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
             <FiArrowLeft />
           </Link>
           <div>
