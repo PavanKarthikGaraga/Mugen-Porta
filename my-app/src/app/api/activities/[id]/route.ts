@@ -8,9 +8,9 @@ import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 // mass assignment, even though the endpoint is admin-gated.
 const EDITABLE_ACTIVITY_FIELDS = new Set([
     'title', 'description', 'domain', 'category', 'purpose', 'difficulty', 'level',
-    'sdc_credits', 'maxEnrollment', 'outcomes', 'timeline', 'resources', 'assignments',
+    'sdc_credits', 'max_seats', 'maxEnrollment', 'outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments',
     'competencies', 'career', 'sdgs', 'ga', 'facultyFeedback', 'reflection',
-    'national_mission', 'pack'
+    'national_mission', 'pack', 'status', 'journey_level', 'activity_pack', 'faculty_name', 'hours', 'graduate_attributes'
 ]);
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -88,17 +88,23 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const fields = [];
     const values = [];
 
+    // Form sends 'outcomes'; DB column is 'learning_outcomes'
+    const COLUMN_ALIASES: Record<string, string> = {
+      outcomes: 'learning_outcomes',
+      learning_outcomes: 'learning_outcomes',
+    };
+    const JSON_FIELDS = new Set(['outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments', 'competencies', 'graduate_attributes', 'career', 'sdgs', 'ga']);
+
+    const seenColumns = new Set<string>();
     for (const [key, value] of Object.entries(data)) {
       if (!EDITABLE_ACTIVITY_FIELDS.has(key)) continue;
 
-      fields.push(`${key} = ?`);
-      
-      // Handle JSON stringification for array/object fields
-      if (['outcomes', 'timeline', 'resources', 'assignments', 'competencies', 'career', 'sdgs', 'ga'].includes(key)) {
-        values.push(JSON.stringify(value));
-      } else {
-        values.push(value);
-      }
+      const col = COLUMN_ALIASES[key] ?? key;
+      if (seenColumns.has(col)) continue; // skip duplicate if both 'outcomes' and 'learning_outcomes' sent
+      seenColumns.add(col);
+
+      fields.push(`${col} = ?`);
+      values.push(JSON_FIELDS.has(key) ? JSON.stringify(value) : value);
     }
 
     if (fields.length === 0) {

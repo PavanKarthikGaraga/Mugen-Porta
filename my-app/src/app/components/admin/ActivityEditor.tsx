@@ -31,7 +31,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     level: initialData?.level || "explorer",
     assignments: initialData?.assignments || [] as any[],
     resources: initialData?.resources || [] as any[],
-    outcomes: initialData?.outcomes || [] as string[],
+    outcomes: initialData?.outcomes || initialData?.learning_outcomes || [] as string[],
     competencies: initialData?.competencies || [] as string[]
   });
 
