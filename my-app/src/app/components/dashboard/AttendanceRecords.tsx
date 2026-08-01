@@ -104,7 +104,7 @@ function Skeleton() {
   );
 }
 
-export default function AttendanceRecords({ role }: { role: "admin" | "faculty" | "lead" }) {
+export default function AttendanceRecords({ role }: { role: "admin" | "faculty" | "lead" | "council" }) {
   const [records,      setRecords     ] = useState<AttendanceSession[]>([]);
   const [loading,      setLoading     ] = useState(true);
   const [search,       setSearch      ] = useState("");
@@ -177,7 +177,7 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
 
   if (loading && records.length === 0) return <Skeleton />;
 
-  const roleLabel = { admin: "Admin", faculty: "Faculty", lead: "Club Lead" }[role];
+  const roleLabel = ({ admin: "Admin", faculty: "Faculty", lead: "Club Lead", council: "Council" } as Record<string, string>)[role];
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
@@ -268,7 +268,7 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
             const barColor = presentPct >= 75 ? "#059669" : presentPct >= 50 ? "#D97706" : "#DC2626";
 
             const isReviewing = reviewingCode === rec.activity_code;
-            const canReview = role !== "lead" && rec.status === "pending";
+            const canReview = (role === "admin" || role === "faculty" || role === "council") && rec.status === "pending";
 
             return (
               <div key={rec.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">

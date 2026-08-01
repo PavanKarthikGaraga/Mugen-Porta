@@ -53,6 +53,22 @@ export async function GET(request: Request) {
         whereClause = `WHERE ats.club_id IN (${ph})`;
         queryParams = clubs;
       }
+    } else if (role === 'council') {
+      const [councilRows]: any = await pool.execute('SELECT assignedDomain FROM council WHERE username = ?', [username]);
+      if (councilRows.length === 0) return NextResponse.json({ records: [] });
+      const domain = councilRows[0].assignedDomain as string;
+      const [clubRows]: any = await pool.execute('SELECT id FROM clubs WHERE domain = ?', [domain]);
+      const clubs = (clubRows as any[]).map((c: any) => c.id as string);
+      if (clubs.length === 0) return NextResponse.json({ records: [] });
+
+      if (clubFilter && clubs.includes(clubFilter)) {
+        whereClause = 'WHERE ats.club_id = ?';
+        queryParams = [clubFilter];
+      } else {
+        const ph = clubs.map(() => '?').join(',');
+        whereClause = `WHERE ats.club_id IN (${ph})`;
+        queryParams = clubs;
+      }
     } else if (role === 'admin') {
       if (clubFilter) {
         whereClause = 'WHERE ats.club_id = ?';

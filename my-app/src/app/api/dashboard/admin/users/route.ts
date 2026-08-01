@@ -79,43 +79,42 @@ export async function POST(request) {
 
     try {
         const body = await request.json();
-        const { role, username, name, email, phoneNumber, clubId, assignedClubs } = body;
+        const { role, username, name, email, phoneNumber, clubId, assignedClubs, assignedDomain, password: suppliedPassword } = body;
 
         // Validate required fields
-        if (!role || !username || !name || !email) {
-            return NextResponse.json(
-                { error: 'Missing required fields' },
-                { status: 400 }
-            );
+        if (!role || !username) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Additional validation for leads and faculty
-        if (role === 'lead') {
-            if (!clubId) {
-                return NextResponse.json(
-                    { error: 'Club assignment is required for leads' },
-                    { status: 400 }
-                );
+        if (role === 'council') {
+            if (!suppliedPassword || suppliedPassword.length < 6) {
+                return NextResponse.json({ error: 'Password (min 6 chars) is required for council' }, { status: 400 });
             }
-        } else if (role === 'faculty') {
-            if (!phoneNumber) {
-                return NextResponse.json(
-                    { error: 'Phone number is required for faculty' },
-                    { status: 400 }
-                );
+            if (!assignedDomain || !['TEC','LCH','IIE','HWB','ESO'].includes(assignedDomain)) {
+                return NextResponse.json({ error: 'A valid domain must be assigned for council' }, { status: 400 });
             }
-            if (!assignedClubs || assignedClubs.length === 0) {
-                return NextResponse.json(
-                    { error: 'Club assignments are required for faculty' },
-                    { status: 400 }
-                );
+        } else {
+            if (!name || !email) {
+                return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            }
+            if (role === 'lead') {
+                if (!clubId) {
+                    return NextResponse.json({ error: 'Club assignment is required for leads' }, { status: 400 });
+                }
+            } else if (role === 'faculty') {
+                if (!phoneNumber) {
+                    return NextResponse.json({ error: 'Phone number is required for faculty' }, { status: 400 });
+                }
+                if (!assignedClubs || assignedClubs.length === 0) {
+                    return NextResponse.json({ error: 'Club assignments are required for faculty' }, { status: 400 });
+                }
             }
         }
 
         // Generate default password: username + last 4 digits of phone number
-        let defaultPassword = username;
-        if (phoneNumber && phoneNumber.length >= 4) {
-            defaultPassword += phoneNumber.slice(-4);
+        let defaultPassword = suppliedPassword || username;
+        if (!suppliedPassword && phoneNumber && phoneNumber.length >= 4) {
+            defaultPassword = username + phoneNumber.slice(-4);
         }
 
         // Hash the password
@@ -164,6 +163,15 @@ export async function POST(request) {
                     clubId
                 ]);
 
+            } else if (role === 'council') {
+                await connection.execute(
+                    'INSERT INTO users (username, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
+                    [username, username, `${username}@council.kluniversity.in`, hashedPassword, 'council']
+                );
+                await connection.execute(
+                    'INSERT INTO council (username, assignedDomain) VALUES (?, ?)',
+                    [username, assignedDomain]
+                );
             } else {
                 // For faculty and admin, create new user
                 // Insert into users table
@@ -271,6 +279,8 @@ export async function DELETE(request) {
                 await connection.execute('DELETE FROM students WHERE username = ?', [username]);
             } else if (role === 'faculty') {
                 await connection.execute('DELETE FROM faculty WHERE username = ?', [username]);
+            } else if (role === 'council') {
+                await connection.execute('DELETE FROM council WHERE username = ?', [username]);
             } else if (role === 'student') {
                 await connection.execute('DELETE FROM students WHERE username = ?', [username]);
             }

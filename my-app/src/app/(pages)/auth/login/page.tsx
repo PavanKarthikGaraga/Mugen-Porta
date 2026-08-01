@@ -90,6 +90,8 @@ export default function Login() {
                             } else if (role === 'faculty'){
                                 console.log("Redirecting to faculty dashboard");
                                 router.push("/dashboard/faculty");
+                            } else if (role === 'council'){
+                                router.push("/dashboard/council");
                             } else if (role === 'student'){
                                 console.log("Redirecting to student dashboard");
                                 router.push("/dashboard/student");

@@ -70,6 +70,22 @@ export async function GET(request) {
             } catch (error) {
                 console.error('Error fetching faculty data:', error);
             }
+        } else if (payload.role === 'council') {
+            try {
+                const [councilResult]: any = await pool.execute(
+                    'SELECT assignedDomain FROM council WHERE username = ?',
+                    [payload.username]
+                );
+                if (councilResult.length > 0) {
+                    const domain = councilResult[0].assignedDomain as string;
+                    const [clubRows]: any = await pool.execute(
+                        'SELECT id, name FROM clubs WHERE domain = ?', [domain]
+                    );
+                    additionalData = { assignedDomain: domain, clubs: clubRows };
+                }
+            } catch (error) {
+                console.error('Error fetching council data:', error);
+            }
         }
 
         // Check if this is a proxy session

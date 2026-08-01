@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         const role = user.role as string;
         const username = user.username as string;
 
-        if (!['admin', 'faculty', 'lead'].includes(role)) {
+        if (!['admin', 'faculty', 'lead', 'council'].includes(role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -54,6 +54,22 @@ export async function GET(request: Request) {
                 WHERE s.clubId IN (${ph})
                 ORDER BY pvr.submitted_at DESC
             `, clubs);
+            rows = result;
+        } else if (role === 'council') {
+            const [cRows]: any = await pool.execute('SELECT assignedDomain FROM council WHERE username = ?', [username]);
+            if (cRows.length === 0) return NextResponse.json({ requests: [] });
+            const domain = cRows[0].assignedDomain;
+            const [clubRows]: any = await pool.execute('SELECT id FROM clubs WHERE domain = ?', [domain]);
+            const clubIds: string[] = (clubRows as any[]).map((c: any) => c.id as string);
+            if (clubIds.length === 0) return NextResponse.json({ requests: [] });
+            const ph = clubIds.map(() => '?').join(',');
+            const [result]: any = await pool.execute(`
+                SELECT pvr.*, s.name AS student_name, s.branch, s.year, s.clubId
+                FROM passport_verification_requests pvr
+                JOIN students s ON pvr.username = s.username
+                WHERE s.clubId IN (${ph})
+                ORDER BY pvr.submitted_at DESC
+            `, clubIds);
             rows = result;
         } else {
             // lead

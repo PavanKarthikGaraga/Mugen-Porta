@@ -63,7 +63,7 @@ function DataCount({ label, items }: { label: string; items: any[] }) {
   );
 }
 
-export default function PassportApprovals({ role }: { role: "admin" | "faculty" | "lead" }) {
+export default function PassportApprovals({ role }: { role: "admin" | "faculty" | "lead" | "council" }) {
   const [requests, setRequests] = useState<PassportRequest[]>([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState("");
@@ -148,7 +148,7 @@ export default function PassportApprovals({ role }: { role: "admin" | "faculty" 
     rejected: requests.filter(r => r.status === "rejected").length,
   };
 
-  const roleLabel = { admin: "Admin", faculty: "Faculty", lead: "Club Lead" }[role];
+  const roleLabel = ({ admin: "Admin", faculty: "Faculty", lead: "Club Lead", council: "Council" } as Record<string, string>)[role];
 
   if (loading && requests.length === 0) return <Skeleton />;
 

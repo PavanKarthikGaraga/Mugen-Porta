@@ -21,7 +21,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         const role = user.role as string;
         const reviewerUsername = user.username as string;
 
-        if (!['admin', 'faculty', 'lead'].includes(role)) {
+        if (!['admin', 'faculty', 'lead', 'council'].includes(role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -50,6 +50,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             } catch { clubs = []; }
             if (!clubs.includes(req.clubId)) {
                 return NextResponse.json({ error: 'Access denied: student not in your assigned clubs' }, { status: 403 });
+            }
+        } else if (role === 'council') {
+            const [cRows]: any = await pool.execute('SELECT assignedDomain FROM council WHERE username = ?', [reviewerUsername]);
+            if (cRows.length === 0) return NextResponse.json({ error: 'Council profile not found' }, { status: 403 });
+            const [clubRows]: any = await pool.execute('SELECT id FROM clubs WHERE domain = ?', [cRows[0].assignedDomain]);
+            const clubIds: string[] = (clubRows as any[]).map((c: any) => c.id as string);
+            if (!clubIds.includes(req.clubId)) {
+                return NextResponse.json({ error: 'Access denied: student not in your domain' }, { status: 403 });
             }
         } else if (role === 'lead') {
             const [leadRows]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [reviewerUsername]);

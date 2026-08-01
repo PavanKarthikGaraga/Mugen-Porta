@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText, FiUserCheck, FiActivity,
-    FiDatabase, FiAward,
+    FiDatabase, FiAward, FiKey,
 } from "react-icons/fi";
 import { toast } from "sonner";
+import ChangePassword from "@/app/components/ChangePassword";
 
 export default function LeadDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [changePasswordOpen, setChangePasswordOpen] = useState(false);
     const [userData, setUserData] = useState({ username: '', name: '', clubName: '' });
     const [isProxySession, setIsProxySession] = useState(false);
     const [proxyStudentInfo, setProxyStudentInfo] = useState(null);
@@ -142,6 +144,14 @@ export default function LeadDashboardLayout({ children }) {
 
                         {/* Right side */}
                         <div className="flex items-center space-x-4">
+                            <button
+                                onClick={() => setChangePasswordOpen(true)}
+                                className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm transition-colors"
+                                style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
+                                title="Change Password"
+                            >
+                                <FiKey size={15} />
+                            </button>
                             {!isProxySession && (
                                 <button
                                     onClick={handleProxyLogin}
@@ -208,6 +218,13 @@ export default function LeadDashboardLayout({ children }) {
                                         </Link>
                                     );
                                 })}
+                                <button
+                                    onClick={() => { setChangePasswordOpen(true); setSidebarOpen(false); }}
+                                    className="w-full flex items-center px-3 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-200 group border-b border-gray-600"
+                                >
+                                    <FiKey className="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" />
+                                    Change Password
+                                </button>
                             </nav>
                         </div>
                     </div>
@@ -235,7 +252,6 @@ export default function LeadDashboardLayout({ children }) {
                 </div>
             </footer>
 
-            {/* Mobile sidebar overlay */}
             {sidebarOpen && (
                 <button
                     className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
@@ -243,6 +259,8 @@ export default function LeadDashboardLayout({ children }) {
                     aria-label="Close sidebar"
                 ></button>
             )}
+
+            <ChangePassword isOpen={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
         </div>
     );
 }
