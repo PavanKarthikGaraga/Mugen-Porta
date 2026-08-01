@@ -122,7 +122,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             return NextResponse.json({ message: 'You are not authorized to edit this activity' }, { status: 403 });
         }
 
-        const safeJson = (val: any) => val ? JSON.stringify(val) : null;
+        const safeJson = (val: any) => val != null ? JSON.stringify(val) : null;
 
         const [result] = await pool.execute(`
             UPDATE activity_catalogue

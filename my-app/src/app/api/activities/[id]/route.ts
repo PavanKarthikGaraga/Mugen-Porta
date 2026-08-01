@@ -23,8 +23,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
               (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count
        FROM activity_catalogue ac 
        LEFT JOIN badge_definitions bd ON ac.badge_id = bd.id 
-       WHERE ac.code = ? OR ac.id = ? LIMIT 1`, 
-      [id, id]
+       WHERE ac.code = ? LIMIT 1`,
+      [id]
     );
 
     if (rows.length === 0) {
@@ -111,8 +111,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ success: false, error: 'No fields to update' }, { status: 400 });
     }
 
-    const query = `UPDATE activity_catalogue SET ${fields.join(', ')} WHERE code = ? OR id = ?`;
-    values.push(id, id);
+    const query = `UPDATE activity_catalogue SET ${fields.join(', ')} WHERE code = ?`;
+    values.push(id);
 
     const [result]: any = await pool.query(query, values);
 
