@@ -2,7 +2,7 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import {
-  FiArrowLeft, FiDownload, FiUsers, FiHome, FiBus,
+  FiArrowLeft, FiDownload, FiUsers, FiHome, FiTruck,
   FiSearch, FiX, FiUser,
 } from "react-icons/fi";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ const BRAND = "rgb(151,0,3)";
 
 const RESIDENCE_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
   Hostel:       { label: "Hostel",      icon: FiHome, color: "#7C3AED", bg: "#F5F3FF" },
-  "Day Scholar":{ label: "Day Scholar", icon: FiBus,  color: "#0369A1", bg: "#E0F2FE" },
+  "Day Scholar":{ label: "Day Scholar", icon: FiTruck, color: "#0369A1", bg: "#E0F2FE" },
 };
 
 export default function EnrolledStudentsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -181,7 +181,7 @@ export default function EnrolledStudentsPage({ params }: { params: Promise<{ id:
           {[
             { label: "Total Enrolled", value: students.length, color: BRAND, bg: "#FFF1F1", icon: FiUsers },
             { label: "Hostel", value: hostelCount, color: "#7C3AED", bg: "#F5F3FF", icon: FiHome },
-            { label: "Day Scholar", value: dayScholarCount, color: "#0369A1", bg: "#E0F2FE", icon: FiBus },
+            { label: "Day Scholar", value: dayScholarCount, color: "#0369A1", bg: "#E0F2FE", icon: FiTruck },
           ].map(s => (
             <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: s.bg }}>

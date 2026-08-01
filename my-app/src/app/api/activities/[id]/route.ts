@@ -17,15 +17,25 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     
-    // We try querying by 'code' first since the frontend uses code (e.g. 'TECH-AI-001') in the URL
-    const [rows]: any = await pool.query(
-      `SELECT ac.*, bd.name as badgeName, bd.icon as badgeIcon,
-              (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count
-       FROM activity_catalogue ac 
-       LEFT JOIN badge_definitions bd ON ac.badge_id = bd.id 
-       WHERE ac.code = ? LIMIT 1`,
-      [id]
-    );
+    let rows: any;
+    try {
+      [rows] = await pool.query(
+        `SELECT ac.*, bd.name as badgeName, bd.icon as badgeIcon,
+                (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count
+         FROM activity_catalogue ac
+         LEFT JOIN badge_definitions bd ON ac.badge_id = bd.id
+         WHERE ac.code = ? LIMIT 1`,
+        [id]
+      );
+    } catch {
+      // badge_definitions table may not exist — fall back to simple query
+      [rows] = await pool.query(
+        `SELECT *,
+                (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = code) as real_enrolled_count
+         FROM activity_catalogue WHERE code = ? LIMIT 1`,
+        [id]
+      );
+    }
 
     if (rows.length === 0) {
       return NextResponse.json({ success: false, error: 'Activity not found' }, { status: 404 });
@@ -88,10 +98,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const fields = [];
     const values = [];
 
-    // Form sends 'outcomes'; DB column is 'learning_outcomes'
+    // Form sends 'outcomes'/'level'; DB columns are 'learning_outcomes'/'journey_level'
     const COLUMN_ALIASES: Record<string, string> = {
       outcomes: 'learning_outcomes',
       learning_outcomes: 'learning_outcomes',
+      level: 'journey_level',
     };
     const JSON_FIELDS = new Set(['outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments', 'competencies', 'graduate_attributes', 'career', 'sdgs', 'ga']);
 
