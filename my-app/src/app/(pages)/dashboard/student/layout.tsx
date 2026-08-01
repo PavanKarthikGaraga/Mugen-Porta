@@ -43,7 +43,7 @@ const navigation = [
 export default function SAMAMStudentDashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen]           = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-  const [userData, setUserData]                 = useState({ username: "", name: "" });
+  const [userData, setUserData]                 = useState({ username: "", name: "", samam_access: 1 });
   const [isLoading, setIsLoading]               = useState(true);
   const [showCareerPrompt, setShowCareerPrompt] = useState(false);
   const [selectedCareer, setSelectedCareer]     = useState("");
@@ -69,8 +69,9 @@ export default function SAMAMStudentDashboardLayout({ children }) {
         if (res.ok) {
           const data = await res.json();
           setUserData({
-            username: data.user?.username || "",
-            name:     data.user?.name     || "",
+            username:     data.user?.username    || "",
+            name:         data.user?.name        || "",
+            samam_access: data.user?.samam_access ?? 1,
           });
           if (data.user?.username) {
             const profileRes = await fetch(`/api/dashboard/student/profile/${data.user.username}`);
@@ -151,20 +152,25 @@ export default function SAMAMStudentDashboardLayout({ children }) {
     );
   }
 
-  if (userData.username !== "2400000000") {
+  if (userData.samam_access !== 1) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-zinc-950 p-4">
-        <FiLock className="h-16 w-16 text-gray-400 mb-6" />
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-          Under Development
+        <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
+          <FiLock className="h-9 w-9" style={{ color: "rgb(151,0,3)" }} />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          SAMAM Access Pending
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-8">
-          The student dashboard is currently under development and will be available soon. 
-          Please check back later!
+        <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm mb-1 text-sm">
+          Your SAMAM dashboard hasn't been unlocked yet.
         </p>
-        <button 
+        <p className="text-gray-400 dark:text-gray-500 text-center max-w-sm mb-8 text-xs">
+          Contact your club lead or SAC admin to get access.
+        </p>
+        <button
           onClick={handleLogout}
-          className="px-6 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors font-medium"
+          className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
+          style={{ backgroundColor: "rgb(151,0,3)" }}
         >
           Sign Out
         </button>

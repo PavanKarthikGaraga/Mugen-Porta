@@ -42,6 +42,19 @@ export async function GET(request) {
             } catch (error) {
                 console.error('Error fetching lead data:', error);
             }
+        } else if (payload.role === 'student') {
+            try {
+                const [studentResult] = await pool.execute(
+                    'SELECT COALESCE(samam_access, 1) as samam_access FROM students WHERE username = ?',
+                    [payload.username]
+                ) as any[];
+                if (studentResult.length > 0) {
+                    additionalData = { samam_access: Number(studentResult[0].samam_access) };
+                }
+            } catch {
+                // Column not yet created — default open so existing users aren't locked out
+                additionalData = { samam_access: 1 };
+            }
         } else if (payload.role === 'faculty') {
             try {
                 const [facultyResult] = await pool.execute(
