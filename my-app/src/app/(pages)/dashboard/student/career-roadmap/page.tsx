@@ -5,7 +5,7 @@ import {
   FiTarget, FiZap, FiCheck, FiBriefcase, FiBook, FiSearch, FiHeart,
   FiGlobe, FiCode, FiCpu, FiBarChart2, FiFileText, FiEdit3, FiShield,
   FiAward, FiGrid, FiUser, FiActivity, FiLayers, FiStar,
-  FiSettings, FiMapPin, FiHome, FiList, FiFlag
+  FiSettings, FiMapPin, FiHome, FiList, FiFlag, FiFeather
 } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -17,7 +17,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: 
   home: FiHome, activity: FiActivity, zap: FiZap, target: FiTarget, users: FiUsers,
   book: FiBook, chart: FiBarChart2, file: FiFileText, edit: FiEdit3, layers: FiLayers,
   user: FiUser, list: FiList, star: FiStar, award: FiAward, grid: FiGrid,
-  pin: FiMapPin, flag: FiFlag,
+  pin: FiMapPin, flag: FiFlag, feather: FiFeather,
 };
 
 const DOMAIN_COLORS: Record<string, string> = {
@@ -48,31 +48,51 @@ interface Question {
 
 const QUESTIONS: Question[] = [
   {
+    id: "academicStage",
+    question: "What stage of your academic journey are you currently at?",
+    subtitle: "This helps calibrate your roadmap to where you are right now — not just where you want to go",
+    type: "single",
+    options: [
+      { label: "UG — Early Years (1st or 2nd Year)", sub: "Still exploring, building foundations and discovering interests", icon: "book" },
+      { label: "UG — Final Years (3rd or 4th Year)", sub: "Preparing for placements, higher studies or entrepreneurship", icon: "layers" },
+      { label: "Postgraduate — 1st Year (PG / MBA / MS / LLM)", sub: "Deepening expertise, expanding professional networks", icon: "trending" },
+      { label: "Postgraduate — Final Year (completing project or thesis)", sub: "Finishing up and transitioning into career or doctoral work", icon: "award" },
+      { label: "Pursuing PhD / Research Programme", sub: "Full-time research, publications, and academic advancement", icon: "search" },
+      { label: "Completed degree — planning next steps", sub: "Evaluating options for career, further study or a new direction", icon: "flag" },
+    ],
+  },
+  {
+    id: "academicField",
+    question: "Which broad academic field best describes your area of study?",
+    subtitle: "Choose the discipline that reflects your primary degree or specialisation",
+    type: "single", hasOther: true,
+    options: [
+      { label: "Engineering & Technology", sub: "CS, ECE, Mechanical, Civil, EEE, Chemical, IT and related branches", icon: "cpu" },
+      { label: "Sciences", sub: "Physics, Chemistry, Mathematics, Biology, Biotechnology, Statistics", icon: "layers" },
+      { label: "Arts, Humanities & Social Sciences", sub: "Literature, History, Philosophy, Psychology, Sociology, Political Science", icon: "feather" },
+      { label: "Commerce, Economics & Finance", sub: "B.Com, Economics, Accounting, Banking, Finance, Actuarial Science", icon: "trending" },
+      { label: "Management & Business Administration", sub: "BBA, MBA, Operations, Marketing, HR, Strategy", icon: "briefcase" },
+      { label: "Law & Legal Studies", sub: "LLB, LLM, Corporate Law, Criminal Law, Constitutional Law", icon: "shield" },
+      { label: "Medicine, Pharmacy & Health Sciences", sub: "MBBS, BDS, Nursing, Pharmacy, Public Health, Allied Health", icon: "heart" },
+      { label: "Design, Architecture & Fine Arts", sub: "UI/UX, Fashion, Interior, Graphic Design, Fine Arts, Architecture", icon: "edit" },
+      { label: "Agriculture, Environment & Life Sciences", sub: "Agri, Horticulture, Environmental Science, Food Technology", icon: "activity" },
+      { label: "Education & Teacher Training", sub: "B.Ed, M.Ed, Early Childhood Education, Educational Technology", icon: "users" },
+    ],
+  },
+  {
     id: "careerDirection",
     question: "What is your primary ambition after graduation?",
     subtitle: "This defines the direction of your entire career roadmap — choose what resonates most",
     type: "single", hasOther: true,
     options: [
-      { label: "Industry Placement", sub: "Top companies, structured corporate career path", icon: "briefcase" },
-      { label: "Higher Education / Masters", sub: "MS or MTech — in India or abroad", icon: "globe" },
-      { label: "Research & PhD", sub: "Academia, scientific labs, frontier research", icon: "search" },
-      { label: "Entrepreneurship", sub: "Build your own product, startup, or venture", icon: "trending" },
-      { label: "Government / Public Sector", sub: "PSU, UPSC, civil services, defence, policy", icon: "shield" },
-      { label: "Social Impact & Development", sub: "NGOs, community work, development sector", icon: "heart" },
-    ],
-  },
-  {
-    id: "engineeringDomain",
-    question: "Which engineering domain aligns with your academic identity?",
-    subtitle: "Choose the field that best reflects your coursework, projects, and passion",
-    type: "single", hasOther: true,
-    options: [
-      { label: "Computer Science & AI", sub: "Software engineering, ML, data systems, algorithms", icon: "code" },
-      { label: "Electronics & Embedded Systems", sub: "VLSI, IoT, microcontrollers, signal processing", icon: "cpu" },
-      { label: "Mechanical & Manufacturing", sub: "Design, robotics, CAD, production engineering", icon: "settings" },
-      { label: "Civil & Structural Engineering", sub: "Infrastructure, construction, urban planning", icon: "home" },
-      { label: "Electrical & Power Systems", sub: "Energy systems, drives, control engineering", icon: "zap" },
-      { label: "Chemical & Process Engineering", sub: "Thermodynamics, materials science, process design", icon: "activity" },
+      { label: "Industry / Corporate Career", sub: "Top companies, MNCs, or sector-specific professional roles", icon: "briefcase" },
+      { label: "Higher Education (Masters or PG)", sub: "MS, MTech, MBA, LLM, MD, MFA — in India or abroad", icon: "globe" },
+      { label: "Research & PhD / Academia", sub: "Scientific labs, universities, frontier academic research", icon: "search" },
+      { label: "Entrepreneurship & Startups", sub: "Build your own product, service, or venture from scratch", icon: "trending" },
+      { label: "Government, Civil Services & Public Sector", sub: "UPSC, PSUs, defence, judiciary, policy-making institutions", icon: "shield" },
+      { label: "Social Impact, NGOs & Development Work", sub: "Grassroots change, international development, community work", icon: "heart" },
+      { label: "Creative or Freelance Profession", sub: "Writer, designer, artist, filmmaker, consultant, independent creator", icon: "feather" },
+      { label: "Professional Practice", sub: "Doctor, lawyer, CA, architect or licensed independent practitioner", icon: "award" },
     ],
   },
   {
@@ -81,12 +101,13 @@ const QUESTIONS: Question[] = [
     subtitle: "Think about your ideal day-to-day professional setting — not just what sounds prestigious",
     type: "single", hasOther: true,
     options: [
-      { label: "Research Lab or University", sub: "Deep focus, intellectual rigour, academic culture", icon: "search" },
-      { label: "Fast-Paced Tech Startup", sub: "Rapid iteration, high ownership, lean agile teams", icon: "trending" },
-      { label: "Large Corporate Organisation", sub: "Structured growth, global scale, defined career tracks", icon: "briefcase" },
-      { label: "Field Work & Community Engagement", sub: "On-ground, people-first, real-world social settings", icon: "heart" },
-      { label: "Remote or Independent Work", sub: "Consulting, freelancing, location-independent flexibility", icon: "globe" },
+      { label: "Research Lab, Hospital or University", sub: "Deep focus, intellectual rigour, structured academic or clinical culture", icon: "search" },
+      { label: "Fast-Paced Tech or Creative Startup", sub: "Rapid iteration, high ownership, lean and agile teams", icon: "trending" },
+      { label: "Large Corporate Organisation or MNC", sub: "Structured growth, global scale, defined career tracks", icon: "briefcase" },
+      { label: "Field Work, Courtroom or Community", sub: "On-ground, client-facing, real-world professional settings", icon: "heart" },
+      { label: "Remote or Independent / Freelance Work", sub: "Consulting, solo practice, location-independent flexibility", icon: "globe" },
       { label: "Government or Public Institution", sub: "Stability, public mandate, structured regulated environment", icon: "shield" },
+      { label: "Creative Studio or Design Agency", sub: "Collaborative creative culture, portfolio-driven, client projects", icon: "edit" },
     ],
   },
   {
@@ -95,13 +116,18 @@ const QUESTIONS: Question[] = [
     subtitle: "Select up to 3 areas where you are genuinely building depth and expertise",
     type: "multi", max: 3, hasOther: true,
     options: [
-      { label: "AI, ML & Data Science", sub: "Python, statistical modelling, deep learning, analytics", icon: "chart" },
-      { label: "Software Development", sub: "Web, mobile, backend systems, cloud, DevOps", icon: "code" },
-      { label: "Circuit Design & Embedded", sub: "PCB design, FPGA, firmware development, IoT", icon: "cpu" },
-      { label: "Research & Academic Writing", sub: "Literature reviews, technical papers, structured analysis", icon: "file" },
-      { label: "Leadership & Project Management", sub: "Team coordination, planning, stakeholder management", icon: "users" },
-      { label: "UI/UX & Product Design", sub: "Figma, design systems, user research, product thinking", icon: "edit" },
-      { label: "Business & Entrepreneurship", sub: "Go-to-market strategy, financial modelling, pitching", icon: "trending" },
+      { label: "Programming & Software Development", sub: "Web, mobile, backend systems, cloud, DevOps, algorithms", icon: "code" },
+      { label: "Data Analysis, AI & Research Methods", sub: "Statistics, ML, Python, R, data-driven decision making", icon: "chart" },
+      { label: "Creative & Content Writing", sub: "Journalism, copywriting, scriptwriting, blogging, academic writing", icon: "feather" },
+      { label: "Design, UI/UX & Visual Communication", sub: "Figma, Adobe suite, graphic design, user research, branding", icon: "edit" },
+      { label: "Business, Finance & Entrepreneurship", sub: "Financial modelling, go-to-market strategy, pitching, accounting", icon: "trending" },
+      { label: "Legal Research & Advocacy", sub: "Case analysis, drafting, moot courts, policy research", icon: "shield" },
+      { label: "Clinical, Medical & Healthcare Skills", sub: "Patient care, diagnostics, pharmacology, public health practice", icon: "heart" },
+      { label: "Research, Lab & Scientific Skills", sub: "Experiments, literature reviews, technical papers, lab protocols", icon: "search" },
+      { label: "Leadership, Communication & Management", sub: "Team coordination, stakeholder management, project planning", icon: "users" },
+      { label: "Teaching, Facilitation & Mentoring", sub: "Curriculum design, coaching, tutoring, training delivery", icon: "star" },
+      { label: "Marketing, Branding & Social Media", sub: "Digital campaigns, SEO, content strategy, community building", icon: "globe" },
+      { label: "Hardware, Electronics & Engineering", sub: "Circuit design, CAD, embedded systems, manufacturing, IoT", icon: "cpu" },
     ],
   },
   {
@@ -110,26 +136,27 @@ const QUESTIONS: Question[] = [
     subtitle: "Honest self-assessment maps your natural aptitude to the right career paths",
     type: "single", hasOther: true,
     options: [
-      { label: "Mathematical Modelling & Algorithms", sub: "Strong quantitative reasoning, problem formulation", icon: "layers" },
-      { label: "Hands-On Projects & Prototyping", sub: "Learning by building, iterating from physical results", icon: "settings" },
-      { label: "Theory & Conceptual Depth", sub: "Deep grasp of foundational principles and abstractions", icon: "book" },
-      { label: "Technical Writing & Documentation", sub: "Communicating complex ideas clearly and precisely", icon: "file" },
-      { label: "Presenting & Communicating Ideas", sub: "Persuasive articulation to technical and non-technical audiences", icon: "users" },
-      { label: "Data Analysis & Problem Decomposition", sub: "Structuring and breaking down complex, ambiguous problems", icon: "chart" },
+      { label: "Quantitative Analysis & Problem Solving", sub: "Maths, logic, algorithms, numerical reasoning, modelling", icon: "layers" },
+      { label: "Writing, Expression & Storytelling", sub: "Essays, reports, creative writing, persuasive communication", icon: "feather" },
+      { label: "Hands-On Projects & Applied Work", sub: "Learning by doing, building, experimenting from real results", icon: "settings" },
+      { label: "Theory, Concepts & Foundational Depth", sub: "Deep grasp of underlying principles, frameworks and abstractions", icon: "book" },
+      { label: "Research, Investigation & Critical Analysis", sub: "Literature review, hypothesis testing, structured inquiry", icon: "search" },
+      { label: "Creative & Design Thinking", sub: "Visual communication, aesthetics, ideation, user-centred design", icon: "edit" },
+      { label: "Presenting, Persuading & Public Speaking", sub: "Articulating ideas confidently to technical and general audiences", icon: "users" },
     ],
   },
   {
     id: "problemSolving",
-    question: "When you face a difficult technical challenge, you instinctively...",
+    question: "When you face a difficult challenge, you instinctively…",
     subtitle: "Choose what feels most natural — not what sounds most impressive",
     type: "single", hasOther: true,
     options: [
-      { label: "Research deeply before taking action", sub: "Understand the full landscape before committing a solution", icon: "search" },
-      { label: "Build a quick prototype to test assumptions", sub: "Hands-on experimentation and fast iteration from feedback", icon: "code" },
+      { label: "Research deeply before taking action", sub: "Understand the full landscape before committing to any solution", icon: "search" },
+      { label: "Experiment or prototype to test assumptions", sub: "Hands-on iteration and fast learning from feedback", icon: "code" },
       { label: "Decompose it into a structured plan", sub: "Step-by-step methodical execution with clear milestones", icon: "list" },
-      { label: "Collaborate to gather diverse perspectives", sub: "Better solutions emerge from collective, cross-functional input", icon: "users" },
-      { label: "Anchor to real-world context first", sub: "Ground every solution in measurable practical impact", icon: "globe" },
-      { label: "Explore unconventional creative approaches", sub: "Lateral thinking and reframing the problem itself", icon: "zap" },
+      { label: "Collaborate to gather diverse perspectives", sub: "Better answers emerge from collective cross-functional thinking", icon: "users" },
+      { label: "Anchor every decision to real-world impact", sub: "Ground solutions in measurable, practical outcomes for people", icon: "globe" },
+      { label: "Explore unconventional or creative approaches", sub: "Lateral thinking, reframing the problem, challenging assumptions", icon: "zap" },
     ],
   },
   {
@@ -138,12 +165,14 @@ const QUESTIONS: Question[] = [
     subtitle: "Your extracurricular choices reveal powerful signals about your career trajectory",
     type: "single", hasOther: true,
     options: [
-      { label: "Competitive Coding & Hackathons", sub: "Algorithmic contests, open-source, tech build events", icon: "code" },
-      { label: "Research Internships & Projects", sub: "Lab work, faculty collaborations, published technical work", icon: "search" },
-      { label: "Cultural Clubs, Arts & Performance", sub: "Music, dance, drama, media production, creative expression", icon: "star" },
-      { label: "Volunteering & Social Initiatives", sub: "NGOs, outreach programmes, community development", icon: "heart" },
-      { label: "Sports, Athletics & Physical Training", sub: "Competitive or recreational sports, coaching, fitness", icon: "activity" },
-      { label: "Startup & Entrepreneurship Clubs", sub: "Business planning, investor pitches, incubation programmes", icon: "trending" },
+      { label: "Competitive Coding, Hackathons & Tech Events", sub: "Algorithmic contests, open-source contributions, build events", icon: "code" },
+      { label: "Research Internships & Academic Projects", sub: "Lab work, faculty collaborations, published or presented work", icon: "search" },
+      { label: "Debate, MUNs & Public Speaking", sub: "Policy discussions, competitive speaking, argumentation, MUN", icon: "shield" },
+      { label: "Cultural Clubs, Arts & Creative Expression", sub: "Music, dance, drama, filmmaking, writing, media production", icon: "star" },
+      { label: "Volunteering, NSS & Social Initiatives", sub: "Community outreach, NGO work, development and welfare programmes", icon: "heart" },
+      { label: "Sports, Athletics & Physical Fitness", sub: "Competitive or recreational sports, coaching, fitness training", icon: "activity" },
+      { label: "Startup, Business & Entrepreneurship Clubs", sub: "Business planning, investor pitches, incubation and ideation", icon: "trending" },
+      { label: "Student Governance & Leadership Roles", sub: "Student council, club leadership, event management, mentorship", icon: "users" },
     ],
   },
   {
@@ -152,12 +181,13 @@ const QUESTIONS: Question[] = [
     subtitle: "Your core motivation determines which paths will genuinely fulfil you long-term",
     type: "single", hasOther: true,
     options: [
-      { label: "Financial Growth & Stability", sub: "Compensation, wealth creation, long-term financial security", icon: "trending" },
-      { label: "Intellectual Challenge & Mastery", sub: "Hard problems, continuous learning, domain expertise", icon: "book" },
-      { label: "Innovation & Building New Things", sub: "Creating products, technologies, or solutions from scratch", icon: "zap" },
-      { label: "Recognition & Career Prestige", sub: "Brand-name employers, industry reputation, status", icon: "award" },
-      { label: "Meaningful Social Impact", sub: "Work that improves lives and changes communities", icon: "heart" },
-      { label: "Work-Life Balance & Wellbeing", sub: "Sustainable pace, personal flexibility, holistic fulfilment", icon: "user" },
+      { label: "Financial Growth & Long-Term Stability", sub: "Compensation, wealth creation, economic security for family", icon: "trending" },
+      { label: "Intellectual Challenge & Continuous Learning", sub: "Hard problems, deep expertise, always growing", icon: "book" },
+      { label: "Innovation, Creation & Building New Things", sub: "Products, solutions, systems or art created from scratch", icon: "zap" },
+      { label: "Recognition, Prestige & Career Status", sub: "Brand-name employers, professional reputation, respect in field", icon: "award" },
+      { label: "Meaningful Social or Community Impact", sub: "Work that directly improves lives, communities or society", icon: "heart" },
+      { label: "Creative Freedom & Artistic Expression", sub: "Space to create, design, perform or write on your own terms", icon: "feather" },
+      { label: "Work-Life Balance & Personal Wellbeing", sub: "Sustainable pace, time for family and self, holistic fulfilment", icon: "user" },
     ],
   },
   {
@@ -167,11 +197,25 @@ const QUESTIONS: Question[] = [
     type: "single", hasOther: true,
     options: [
       { label: "Independently with full ownership", sub: "Deep focus, self-directed outcomes, minimal oversight", icon: "user" },
-      { label: "In collaborative cross-functional teams", sub: "Diverse expertise, shared goals, open team culture", icon: "users" },
-      { label: "Leading and guiding a small team", sub: "Mentoring, directing execution, driving results", icon: "target" },
-      { label: "In a structured, process-driven team", sub: "Clear roles, defined responsibilities, predictable workflows", icon: "list" },
-      { label: "Adaptable across all team styles", sub: "Flexible, context-aware, dynamic working mode", icon: "grid" },
-      { label: "With external clients and stakeholders", sub: "Consulting, client relationship management, advisory work", icon: "globe" },
+      { label: "In collaborative cross-functional teams", sub: "Diverse expertise, shared goals, open and flat team culture", icon: "users" },
+      { label: "Leading and guiding a small team", sub: "Mentoring, setting direction, driving results through others", icon: "target" },
+      { label: "In a structured, process-driven environment", sub: "Clear roles, defined responsibilities, predictable workflows", icon: "list" },
+      { label: "Adaptable across all working styles", sub: "Flexible, context-aware, switches between modes fluidly", icon: "grid" },
+      { label: "With clients, patients or external stakeholders", sub: "Consulting, counselling, advising, client-relationship management", icon: "globe" },
+    ],
+  },
+  {
+    id: "locationPreference",
+    question: "Where do you see your career taking root in the next 3–5 years?",
+    subtitle: "Geography is a real career constraint — being honest here leads to a more actionable roadmap",
+    type: "single",
+    options: [
+      { label: "My home city or state", sub: "Strong family ties or community roots, preferring local opportunities", icon: "home" },
+      { label: "A major Indian metro", sub: "Mumbai, Delhi, Bengaluru, Hyderabad, Chennai, Pune or Kolkata", icon: "pin" },
+      { label: "Studying or working abroad", sub: "International exposure — US, UK, Europe, Canada, Australia or Asia", icon: "globe" },
+      { label: "Fully remote or location-independent", sub: "Work from anywhere — freelance, digital nomad, remote roles", icon: "grid" },
+      { label: "A rural or underserved region", sub: "Community impact, government postings, ground-level development work", icon: "heart" },
+      { label: "Open — wherever the best opportunity is", sub: "No strong preference, highly mobile and adaptable to context", icon: "flag" },
     ],
   },
   {
@@ -180,12 +224,14 @@ const QUESTIONS: Question[] = [
     subtitle: "Visualise your ideal professional identity — be aspirational and specific",
     type: "single", hasOther: true,
     options: [
-      { label: "A senior engineer at a world-class company", sub: "Building products and systems used by millions globally", icon: "briefcase" },
-      { label: "A published researcher or PhD scholar", sub: "Advancing the frontier of knowledge in your field", icon: "search" },
-      { label: "A founder of an impactful venture", sub: "Startup, product, or social enterprise you created", icon: "trending" },
-      { label: "An expert with international exposure", sub: "Working or studying at a top global institution", icon: "globe" },
-      { label: "A leader driving policy or social change", sub: "Government institution, NGO, or public-sector leadership", icon: "shield" },
-      { label: "A domain specialist mentoring others", sub: "Technical lead, professor, or expert consultant", icon: "users" },
+      { label: "A specialist at a leading organisation in my field", sub: "Senior professional building things that matter at scale", icon: "briefcase" },
+      { label: "A published researcher or PhD scholar", sub: "Advancing the frontier of knowledge in your discipline", icon: "search" },
+      { label: "A founder of an impactful venture or practice", sub: "Startup, social enterprise, law firm, clinic or creative studio", icon: "trending" },
+      { label: "A creative professional with an established portfolio", sub: "Writer, designer, artist, filmmaker or performer — known for your work", icon: "feather" },
+      { label: "A licensed professional in independent practice", sub: "Doctor, lawyer, CA, architect or consultant with your own clients", icon: "award" },
+      { label: "An expert with significant international exposure", sub: "Working or studying at a top global institution or organisation", icon: "globe" },
+      { label: "A leader shaping policy or driving social change", sub: "Government institution, NGO, civil services or public advocacy", icon: "shield" },
+      { label: "A mentor, teacher or domain expert guiding others", sub: "Professor, trainer, coach or senior consultant developing the next generation", icon: "users" },
     ],
   },
 ];
@@ -352,15 +398,13 @@ export default function CareerRoadmapPage() {
             Discover Your<br />Career Roadmap
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-lg">
-            Answer 10 targeted questions about your goals, strengths, and interests. Our AI generates a
-            personalised 4-year career roadmap with project ideas, research areas, and top university
-            recommendations — specific to your branch and profile.
+            Answer 12 questions about your goals, strengths, and interests — tailored for all UG and PG students across every discipline. Our AI generates a personalised career roadmap with milestones, skill priorities, and university recommendations specific to your profile.
           </p>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           {[
-            { icon: FiTarget, label: "10 Questions", sub: "~4 minutes" },
+            { icon: FiTarget, label: "12 Questions", sub: "~5 minutes" },
             { icon: FiLayers, label: "AI Analysis", sub: "Groq-powered" },
             { icon: FiMapPin, label: "Full Roadmap", sub: "4 years, personalised" },
           ].map(({ icon: Icon, label, sub }) => (
@@ -381,7 +425,7 @@ export default function CareerRoadmapPage() {
               [FiTrendingUp, "Top career paths ranked by fit"],
               [FiLayers,     "Year-wise academic roadmap"],
               [FiSearch,     "Research areas to explore"],
-              [FiCode,       "Engineering project ideas"],
+              [FiCode,       "Project & portfolio ideas"],
               [FiGlobe,      "Top universities for Masters / PhD"],
               [FiUsers,      "SAC club recommendations"],
               [FiZap,        "Skills to build with priority"],
@@ -758,10 +802,10 @@ export default function CareerRoadmapPage() {
           </section>
         )}
 
-        {/* Engineering Project Ideas */}
+        {/* Project & Portfolio Ideas */}
         {roadmap.engineeringProjectIdeas?.length > 0 && (
           <section>
-            <SectionHeader icon={FiCode} title="Engineering Project Ideas" />
+            <SectionHeader icon={FiCode} title="Project & Portfolio Ideas" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {roadmap.engineeringProjectIdeas.map((p: any) => (
                 <div key={p.title} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 space-y-2.5">

@@ -7,8 +7,7 @@ import { checkRateLimit } from '@/lib/rateLimit';
 export const dynamic = 'force-dynamic';
 
 const SYSTEM_PROMPT = `You are the SAMAM Career Advisor at KL University's Student Activity Center (SAC).
-A student has answered a career interest questionnaire. Using their answers AND their branch/program, generate a
-comprehensive, highly personalised career roadmap.
+A student from any UG or PG discipline has answered a career interest questionnaire. Using their answers and academic background, generate a comprehensive, highly personalised career roadmap appropriate for their specific field — not just engineering.
 
 Return ONLY a single valid JSON object — no markdown fences, no extra text — matching exactly this shape:
 {
@@ -47,22 +46,23 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
 }
 
 Rules:
-- headline: concise professional role identity (e.g. "AI & Systems Engineer", "Research Scholar in ML")
-- overview: 2-3 sentences tailored to this student's specific answers, branch, and declared career direction
-- primaryDomain: exactly one of TEC / LCH / ESO / HWB / IIE based on their interests
-- careerDirection: 2-4 word summary of their primary post-graduation goal (e.g. "Industry Placement", "Research & PhD", "Entrepreneurship")
-- personalityTraits: 4-6 short professional traits inferred from their answers (e.g. "Analytical Thinker", "Systems Builder")
-- careerPaths: exactly 3, ordered by relevanceScore descending (0-100), specific to their domain and direction
-- yearwiseRoadmap: year1..year4 goals/skills arrays must have 3-4 items each; samamTip is one sentence about which SAC club type to join that year
-- skillsToLearn: 5-7 skills with realistic timeframes
-- topCompanies: 6-8 real companies that actively hire for these specific career paths
+- headline: concise professional role identity suited to their field (e.g. "Product Designer & UX Researcher", "Corporate Lawyer", "Data Scientist", "Public Health Specialist", "Research Scholar in Biochemistry")
+- overview: 2-3 sentences tailored to this student's specific answers, academic discipline, and declared career direction
+- primaryDomain: exactly one of TEC / LCH / ESO / HWB / IIE based on their interests and discipline
+- careerDirection: 2-4 word summary of their primary post-graduation goal (e.g. "Industry Placement", "Research & PhD", "Creative Practice", "Professional Practice")
+- personalityTraits: 4-6 short professional traits inferred from their answers (e.g. "Analytical Thinker", "Creative Problem Solver", "Empathetic Communicator")
+- careerPaths: exactly 3, ordered by relevanceScore descending (0-100), specific to their discipline and declared direction — NOT generic engineering paths unless the student is in engineering
+- yearwiseRoadmap: year1..year4 goals/skills arrays must have 3-4 items each; samamTip is one sentence about which SAC club type to join that year; adapt to PG students where year1/year2 map to their PG timeline
+- skillsToLearn: 5-7 skills with realistic timeframes, relevant to their actual field (e.g. legal research for law, clinical skills for medicine, design tools for design students)
+- topCompanies: 6-8 real organisations/companies/institutions that actively hire for these specific career paths — for law include firms, for medicine include hospitals, for design include studios
 - clubRecommendations: EXACTLY 3 clubs, chosen ONLY from the provided clubs list — use the exact club names given
-- socialImpactOpportunities: 3-4 concrete, actionable ways to create social impact using their strengths
-- motivationalMessage: 2-3 sentences, aspirational, specific to their interests and goals
-- researchAreas: 3-4 active research areas relevant to the student's domain and interests; subfields should be 3-5 specific sub-topics
-- engineeringProjectIdeas: 3-4 practical project ideas a college student can build; tools must be real, specific technologies; impact is one sentence on real-world value
-- topUniversities: 5-7 globally or nationally reputed universities for Masters/PhD matching student interests; include both global (MIT, Stanford, NUS, TU Delft etc.) and Indian (IISc, IIT Bombay etc.) options; ranking like "#3 in CS (QS 2024)"
-- Do not invent club names. Do not use clubs not in the provided list.`;
+- socialImpactOpportunities: 3-4 concrete, actionable ways to create social impact using their specific strengths and field
+- motivationalMessage: 2-3 sentences, aspirational, specific to their interests, discipline, and goals
+- researchAreas: 3-4 active research or emerging areas relevant to the student's discipline and career direction; subfields should be 3-5 specific sub-topics
+- engineeringProjectIdeas: 3-4 practical hands-on projects or portfolio pieces this student can build during their studies — for non-engineering students this means writing portfolios, case studies, research papers, design projects, legal moot court cases, clinical case studies, business plans, art installations, etc. (NOT necessarily software projects); tools must be real and specific; impact is one sentence on real-world value
+- topUniversities: 5-7 globally or nationally reputed universities for Masters/PhD/professional programmes matching student interests; include both global (Harvard, LSE, MIT, NUS, Parsons, etc.) and Indian (IISc, NLSIU, AIIMS, NID, IIM, etc.) options as appropriate to the field; ranking like "#3 in Law (QS 2024)"
+- Do not invent club names. Do not use clubs not in the provided list.
+- IMPORTANT: All recommendations must respect the student's actual academic discipline. A law student gets legal career paths; a design student gets creative career paths; a commerce student gets finance/business paths. Never force engineering-centric advice on non-engineering students.`;
 
 export async function POST(request: Request) {
     const auth = await requireAuth(['student']);
@@ -96,10 +96,15 @@ export async function POST(request: Request) {
             .map(([q, a]) => `Q: ${q}\nA: ${Array.isArray(a) ? (a as string[]).join(', ') : a}`)
             .join('\n\n');
 
+        // Prefer academic field from questionnaire over DB branch (which may be engineering-specific)
+        const declaredField = answers.academicField || student.branch || 'Not specified';
+        const declaredStage = answers.academicStage || `Year ${student.student_year || 1}`;
+
         const userPrompt = `Student Profile:
-- Branch: ${student.branch || 'Engineering'}
-- Program: ${student.program || 'B.Tech'}
-- Current Year: Year ${student.student_year || 1}
+- Name: ${student.name || 'Student'}
+- Academic Field / Discipline: ${declaredField}
+- Programme: ${student.program || 'Undergraduate'}
+- Academic Stage: ${declaredStage}
 
 Questionnaire Answers:
 ${answersText}
@@ -107,7 +112,7 @@ ${answersText}
 Available SAC Clubs (use ONLY these names in clubRecommendations):
 ${clubsList || 'No clubs data available'}
 
-Generate a personalized 4-year career roadmap for this student.`;
+Generate a personalized career roadmap for this student that is specifically tailored to their academic field and career direction — not a generic engineering roadmap.`;
 
         const result = await callGroqJSON({
             systemPrompt: SYSTEM_PROMPT,
