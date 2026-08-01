@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from "react";
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiUser, FiUsers, FiFilter, FiCopy } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiUser, FiUsers, FiFilter, FiCopy, FiEye, FiEyeOff } from "react-icons/fi";
 import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ export default function UsersPage() {
     const [newClubAssignment, setNewClubAssignment] = useState('');
     const [defaultPassword, setDefaultPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [showCouncilPw, setShowCouncilPw] = useState(false);
 
 
     useEffect(() => {
@@ -223,6 +224,7 @@ export default function UsersPage() {
         setNewClubAssignment('');
         setDefaultPassword('');
         setShowPassword(false);
+        setShowCouncilPw(false);
     };
 
     const startEdit = (user) => {
@@ -237,20 +239,16 @@ export default function UsersPage() {
             branch: user.branch || '',
             clubId: user.clubId || '',
             assignedClubs: (() => {
-                // If it's already an array, use it directly
-                if (Array.isArray(user.assignedClubs)) {
-                    return user.assignedClubs;
-                }
-                // If it's a string, try to parse it
+                if (Array.isArray(user.assignedClubs)) return user.assignedClubs;
                 if (typeof user.assignedClubs === 'string') {
-                    try {
-                        return JSON.parse(user.assignedClubs);
-                    } catch (e) {
-                        return [];
-                    }
+                    try { return JSON.parse(user.assignedClubs); } catch { return []; }
                 }
                 return [];
-            })()
+            })(),
+            assignedDomain: user.assignedDomain || '',
+            password: '',
+            studentDetails: null,
+            isPromotingStudent: false,
         });
         setShowModal(true);
     };
@@ -560,7 +558,7 @@ export default function UsersPage() {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 border border-gray-300">
                         <div className="flex justify-between items-center p-6 border-b border-gray-200">
                             <h3 className="text-lg font-medium text-gray-900">
@@ -673,20 +671,27 @@ export default function UsersPage() {
 
                                 {formData.role === 'council' && (
                                     <div className="col-span-2 space-y-4">
-                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700">
-                                            Council users are domain-scoped — they can see and approve attendance for all clubs under their assigned domain.
-                                        </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-                                            <input
-                                                type="password"
-                                                value={formData.password}
-                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                                placeholder="Set a password (min 6 chars)"
-                                                required={formData.role === 'council'}
-                                                minLength={6}
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type={showCouncilPw ? "text" : "password"}
+                                                    value={formData.password}
+                                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                                    placeholder="Set a password (min 6 chars)"
+                                                    required={formData.role === 'council'}
+                                                    minLength={6}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowCouncilPw(p => !p)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                    tabIndex={-1}
+                                                >
+                                                    {showCouncilPw ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                                                </button>
+                                            </div>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Domain *</label>
