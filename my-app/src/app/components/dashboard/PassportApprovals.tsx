@@ -4,6 +4,7 @@ import {
   FiCheckCircle, FiXCircle, FiClock, FiSearch, FiFilter,
   FiFileText, FiRefreshCw, FiExternalLink, FiX, FiUser,
   FiCode, FiBriefcase, FiStar, FiHeart, FiAward,
+  FiBook, FiUsers, FiTag, FiGlobe,
 } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -312,7 +313,7 @@ export default function PassportApprovals({ role }: { role: "admin" | "faculty" 
             </div>
 
             {/* Passport preview */}
-            <div className="p-5 max-h-[50vh] overflow-y-auto space-y-4">
+            <div className="p-5 max-h-[60vh] overflow-y-auto space-y-4">
               {loadingPassport ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: BRAND }} />
@@ -321,20 +322,48 @@ export default function PassportApprovals({ role }: { role: "admin" | "faculty" 
                 <>
                   {/* Profile */}
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <FiUser size={14} style={{ color: BRAND }} />
-                      <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">Profile</span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <FiUser size={13} style={{ color: BRAND }} />
+                      <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Profile</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                    <div className="grid grid-cols-2 gap-1.5 text-xs text-gray-600">
                       <span><strong>Name:</strong> {passportData.profile?.name}</span>
                       <span><strong>Branch:</strong> {passportData.profile?.branch}</span>
                       <span><strong>Email:</strong> {passportData.profile?.email}</span>
                       <span><strong>Domain:</strong> {passportData.profile?.selectedDomain}</span>
+                      {passportData.profile?.headline && <span className="col-span-2"><strong>Headline:</strong> {passportData.profile.headline}</span>}
+                      {passportData.profile?.location && <span><strong>Location:</strong> {passportData.profile.location}</span>}
+                      {passportData.profile?.github_url && <span><strong>GitHub:</strong> <span className="text-blue-600 break-all">{passportData.profile.github_url}</span></span>}
+                      {passportData.profile?.linkedin_url && <span><strong>LinkedIn:</strong> <span className="text-blue-600 break-all">{passportData.profile.linkedin_url}</span></span>}
                     </div>
                     {passportData.profile?.bio && (
                       <p className="mt-2 text-xs text-gray-500 leading-relaxed">{passportData.profile.bio}</p>
                     )}
                   </div>
+
+                  {/* Skills */}
+                  {(() => {
+                    let skills: string[] = [];
+                    try {
+                      const raw = passportData.profile?.skills;
+                      skills = Array.isArray(raw) ? raw : (typeof raw === 'string' ? JSON.parse(raw) : []);
+                    } catch {}
+                    return skills.length > 0 ? (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <FiTag size={12} style={{ color: BRAND }} />
+                          <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Skills ({skills.length})</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {skills.map((s: string, i: number) => (
+                            <span key={i} className="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-100 font-medium">
+                              {typeof s === 'object' ? (s as any).name ?? JSON.stringify(s) : s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null;
+                  })()}
 
                   {/* Counts summary */}
                   <div className="flex flex-wrap gap-2">
@@ -346,49 +375,104 @@ export default function PassportApprovals({ role }: { role: "admin" | "faculty" 
                     <DataCount label="Achievements" items={passportData.achievements} />
                   </div>
 
-                  {/* Projects preview */}
+                  {/* Projects */}
                   {passportData.projects.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <FiCode size={12} style={{ color: BRAND }} />
                         <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Projects ({passportData.projects.length})</span>
                       </div>
-                      {passportData.projects.slice(0, 3).map((p: any, i: number) => (
+                      {passportData.projects.map((p: any, i: number) => (
                         <div key={i} className="text-xs text-gray-700 border-l-2 border-gray-200 pl-3 mb-2">
-                          <p className="font-medium">{p.title || p.name}</p>
-                          {p.description && <p className="text-gray-500 text-[10px] mt-0.5 line-clamp-1">{p.description}</p>}
+                          <p className="font-semibold">{p.title || p.name}</p>
+                          {p.tech_stack && <p className="text-[10px] text-blue-600 mt-0.5">{p.tech_stack}</p>}
+                          {p.description && <p className="text-gray-500 text-[10px] mt-0.5">{p.description}</p>}
+                          {p.github_url && <p className="text-[10px] text-blue-500 mt-0.5 break-all">{p.github_url}</p>}
                         </div>
                       ))}
-                      {passportData.projects.length > 3 && <p className="text-[10px] text-gray-400">+{passportData.projects.length - 3} more</p>}
                     </div>
                   )}
 
-                  {/* Internships preview */}
+                  {/* Internships */}
                   {passportData.internships.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <FiBriefcase size={12} style={{ color: BRAND }} />
                         <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Internships ({passportData.internships.length})</span>
                       </div>
-                      {passportData.internships.slice(0, 2).map((p: any, i: number) => (
+                      {passportData.internships.map((p: any, i: number) => (
                         <div key={i} className="text-xs text-gray-700 border-l-2 border-gray-200 pl-3 mb-2">
-                          <p className="font-medium">{p.company || p.organization}</p>
-                          {p.role && <p className="text-gray-500 text-[10px]">{p.role}</p>}
+                          <p className="font-semibold">{p.company || p.organization}</p>
+                          {p.role && <p className="text-[10px] text-gray-500">{p.role}{p.duration ? ` · ${p.duration}` : ''}</p>}
+                          {p.description && <p className="text-gray-500 text-[10px] mt-0.5">{p.description}</p>}
                         </div>
                       ))}
                     </div>
                   )}
 
-                  {/* Achievements preview */}
+                  {/* Research */}
+                  {passportData.research.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <FiBook size={12} style={{ color: BRAND }} />
+                        <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Research ({passportData.research.length})</span>
+                      </div>
+                      {passportData.research.map((p: any, i: number) => (
+                        <div key={i} className="text-xs text-gray-700 border-l-2 border-gray-200 pl-3 mb-2">
+                          <p className="font-semibold">{p.title}</p>
+                          {p.publication && <p className="text-[10px] text-gray-500">{p.publication}{p.year ? ` · ${p.year}` : ''}</p>}
+                          {p.description && <p className="text-gray-500 text-[10px] mt-0.5">{p.description}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Leadership */}
+                  {passportData.leadership.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <FiUsers size={12} style={{ color: BRAND }} />
+                        <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Leadership ({passportData.leadership.length})</span>
+                      </div>
+                      {passportData.leadership.map((p: any, i: number) => (
+                        <div key={i} className="text-xs text-gray-700 border-l-2 border-gray-200 pl-3 mb-2">
+                          <p className="font-semibold">{p.title || p.role}</p>
+                          {p.organization && <p className="text-[10px] text-gray-500">{p.organization}{p.duration ? ` · ${p.duration}` : ''}</p>}
+                          {p.description && <p className="text-gray-500 text-[10px] mt-0.5">{p.description}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Community */}
+                  {passportData.community.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <FiGlobe size={12} style={{ color: BRAND }} />
+                        <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Community Service ({passportData.community.length})</span>
+                      </div>
+                      {passportData.community.map((p: any, i: number) => (
+                        <div key={i} className="text-xs text-gray-700 border-l-2 border-gray-200 pl-3 mb-2">
+                          <p className="font-semibold">{p.activity || p.title}</p>
+                          {p.organization && <p className="text-[10px] text-gray-500">{p.organization}{p.duration ? ` · ${p.duration}` : ''}</p>}
+                          {p.description && <p className="text-gray-500 text-[10px] mt-0.5">{p.description}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Achievements */}
                   {passportData.achievements.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <FiAward size={12} style={{ color: BRAND }} />
                         <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Achievements ({passportData.achievements.length})</span>
                       </div>
-                      {passportData.achievements.slice(0, 3).map((p: any, i: number) => (
+                      {passportData.achievements.map((p: any, i: number) => (
                         <div key={i} className="text-xs text-gray-700 border-l-2 border-gray-200 pl-3 mb-2">
-                          <p className="font-medium">{p.title || p.name}</p>
+                          <p className="font-semibold">{p.title || p.name}</p>
+                          {p.issuer && <p className="text-[10px] text-gray-500">{p.issuer}{p.year ? ` · ${p.year}` : ''}</p>}
+                          {p.description && <p className="text-gray-500 text-[10px] mt-0.5">{p.description}</p>}
                         </div>
                       ))}
                     </div>

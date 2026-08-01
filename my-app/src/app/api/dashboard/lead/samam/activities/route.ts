@@ -53,33 +53,46 @@ export async function GET(request: Request) {
 
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
-        const { assigned_categories } = leadData;
+        const { assigned_categories, clubId } = leadData;
 
         const conditions: string[] = [];
         const params: any[] = [];
 
-        if (assigned_categories && assigned_categories.length > 0) {
-            // Filter by assigned categories
-            const categoryPlaceholders = assigned_categories.map(() => '?').join(',');
-            conditions.push(`category IN (${categoryPlaceholders})`);
-            params.push(...assigned_categories);
-        } else if (leadData.clubId) {
-            // Fallback: no assigned_categories yet, show activities by clubId domain if applicable
-            // (show all activities so the dashboard isn't blank)
+        // Check admin-defined club_activity_mappings first — students see the same set
+        let usedMappings = false;
+        if (clubId) {
+            try {
+                const [mapRows]: any = await pool.execute(
+                    'SELECT activity_code FROM club_activity_mappings WHERE club_id = ?',
+                    [clubId]
+                );
+                if (mapRows.length > 0) {
+                    const codes: string[] = (mapRows as any[]).map((r: any) => r.activity_code);
+                    conditions.push(`code IN (${codes.map(() => '?').join(',')})`);
+                    params.push(...codes);
+                    usedMappings = true;
+                }
+            } catch { /* table may not exist yet */ }
         }
-        // else show nothing — both not set
+
+        // Fall back to per-lead assigned_categories if no admin mappings
+        if (!usedMappings) {
+            if (assigned_categories && assigned_categories.length > 0) {
+                const categoryPlaceholders = assigned_categories.map(() => '?').join(',');
+                conditions.push(`category IN (${categoryPlaceholders})`);
+                params.push(...assigned_categories);
+            } else {
+                // Nothing mapped or assigned — return empty so lead knows to contact admin
+                return NextResponse.json({ activities: [], assigned_categories });
+            }
+        }
 
         if (search) {
             conditions.push('(title LIKE ? OR code LIKE ?)');
             params.push(`%${search}%`, `%${search}%`);
         }
 
-        // If neither assigned_categories nor fallback, return empty
-        if (assigned_categories.length === 0 && conditions.length === 0) {
-            return NextResponse.json({ activities: [], assigned_categories: [] });
-        }
-
-        const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+        const where = `WHERE ${conditions.join(' AND ')}`;
 
         const [rows] = await pool.execute(`
             SELECT id, code, title, description, domain, category,

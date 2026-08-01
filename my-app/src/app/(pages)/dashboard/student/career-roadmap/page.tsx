@@ -82,8 +82,8 @@ const QUESTIONS: Question[] = [
   {
     id: "careerDirection",
     question: "What is your primary ambition after graduation?",
-    subtitle: "This defines the direction of your entire career roadmap — choose what resonates most",
-    type: "single", hasOther: true,
+    subtitle: "Select up to 2 — many students have dual goals, and that's completely valid",
+    type: "multi", max: 2, hasOther: true,
     options: [
       { label: "Industry / Corporate Career", sub: "Top companies, MNCs, or sector-specific professional roles", icon: "briefcase" },
       { label: "Higher Education (Masters or PG)", sub: "MS, MTech, MBA, LLM, MD, MFA — in India or abroad", icon: "globe" },
@@ -98,8 +98,8 @@ const QUESTIONS: Question[] = [
   {
     id: "workEnvironment",
     question: "What type of work environment makes you perform at your best?",
-    subtitle: "Think about your ideal day-to-day professional setting — not just what sounds prestigious",
-    type: "single", hasOther: true,
+    subtitle: "Select up to 2 environments where you genuinely thrive",
+    type: "multi", max: 2, hasOther: true,
     options: [
       { label: "Research Lab, Hospital or University", sub: "Deep focus, intellectual rigour, structured academic or clinical culture", icon: "search" },
       { label: "Fast-Paced Tech or Creative Startup", sub: "Rapid iteration, high ownership, lean and agile teams", icon: "trending" },
@@ -133,8 +133,8 @@ const QUESTIONS: Question[] = [
   {
     id: "academicStrength",
     question: "Where do you consistently perform strongest academically?",
-    subtitle: "Honest self-assessment maps your natural aptitude to the right career paths",
-    type: "single", hasOther: true,
+    subtitle: "Select up to 2 — your combination of strengths shapes your unique career edge",
+    type: "multi", max: 2, hasOther: true,
     options: [
       { label: "Quantitative Analysis & Problem Solving", sub: "Maths, logic, algorithms, numerical reasoning, modelling", icon: "layers" },
       { label: "Writing, Expression & Storytelling", sub: "Essays, reports, creative writing, persuasive communication", icon: "feather" },
@@ -147,23 +147,25 @@ const QUESTIONS: Question[] = [
   },
   {
     id: "problemSolving",
-    question: "When you face a difficult challenge, you instinctively…",
-    subtitle: "Choose what feels most natural — not what sounds most impressive",
-    type: "single", hasOther: true,
+    question: "When you face a difficult challenge — any kind — you instinctively…",
+    subtitle: "Select up to 2 that feel most natural. This could be academic, creative, social, emotional, or professional challenges",
+    type: "multi", max: 2, hasOther: true,
     options: [
-      { label: "Research deeply before taking action", sub: "Understand the full landscape before committing to any solution", icon: "search" },
-      { label: "Experiment or prototype to test assumptions", sub: "Hands-on iteration and fast learning from feedback", icon: "code" },
-      { label: "Decompose it into a structured plan", sub: "Step-by-step methodical execution with clear milestones", icon: "list" },
-      { label: "Collaborate to gather diverse perspectives", sub: "Better answers emerge from collective cross-functional thinking", icon: "users" },
-      { label: "Anchor every decision to real-world impact", sub: "Ground solutions in measurable, practical outcomes for people", icon: "globe" },
-      { label: "Explore unconventional or creative approaches", sub: "Lateral thinking, reframing the problem, challenging assumptions", icon: "zap" },
+      { label: "Research and gather information first", sub: "Understand the context fully before committing to any course of action", icon: "search" },
+      { label: "Try something quickly and learn from results", sub: "Rapid experimentation, iteration, and adjusting based on real feedback", icon: "zap" },
+      { label: "Break it down into a structured plan", sub: "Map out the steps clearly and execute with consistency", icon: "list" },
+      { label: "Talk to people and gather perspectives", sub: "Others' insights, experiences and views lead to better outcomes", icon: "users" },
+      { label: "Focus on the real-world impact first", sub: "Start from who is affected and what actually matters to them", icon: "heart" },
+      { label: "Step back and reframe the whole problem", sub: "Challenge the assumptions, look for fresh angles, think laterally", icon: "layers" },
+      { label: "Trust your instincts and act decisively", sub: "Intuition built from experience — commit and course-correct if needed", icon: "target" },
+      { label: "Seek inspiration from unrelated fields", sub: "Cross-disciplinary thinking — solutions often come from unexpected places", icon: "feather" },
     ],
   },
   {
     id: "campusInvolvement",
     question: "What best describes your engagement beyond the classroom?",
-    subtitle: "Your extracurricular choices reveal powerful signals about your career trajectory",
-    type: "single", hasOther: true,
+    subtitle: "Select up to 3 — your extracurricular identity shapes your career trajectory",
+    type: "multi", max: 3, hasOther: true,
     options: [
       { label: "Competitive Coding, Hackathons & Tech Events", sub: "Algorithmic contests, open-source contributions, build events", icon: "code" },
       { label: "Research Internships & Academic Projects", sub: "Lab work, faculty collaborations, published or presented work", icon: "search" },
@@ -178,8 +180,8 @@ const QUESTIONS: Question[] = [
   {
     id: "careerMotivation",
     question: "What do you value most in a career?",
-    subtitle: "Your core motivation determines which paths will genuinely fulfil you long-term",
-    type: "single", hasOther: true,
+    subtitle: "Select your top 2 motivators — knowing what drives you is the foundation of a fulfilling path",
+    type: "multi", max: 2, hasOther: true,
     options: [
       { label: "Financial Growth & Long-Term Stability", sub: "Compensation, wealth creation, economic security for family", icon: "trending" },
       { label: "Intellectual Challenge & Continuous Learning", sub: "Hard problems, deep expertise, always growing", icon: "book" },
@@ -193,8 +195,8 @@ const QUESTIONS: Question[] = [
   {
     id: "collaborationStyle",
     question: "How do you prefer working with others?",
-    subtitle: "Team dynamics are a strong predictor of long-term career satisfaction",
-    type: "single", hasOther: true,
+    subtitle: "Select up to 2 — most people thrive in a combination of working styles",
+    type: "multi", max: 2, hasOther: true,
     options: [
       { label: "Independently with full ownership", sub: "Deep focus, self-directed outcomes, minimal oversight", icon: "user" },
       { label: "In collaborative cross-functional teams", sub: "Diverse expertise, shared goals, open and flat team culture", icon: "users" },
@@ -298,8 +300,8 @@ export default function CareerRoadmapPage() {
     ? Array.isArray(current) && (current as string[]).includes("Other")
     : current === "Other";
   const isAnswered = isMulti
-    ? Array.isArray(current) && (current as string[]).length > 0
-    : !!current;
+    ? Array.isArray(current) && (current as string[]).length > 0 && (!isOtherSelected || !!otherValues[q?.id])
+    : !!current && (!isOtherSelected || !!otherValues[q?.id]);
   const atMax = isMulti && Array.isArray(current) && (current as string[]).length >= (q?.max ?? 4);
 
   const selectOption = (label: string) => {
