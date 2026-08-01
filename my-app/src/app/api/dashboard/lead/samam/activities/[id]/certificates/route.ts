@@ -29,7 +29,7 @@ async function checkIssuer() {
 
     // Faculty and admins may issue for any activity.
     if (decoded.role === 'faculty' || decoded.role === 'admin') {
-        return { decoded, unrestricted: true, assigned_categories: [] as string[] };
+        return { decoded, unrestricted: true, clubId: null, assigned_categories: [] as string[] };
     }
     if (decoded.role !== 'lead') return null;
 
@@ -55,25 +55,37 @@ async function checkIssuer() {
                 : leadRows[0].assigned_categories;
         } catch { /* treat as none */ }
     }
-    return { decoded, unrestricted: false, assigned_categories };
+    return { decoded, unrestricted: false, clubId: leadRows[0].clubId, assigned_categories };
 }
 
 // Confirms the caller is allowed to act on this activity and returns it.
+//
+// Leads reach activities either through an explicit club→activity mapping (how
+// the SAMAM dashboard lists them) or, for older accounts, through
+// `assigned_categories`. Both paths are accepted; gating on categories alone
+// locks out every lead whose access comes from a mapping.
 async function loadPermittedActivity(issuer: any, code: string) {
-    if (issuer.unrestricted) {
-        const [rows]: any = await pool.execute(
-            'SELECT code, title, domain, category, sdc_credits FROM activity_catalogue WHERE code = ? LIMIT 1', [code]
-        );
-        return rows[0] || null;
-    }
-    if (!issuer.assigned_categories || issuer.assigned_categories.length === 0) return null;
-    const placeholders = issuer.assigned_categories.map(() => '?').join(',');
     const [rows]: any = await pool.execute(
-        `SELECT code, title, domain, category, sdc_credits FROM activity_catalogue
-         WHERE code = ? AND category IN (${placeholders}) LIMIT 1`,
-        [code, ...issuer.assigned_categories]
+        'SELECT code, title, domain, category, sdc_credits FROM activity_catalogue WHERE code = ? LIMIT 1', [code]
     );
-    return rows[0] || null;
+    const activity = rows[0];
+    if (!activity) return null;
+
+    if (issuer.unrestricted) return activity;
+
+    if (issuer.clubId) {
+        const [mapRows]: any = await pool.execute(
+            'SELECT 1 FROM club_activity_mappings WHERE club_id = ? AND activity_code = ?',
+            [issuer.clubId, code]
+        );
+        if ((mapRows as any[]).length > 0) return activity;
+    }
+
+    if (issuer.assigned_categories?.length && issuer.assigned_categories.includes(activity.category)) {
+        return activity;
+    }
+
+    return null;
 }
 
 // GET — enrolled students for this activity with their completion and

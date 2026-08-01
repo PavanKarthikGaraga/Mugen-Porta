@@ -37,26 +37,48 @@ async function checkLead() {
     return { decoded, clubId: leadResult[0].clubId, assigned_categories };
 }
 
+/**
+ * Resolve the activity a lead is allowed to act on.
+ *
+ * Leads reach activities two ways: explicit club→activity mappings (how the
+ * SAMAM dashboard lists them) and, for older accounts, `assigned_categories`.
+ * Gating on categories alone 403s every lead whose access comes from a mapping,
+ * so both paths are accepted here.
+ *
+ * Returns the activity row, or null when the lead may not touch it.
+ */
+async function resolveAccessibleActivity(lead: any, code: string) {
+    const [actRows]: any = await pool.execute(
+        'SELECT id, code, title, category FROM activity_catalogue WHERE code = ?',
+        [code]
+    );
+    if ((actRows as any[]).length === 0) return null;
+    const activity = (actRows as any[])[0];
+
+    if (lead.clubId) {
+        const [mapRows]: any = await pool.execute(
+            'SELECT 1 FROM club_activity_mappings WHERE club_id = ? AND activity_code = ?',
+            [lead.clubId, code]
+        );
+        if ((mapRows as any[]).length > 0) return activity;
+    }
+
+    if (lead.assigned_categories?.length && lead.assigned_categories.includes(activity.category)) {
+        return activity;
+    }
+
+    return null;
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const lead = await checkLead();
         if (!lead) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         const { id } = await params; // id is the activity code
-        
-        if (!lead.assigned_categories || lead.assigned_categories.length === 0) {
-            return NextResponse.json({ message: 'No categories assigned' }, { status: 403 });
-        }
 
-        const categoryPlaceholders = lead.assigned_categories.map(() => '?').join(',');
-
-        // Ensure the activity belongs to one of their assigned categories
-        const [actCheck]: any = await pool.execute(`
-            SELECT id, code, title FROM activity_catalogue
-            WHERE code = ? AND category IN (${categoryPlaceholders})
-        `, [id, ...lead.assigned_categories]);
-
-        if (actCheck.length === 0) {
-             return NextResponse.json({ message: 'Activity not found or not in your assigned categories' }, { status: 403 });
+        const activity = await resolveAccessibleActivity(lead, id);
+        if (!activity) {
+            return NextResponse.json({ message: 'Activity not found or not assigned to you' }, { status: 403 });
         }
 
         // Fetch ALL students enrolled in this activity
@@ -71,7 +93,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         return NextResponse.json({
             success: true,
             students: rows,
-            activity: { code: actCheck[0].code, title: actCheck[0].title },
+            activity: { code: activity.code, title: activity.title },
         });
 
     } catch (error: any) {
@@ -85,21 +107,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         const lead = await checkLead();
         if (!lead) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         const { id } = await params;
-        const { absentees } = await request.json(); // Array of usernames
+        const body = await request.json().catch(() => ({}));
+        const absentees: string[] = Array.isArray(body.absentees) ? body.absentees : [];
 
-        if (!lead.assigned_categories || lead.assigned_categories.length === 0) {
-            return NextResponse.json({ message: 'No categories assigned' }, { status: 403 });
-        }
-
-        const categoryPlaceholders = lead.assigned_categories.map(() => '?').join(',');
-        
-        const [actCheck]: any = await pool.execute(`
-            SELECT id FROM activity_catalogue 
-            WHERE code = ? AND category IN (${categoryPlaceholders})
-        `, [id, ...lead.assigned_categories]);
-        
-        if (actCheck.length === 0) {
-             return NextResponse.json({ message: 'Activity not found or not in your assigned categories' }, { status: 403 });
+        const activity = await resolveAccessibleActivity(lead, id);
+        if (!activity) {
+            return NextResponse.json({ message: 'Activity not found or not assigned to you' }, { status: 403 });
         }
 
         const absenteesPlaceholders = absentees.length > 0 ? absentees.map(() => '?').join(',') : "''";
