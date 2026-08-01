@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   FiArrowRight, FiArrowLeft, FiRefreshCw, FiTrendingUp, FiUsers,
   FiTarget, FiZap, FiCheck, FiBriefcase, FiBook, FiSearch, FiHeart,
@@ -291,7 +291,24 @@ export default function CareerRoadmapPage() {
   const [otherValues, setOtherValues] = useState<Record<string, string>>({});
   const [roadmap, setRoadmap] = useState<any>(null);
   const [studentInfo, setStudentInfo] = useState<any>(null);
+  const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [checkingCache, setCheckingCache] = useState(true);
   const otherRef = useRef<HTMLInputElement>(null);
+
+  // Check for cached roadmap on mount
+  useEffect(() => {
+    fetch("/api/dashboard/student/career-roadmap")
+      .then(r => r.json())
+      .then(d => {
+        if (d.cached && d.roadmap) {
+          setRoadmap(d.roadmap);
+          setGeneratedAt(d.generatedAt);
+          setStep("results");
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCheckingCache(false));
+  }, []);
 
   const q = QUESTIONS[currentQ];
   const isMulti = q?.type === "multi";
@@ -385,8 +402,19 @@ export default function CareerRoadmapPage() {
     setOtherValues({});
     setRoadmap(null);
     setStudentInfo(null);
+    setGeneratedAt(null);
     window.scrollTo({ top: 0 });
   };
+
+  // ─── Cache check ───────────────────────────────────────────────────────────
+  if (checkingCache) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <div className="w-10 h-10 rounded-full border-4 border-gray-100 border-t-red-700 animate-spin" />
+        <p className="text-sm text-gray-400">Loading your roadmap…</p>
+      </div>
+    );
+  }
 
   // ─── Intro ─────────────────────────────────────────────────────────────────
   if (step === "intro") {
@@ -639,9 +667,16 @@ export default function CareerRoadmapPage() {
                   </div>
                 )}
               </div>
-              <button onClick={reset} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 text-gray-500 hover:bg-white dark:hover:bg-zinc-900 transition-all flex-shrink-0">
-                <FiRefreshCw size={11} /> Retake
-              </button>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                {generatedAt && (
+                  <span className="text-[10px] text-gray-400 dark:text-gray-600">
+                    Generated {new Date(generatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                )}
+                <button onClick={reset} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 text-gray-500 hover:bg-white dark:hover:bg-zinc-900 transition-all">
+                  <FiRefreshCw size={11} /> Retake
+                </button>
+              </div>
             </div>
           </div>
           {roadmap.motivationalMessage && (

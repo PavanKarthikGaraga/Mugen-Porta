@@ -6,6 +6,36 @@ import { checkRateLimit } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
+async function ensureRoadmapCacheTable() {
+    await pool.execute(`
+        CREATE TABLE IF NOT EXISTS career_roadmap_cache (
+            id           INT AUTO_INCREMENT PRIMARY KEY,
+            username     VARCHAR(100) NOT NULL UNIQUE,
+            roadmap_result LONGTEXT   NOT NULL,
+            generated_at TIMESTAMP   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+}
+
+export async function GET(request: Request) {
+    const auth = await requireAuth(['student']);
+    if (auth.response) return auth.response;
+
+    try {
+        await ensureRoadmapCacheTable();
+        const [rows]: any = await pool.execute(
+            'SELECT roadmap_result, generated_at FROM career_roadmap_cache WHERE username = ?',
+            [auth.user.username as string]
+        );
+        if ((rows as any[]).length === 0) return NextResponse.json({ cached: false });
+
+        const { roadmap_result, generated_at } = (rows as any[])[0];
+        return NextResponse.json({ cached: true, roadmap: JSON.parse(roadmap_result), generatedAt: generated_at });
+    } catch {
+        return NextResponse.json({ cached: false });
+    }
+}
+
 const SYSTEM_PROMPT = `You are the SAMAM Career Advisor at KL University's Student Activity Center (SAC).
 A student from any UG or PG discipline has answered a career interest questionnaire. Using their answers and academic background, generate a comprehensive, highly personalised career roadmap appropriate for their specific field — not just engineering.
 
@@ -202,6 +232,18 @@ Generate a personalized career roadmap for this student that is specifically tai
                 }))
                 : [],
         };
+
+        // Save to cache (upsert — overwrites on retake)
+        try {
+            await ensureRoadmapCacheTable();
+            await pool.execute(`
+                INSERT INTO career_roadmap_cache (username, roadmap_result)
+                VALUES (?, ?)
+                ON DUPLICATE KEY UPDATE roadmap_result = VALUES(roadmap_result), generated_at = CURRENT_TIMESTAMP
+            `, [auth.user.username as string, JSON.stringify(roadmap)]);
+        } catch (cacheErr) {
+            console.error('Roadmap cache save error:', cacheErr);
+        }
 
         return NextResponse.json({ success: true, roadmap, student: { name: student.name, branch: student.branch, year: student.student_year } });
     } catch (error: any) {
