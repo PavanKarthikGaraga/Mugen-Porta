@@ -214,14 +214,14 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-6">
         <div className="flex justify-between items-center border-b pb-2">
-          <h2 className="text-lg font-bold">Assignments</h2>
+          <h2 className="text-lg font-bold">Tasks</h2>
           <button onClick={addAssignment} className="text-sm bg-gray-100 px-3 py-1 rounded flex items-center gap-1 hover:bg-gray-200"><FiPlus /> Add</button>
         </div>
         <div className="space-y-4">
-          {formData.assignments.length === 0 && <p className="text-gray-500 text-sm">No assignments added.</p>}
+          {formData.assignments.length === 0 && <p className="text-gray-500 text-sm">No tasks added.</p>}
           {formData.assignments.map((assignment, idx) => (
             <div key={idx} className="flex items-center gap-3 bg-gray-50 p-3 rounded border">
-              <input type="text" placeholder="Assignment Title" value={assignment.title} onChange={(e) => updateAssignment(idx, 'title', e.target.value)} className="flex-1 p-2 border rounded text-sm" />
+              <input type="text" placeholder="Task Title" value={assignment.title} onChange={(e) => updateAssignment(idx, 'title', e.target.value)} className="flex-1 p-2 border rounded text-sm" />
               <input type="date" value={assignment.dueDate} onChange={(e) => updateAssignment(idx, 'dueDate', e.target.value)} className="w-40 p-2 border rounded text-sm" />
               <button onClick={() => removeAssignment(idx)} className="p-2 text-red-500 hover:bg-red-50 rounded"><FiTrash2 /></button>
             </div>

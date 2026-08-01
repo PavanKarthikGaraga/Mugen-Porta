@@ -57,7 +57,7 @@ export default function AdminActivitiesPage() {
       <div className="flex justify-between items-center bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">SAMAM Activities</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage catalogue events, assignments, and resources.</p>
+          <p className="text-sm text-gray-500 mt-1">Manage catalogue events, tasks, and resources.</p>
         </div>
         <div className="flex space-x-3">
           <button onClick={fetchActivities} className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 text-gray-700 font-medium">

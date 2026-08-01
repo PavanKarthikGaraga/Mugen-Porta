@@ -14,7 +14,7 @@ const BRAND = "rgb(151,0,3)";
 const TABS = [
   { id: "overview",    label: "Overview",    icon: FiBookOpen },
   { id: "resources",   label: "Resources",   icon: FiFileText },
-  { id: "assignments", label: "Assignments", icon: FiTarget },
+  { id: "assignments", label: "Tasks", icon: FiTarget },
   { id: "attendance",  label: "Attendance",  icon: FiCheckCircle },
   { id: "timeline",    label: "Timeline",    icon: FiCalendar },
 ];

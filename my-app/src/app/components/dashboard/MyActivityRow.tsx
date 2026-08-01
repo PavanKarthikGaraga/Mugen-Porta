@@ -97,13 +97,13 @@ export default function MyActivityRow({ activity, tabKey }: any) {
           {totalAssignments > 0 && (
             <div className="flex items-center gap-2 mt-2.5 flex-wrap">
               <span className="text-[10px] font-medium text-gray-500">
-                {submittedCount}/{totalAssignments} assignments
+                {submittedCount}/{totalAssignments} tasks
               </span>
               <div className="flex gap-1">
                 {assignments.map((a: any, idx: number) => (
                   <span
                     key={a.id || idx}
-                    title={a.title || `Assignment ${idx + 1}`}
+                    title={a.title || `Task ${idx + 1}`}
                     className={`w-2 h-2 rounded-full transition-colors ${
                       a.submitted ? "bg-emerald-400" : "bg-gray-200"
                     }`}
