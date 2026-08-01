@@ -51,9 +51,16 @@ export async function GET(request: Request) {
         if (!leadData) return NextResponse.json({ message: 'Authentication required or not a lead' }, { status: 401 });
         const { assigned_categories } = leadData;
 
-        // If no categories assigned, return empty stats
+        // Always fetch club student count regardless of category assignment
+        const [clubCountResult]: any = leadData.clubId
+            ? await pool.execute('SELECT COUNT(*) as total FROM students WHERE clubId = ?', [leadData.clubId])
+            : [[{ total: 0 }]];
+        const totalClubStudents = Number((clubCountResult as any[])[0]?.total || 0);
+
+        // If no categories assigned, return stats with club count
         if (!assigned_categories || assigned_categories.length === 0) {
              return NextResponse.json({
+                totalClubStudents,
                 levelBreakdown: [],
                 sdcStats: { totalCredits: 0, studentsWithCredits: 0, avgPerTransaction: "0.0" },
                 badgeStats: { totalIssued: 0, studentsWithBadges: 0, uniqueBadges: 0 },
@@ -137,6 +144,7 @@ export async function GET(request: Request) {
         const badgeStats = (badgesResult[0] as any[])[0] || {};
 
         return NextResponse.json({
+            totalClubStudents,
             levelBreakdown: levelBreakdownResult[0] as any[],
             sdcStats: {
                 totalCredits: Number(sdcStats.total_credits || 0),

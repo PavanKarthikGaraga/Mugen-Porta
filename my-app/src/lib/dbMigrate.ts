@@ -20,16 +20,24 @@ export async function ensureActivitySchema() {
     await addColumnIfMissing('activity_catalogue', 'rejection_note', 'TEXT DEFAULT NULL');
 
     // Table for admin → club → activity mappings
+    // club_id is VARCHAR because clubs.id is a manually assigned code (not auto-increment INT)
     await pool.query(`
         CREATE TABLE IF NOT EXISTS club_activity_mappings (
             id          INT AUTO_INCREMENT PRIMARY KEY,
-            club_id     INT          NOT NULL,
+            club_id     VARCHAR(100) NOT NULL,
             activity_code VARCHAR(50) NOT NULL,
             created_by  VARCHAR(100) DEFAULT NULL,
             created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
             UNIQUE KEY uq_club_activity (club_id, activity_code)
         )
     `);
+
+    // Fix existing tables that were created with INT club_id
+    try {
+        await pool.query(`ALTER TABLE club_activity_mappings MODIFY COLUMN club_id VARCHAR(100) NOT NULL`);
+    } catch (e: any) {
+        // Ignore if already correct type or table doesn't exist
+    }
 
     _done = true;
 }

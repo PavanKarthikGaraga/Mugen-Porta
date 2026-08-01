@@ -75,7 +75,7 @@ export default function ActivityMapperPage() {
     setSearch("");
     setCollapsed(new Set());
     const codes = new Set<string>(
-      mappingsData.filter((m: any) => m.club_id === club.id).map((m: any) => m.activity_code)
+      mappingsData.filter((m: any) => String(m.club_id) === String(club.id)).map((m: any) => m.activity_code)
     );
     setMapped(codes);
     setOriginalMapped(new Set(codes));
@@ -114,7 +114,7 @@ export default function ActivityMapperPage() {
         setOriginalMapped(new Set(mapped));
         // Update local mappings cache
         setMappingsData(prev => [
-          ...prev.filter((m: any) => m.club_id !== selectedClub.id),
+          ...prev.filter((m: any) => String(m.club_id) !== String(selectedClub.id)),
           ...Array.from(mapped).map(code => ({ club_id: selectedClub.id, activity_code: code })),
         ]);
       } else {
@@ -222,7 +222,7 @@ export default function ActivityMapperPage() {
             <div className="divide-y divide-gray-50 max-h-[65vh] overflow-y-auto">
               {clubsInDomain.map(club => {
                 const isSelected = selectedClub?.id === club.id;
-                const mappedCount = mappingsData.filter((m: any) => m.club_id === club.id).length;
+                const mappedCount = mappingsData.filter((m: any) => String(m.club_id) === String(club.id)).length;
                 const meta = DOMAIN_META[club.domain] || { color: "#6b7280", label: club.domain };
                 return (
                   <button
