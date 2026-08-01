@@ -329,7 +329,7 @@ export default function AdminStudents() {
                         >
                             <option value="">All Domains</option>
                             <option value="TEC">Technology</option>
-                            <option value="LCH">Literature & Culture</option>
+                            <option value="LCH">Liberal Arts</option>
                             <option value="ESO">Environment & Social</option>
                             <option value="IIE">Innovation & Entrepreneurship</option>
                             <option value="HWB">Health & Wellbeing</option>
