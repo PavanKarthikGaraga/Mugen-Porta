@@ -42,7 +42,10 @@ export default function MyActivityRow({ activity, tabKey }: any) {
   const totalAssignments = assignments.length;
 
   return (
-    <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200 p-4">
+    <Link
+      href={`/dashboard/student/activity-catalogue/${activity?.code}`}
+      className="block group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200 p-4"
+    >
       <div className="flex items-start gap-3">
         {/* Domain icon */}
         <div
@@ -145,15 +148,10 @@ export default function MyActivityRow({ activity, tabKey }: any) {
           )}
         </div>
 
-        {/* View arrow */}
-        <Link
-          href={`/dashboard/student/activity-catalogue/${activity?.code}`}
-          className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors text-gray-300 hover:text-gray-600 mt-0.5"
-          aria-label="View activity details"
-        >
+        <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl group-hover:bg-gray-100 transition-colors text-gray-300 group-hover:text-gray-600 mt-0.5">
           <FiChevronRight size={16} />
-        </Link>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }

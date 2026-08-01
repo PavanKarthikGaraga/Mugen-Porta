@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -7,7 +7,7 @@ import {
   FiBookOpen, FiFileText, FiMessageSquare, FiEdit3,
   FiCalendar, FiAward, FiTarget, FiGlobe, FiTrendingUp,
   FiDownload, FiExternalLink, FiZap, FiFlag, FiVideo, FiLink,
-  FiAlertTriangle, FiBriefcase, FiHeart
+  FiAlertTriangle, FiBriefcase, FiHeart, FiClock, FiLock, FiInbox
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";
@@ -39,6 +39,35 @@ function Section({ title, children }: { title: string, children: React.ReactNode
     <div>
       <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{title}</h3>
       {children}
+    </div>
+  );
+}
+
+function getTaskWindow(a: any): { start: Date | null; end: Date | null } {
+  const start = a.startDate ? new Date(`${a.startDate}T${a.startTime || "00:00"}:00`) : null;
+  const end = a.endDate ? new Date(`${a.endDate}T${a.endTime || "23:59"}:00`) : (a.dueDate ? new Date(`${a.dueDate}T23:59:00`) : null);
+  return { start, end };
+}
+
+function fmtCountdown(ms: number) {
+  if (ms <= 0) return "00:00:00";
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
+
+function TaskTimer({ target, label, color }: { target: Date; label: string; color: string }) {
+  const [ms, setMs] = useState(() => target.getTime() - Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setMs(target.getTime() - Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [target]);
+  return (
+    <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color }}>
+      <FiClock size={12} />
+      {label}: <span className="font-mono">{fmtCountdown(Math.max(0, ms))}</span>
     </div>
   );
 }
@@ -449,92 +478,163 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
 
           {activeTab === "resources" && (
             <div className="space-y-3">
-              {activity.resources.map((r) => {
-                const IconComponent = r.type === "pdf" ? FiFileText : r.type === "video" ? FiVideo : FiLink;
-                return (
-                  <div
-                    key={r.id}
-                    className="flex items-center justify-between p-3.5 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500">
-                        <IconComponent size={18} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{r.title}</p>
-                        <p className="text-xs text-gray-400 capitalize">{r.type} resource</p>
-                      </div>
-                    </div>
-                    <a
-                      href={r.url}
-                      className="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border hover:bg-gray-100 transition-colors"
-                    >
-                      {r.type === "pdf" ? <FiDownload size={12} /> : <FiExternalLink size={12} />}
-                      {r.type === "pdf" ? "Download" : "Open"}
-                    </a>
+              {(!activity.resources || activity.resources.length === 0) ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
+                    <FiFileText size={22} className="text-gray-300" />
                   </div>
-                );
-              })}
+                  <p className="text-sm font-semibold text-gray-500">No resources added yet</p>
+                  <p className="text-xs text-gray-400 mt-1">Your club lead will add study materials, PDFs, and links here.</p>
+                </div>
+              ) : (
+                activity.resources.map((r: any) => {
+                  const IconComponent = r.type === "pdf" ? FiFileText : r.type === "video" ? FiVideo : FiLink;
+                  return (
+                    <div
+                      key={r.id}
+                      className="flex items-center justify-between p-3.5 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${r.type === "pdf" ? "bg-red-50" : r.type === "video" ? "bg-blue-50" : "bg-gray-100"}`}>
+                          <IconComponent size={18} className={r.type === "pdf" ? "text-red-500" : r.type === "video" ? "text-blue-500" : "text-gray-500"} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{r.title}</p>
+                          <p className="text-xs text-gray-400 capitalize">{r.type} resource</p>
+                        </div>
+                      </div>
+                      {r.url && (
+                        <a
+                          href={r.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border hover:bg-gray-100 transition-colors"
+                        >
+                          {r.type === "pdf" ? <FiDownload size={12} /> : <FiExternalLink size={12} />}
+                          {r.type === "pdf" ? "Download" : "Open"}
+                        </a>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           )}
 
-          {/* ASSIGNMENTS */}
+          {/* TASKS */}
           {activeTab === "assignments" && (
             <div className="space-y-3">
-              {activity.assignments.map((a) => {
-                const submission = submissions[String(a.id)];
-                const isSubmitted = !!submission;
-                return (
-                  <div
-                    key={a.id}
-                    className={`p-4 border rounded-xl ${isSubmitted ? "border-emerald-200 bg-emerald-50/30" : "border-gray-200"}`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{a.title}</p>
-                        {a.description && <p className="text-xs text-gray-500 mt-1 leading-relaxed">{a.description}</p>}
-                        <p className="text-xs text-gray-400 mt-0.5">Due: {a.dueDate}</p>
-                      </div>
-                      <div className="flex flex-col items-end gap-1.5">
-                        {a.grade && (
-                          <span className="text-sm font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                            {a.grade}
-                          </span>
-                        )}
-                        {isSubmitted ? (
-                          <div className="flex flex-col items-end gap-1">
-                            <span className="flex items-center gap-1 text-xs font-medium text-emerald-700">
-                              <FiCheckCircle size={13} /> Submitted
+              {(!activity.assignments || activity.assignments.length === 0) ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
+                    <FiInbox size={22} className="text-gray-300" />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-500">No tasks yet</p>
+                  <p className="text-xs text-gray-400 mt-1">Your club lead will assign tasks here. Check back soon.</p>
+                </div>
+              ) : (
+                activity.assignments.map((a: any) => {
+                  const submission = submissions[String(a.id)];
+                  const isSubmitted = !!submission;
+                  const { start, end } = getTaskWindow(a);
+                  const now = new Date();
+                  const notYetOpen = start && now < start;
+                  const closed = end && now > end;
+                  const isOpen = !notYetOpen && !closed;
+
+                  return (
+                    <div
+                      key={a.id}
+                      className={`p-4 border rounded-xl ${
+                        isSubmitted ? "border-emerald-200 bg-emerald-50/30"
+                        : notYetOpen ? "border-amber-200 bg-amber-50/20"
+                        : closed ? "border-gray-200 bg-gray-50/50 opacity-70"
+                        : "border-gray-200"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900">{a.title}</p>
+                          {a.description && <p className="text-xs text-gray-500 mt-1 leading-relaxed">{a.description}</p>}
+
+                          {/* Window info */}
+                          <div className="flex flex-wrap gap-3 mt-2">
+                            {start && (
+                              <span className="text-[11px] text-gray-400">
+                                Opens: {start.toLocaleDateString()} {start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            )}
+                            {end && (
+                              <span className="text-[11px] text-gray-400">
+                                Deadline: {end.toLocaleDateString()} {end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Timer */}
+                          <div className="mt-1.5">
+                            {notYetOpen && start && (
+                              <TaskTimer target={start} label="Opens in" color="#D97706" />
+                            )}
+                            {isOpen && end && !isSubmitted && (
+                              <TaskTimer target={end} label="Closes in" color={BRAND} />
+                            )}
+                            {closed && (
+                              <span className="flex items-center gap-1 text-xs font-semibold text-gray-400">
+                                <FiLock size={11} /> Submission closed
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                          {a.grade && (
+                            <span className="text-sm font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                              {a.grade}
                             </span>
-                            <a
-                              href={submission.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[11px] text-blue-600 hover:underline truncate max-w-[160px]"
-                            >
-                              {submission.fileName || "View file"}
-                            </a>
+                          )}
+                          {isSubmitted ? (
+                            <div className="flex flex-col items-end gap-1">
+                              <span className="flex items-center gap-1 text-xs font-medium text-emerald-700">
+                                <FiCheckCircle size={13} /> Submitted
+                              </span>
+                              <a
+                                href={submission.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] text-blue-600 hover:underline truncate max-w-[160px]"
+                              >
+                                {submission.fileName || "View file"}
+                              </a>
+                              {isOpen && (
+                                <button onClick={() => setSelectedTask(a)} className="text-[11px] text-gray-500 hover:text-gray-800 underline">
+                                  Resubmit
+                                </button>
+                              )}
+                            </div>
+                          ) : isOpen ? (
                             <button
                               onClick={() => setSelectedTask(a)}
-                              className="text-[11px] text-gray-500 hover:text-gray-800 underline"
+                              className="text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-colors"
+                              style={{ backgroundColor: BRAND }}
                             >
-                              Resubmit
+                              Submit
                             </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setSelectedTask(a)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-colors"
-                            style={{ backgroundColor: BRAND }}
-                          >
-                            Submit
-                          </button>
-                        )}
+                          ) : notYetOpen ? (
+                            <span className="text-xs px-2.5 py-1 rounded-lg bg-amber-100 text-amber-700 font-medium flex items-center gap-1">
+                              <FiClock size={11} /> Not open yet
+                            </span>
+                          ) : (
+                            <span className="text-xs px-2.5 py-1 rounded-lg bg-gray-100 text-gray-500 font-medium flex items-center gap-1">
+                              <FiLock size={11} /> Closed
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           )}
 
@@ -710,14 +810,21 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
         </div>
       </div>
 
-      {/* ASSIGNMENT MODAL */}
+      {/* TASK SUBMISSION MODAL */}
       {selectedTask && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
             <div className="p-6 border-b flex justify-between items-start">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">{selectedTask.title}</h3>
-                <p className="text-sm text-gray-500 mt-1">Due: {selectedTask.dueDate}</p>
+                {(() => {
+                  const { end } = getTaskWindow(selectedTask);
+                  return end ? (
+                    <div className="mt-1"><TaskTimer target={end} label="Deadline" color={BRAND} /></div>
+                  ) : selectedTask.dueDate ? (
+                    <p className="text-sm text-gray-500 mt-1">Due: {selectedTask.dueDate}</p>
+                  ) : null;
+                })()}
               </div>
               <button
                 onClick={() => { setSelectedTask(null); setSelectedFile(null); }}
