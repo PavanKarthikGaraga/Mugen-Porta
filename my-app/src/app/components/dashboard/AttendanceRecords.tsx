@@ -105,11 +105,14 @@ function Skeleton() {
 }
 
 export default function AttendanceRecords({ role }: { role: "admin" | "faculty" | "lead" }) {
-  const [records,     setRecords    ] = useState<AttendanceSession[]>([]);
-  const [loading,     setLoading    ] = useState(true);
-  const [search,      setSearch     ] = useState("");
-  const [statusFilter,setStatusFilter] = useState("all");
-  const [exportingId, setExportingId] = useState<number | null>(null);
+  const [records,      setRecords     ] = useState<AttendanceSession[]>([]);
+  const [loading,      setLoading     ] = useState(true);
+  const [search,       setSearch      ] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [exportingId,  setExportingId ] = useState<number | null>(null);
+  const [reviewingCode,setReviewingCode] = useState<string | null>(null);
+  const [rejectNotes,  setRejectNotes ] = useState<Record<string, string>>({});
+  const [showNotesFor, setShowNotesFor] = useState<string | null>(null);
 
   const fetchRecords = async () => {
     setLoading(true);
@@ -146,6 +149,30 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
   const handleExport = async (rec: AttendanceSession) => {
     setExportingId(rec.id);
     try { await exportXlsx(rec); } finally { setExportingId(null); }
+  };
+
+  const handleReview = async (code: string, status: "verified" | "rejected") => {
+    setReviewingCode(code);
+    try {
+      const notes = rejectNotes[code] ?? "";
+      const res = await fetch(`/api/attendance-records/${encodeURIComponent(code)}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, notes: notes || undefined }),
+      });
+      const d = await res.json();
+      if (!res.ok) { toast.error(d.error ?? "Failed to update"); return; }
+      toast.success(status === "verified" ? "Attendance approved" : "Attendance rejected");
+      setShowNotesFor(null);
+      setRejectNotes(prev => { const n = { ...prev }; delete n[code]; return n; });
+      setRecords(prev => prev.map(r =>
+        r.activity_code === code ? { ...r, status } : r
+      ));
+    } catch {
+      toast.error("Network error");
+    } finally {
+      setReviewingCode(null);
+    }
   };
 
   if (loading && records.length === 0) return <Skeleton />;
@@ -240,6 +267,9 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
             const isExporting = exportingId === rec.id;
             const barColor = presentPct >= 75 ? "#059669" : presentPct >= 50 ? "#D97706" : "#DC2626";
 
+            const isReviewing = reviewingCode === rec.activity_code;
+            const canReview = role !== "lead" && rec.status === "pending";
+
             return (
               <div key={rec.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                 <div className="h-0.5" style={{ backgroundColor: meta?.color ?? "#9CA3AF" }} />
@@ -289,10 +319,57 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
                       {rec.faculty_notes && (
                         <p className="mt-2 text-xs text-gray-500 italic">"{rec.faculty_notes}"</p>
                       )}
+
+                      {/* Reject notes input */}
+                      {showNotesFor === rec.activity_code && (
+                        <div className="mt-3 flex gap-2 items-start">
+                          <input
+                            type="text"
+                            placeholder="Rejection reason (optional)"
+                            value={rejectNotes[rec.activity_code] ?? ""}
+                            onChange={e => setRejectNotes(prev => ({ ...prev, [rec.activity_code]: e.target.value }))}
+                            className="flex-1 text-xs px-3 py-2 border border-red-200 rounded-lg outline-none focus:border-red-400 bg-red-50 placeholder:text-gray-400"
+                          />
+                          <button
+                            onClick={() => handleReview(rec.activity_code, "rejected")}
+                            disabled={isReviewing}
+                            className="px-3 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50 whitespace-nowrap"
+                          >
+                            {isReviewing ? "Rejecting…" : "Confirm Reject"}
+                          </button>
+                          <button
+                            onClick={() => setShowNotesFor(null)}
+                            className="px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Actions */}
                     <div className="flex flex-col gap-2 flex-shrink-0">
+                      {/* Approve / Reject — admin and faculty only, pending records only */}
+                      {canReview && (
+                        <>
+                          <button
+                            onClick={() => handleReview(rec.activity_code, "verified")}
+                            disabled={isReviewing}
+                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white rounded-lg disabled:opacity-50 whitespace-nowrap"
+                            style={{ backgroundColor: "#059669" }}
+                          >
+                            <FiCheckCircle size={12} />
+                            {isReviewing ? "Approving…" : "Approve"}
+                          </button>
+                          <button
+                            onClick={() => setShowNotesFor(showNotesFor === rec.activity_code ? null : rec.activity_code)}
+                            disabled={isReviewing}
+                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 disabled:opacity-50 whitespace-nowrap"
+                          >
+                            <FiXCircle size={12} /> Reject
+                          </button>
+                        </>
+                      )}
                       <button
                         onClick={() => handleExport(rec)}
                         disabled={isExporting}

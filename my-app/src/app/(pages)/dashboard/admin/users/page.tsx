@@ -118,11 +118,17 @@ export default function UsersPage() {
         try {
             let url, method, body;
 
+            // Auto-include a club that's selected in the dropdown but not yet added via +
+            const effectiveAssignedClubs =
+                formData.role === 'faculty' && newClubAssignment && !formData.assignedClubs.includes(newClubAssignment)
+                    ? [...formData.assignedClubs, newClubAssignment]
+                    : formData.assignedClubs;
+
             if (editingUser) {
                 // Update existing user
                 url = `/api/dashboard/admin/users/${editingUser.username}`;
                 method = 'POST';
-                body = formData;
+                body = { ...formData, assignedClubs: effectiveAssignedClubs };
             } else if (formData.isPromotingStudent) {
                 // Promote existing student to lead
                 url = '/api/dashboard/admin/users/promote-student';
@@ -135,7 +141,7 @@ export default function UsersPage() {
                 // Create new user
                 url = '/api/dashboard/admin/users';
                 method = 'POST';
-                body = formData;
+                body = { ...formData, assignedClubs: effectiveAssignedClubs };
             }
 
             const response = await fetch(url, {
