@@ -1,13 +1,6 @@
 "use client";
-import ReportsEvaluation from '../../../../components/reports/ReportsEvaluation';
+import SubmissionsManager from "@/app/components/admin/samam/SubmissionsManager";
 
-export default function LeadReportsPage() {
-    return (
-        <ReportsEvaluation
-            userRole="lead"
-            reportType="internal"
-            title="Student Reports Evaluation"
-            maxMarks={60}
-        />
-    );
+export default function LeadSubmissionsPage() {
+    return <SubmissionsManager role="lead" />;
 }
