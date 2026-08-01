@@ -58,12 +58,19 @@ async function getFingerprint(username: string): Promise<number> {
     }
 }
 
+const DEMO_ACCOUNTS = new Set(['2400000000']);
+
 export async function POST(request: Request) {
     const auth = await requireAuth(['student']);
     if (auth.response) return auth.response;
 
-    const rl = checkRateLimit(request, 'career-role-fit', { limit: 8, windowMs: 10 * 60 * 1000 });
-    if (rl.limited) return rl.response;
+    const username = auth.user.username as string;
+    const isDemo = DEMO_ACCOUNTS.has(username);
+
+    if (!isDemo) {
+        const rl = checkRateLimit(request, 'career-role-fit', { limit: 8, windowMs: 10 * 60 * 1000 });
+        if (rl.limited) return rl.response;
+    }
 
     try {
         await ensureTable();
@@ -78,22 +85,23 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: `Role must be under ${MAX_ROLE_LEN} characters` }, { status: 400 });
         }
 
-        const username = auth.user.username as string;
         const [currentFp] = await Promise.all([getFingerprint(username)]);
 
-        // Check cache for this (username, role, fingerprint)
-        try {
-            const [cached]: any = await pool.execute(
-                'SELECT result, competency_fingerprint, generated_at FROM career_role_fit_cache WHERE username = ? AND role_name = ?',
-                [username, role.toLowerCase()]
-            );
-            if (cached.length > 0 && Number(cached[0].competency_fingerprint) === currentFp) {
-                const analysis = typeof cached[0].result === 'string'
-                    ? JSON.parse(cached[0].result)
-                    : cached[0].result;
-                return NextResponse.json({ success: true, analysis, generatedAt: cached[0].generated_at, fromCache: true });
-            }
-        } catch {}
+        // Check cache for this (username, role, fingerprint) for real accounts only
+        if (!isDemo) {
+            try {
+                const [cached]: any = await pool.execute(
+                    'SELECT result, competency_fingerprint, generated_at FROM career_role_fit_cache WHERE username = ? AND role_name = ?',
+                    [username, role.toLowerCase()]
+                );
+                if (cached.length > 0 && Number(cached[0].competency_fingerprint) === currentFp) {
+                    const analysis = typeof cached[0].result === 'string'
+                        ? JSON.parse(cached[0].result)
+                        : cached[0].result;
+                    return NextResponse.json({ success: true, analysis, generatedAt: cached[0].generated_at, fromCache: true });
+                }
+            } catch {}
+        }
 
         const context = await getStudentCareerContext(username);
         const userPrompt = `Here is the student's profile:\n\n${context.contextText}\n\nTarget role I'm interested in: "${role}"\n\nAnalyze how well I currently fit this specific role and what I should improve to get there.`;
@@ -124,20 +132,22 @@ export async function POST(request: Request) {
 
         const generatedAt = new Date().toISOString();
 
-        // Store in cache
-        try {
-            await pool.execute(
-                `INSERT INTO career_role_fit_cache (username, role_name, result, competency_fingerprint)
-                 VALUES (?, ?, ?, ?)
-                 ON DUPLICATE KEY UPDATE
-                   result = VALUES(result),
-                   competency_fingerprint = VALUES(competency_fingerprint),
-                   generated_at = CURRENT_TIMESTAMP`,
-                [username, role.toLowerCase(), JSON.stringify(analysis), currentFp]
-            );
-        } catch {}
+        // Store in cache for real accounts only
+        if (!isDemo) {
+            try {
+                await pool.execute(
+                    `INSERT INTO career_role_fit_cache (username, role_name, result, competency_fingerprint)
+                     VALUES (?, ?, ?, ?)
+                     ON DUPLICATE KEY UPDATE
+                       result = VALUES(result),
+                       competency_fingerprint = VALUES(competency_fingerprint),
+                       generated_at = CURRENT_TIMESTAMP`,
+                    [username, role.toLowerCase(), JSON.stringify(analysis), currentFp]
+                );
+            } catch {}
+        }
 
-        return NextResponse.json({ success: true, analysis, generatedAt, fromCache: false });
+        return NextResponse.json({ success: true, analysis, generatedAt, fromCache: false, canRerun: isDemo });
     } catch (error: any) {
         console.error('Career role-fit error:', error);
         if (error instanceof GroqConfigError) {

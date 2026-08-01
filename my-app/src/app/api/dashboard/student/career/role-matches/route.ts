@@ -67,13 +67,21 @@ async function getCached(username: string) {
     }
 }
 
+const DEMO_ACCOUNTS = new Set(['2400000000']);
+
 export async function GET(request: Request) {
     const auth = await requireAuth(['student']);
     if (auth.response) return auth.response;
 
+    const username = auth.user.username as string;
+
+    // Demo accounts always show as ready to re-run; nothing is ever cached for them
+    if (DEMO_ACCOUNTS.has(username)) {
+        return NextResponse.json({ roles: null, generatedAt: null, canRerun: true });
+    }
+
     try {
         await ensureTable();
-        const username = auth.user.username as string;
         const [currentFp, cached] = await Promise.all([getFingerprint(username), getCached(username)]);
 
         if (!cached) {
@@ -91,23 +99,31 @@ export async function POST(request: Request) {
     const auth = await requireAuth(['student']);
     if (auth.response) return auth.response;
 
-    const rl = checkRateLimit(request, 'career-role-matches', { limit: 6, windowMs: 10 * 60 * 1000 });
-    if (rl.limited) return rl.response;
+    const username = auth.user.username as string;
+    const isDemo = DEMO_ACCOUNTS.has(username);
+
+    // Rate-limit real accounts only
+    if (!isDemo) {
+        const rl = checkRateLimit(request, 'career-role-matches', { limit: 6, windowMs: 10 * 60 * 1000 });
+        if (rl.limited) return rl.response;
+    }
 
     try {
         await ensureTable();
-        const username = auth.user.username as string;
-        const [currentFp, cached] = await Promise.all([getFingerprint(username), getCached(username)]);
+        const currentFp = await getFingerprint(username);
 
-        // Return cached if competency state is unchanged
-        if (cached && currentFp === cached.fingerprint) {
-            return NextResponse.json({
-                success: true,
-                roles: cached.roles,
-                generatedAt: cached.generatedAt,
-                fromCache: true,
-                canRerun: false,
-            });
+        // Return cached result only for non-demo accounts whose data hasn't changed
+        if (!isDemo) {
+            const cached = await getCached(username);
+            if (cached && currentFp === cached.fingerprint) {
+                return NextResponse.json({
+                    success: true,
+                    roles: cached.roles,
+                    generatedAt: cached.generatedAt,
+                    fromCache: true,
+                    canRerun: false,
+                });
+            }
         }
 
         const context = await getStudentCareerContext(username);
@@ -133,17 +149,21 @@ export async function POST(request: Request) {
         if (roles.length === 0) throw new Error('AI returned no usable role matches');
 
         const generatedAt = new Date().toISOString();
-        await pool.execute(
-            `INSERT INTO career_ai_cache (username, roles_result, competency_fingerprint)
-             VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE
-               roles_result = VALUES(roles_result),
-               competency_fingerprint = VALUES(competency_fingerprint),
-               generated_at = CURRENT_TIMESTAMP`,
-            [username, JSON.stringify(roles), currentFp]
-        );
 
-        return NextResponse.json({ success: true, roles, generatedAt, fromCache: false, canRerun: false });
+        // Never persist results for demo accounts
+        if (!isDemo) {
+            await pool.execute(
+                `INSERT INTO career_ai_cache (username, roles_result, competency_fingerprint)
+                 VALUES (?, ?, ?)
+                 ON DUPLICATE KEY UPDATE
+                   roles_result = VALUES(roles_result),
+                   competency_fingerprint = VALUES(competency_fingerprint),
+                   generated_at = CURRENT_TIMESTAMP`,
+                [username, JSON.stringify(roles), currentFp]
+            );
+        }
+
+        return NextResponse.json({ success: true, roles, generatedAt, fromCache: false, canRerun: isDemo });
     } catch (error: any) {
         console.error('Career role-matches error:', error);
         if (error instanceof GroqConfigError) {
