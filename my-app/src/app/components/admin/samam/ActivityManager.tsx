@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { FiSearch, FiRefreshCw, FiPlus, FiActivity, FiCheckCircle, FiAlertCircle, FiEdit2, FiTrash2, FiUserCheck } from "react-icons/fi";
+import { FiSearch, FiRefreshCw, FiPlus, FiActivity, FiCheckCircle, FiAlertCircle, FiEdit2, FiTrash2, FiUserCheck, FiUsers } from "react-icons/fi";
 import { BRAND, DOMAIN_COLORS } from "./SharedUI";
 
 const DOMAIN_NAMES: Record<string, string> = {
@@ -157,15 +157,24 @@ export default function ActivityManager({
                                 </td>
                                 <td className="px-5 py-3">
                                   <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-                                    <Link 
+                                    {role === "lead" && (
+                                      <Link
+                                        href={`/dashboard/lead/samam/activities/${a.code}/students`}
+                                        className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
+                                        title="View Enrolled Students"
+                                      >
+                                        <FiUsers size={14} />
+                                      </Link>
+                                    )}
+                                    <Link
                                       href={role === "admin" ? `/dashboard/admin/activities/${a.code}/attendance` : `/dashboard/lead/samam/activities/${a.code}/attendance`}
                                       className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
                                       title="Mark Attendance"
                                     >
                                       <FiUserCheck size={14} />
                                     </Link>
-                                    
-                                    <Link 
+
+                                    <Link
                                       href={role === "admin" ? `/dashboard/admin/samam/activities/${a.code}/edit` : `/dashboard/lead/samam/activities/${a.code}/edit`}
                                       className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                                       title="Edit Activity"
