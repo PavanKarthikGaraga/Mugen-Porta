@@ -96,12 +96,12 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
 
-  const fetchSubmissions = () => {
+  const fetchSubmissions = useCallback(() => {
     fetch(`/api/activities/${code}/submissions`)
       .then(r => r.json())
       .then(d => { if (d.success) setSubmissions(d.submissions || {}); })
       .catch(() => {});
-  };
+  }, [code]);
 
   useEffect(() => {
     fetch(`/api/activities/${code}`)
@@ -135,7 +135,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
         }
       })
       .catch(() => {});
-  }, [code]);
+  }, [code, fetchSubmissions]);
 
   useEffect(() => {
     if (activeTab === "discussion" && code) {
@@ -641,25 +641,37 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
           {/* ATTENDANCE */}
           {activeTab === "attendance" && (
             <div className="space-y-4">
-              <div className="p-5 bg-gray-50 rounded-xl text-center">
-                <p className="text-4xl font-bold" style={{ color: BRAND }}>{activity.userAttendance}%</p>
-                <p className="text-sm text-gray-500 mt-1">Attendance recorded</p>
-              </div>
-              <ProgressCard
-                label="Attendance progress"
-                value={activity.userAttendance}
-                color={activity.userAttendance >= 75 ? "#059669" : BRAND}
-                sublabel={
-                  <span className="flex items-center gap-1">
-                    {activity.userAttendance < 75
-                      ? <><FiAlertTriangle size={11} /> Minimum 75% required for certificate</>
-                      : <><FiCheckCircle size={11} /> Eligible for certificate</>}
-                  </span>
-                }
-              />
-              <p className="text-xs text-gray-400 text-center">
-                Attendance is recorded by the mentor at each session.
-              </p>
+              {activity.userAttendance === null || activity.userAttendance === undefined ? (
+                <div className="p-8 bg-gray-50 rounded-xl text-center flex flex-col items-center gap-3">
+                  <FiClock size={28} className="text-gray-400" />
+                  <div>
+                    <p className="text-lg font-bold text-gray-700">Pending Approval</p>
+                    <p className="text-sm text-gray-500 mt-1">Attendance is being verified by faculty.</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="p-5 bg-gray-50 rounded-xl text-center">
+                    <p className="text-4xl font-bold" style={{ color: BRAND }}>{activity.userAttendance}%</p>
+                    <p className="text-sm text-gray-500 mt-1">Attendance recorded</p>
+                  </div>
+                  <ProgressCard
+                    label="Attendance progress"
+                    value={activity.userAttendance}
+                    color={activity.userAttendance >= 75 ? "#059669" : BRAND}
+                    sublabel={
+                      <span className="flex items-center gap-1">
+                        {activity.userAttendance < 75
+                          ? <><FiAlertTriangle size={11} /> Minimum 75% required for certificate</>
+                          : <><FiCheckCircle size={11} /> Eligible for certificate</>}
+                      </span>
+                    }
+                  />
+                  <p className="text-xs text-gray-400 text-center">
+                    Attendance is recorded by the mentor at each session.
+                  </p>
+                </>
+              )}
             </div>
           )}
 

@@ -31,7 +31,16 @@ export async function GET(
         ) as any[];
 
         if (rows.length > 0) {
-            return NextResponse.json({ enrolled: true, status: rows[0].status, userAttendance: rows[0].attendance_percentage || 0 });
+            const [subRows] = await pool.execute(
+                `SELECT status FROM attendance_submissions WHERE activity_code = ? ORDER BY submitted_at DESC LIMIT 1`,
+                [id]
+            ) as any[];
+            const isVerified = subRows.length > 0 && subRows[0].status === 'verified';
+            return NextResponse.json({ 
+                enrolled: true, 
+                status: rows[0].status, 
+                userAttendance: isVerified ? (rows[0].attendance_percentage || 0) : null 
+            });
         }
         return NextResponse.json({ enrolled: false });
 

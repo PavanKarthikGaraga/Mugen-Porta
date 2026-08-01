@@ -88,3 +88,36 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         return NextResponse.json({ error: safeMessage(error, 'Failed to fetch enrolled students') }, { status: 500 });
     }
 }
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    try {
+        const leadData = await getLeadData();
+        if (!leadData) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const { id } = await params;
+        const url = new URL(request.url);
+        const studentId = url.searchParams.get("studentId");
+
+        if (!studentId) {
+            return NextResponse.json({ error: 'Student ID is required' }, { status: 400 });
+        }
+
+        if (!await canAccessActivity(leadData, id)) {
+            return NextResponse.json({ error: 'Not authorized to manage this activity' }, { status: 403 });
+        }
+
+        const [result]: any = await pool.execute(
+            'DELETE FROM activity_enrollments WHERE activity_code = ? AND username = ?',
+            [id, studentId]
+        );
+
+        if (result.affectedRows === 0) {
+             return NextResponse.json({ error: 'Enrollment not found' }, { status: 404 });
+        }
+
+        return NextResponse.json({ success: true, message: 'Student registration removed successfully' });
+    } catch (error: any) {
+        console.error('Delete student enrollment error:', error);
+        return NextResponse.json({ error: safeMessage(error, 'Failed to remove student') }, { status: 500 });
+    }
+}

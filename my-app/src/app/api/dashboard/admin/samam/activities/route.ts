@@ -34,7 +34,8 @@ export async function GET(request: Request) {
             SELECT id, code, title, description, domain, category,
                    sdc_credits as points, max_seats as max_participants, status,
                    difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
-                   created_at
+                   created_at,
+                   (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = activity_catalogue.code) as enrolledCount
             FROM activity_catalogue
             ${where}
             ORDER BY created_at DESC

@@ -77,10 +77,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
       return NextResponse.json({ error: 'Invalid status. Must be "verified" or "rejected".' }, { status: 400 });
     }
 
-    if (status === 'verified' && !scannedCopyUrl) {
-      return NextResponse.json({ error: 'A scanned copy must be uploaded before verifying.' }, { status: 400 });
-    }
-
     await pool.execute(`
       UPDATE attendance_submissions
       SET status = ?, scanned_copy_url = ?, verified_by = ?, verified_at = NOW(), faculty_notes = ?

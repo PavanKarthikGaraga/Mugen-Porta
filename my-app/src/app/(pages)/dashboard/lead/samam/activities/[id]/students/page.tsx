@@ -3,7 +3,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import {
   FiArrowLeft, FiDownload, FiUsers, FiHome, FiTruck,
-  FiSearch, FiX, FiUser,
+  FiSearch, FiX, FiUser, FiTrash2,
 } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ export default function EnrolledStudentsPage({ params }: { params: Promise<{ id:
   const { id } = use(params);
   const [loading, setLoading]     = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [removing, setRemoving]   = useState<string | null>(null);
   const [students, setStudents]   = useState<any[]>([]);
   const [activity, setActivity]   = useState<{ code: string; title: string } | null>(null);
   const [search, setSearch]       = useState("");
@@ -47,6 +48,27 @@ export default function EnrolledStudentsPage({ params }: { params: Promise<{ id:
 
   const hostelCount    = students.filter(s => s.residenceType === "Hostel").length;
   const dayScholarCount = students.filter(s => s.residenceType === "Day Scholar").length;
+
+  const handleRemoveStudent = async (studentId: string) => {
+    if (!confirm(`Are you sure you want to remove student ${studentId} from this activity?`)) return;
+    setRemoving(studentId);
+    try {
+      const res = await fetch(`/api/dashboard/lead/samam/activities/${id}/students?studentId=${studentId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message || "Student removed");
+        setStudents(prev => prev.filter(s => s.student_id !== studentId));
+      } else {
+        toast.error(data.error || "Failed to remove student");
+      }
+    } catch (err) {
+      toast.error("Network error");
+    } finally {
+      setRemoving(null);
+    }
+  };
 
   const handleDownload = async () => {
     if (students.length === 0) { toast.error("No students to export"); return; }
@@ -253,6 +275,7 @@ export default function EnrolledStudentsPage({ params }: { params: Promise<{ id:
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Year</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Residence</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hostel / Bus Route</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -279,6 +302,16 @@ export default function EnrolledStudentsPage({ params }: { params: Promise<{ id:
                         </span>
                       </td>
                       <td className="px-4 py-3 text-xs text-gray-600">{detail}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleRemoveStudent(s.student_id)}
+                          disabled={removing === s.student_id}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                          title="Remove Registration"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
