@@ -3,6 +3,21 @@ import pool from '@/lib/db';
 import { verifyAdminToken } from '../auth-helper';
 import bcrypt from 'bcrypt';
 
+async function ensureCouncilTable() {
+    try {
+        await pool.execute(`
+            CREATE TABLE IF NOT EXISTS council (
+                username VARCHAR(10) NOT NULL PRIMARY KEY,
+                assignedDomain VARCHAR(3) NOT NULL
+            )
+        `);
+        // Ensure 'council' is a valid role value — add it if the column is an ENUM
+        try {
+            await pool.execute(`ALTER TABLE users MODIFY COLUMN role ENUM('admin','lead','faculty','student','council') NOT NULL DEFAULT 'student'`);
+        } catch {}
+    } catch {}
+}
+
 export async function GET(request) {
     // Verify admin token
     const authResult = await verifyAdminToken(request);
@@ -93,6 +108,7 @@ export async function POST(request) {
             if (!assignedDomain || !['TEC','LCH','IIE','HWB','ESO'].includes(assignedDomain)) {
                 return NextResponse.json({ error: 'A valid domain must be assigned for council' }, { status: 400 });
             }
+            await ensureCouncilTable();
         } else {
             if (!name || !email) {
                 return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -280,6 +296,7 @@ export async function DELETE(request) {
             } else if (role === 'faculty') {
                 await connection.execute('DELETE FROM faculty WHERE username = ?', [username]);
             } else if (role === 'council') {
+                await ensureCouncilTable();
                 await connection.execute('DELETE FROM council WHERE username = ?', [username]);
             } else if (role === 'student') {
                 await connection.execute('DELETE FROM students WHERE username = ?', [username]);
