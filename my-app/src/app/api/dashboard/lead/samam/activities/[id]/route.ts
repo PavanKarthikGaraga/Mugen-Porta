@@ -44,13 +44,33 @@ async function getLeadClubData() {
     return null;
 }
 
+async function isAuthorized(leadData: any, activityCode: string, activityCategory: string): Promise<boolean> {
+    // Check club_activity_mappings first (new system)
+    if (leadData.clubId) {
+        const [mapRows]: any = await pool.execute(
+            'SELECT 1 FROM club_activity_mappings WHERE club_id = ? AND activity_code = ?',
+            [leadData.clubId, activityCode]
+        );
+        if ((mapRows as any[]).length > 0) return true;
+
+        // If mappings exist for this club but activity isn't in them — deny
+        const [anyMaps]: any = await pool.execute(
+            'SELECT 1 FROM club_activity_mappings WHERE club_id = ? LIMIT 1',
+            [leadData.clubId]
+        );
+        if ((anyMaps as any[]).length > 0) return false;
+    }
+    // Fall back to assigned_categories (legacy)
+    return !!(leadData.assigned_categories?.includes(activityCategory));
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const leadData = await getLeadClubData();
         if (!leadData) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-        
+
         const { id } = await params;
-        
+
         const [rows] = await pool.execute(`
             SELECT * FROM activity_catalogue WHERE code = ? OR id = ?
         `, [id, id]);
@@ -60,9 +80,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         }
 
         const activity = (rows as any[])[0];
-        
-        // Leads can only view if it's in their assigned categories
-        if (!leadData.assigned_categories || !leadData.assigned_categories.includes(activity.category)) {
+
+        if (!await isAuthorized(leadData, activity.code, activity.category)) {
             return NextResponse.json({ message: 'Unauthorized to view this activity' }, { status: 403 });
         }
 
@@ -93,18 +112,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline
         } = body;
 
-        // Check if the target category is in their assigned categories
-        if (!category || !leadData.assigned_categories.includes(category)) {
-             return NextResponse.json({ message: 'You can only assign this activity to your assigned categories' }, { status: 403 });
-        }
-
-        // Check if the original activity is in their assigned categories
-        const [checkRows] = await pool.execute('SELECT category FROM activity_catalogue WHERE code = ? OR id = ?', [id, id]);
+        const [checkRows] = await pool.execute('SELECT category, code FROM activity_catalogue WHERE code = ? OR id = ?', [id, id]);
         if ((checkRows as any[]).length === 0) return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
-        const originalCategory = (checkRows as any[])[0].category;
-        
-        if (!leadData.assigned_categories.includes(originalCategory)) {
-             return NextResponse.json({ message: 'You are not authorized to edit this activity' }, { status: 403 });
+        const { category: originalCategory, code: activityCode } = (checkRows as any[])[0];
+
+        if (!await isAuthorized(leadData, activityCode, originalCategory)) {
+            return NextResponse.json({ message: 'You are not authorized to edit this activity' }, { status: 403 });
         }
 
         const safeJson = (val: any) => val ? JSON.stringify(val) : null;
@@ -147,13 +160,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
         const { id } = await params;
 
-        // Check if the original activity is in their assigned categories
-        const [checkRows] = await pool.execute('SELECT category FROM activity_catalogue WHERE code = ? OR id = ?', [id, id]);
+        const [checkRows] = await pool.execute('SELECT category, code FROM activity_catalogue WHERE code = ? OR id = ?', [id, id]);
         if ((checkRows as any[]).length === 0) return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
-        const originalCategory = (checkRows as any[])[0].category;
-        
-        if (!leadData.assigned_categories.includes(originalCategory)) {
-             return NextResponse.json({ message: 'You are not authorized to delete this activity' }, { status: 403 });
+        const { category: originalCategory, code: activityCode } = (checkRows as any[])[0];
+
+        if (!await isAuthorized(leadData, activityCode, originalCategory)) {
+            return NextResponse.json({ message: 'You are not authorized to delete this activity' }, { status: 403 });
         }
 
         const [result] = await pool.execute('DELETE FROM activity_catalogue WHERE code = ? OR id = ?', [id, id]);
