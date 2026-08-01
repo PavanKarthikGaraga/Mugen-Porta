@@ -78,10 +78,10 @@ export default function SAMAMDashboardPage() {
   const levelStr        = profileData.samam?.level || "Explorer";
   const level           = LEVEL_CFG[levelStr] || LEVEL_CFG.Explorer;
   const sdcPct          = sdcData.target > 0 ? Math.round((sdcData.total / sdcData.target) * 100) : 0;
-  const flatComps       = competenciesData.flatMap((cat: any) => cat.competencies || []);
+  const flatComps       = (Array.isArray(competenciesData) ? competenciesData : []).flatMap((cat: any) => cat.competencies || []);
   const scoredComps     = flatComps.filter((c: any) => !c.isOpportunity && c.score > 0);
   const unlockedCount   = scoredComps.length;
-  const earnedBadges    = badgesData.earned || [];
+  const earnedBadges    = (badgesData?.earned) || [];
   const istHour         = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })).getHours();
   const greeting        = istHour >= 5 && istHour < 12
     ? "Good morning"
@@ -344,9 +344,9 @@ export default function SAMAMDashboardPage() {
             </Link>
           </div>
           <div className="p-5">
-            {sdcData.byDomain.length > 0 ? (
+            {(sdcData.byDomain?.length ?? 0) > 0 ? (
               <div className="space-y-3.5">
-                {sdcData.byDomain.map((item: any) => (
+                {(sdcData.byDomain || []).map((item: any) => (
                   <div key={item.domain}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-medium text-gray-700">{item.domain}</span>

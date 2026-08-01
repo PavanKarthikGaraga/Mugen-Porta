@@ -58,22 +58,45 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
             return NextResponse.json({ error: 'Not authorized to view this activity' }, { status: 403 });
         }
 
-        const [students]: any = await pool.execute(`
-            SELECT
-                ae.username      AS student_id,
-                s.name,
-                s.branch,
-                s.year,
-                s.residenceType,
-                s.hostelName,
-                s.busRoute,
-                ae.enrollment_status,
-                ae.enrolled_at
-            FROM activity_enrollments ae
-            JOIN students s ON ae.username = s.username
-            WHERE ae.activity_code = ?
-            ORDER BY s.name ASC
-        `, [id]);
+        let students: any[];
+        try {
+            const [rows]: any = await pool.execute(`
+                SELECT
+                    ae.username      AS student_id,
+                    s.name,
+                    s.branch,
+                    s.year,
+                    s.residenceType,
+                    s.hostelName,
+                    s.busRoute,
+                    ae.enrollment_status,
+                    ae.enrolled_at
+                FROM activity_enrollments ae
+                JOIN students s ON ae.username = s.username
+                WHERE ae.activity_code = ?
+                ORDER BY s.name ASC
+            `, [id]);
+            students = rows as any[];
+        } catch {
+            // residenceType/hostelName/busRoute columns may not exist yet
+            const [rows]: any = await pool.execute(`
+                SELECT
+                    ae.username      AS student_id,
+                    s.name,
+                    s.branch,
+                    s.year,
+                    NULL AS residenceType,
+                    NULL AS hostelName,
+                    NULL AS busRoute,
+                    ae.enrollment_status,
+                    ae.enrolled_at
+                FROM activity_enrollments ae
+                JOIN students s ON ae.username = s.username
+                WHERE ae.activity_code = ?
+                ORDER BY s.name ASC
+            `, [id]);
+            students = rows as any[];
+        }
 
         return NextResponse.json({
             success: true,

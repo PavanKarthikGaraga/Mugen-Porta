@@ -19,8 +19,8 @@ export async function GET() {
     const username = auth.user.username as string;
 
     try {
-        // Run all 4 queries concurrently — single auth check, single DB round-trip fan-out
-        const [profileRows, domainRows, compRows, badgeRows] = await Promise.all([
+        // Run profile + SDC concurrently; badges/competencies have optional tables so handled separately
+        const [profileRows, domainRows] = await Promise.all([
             // 1. Profile + level info
             pool.execute(
                 `SELECT s.username, s.name, s.email, s.branch, s.year,
@@ -40,8 +40,12 @@ export async function GET() {
                  GROUP BY domain`,
                 [username]
             ),
-            // 3. Competency scores — much lighter than the full competencies endpoint
-            pool.execute(
+        ]) as [any, any];
+
+        // 3. Competency scores — competency tables may not exist yet in all envs
+        let compRows: any = [[]];
+        try {
+            compRows = await pool.execute(
                 `SELECT cd.id, cd.name, cd.category_id, cd.category_name, cd.color,
                         COALESCE(sc.score, 0) AS score,
                         COALESCE(sc.level, 'Explorer') AS level
@@ -51,9 +55,13 @@ export async function GET() {
                  WHERE cd.is_active = 1
                  ORDER BY cd.category_id, cd.sort_order`,
                 [username]
-            ),
-            // 4. Recent earned badges (limit to what the dashboard shows)
-            pool.execute(
+            );
+        } catch { /* tables not yet migrated */ }
+
+        // 4. Recent earned badges — badge_definitions may not exist yet in all envs
+        let badgeRows: any = [[]];
+        try {
+            badgeRows = await pool.execute(
                 `SELECT sb.id, bd.code, bd.name, bd.icon, bd.domain, bd.color, bd.bg_color
                  FROM student_badges sb
                  JOIN badge_definitions bd ON sb.badge_id = bd.id
@@ -61,8 +69,8 @@ export async function GET() {
                  ORDER BY sb.issued_on DESC
                  LIMIT 6`,
                 [username]
-            ),
-        ]) as [any, any, any, any];
+            );
+        } catch { /* tables not yet migrated */ }
 
         // ── Build profile ────────────────────────────────────────────────────
         const p = (profileRows[0] as any[])[0] ?? {};

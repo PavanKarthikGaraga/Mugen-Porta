@@ -73,20 +73,26 @@ export default function PassportPage() {
     fetch("/api/dashboard/student/passport")
       .then(res => res.json())
       .then(json => {
-         json.academic = { ...PASSPORT.academic, campus: "Vijayawada", institution: "KL University" };
-         if (json.profile?.cgpa) json.academic.cgpa = json.profile.cgpa;
-         if (json.profile?.username) json.academic.rollNo = json.profile.username;
-         if (json.profile?.branch) json.academic.degree = `B.Tech ${json.profile.branch}`;
-         if (json.profile?.student_year) {
-             const raw = json.profile.student_year;
-             const y = parseInt(raw, 10);
+         // Build academic section from real student data only (no mock fallbacks)
+         const rawYear = json.profile?.student_year ?? json.profile?.year;
+         let yearLabel = "";
+         if (rawYear) {
+             const y = parseInt(String(rawYear), 10);
              if (!isNaN(y)) {
                  const suffix = y === 1 ? 'st' : y === 2 ? 'nd' : y === 3 ? 'rd' : 'th';
-                 json.academic.year = `${y}${suffix} Year`;
+                 yearLabel = `${y}${suffix} Year`;
              } else {
-                 json.academic.year = String(raw);
+                 yearLabel = String(rawYear);
              }
          }
+         json.academic = {
+             institution: "KL University",
+             campus: "Vijayawada",
+             degree: json.profile?.branch ? `B.Tech ${json.profile.branch}` : (json.academic?.degree || ""),
+             cgpa: json.profile?.cgpa || json.academic?.cgpa || null,
+             year: yearLabel || json.academic?.year || "",
+             rollNo: json.profile?.username || json.academic?.rollNo || "",
+         };
          json.timeline = json.timeline || [];
          setData(json);
          setIsPublic(!!json.profile?.is_public);
