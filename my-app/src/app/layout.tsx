@@ -24,7 +24,9 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={poppins.variable}>
+    // suppressHydrationWarning: next-themes sets the theme class on <html>
+    // before React hydrates, which otherwise logs a hydration mismatch.
+    <html lang="en" className={poppins.variable} suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#ffffff" />
         <meta name="msapplication-TileColor" content="#ffffff" />
@@ -71,7 +73,9 @@ export default function RootLayout({ children }) {
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
-          enableSystem={false}
+          /* The settings page offers a "System" option, which silently did
+             nothing while this was false. */
+          enableSystem
           disableTransitionOnChange
         >
           {children}
