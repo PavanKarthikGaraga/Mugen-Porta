@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FiSettings, FiSave, FiAlertCircle } from "react-icons/fi";
+import { FiSettings, FiSave, FiAlertCircle, FiAward, FiLoader } from "react-icons/fi";
 import { toast } from "sonner";
 import { BRAND } from "./SharedUI";
 
@@ -8,6 +8,27 @@ export default function SettingsManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [controls, setControls] = useState({ registrations_enabled: true });
+  const [generatingBadges, setGeneratingBadges] = useState(false);
+  const [badgeLog, setBadgeLog] = useState<string[] | null>(null);
+
+  const handleGenerateBadges = async () => {
+    setGeneratingBadges(true);
+    setBadgeLog(null);
+    try {
+      const res = await fetch("/api/admin/setup-badges", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message);
+        setBadgeLog(data.logs || []);
+      } else {
+        toast.error(data.error || "Failed to generate badges");
+      }
+    } catch {
+      toast.error("Network error");
+    } finally {
+      setGeneratingBadges(false);
+    }
+  };
 
   useEffect(() => {
     fetch("/api/dashboard/admin/samam/controls")
@@ -88,6 +109,38 @@ export default function SettingsManager() {
             {saving ? "Saving..." : "Save Settings"}
           </button>
         </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <FiAward size={16} className="text-gray-400" />
+          Activity Badges
+        </h3>
+        <p className="text-[12px] text-gray-500 leading-relaxed mb-4">
+          Creates one badge per activity in the catalogue that doesn't already have one, named
+          "&lt;Activity Title&gt; Badge" and mapped to that activity so it's awarded automatically on
+          completion. Safe to re-run at any time — existing badges and mappings are left untouched,
+          only activities missing a badge are affected.
+        </p>
+        <button
+          onClick={handleGenerateBadges}
+          disabled={generatingBadges}
+          className="h-9 px-6 text-[13px] font-medium rounded-md text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-50"
+          style={{ backgroundColor: BRAND }}
+        >
+          {generatingBadges ? <FiLoader size={14} className="animate-spin" /> : <FiAward size={14} />}
+          {generatingBadges ? "Generating…" : "Generate Missing Activity Badges"}
+        </button>
+
+        {badgeLog && (
+          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-md p-3 text-[12px] text-gray-600 max-h-48 overflow-y-auto">
+            {badgeLog.length === 0 ? (
+              <p className="italic text-gray-400">No new badges needed — every activity already has one.</p>
+            ) : (
+              badgeLog.map((line, i) => <p key={i}>{line}</p>)
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
