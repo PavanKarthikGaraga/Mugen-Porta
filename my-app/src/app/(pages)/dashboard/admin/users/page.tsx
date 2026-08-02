@@ -357,6 +357,7 @@ export default function UsersPage() {
             case 'admin': return 'bg-red-100 text-red-800';
             case 'lead': return 'bg-blue-100 text-blue-800';
             case 'faculty': return 'bg-green-100 text-green-800';
+            case 'council': return 'bg-purple-100 text-purple-800';
             default: return 'bg-gray-100 text-gray-800';
         }
     };
@@ -402,6 +403,7 @@ export default function UsersPage() {
                                 <SelectItem value="admin">Admin</SelectItem>
                                 <SelectItem value="lead">Lead</SelectItem>
                                 <SelectItem value="faculty">Faculty</SelectItem>
+                                <SelectItem value="council">Council</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -495,6 +497,9 @@ export default function UsersPage() {
                                         <td className="px-6 py-4 text-sm text-gray-900">
                                             {user.role === 'lead' && user.clubName && (
                                                 <span className="text-blue-600">Club: {user.clubName}</span>
+                                            )}
+                                            {user.role === 'council' && (
+                                                <span className="text-purple-600">Domain: {user.assignedDomain || '—'}</span>
                                             )}
                                             {user.role === 'faculty' && (
                                                 <span className="text-green-600">

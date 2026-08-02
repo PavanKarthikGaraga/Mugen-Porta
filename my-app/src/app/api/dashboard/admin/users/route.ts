@@ -29,6 +29,8 @@ export async function GET(request) {
     const role = searchParams.get('role') || 'all';
 
     try {
+        await ensureCouncilTable();
+
         let query, params;
 
         if (role === 'all') {
@@ -36,13 +38,15 @@ export async function GET(request) {
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
                        s.phoneNumber, s.year, s.branch, l.clubId, c.name as clubName,
-                       f.phoneNumber as fPhoneNumber, f.assignedClubs
+                       f.phoneNumber as fPhoneNumber, f.assignedClubs,
+                       co.assignedDomain
                 FROM users u
                 LEFT JOIN students s ON u.username = s.username AND u.role = 'lead'
                 LEFT JOIN leads l ON u.username = l.username AND u.role = 'lead'
                 LEFT JOIN faculty f ON u.username = f.username AND u.role = 'faculty'
                 LEFT JOIN clubs c ON l.clubId = c.id
-                WHERE u.role IN ('admin', 'lead', 'faculty')
+                LEFT JOIN council co ON u.username = co.username AND u.role = 'council'
+                WHERE u.role IN ('admin', 'lead', 'faculty', 'council')
                 ORDER BY u.created_at DESC
             `;
             params = [];
@@ -51,12 +55,14 @@ export async function GET(request) {
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
                        s.phoneNumber, s.year, s.branch, l.clubId, c.name as clubName,
-                       f.phoneNumber as fPhoneNumber, f.assignedClubs
+                       f.phoneNumber as fPhoneNumber, f.assignedClubs,
+                       co.assignedDomain
                 FROM users u
                 LEFT JOIN students s ON u.username = s.username AND u.role = 'lead'
                 LEFT JOIN leads l ON u.username = l.username AND u.role = 'lead'
                 LEFT JOIN faculty f ON u.username = f.username AND u.role = 'faculty'
                 LEFT JOIN clubs c ON l.clubId = c.id
+                LEFT JOIN council co ON u.username = co.username AND u.role = 'council'
                 WHERE u.role = ?
                 ORDER BY u.created_at DESC
             `;
@@ -184,10 +190,22 @@ export async function POST(request) {
                     'INSERT INTO users (username, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
                     [username, username, `${username}@council.kluniversity.in`, hashedPassword, 'council']
                 );
-                await connection.execute(
-                    'INSERT INTO council (username, assignedDomain) VALUES (?, ?)',
-                    [username, assignedDomain]
-                );
+                try {
+                    await connection.execute(
+                        'INSERT INTO council (username, assignedDomain) VALUES (?, ?)',
+                        [username, assignedDomain]
+                    );
+                } catch (councilInsertError) {
+                    // Belt-and-suspenders: if `users` is a non-transactional
+                    // (e.g. MyISAM) table, connection.rollback() below is a
+                    // no-op on it and the users row would otherwise be left
+                    // behind as an orphan (no matching council row), causing
+                    // ER_DUP_ENTRY on every future attempt to create this
+                    // username. Explicitly undo the users insert so the
+                    // admin can simply retry.
+                    await connection.execute('DELETE FROM users WHERE username = ? AND role = ?', [username, 'council']);
+                    throw councilInsertError;
+                }
             } else {
                 // For faculty and admin, create new user
                 // Insert into users table
