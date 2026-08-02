@@ -23,6 +23,7 @@ interface PassportRequest {
   branch: string;
   year: string;
   clubId: string;
+  club_name: string;
   status: string;
   submitted_at: string;
   reviewed_at: string | null;
@@ -264,14 +265,20 @@ export default function PassportApprovals({ role }: { role: "admin" | "faculty" 
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400 flex-wrap">
-                        {req.branch && <span>{req.branch}</span>}
-                        {req.year && <><span className="text-gray-200">•</span><span>Year {req.year}</span></>}
-                        <span className="text-gray-200">•</span>
-                        <span>Submitted {new Date(req.submitted_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
-                        {req.reviewed_at && (
-                          <><span className="text-gray-200">•</span>
-                          <span>Reviewed {new Date(req.reviewed_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span></>
-                        )}
+                        {[
+                          req.club_name && <span key="club" className="font-medium text-gray-500">{req.club_name}</span>,
+                          req.branch && <span key="branch">{req.branch}</span>,
+                          req.year && <span key="year">Year {req.year}</span>,
+                          <span key="submitted">Submitted {new Date(req.submitted_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>,
+                          req.reviewed_at && <span key="reviewed">Reviewed {new Date(req.reviewed_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>,
+                        ]
+                          .filter(Boolean)
+                          .map((node, i, arr) => (
+                            <span key={i} className="flex items-center gap-3">
+                              {node}
+                              {i < arr.length - 1 && <span className="text-gray-200">•</span>}
+                            </span>
+                          ))}
                       </div>
                     </div>
                   </div>

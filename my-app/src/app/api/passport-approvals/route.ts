@@ -29,9 +29,10 @@ export async function GET(request: Request) {
 
         if (role === 'admin') {
             const [result]: any = await pool.execute(`
-                SELECT pvr.*, s.name AS student_name, s.branch, s.year, s.clubId
+                SELECT pvr.*, s.name AS student_name, s.branch, s.year, s.clubId, c.name AS club_name
                 FROM passport_verification_requests pvr
                 JOIN students s ON pvr.username = s.username
+                LEFT JOIN clubs c ON s.clubId = c.id
                 ORDER BY pvr.submitted_at DESC
             `);
             rows = result;
@@ -48,9 +49,10 @@ export async function GET(request: Request) {
 
             const ph = clubs.map(() => '?').join(',');
             const [result]: any = await pool.execute(`
-                SELECT pvr.*, s.name AS student_name, s.branch, s.year, s.clubId
+                SELECT pvr.*, s.name AS student_name, s.branch, s.year, s.clubId, c.name AS club_name
                 FROM passport_verification_requests pvr
                 JOIN students s ON pvr.username = s.username
+                LEFT JOIN clubs c ON s.clubId = c.id
                 WHERE s.clubId IN (${ph})
                 ORDER BY pvr.submitted_at DESC
             `, clubs);
@@ -64,9 +66,10 @@ export async function GET(request: Request) {
             if (clubIds.length === 0) return NextResponse.json({ requests: [] });
             const ph = clubIds.map(() => '?').join(',');
             const [result]: any = await pool.execute(`
-                SELECT pvr.*, s.name AS student_name, s.branch, s.year, s.clubId
+                SELECT pvr.*, s.name AS student_name, s.branch, s.year, s.clubId, c.name AS club_name
                 FROM passport_verification_requests pvr
                 JOIN students s ON pvr.username = s.username
+                LEFT JOIN clubs c ON s.clubId = c.id
                 WHERE s.clubId IN (${ph})
                 ORDER BY pvr.submitted_at DESC
             `, clubIds);
@@ -78,9 +81,10 @@ export async function GET(request: Request) {
             const clubId = leadRows[0].clubId;
 
             const [result]: any = await pool.execute(`
-                SELECT pvr.*, s.name AS student_name, s.branch, s.year, s.clubId
+                SELECT pvr.*, s.name AS student_name, s.branch, s.year, s.clubId, c.name AS club_name
                 FROM passport_verification_requests pvr
                 JOIN students s ON pvr.username = s.username
+                LEFT JOIN clubs c ON s.clubId = c.id
                 WHERE s.clubId = ?
                 ORDER BY pvr.submitted_at DESC
             `, [clubId]);
