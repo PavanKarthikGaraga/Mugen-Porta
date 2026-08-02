@@ -98,7 +98,13 @@ export async function POST(request: Request) {
     const auth = await requireAuth(['student']);
     if (auth.response) return auth.response;
 
-    const rl = checkRateLimit(request, 'career-roadmap', { limit: 5, windowMs: 60 * 60 * 1000 });
+    // Metered per student, not per IP: a whole campus shares one public IP,
+    // so IP keying would cap the entire university at 5 roadmaps an hour.
+    const rl = checkRateLimit(request, 'career-roadmap', {
+        limit: 5,
+        windowMs: 60 * 60 * 1000,
+        key: auth.user.username as string,
+    });
     if (rl.limited) return rl.response;
 
     try {

@@ -104,7 +104,7 @@ export async function POST(request: Request) {
 
     // Rate-limit real accounts only
     if (!isDemo) {
-        const rl = checkRateLimit(request, 'career-role-matches', { limit: 6, windowMs: 10 * 60 * 1000 });
+        const rl = checkRateLimit(request, 'career-role-matches', { limit: 6, windowMs: 10 * 60 * 1000, key: username });
         if (rl.limited) return rl.response;
     }
 

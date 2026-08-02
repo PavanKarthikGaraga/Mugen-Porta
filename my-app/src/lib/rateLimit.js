@@ -4,11 +4,20 @@ import { NextResponse } from 'next/server';
  * Lightweight in-memory rate limiter for brute-force / abuse protection on
  * sensitive endpoints (login, register, password reset).
  *
- * This is a single-process, fixed-window limiter keyed by client IP + a
- * bucket name. It is intentionally dependency-free (no Redis) so it works
- * out of the box; if the app is ever scaled to multiple Node processes,
- * swap the in-memory Map below for a shared store (e.g. Redis/ioredis,
- * which is already a project dependency).
+ * This is a single-process, fixed-window limiter keyed by a bucket name plus
+ * an identity. Identity defaults to client IP, which is what you want for
+ * unauthenticated endpoints (login, register, password reset) where the
+ * caller has no account yet and brute force is the threat.
+ *
+ * For AUTHENTICATED endpoints, pass `key: <username>` instead. Campus users
+ * share a NAT gateway, so hundreds of distinct students present the same
+ * public IP -- IP keying would let the first few consume the whole bucket
+ * and lock everyone else out. Per-username keying still stops one account
+ * from spamming, without penalising students for sharing a network.
+ *
+ * It is intentionally dependency-free (no Redis) so it works out of the box;
+ * if the app is ever scaled to multiple Node processes, swap the in-memory
+ * Map below for a shared store (e.g. Redis/ioredis, already a dependency).
  */
 
 const buckets = new Map();
@@ -37,16 +46,18 @@ function getClientIp(request) {
 /**
  * @param {Request} request
  * @param {string} bucketName - logical name for the endpoint, e.g. 'login'
- * @param {{ limit?: number, windowMs?: number }} options
+ * @param {{ limit?: number, windowMs?: number, key?: string }} options
+ *   key - identity to meter on. Omit for IP-based limiting (unauthenticated
+ *   endpoints); pass a username for authenticated ones so users behind a
+ *   shared NAT are not lumped into one bucket.
  * @returns {{ limited: boolean, response: Response | null, remaining: number }}
  */
 export function checkRateLimit(request, bucketName, options = {}) {
-    const { limit = 10, windowMs = 60 * 1000 } = options;
+    const { limit = 10, windowMs = 60 * 1000, key: identity } = options;
     const now = Date.now();
     sweep(now);
 
-    const ip = getClientIp(request);
-    const key = `${bucketName}:${ip}`;
+    const key = `${bucketName}:${identity || getClientIp(request)}`;
 
     let entry = buckets.get(key);
     if (!entry || now > entry.resetAt) {
