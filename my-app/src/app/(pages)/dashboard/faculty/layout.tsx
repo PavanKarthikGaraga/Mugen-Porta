@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText,
+    FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp,
     FiCheckSquare, FiActivity, FiAward, FiKey,
 } from "react-icons/fi";
 import ChangePassword from "@/app/components/ChangePassword";
@@ -39,7 +39,6 @@ export default function FacultyDashboardLayout({ children }) {
         { name: 'Overview',            href: '/dashboard/faculty',                  icon: FiHome        },
         { name: 'Profile',             href: '/dashboard/faculty/profile',           icon: FiUser        },
         { name: 'Students',            href: '/dashboard/faculty/students',          icon: FiUsers       },
-        { name: 'Submissions',         href: '/dashboard/faculty/reports',           icon: FiFileText    },
         { name: 'Attendance',          href: '/dashboard/faculty/attendance',        icon: FiCheckSquare },
         { name: 'Attendance Records',  href: '/dashboard/faculty/attendance-records',icon: FiActivity    },
         { name: 'Passport Approvals',  href: '/dashboard/faculty/passport-approvals',icon: FiAward       },

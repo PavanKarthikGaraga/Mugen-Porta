@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   FiUsers, FiTrendingUp, FiRefreshCw, FiChevronRight,
   FiCpu, FiPenTool, FiGlobe, FiZap, FiHeart,
-  FiFilter, FiFileText, FiCheckCircle, FiGrid,
+  FiFilter, FiFileText, FiCheckCircle,
 } from "react-icons/fi";
 import { handleApiError } from "@/lib/apiErrorHandler";
 import StatCard from "@/app/components/dashboard/StatCard";
@@ -305,9 +305,9 @@ export default function FacultyOverviewPage() {
           {/* Quick actions */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
-              { label: "Members",    icon: <FiUsers       size={18} />, href: "/dashboard/faculty/students", color: "#2563EB" },
-              { label: "Evaluate",   icon: <FiCheckCircle size={18} />, href: "/dashboard/faculty/evaluate", color: "#059669" },
-              { label: "Reports",    icon: <FiFileText    size={18} />, href: "/dashboard/faculty/reports",  color: BRAND    },
+              { label: "Members",            icon: <FiUsers       size={18} />, href: "/dashboard/faculty/students",           color: "#2563EB" },
+              { label: "Attendance Records",  icon: <FiCheckCircle size={18} />, href: "/dashboard/faculty/attendance-records", color: "#059669" },
+              { label: "Passport Approvals",  icon: <FiFileText    size={18} />, href: "/dashboard/faculty/passport-approvals", color: BRAND    },
             ].map((item) => (
               <Link
                 key={item.label}
