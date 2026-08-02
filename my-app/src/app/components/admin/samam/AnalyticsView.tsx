@@ -9,7 +9,7 @@ export default function AnalyticsView({ analytics, analyticsLoading, setTab, ope
     <div className="space-y-6">
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPI icon={<FiUsers size={18} />}    label="Registered Students" value={analyticsLoading ? "—" : totalClubStudents}   color="#111827" />
+        <KPI icon={<FiUsers size={18} />}    label="Active SAMAM Students" value={analyticsLoading ? "—" : totalClubStudents}   color="#111827" />
         <KPI icon={<FiStar size={18} />}     label="Total Points Issued"      value={analyticsLoading ? "—" : analytics?.sdcStats?.totalCredits ?? 0}            color="#111827" />
         <KPI icon={<FiAward size={18} />}    label="Badges Distributed"           value={analyticsLoading ? "—" : analytics?.badgeStats?.totalIssued ?? 0}           color="#111827" />
         <KPI icon={<FiBarChart2 size={18} />}label="Unique Badges"   value={analyticsLoading ? "—" : analytics?.badgeStats?.uniqueBadges ?? 0}          color="#111827" />

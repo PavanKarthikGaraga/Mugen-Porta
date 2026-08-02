@@ -3,6 +3,16 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 
+async function ensureSamamAccessColumn() {
+    try {
+        await pool.execute(
+            `ALTER TABLE students ADD COLUMN samam_access TINYINT(1) NOT NULL DEFAULT 0`
+        );
+    } catch (e: any) {
+        if (e.code !== 'ER_DUP_FIELDNAME') throw e;
+    }
+}
+
 export async function GET(request: Request) {
     try {
         const cookieStore = await cookies();
@@ -12,6 +22,8 @@ export async function GET(request: Request) {
         if (!decoded) return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 });
         if (decoded.role !== 'admin') return NextResponse.json({ message: 'Admin role required' }, { status: 403 });
 
+        await ensureSamamAccessColumn();
+
         const [
             levelBreakdownResult,
             sdcTotalResult,
@@ -20,12 +32,16 @@ export async function GET(request: Request) {
             domainSdcResult,
             recentBadgesResult,
             competencyResult,
+            activeSamamStudentsResult,
         ] = await Promise.all([
-            // 1. Students per SAMAM level
+            // 1. Students per SAMAM level — only students with SAMAM
+            // dashboard access actually unlocked, not every registered
+            // student (most of whom have never touched SAMAM at all).
             pool.execute(`
                 SELECT COALESCE(sp.level, 'Explorer') as level, COUNT(*) as count
                 FROM students s
                 LEFT JOIN student_profiles sp ON s.username = sp.username
+                WHERE s.samam_access = 1
                 GROUP BY COALESCE(sp.level, 'Explorer')
                 ORDER BY count DESC
             `),
@@ -83,13 +99,23 @@ export async function GET(request: Request) {
                 FROM student_competencies
                 WHERE score > 0
             `),
+
+            // 8. Students with SAMAM dashboard access currently unlocked/active
+            pool.execute(`
+                SELECT COUNT(*) as count FROM students WHERE samam_access = 1
+            `),
         ]);
 
         const sdcStats = (sdcTotalResult[0] as any[])[0] || {};
         const badgeStats = (badgesResult[0] as any[])[0] || {};
         const compStats = (competencyResult[0] as any[])[0] || {};
+        const activeSamamStats = (activeSamamStudentsResult[0] as any[])[0] || {};
 
         return NextResponse.json({
+            // Students whose SAMAM dashboard access is currently unlocked
+            // (samam_access = 1) -- i.e. actually active on the platform,
+            // not just registered in the students table.
+            totalClubStudents: Number(activeSamamStats.count || 0),
             levelBreakdown: levelBreakdownResult[0] as any[],
             sdcStats: {
                 totalCredits: Number(sdcStats.total_credits || 0),
