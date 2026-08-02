@@ -17,11 +17,19 @@ export default function SettingsManager() {
     try {
       const res = await fetch("/api/admin/setup-badges", { method: "POST" });
       const data = await res.json();
+      const failures: string[] = data.failures || [];
       if (data.success) {
-        toast.success(data.message);
-        setBadgeLog(data.logs || []);
+        if (failures.length > 0) {
+          toast.warning(`${data.message} ${failures.length} activit${failures.length === 1 ? "y" : "ies"} failed.`);
+        } else {
+          toast.success(data.message);
+        }
+        // Show per-activity failures alongside the log so a partial failure
+        // isn't silently swallowed by an otherwise-successful run.
+        setBadgeLog([...(data.logs || []), ...failures.map((f) => `FAILED — ${f}`)]);
       } else {
         toast.error(data.error || "Failed to generate badges");
+        setBadgeLog(failures.map((f) => `FAILED — ${f}`));
       }
     } catch {
       toast.error("Network error");
@@ -137,7 +145,9 @@ export default function SettingsManager() {
             {badgeLog.length === 0 ? (
               <p className="italic text-gray-400">No new badges needed — every activity already has one.</p>
             ) : (
-              badgeLog.map((line, i) => <p key={i}>{line}</p>)
+              badgeLog.map((line, i) => (
+                <p key={i} className={line.startsWith("FAILED") ? "text-red-600 font-medium" : undefined}>{line}</p>
+              ))
             )}
           </div>
         )}
