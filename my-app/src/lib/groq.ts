@@ -9,13 +9,32 @@
  * first model. Only if every (model, key) combination fails does this
  * throw.
  *
- * Model choice: llama-3.1-8b-instant and llama-3.3-70b-versatile (the
- * models this app used previously) were deprecated by Groq for
- * free/developer-tier usage in June 2026. openai/gpt-oss-120b and
- * openai/gpt-oss-20b are the current recommended replacements.
+ * Model tiers are ordered best-quality-first, so a request only degrades to
+ * a weaker model once every key is exhausted on the stronger one. Groq
+ * applies rate limits per (key, model), so each tier below carries its own
+ * independent token budget -- the chain is a capacity multiplier, not just a
+ * reliability net.
+ *
+ * Free-tier budget per key, and the total across 9 keys:
+ *
+ *   openai/gpt-oss-120b       200K TPD /  8K TPM  ->  1.8M tokens/day
+ *   llama-3.3-70b-versatile   100K TPD / 12K TPM  ->  0.9M tokens/day
+ *   openai/gpt-oss-20b        200K TPD /  8K TPM  ->  1.8M tokens/day
+ *   llama-3.1-8b-instant      500K TPD /  6K TPM  ->  4.5M tokens/day
+ *                                                    ----------------
+ *                                                     9.0M tokens/day
+ *
+ * TPD is the binding constraint, not RPD: at ~3.5K tokens per analysis the
+ * token ceiling is reached roughly 18x sooner than the request ceiling, so
+ * adding model tiers buys far more headroom than adding keys would.
  */
 
-const MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b'] as const;
+const MODELS = [
+    'openai/gpt-oss-120b',
+    'llama-3.3-70b-versatile',
+    'openai/gpt-oss-20b',
+    'llama-3.1-8b-instant',
+] as const;
 
 const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 
