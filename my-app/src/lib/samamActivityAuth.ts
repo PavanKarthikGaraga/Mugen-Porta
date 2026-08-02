@@ -88,7 +88,7 @@ export async function checkIssuer(): Promise<ActivityIssuer | null> {
  */
 export async function loadPermittedActivity(issuer: ActivityIssuer, code: string) {
     const [rows]: any = await pool.execute(
-        'SELECT code, title, domain, category, sdc_credits FROM activity_catalogue WHERE code = ? LIMIT 1', [code]
+        'SELECT code, title, domain, category, sdc_credits, badge_id FROM activity_catalogue WHERE code = ? LIMIT 1', [code]
     );
     const activity = rows[0];
     if (!activity) return null;

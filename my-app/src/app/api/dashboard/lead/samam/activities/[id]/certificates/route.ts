@@ -47,9 +47,26 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
             ORDER BY s.name ASC
         `, [id]);
 
+        // The badge mapped to this activity, if any. Surfacing it lets the
+        // Activity Awards UI offer it directly instead of making the user
+        // hunt for it in the full badge catalogue.
+        let mappedBadge: any = null;
+        if (activity.badge_id) {
+            try {
+                const [badgeRows]: any = await pool.execute(
+                    'SELECT id, name, icon, domain, rarity FROM badge_definitions WHERE id = ? LIMIT 1',
+                    [activity.badge_id]
+                );
+                if (badgeRows.length > 0) mappedBadge = badgeRows[0];
+            } catch { /* badge table may not exist yet — fall back to the picker */ }
+        }
+
         return NextResponse.json({
             success: true,
-            activity: { code: activity.code, title: activity.title, domain: activity.domain, credits: activity.sdc_credits },
+            activity: {
+                code: activity.code, title: activity.title, domain: activity.domain,
+                credits: activity.sdc_credits, badge: mappedBadge,
+            },
             students: rows.map((r: any) => ({
                 username: r.username,
                 name: r.name,

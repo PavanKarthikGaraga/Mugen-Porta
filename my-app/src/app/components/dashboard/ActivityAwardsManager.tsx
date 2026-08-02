@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   FiCheckSquare, FiSquare, FiAward, FiStar, FiFileText,
-  FiLoader, FiCheckCircle, FiXCircle, FiClock,
+  FiLoader, FiCheckCircle, FiXCircle, FiClock, FiSearch,
 } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -37,7 +37,10 @@ export default function ActivityAwardsManager() {
   const [activityCode, setActivityCode] = useState("");
 
   const [students, setStudents] = useState<StudentRow[]>([]);
-  const [activityInfo, setActivityInfo] = useState<{ code: string; title: string; domain: string; credits: number } | null>(null);
+  const [activityInfo, setActivityInfo] = useState<{
+    code: string; title: string; domain: string; credits: number;
+    badge?: { id: number; name: string; icon: string; domain: string; rarity: string } | null;
+  } | null>(null);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -46,7 +49,20 @@ export default function ActivityAwardsManager() {
   const [pointsReason, setPointsReason] = useState("");
   const [selectedBadge, setSelectedBadge] = useState("");
   const [badgeReason, setBadgeReason] = useState("");
+  const [badgeSearch, setBadgeSearch] = useState("");
+  const [browsingAllBadges, setBrowsingAllBadges] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Badge mapped to the selected activity, if the catalogue has one.
+  const mappedBadge = activityInfo?.badge ?? null;
+
+  const filteredBadges = useMemo(() => {
+    const q = badgeSearch.trim().toLowerCase();
+    if (!q) return badges;
+    return badges.filter((b: any) =>
+      `${b.name} ${b.domain} ${b.rarity}`.toLowerCase().includes(q)
+    );
+  }, [badges, badgeSearch]);
 
   useEffect(() => {
     fetch("/api/activities").then(r => r.json()).then(d => { if (d.success) setCatalogue(d.data || []); }).catch(() => {});
@@ -62,6 +78,11 @@ export default function ActivityAwardsManager() {
   ), [catalogue, domain, category]);
 
   useEffect(() => {
+    // Reset badge selection whenever the activity changes, so a badge picked
+    // for a previous activity can't be awarded against this one by accident.
+    setSelectedBadge("");
+    setBadgeSearch("");
+    setBrowsingAllBadges(false);
     if (!activityCode) { setStudents([]); setActivityInfo(null); setSelected(new Set()); return; }
     setLoadingStudents(true);
     fetch(`/api/dashboard/lead/samam/activities/${encodeURIComponent(activityCode)}/certificates`)
@@ -353,17 +374,100 @@ export default function ActivityAwardsManager() {
 
                 {tab === "badge" && (
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Select Badge</label>
-                      <select
-                        value={selectedBadge}
-                        onChange={(e) => setSelectedBadge(e.target.value)}
-                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-red-600 focus:bg-white transition-colors"
-                      >
-                        <option value="">-- Choose a Badge --</option>
-                        {badges.map(b => <option key={b.id} value={b.id}>{b.name} ({b.domain} - {b.rarity})</option>)}
-                      </select>
-                    </div>
+                    {/* When the activity has a badge mapped to it, offer that
+                        one directly — that's almost always the intended badge.
+                        The full searchable catalogue stays one click away. */}
+                    {mappedBadge && !browsingAllBadges ? (
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                          Badge for this activity
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBadge(String(mappedBadge.id))}
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-colors ${
+                            String(selectedBadge) === String(mappedBadge.id)
+                              ? "border-red-600 bg-red-50/50"
+                              : "border-gray-200 bg-gray-50 hover:border-gray-300"
+                          }`}
+                        >
+                          <span className="text-2xl flex-shrink-0">{mappedBadge.icon || "🏆"}</span>
+                          <span className="flex-1 min-w-0">
+                            <span className="block text-sm font-bold text-gray-900 truncate">{mappedBadge.name}</span>
+                            <span className="block text-[11px] text-gray-500">{mappedBadge.domain} · {mappedBadge.rarity}</span>
+                          </span>
+                          {String(selectedBadge) === String(mappedBadge.id) && (
+                            <FiCheckCircle size={18} className="text-red-600 flex-shrink-0" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBrowsingAllBadges(true)}
+                          className="mt-2 text-xs font-semibold text-gray-500 hover:text-gray-800 underline"
+                        >
+                          Choose a different badge
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex items-center justify-between mb-2 gap-2">
+                          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                            Select Badge
+                          </label>
+                          {mappedBadge && (
+                            <button
+                              type="button"
+                              onClick={() => { setBrowsingAllBadges(false); setBadgeSearch(""); }}
+                              className="text-xs font-semibold text-gray-500 hover:text-gray-800 underline"
+                            >
+                              Back to mapped badge
+                            </button>
+                          )}
+                        </div>
+
+                        {!mappedBadge && (
+                          <p className="text-xs text-gray-500 mb-2">
+                            No badge is mapped to this activity — pick one below, or map one from
+                            SAMAM Settings → Generate Missing Activity Badges.
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 mb-2">
+                          <FiSearch size={14} className="text-gray-400 flex-shrink-0" />
+                          <input
+                            type="text"
+                            placeholder="Search badges by name, domain or rarity…"
+                            value={badgeSearch}
+                            onChange={(e) => setBadgeSearch(e.target.value)}
+                            className="flex-1 min-w-0 bg-transparent text-sm outline-none text-gray-700 placeholder:text-gray-400"
+                          />
+                        </div>
+
+                        <div className="border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-56 overflow-y-auto">
+                          {filteredBadges.length === 0 ? (
+                            <p className="p-4 text-xs text-gray-400 text-center">No badges match your search.</p>
+                          ) : filteredBadges.map((b: any) => (
+                            <button
+                              key={b.id}
+                              type="button"
+                              onClick={() => setSelectedBadge(String(b.id))}
+                              className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                                String(selectedBadge) === String(b.id) ? "bg-red-50" : "hover:bg-gray-50"
+                              }`}
+                            >
+                              <span className="text-lg flex-shrink-0">{b.icon || "🏆"}</span>
+                              <span className="flex-1 min-w-0">
+                                <span className="block text-sm font-medium text-gray-900 truncate">{b.name}</span>
+                                <span className="block text-[11px] text-gray-500">{b.domain} · {b.rarity}</span>
+                              </span>
+                              {String(selectedBadge) === String(b.id) && (
+                                <FiCheckCircle size={16} className="text-red-600 flex-shrink-0" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Reason (optional)</label>
                       <input
