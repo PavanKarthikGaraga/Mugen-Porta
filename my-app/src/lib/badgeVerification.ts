@@ -37,12 +37,25 @@ async function lookupActivityTitle(code: string): Promise<string | null> {
 // This resolves both cases into "Completion of <Activity Name> (<CODE>)"
 // wherever we can identify the underlying activity, mentioning both the
 // human-readable name and the code.
+// Matches the old default recognition text ("Recognized for outstanding
+// achievement in "X"") that was stored verbatim in earned_from for every
+// badge issued with no custom reason before the wording changed to
+// "Participating in X". Rewritten on every read rather than backfilled in
+// the database, so already-issued badges display correctly immediately
+// with no migration.
+const LEGACY_DEFAULT_RECOGNITION = /^recognized for outstanding achievement in (.+)$/i;
+
 export async function presentableRecognition(earnedFrom: string | null | undefined, requirement: string | null | undefined, badgeName: string): Promise<string> {
     const raw = (earnedFrom || '').trim();
     const isAdminLeak = /^awarded by (admin|faculty|lead)\s*:/i.test(raw);
+    const legacyMatch = raw.match(LEGACY_DEFAULT_RECOGNITION);
 
     const req = (requirement || '').trim();
     const codeMatch = req.match(ACTIVITY_CODE_REQUIREMENT);
+
+    if (legacyMatch) {
+        return `Participating in ${legacyMatch[1]}`;
+    }
 
     if (raw && !isAdminLeak) {
         return raw;
