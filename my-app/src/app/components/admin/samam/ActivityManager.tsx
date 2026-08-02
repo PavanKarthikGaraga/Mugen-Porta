@@ -226,9 +226,10 @@ export default function ActivityManager({
                           <h3 className="font-semibold text-gray-800 text-[14px]">{category}</h3>
                           <span className="text-[11px] font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{items.length} Activities</span>
                         </div>
-                        {/* min-width so the now-labelled action buttons scroll
-                            horizontally rather than crushing Title/Type. */}
-                        <table className="w-full min-w-[980px] text-[13px]">
+                        {/* min-width sized for every column plus the labelled
+                            action buttons, so the table scrolls horizontally
+                            rather than compressing until buttons wrap. */}
+                        <table className="w-full min-w-[1150px] text-[13px]">
                           <thead className="bg-gray-50/50 border-b border-gray-100">
                             <tr>
                               {["Code", "Title", "Type", "Points", "Enrollment", "Status", "Actions"].map((h, i) => (
@@ -247,9 +248,9 @@ export default function ActivityManager({
                                 <td className="px-5 py-3">
                                   <span className="font-mono text-[11px] text-gray-600">{a.code}</span>
                                 </td>
-                                <td className="px-5 py-3">
-                                  <p className="font-medium text-gray-900">{a.title}</p>
-                                  {a.description && <p className="text-[11px] text-gray-500 truncate max-w-[250px] mt-0.5">{a.description}</p>}
+                                <td className="px-5 py-3 align-middle">
+                                  <p className="font-medium text-gray-900 max-w-[320px] leading-snug">{a.title}</p>
+                                  {a.description && <p className="text-[11px] text-gray-500 truncate max-w-[320px] mt-0.5">{a.description}</p>}
                                 </td>
                                 <td className="px-5 py-3 capitalize text-gray-600">{a.activity_type || a.category || "General"}</td>
                                 <td className="px-5 py-3 font-medium text-gray-900">{a.points || a.sdc_credits}</td>
@@ -270,7 +271,12 @@ export default function ActivityManager({
                                     actions were invisible until you happened to
                                     mouse over — and unreachable entirely on a
                                     touch device, which has no hover state. */}
-                                <td className="px-5 py-3">
+                                {/* whitespace-nowrap + w-px keeps the action
+                                    buttons on one line and shrinks the column to
+                                    exactly their width, instead of the cell being
+                                    squeezed until the buttons wrap and their
+                                    borders clip. */}
+                                <td className="px-5 py-3 whitespace-nowrap w-px align-middle">
                                   <div className="flex items-center gap-2 justify-end">
                                     {role === "lead" && (
                                       <Link

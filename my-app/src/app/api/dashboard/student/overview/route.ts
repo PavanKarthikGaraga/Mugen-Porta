@@ -2,6 +2,9 @@ import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { resolveLevel } from '@/lib/samamLevels';
+import {
+    categoriseCompetency, categoryMeta, normaliseCompetency, displayCompetencyName,
+} from '@/lib/competencyCategories';
 
 export const dynamic = 'force-dynamic';
 
@@ -129,7 +132,7 @@ export async function GET() {
         // Mirror that derivation so both agree.
         const derivedCounts = new Map<string, { activities: number; badges: number }>();
         const bump = (raw: any, kind: 'activities' | 'badges') => {
-            const key = String(raw ?? '').trim().toLowerCase();
+            const key = normaliseCompetency(raw);
             if (!key) return;
             if (!derivedCounts.has(key)) derivedCounts.set(key, { activities: 0, badges: 0 });
             derivedCounts.get(key)![kind]++;
@@ -172,6 +175,7 @@ export async function GET() {
         // ── Build competencies (grouped by category) ─────────────────────────
         const compRaw = compRows[0] as any[];
         const catMap = new Map<string, { id: string; title: string; color: string; competencies: any[] }>();
+        const seenNames = new Set<string>();
         for (const r of compRaw) {
             const catKey = String(r.category_id ?? r.category_name ?? 'other');
             if (!catMap.has(catKey)) {
@@ -185,11 +189,13 @@ export async function GET() {
             // An admin-recorded score wins; otherwise fall back to what the
             // student's completed activities and badges imply.
             const recorded = Number(r.score ?? 0);
-            const d = derivedCounts.get(String(r.name ?? '').trim().toLowerCase());
+            const norm = normaliseCompetency(r.name);
+            const d = derivedCounts.get(norm);
             const score = recorded > 0
                 ? recorded
                 : (d ? deriveScore(d.activities, d.badges) : 0);
 
+            seenNames.add(norm);
             catMap.get(catKey)!.competencies.push({
                 id: r.id,
                 name: r.name,
@@ -199,6 +205,38 @@ export async function GET() {
                 isOpportunity: false,
             });
         }
+
+        // Activities and badges store competencies as free text ("Safety
+        // awareness skills"), not as rows in competency_definitions. Anything
+        // earned that way had no matching definition row above, so it never
+        // appeared — and where competency_definitions is empty or absent
+        // entirely, the overview showed nothing at all no matter how many
+        // activities were completed. Fold those in here.
+        for (const [norm, counts] of derivedCounts) {
+            if (seenNames.has(norm)) continue;
+            const score = deriveScore(counts.activities, counts.badges);
+            if (score <= 0) continue;
+
+            const catId = categoriseCompetency(norm);
+            const meta = categoryMeta(catId);
+            if (!catMap.has(catId)) {
+                catMap.set(catId, { id: catId, title: meta.title, color: meta.color, competencies: [] });
+            }
+            catMap.get(catId)!.competencies.push({
+                id: `derived:${norm}`,
+                name: displayCompetencyName(norm),
+                score,
+                level: score >= 80 ? 'Leader' : score >= 55 ? 'Practitioner' : score >= 30 ? 'Foundation' : 'Explorer',
+                color: meta.color,
+                isOpportunity: false,
+            });
+        }
+
+        // Strongest first within each category.
+        for (const cat of catMap.values()) {
+            cat.competencies.sort((a: any, b: any) => b.score - a.score);
+        }
+
         const competencies = Array.from(catMap.values());
 
         // ── Build badges ─────────────────────────────────────────────────────
