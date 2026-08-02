@@ -112,14 +112,13 @@ export default function AdminAwardPage() {
     }
   };
 
-  const handleFetchStudent = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!studentId.trim()) return;
-    
+  const fetchStudent = async (id: string) => {
+    if (!id.trim()) return;
+
     setLoadingStudent(true);
     setStudent(null);
     try {
-      const res = await fetch(`/api/dashboard/student/profile/${studentId.trim()}`);
+      const res = await fetch(`/api/dashboard/student/profile/${id.trim()}`);
       if (res.ok) {
         const data = await res.json();
         setStudent(data);
@@ -132,6 +131,28 @@ export default function AdminAwardPage() {
       setLoadingStudent(false);
     }
   };
+
+  const handleFetchStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await fetchStudent(studentId);
+  };
+
+  // Deep-link support: /dashboard/admin/samam/award?student=<username>&tab=points|badge
+  // lets other pages (e.g. a student's quick-action buttons) jump straight
+  // here with the student pre-loaded, instead of requiring a manual re-search.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const prefillId = params.get("student");
+    const prefillTab = params.get("tab");
+    if (prefillId) {
+      setStudentId(prefillId);
+      fetchStudent(prefillId);
+    }
+    if (prefillTab === "points" || prefillTab === "badge" || prefillTab === "certificate") {
+      setActiveTab(prefillTab);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAwardBadge = async () => {
     if (!selectedBadge) return toast.error("Please select a badge");

@@ -1,21 +1,23 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { FiAward, FiBarChart2, FiUsers, FiActivity, FiStar, FiSettings, FiBriefcase, FiTarget, FiFileText, FiBell } from "react-icons/fi";
+import { FiBarChart2, FiUsers, FiActivity, FiSettings, FiFileText, FiBell } from "react-icons/fi";
 import { toast } from "sonner";
 import { BRAND } from "@/app/components/admin/samam/SharedUI";
 import AnalyticsView from "@/app/components/admin/samam/AnalyticsView";
 import StudentManager from "@/app/components/admin/samam/StudentManager";
 import ActivityManager from "@/app/components/admin/samam/ActivityManager";
-import BadgeManager from "@/app/components/admin/samam/BadgeManager";
 import SubmissionsManager from "@/app/components/admin/samam/SubmissionsManager";
 import NotificationsManager from "@/app/components/admin/samam/NotificationsManager";
 import SettingsManager from "@/app/components/admin/samam/SettingsManager";
 
+// "Recognitions" (bulk badge/points/certificate awarding) moved to its own
+// page at /dashboard/admin/samam/activity-awards, which scopes the award to
+// a specific activity and its actually-enrolled students instead of a bare
+// student-search form.
 const TABS: { key: string, label: string, icon: React.ReactNode, disabled?: boolean }[] = [
   { key: "analytics", label: "Overview", icon: <FiBarChart2 size={15} /> },
   { key: "students",  label: "Students",  icon: <FiUsers size={15} />     },
   { key: "activities",label: "Activities",icon: <FiActivity size={15} />  },
-  { key: "awards",    label: "Recognitions", icon: <FiAward size={15} />      },
   { key: "submissions",label: "Submissions",icon: <FiFileText size={15} /> },
   { key: "notifications",label: "Notifications",icon: <FiBell size={15} /> },
   { key: "settings",label: "Settings",icon: <FiSettings size={15} /> },
@@ -44,13 +46,6 @@ export default function SamamAdminPage() {
   const [activities, setActivities] = useState<any[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [actSearchStr, setActSearchStr] = useState("");
-
-  /* ── Awards ── */
-  const [badgeCatalog, setBadgeCatalog] = useState<any[]>([]);
-  const [pointsForm, setPointsForm] = useState({ username: "", points: "", domain: "TEC", reason: "", category: "admin_award" });
-  const [badgeForm, setBadgeForm] = useState({ username: "", badge_id: "", reason: "" });
-  const [awardHistory, setAwardHistory] = useState<any[]>([]);
-  const [awardLoading, setAwardLoading] = useState(false);
 
   /* ── Fetch analytics ── */
   const fetchAnalytics = useCallback(async () => {
@@ -97,17 +92,10 @@ export default function SamamAdminPage() {
     } finally { setActivitiesLoading(false); }
   }, []);
 
-  /* ── Fetch badge catalog ── */
-  const fetchBadgeCatalog = useCallback(async () => {
-    const res = await fetch("/api/dashboard/admin/samam/award-badge");
-    if (res.ok) setBadgeCatalog((await res.json()).badges || []);
-  }, []);
-
   /* ── Initial loads ── */
   useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
   useEffect(() => { if (tab === "students") fetchStudents(1); }, [tab, fetchStudents]);
   useEffect(() => { if (tab === "activities") fetchActivities(); }, [tab, fetchActivities]);
-  useEffect(() => { if (tab === "awards") fetchBadgeCatalog(); }, [tab, fetchBadgeCatalog]);
 
   /* ── Handlers ── */
   const openStudent = async (s: any) => {
@@ -122,38 +110,6 @@ export default function SamamAdminPage() {
     const data = await res.json();
     if (res.ok) { toast.success(data.message); fetchActivities(); }
     else toast.error(data.message || "Failed");
-  };
-
-  const awardPoints = async () => {
-    setAwardLoading(true);
-    const res = await fetch("/api/dashboard/admin/samam/award-points", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...pointsForm, points: Number(pointsForm.points) }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      toast.success(data.message);
-      setPointsForm({ username: "", points: "", domain: "TEC", reason: "", category: "admin_award" });
-      setAwardHistory(prev => [{ type: "points", ...pointsForm, time: new Date().toLocaleTimeString() }, ...prev.slice(0, 9)]);
-    } else toast.error(data.message || "Failed");
-    setAwardLoading(false);
-  };
-
-  const awardBadge = async () => {
-    setAwardLoading(true);
-    const res = await fetch("/api/dashboard/admin/samam/award-badge", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(badgeForm),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      toast.success(data.message);
-      setBadgeForm({ username: "", badge_id: "", reason: "" });
-      setAwardHistory(prev => [{ type: "badge", ...badgeForm, time: new Date().toLocaleTimeString() }, ...prev.slice(0, 9)]);
-    } else toast.error(data.message || "Failed");
-    setAwardLoading(false);
   };
 
   const filteredActivities = activities.filter(a =>
@@ -215,7 +171,6 @@ export default function SamamAdminPage() {
             students={students} studentsTotal={studentsTotal} studentsPage={studentsPage} studentsLoading={studentsLoading}
             search={search} setSearch={setSearch} filterLevel={filterLevel} setFilterLevel={setFilterLevel} filterYear={filterYear} setFilterYear={setFilterYear} fetchStudents={fetchStudents}
             selectedStudent={selectedStudent} setSelectedStudent={setSelectedStudent} studentDetail={studentDetail} setStudentDetail={setStudentDetail} detailLoading={detailLoading} openStudent={openStudent}
-            setTab={setTab} setPointsForm={setPointsForm} setBadgeForm={setBadgeForm}
           />
         )}
 
@@ -223,13 +178,6 @@ export default function SamamAdminPage() {
           <ActivityManager
             actSearchStr={actSearchStr} setActSearchStr={setActSearchStr} fetchActivities={fetchActivities}
             activitiesLoading={activitiesLoading} filteredActivities={filteredActivities} deleteActivity={deleteActivity}
-          />
-        )}
-
-        {tab === "awards" && (
-          <BadgeManager
-            badgeCatalog={badgeCatalog} pointsForm={pointsForm} setPointsForm={setPointsForm} badgeForm={badgeForm} setBadgeForm={setBadgeForm}
-            awardPoints={awardPoints} awardBadge={awardBadge} awardHistory={awardHistory} awardLoading={awardLoading}
           />
         )}
 
