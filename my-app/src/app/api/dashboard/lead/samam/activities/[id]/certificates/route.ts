@@ -107,7 +107,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             );
         }
 
-        const issuerName = issuer.decoded.name || issuer.decoded.username;
         let issued = 0;
 
         for (const username of eligible) {
@@ -120,7 +119,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
                 [
                     username, activity.code, activity.title, activity.domain ?? null,
                     activity.sdc_credits ?? null, newCertificateVerificationId(),
-                    issuer.decoded.username, issuerName,
+                    // issued_by keeps the real username for internal audit
+                    // trail; issued_by_name is the public-facing
+                    // institutional title shown on the certificate, never
+                    // the individual issuer's actual name.
+                    issuer.decoded.username, 'DIRECTOR-SAC',
                 ]
             );
             if (result.affectedRows > 0) issued++;

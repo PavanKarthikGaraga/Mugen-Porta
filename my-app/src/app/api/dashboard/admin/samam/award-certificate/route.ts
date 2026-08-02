@@ -125,7 +125,11 @@ export async function POST(request: Request) {
             [
                 username, activity.code, activity.title, activity.domain ?? null,
                 activity.sdc_credits ?? null, verificationId,
-                admin.username, admin.name || admin.username,
+                // issued_by keeps the real username for internal audit trail;
+                // issued_by_name is the public-facing institutional title
+                // shown on the certificate, never the individual staff
+                // member's name.
+                admin.username, 'DIRECTOR-SAC',
             ]
         );
 

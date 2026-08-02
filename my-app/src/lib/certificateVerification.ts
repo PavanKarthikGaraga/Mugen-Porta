@@ -108,7 +108,10 @@ export async function getCertificateVerification(verificationId: string): Promis
                 domain: row.domain || row.catalogue_category || null,
                 credits: row.credits,
                 issuedOn: formatIssuedOn(row.issued_on),
-                issuedByName: row.issued_by_name || 'SAC Coordinator',
+                // Always shown as the institutional title, never the actual
+                // staff member's name, regardless of who issued it or what
+                // is stored in issued_by_name.
+                issuedByName: 'DIRECTOR-SAC',
             },
             recipient: {
                 username: row.username,

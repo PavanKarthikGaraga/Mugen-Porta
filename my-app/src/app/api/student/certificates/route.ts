@@ -37,7 +37,9 @@ export async function GET() {
                 domain: r.domain,
                 credits: r.credits,
                 issuedOn: formatIssuedOn(r.issued_on),
-                issuedByName: r.issued_by_name || 'SAC Coordinator',
+                // Institutional title only, never the issuing staff member's
+                // actual name.
+                issuedByName: 'DIRECTOR-SAC',
                 studentName: r.student_name || auth.user.username,
                 studentUsername: auth.user.username,
                 branch: r.student_branch || null,
