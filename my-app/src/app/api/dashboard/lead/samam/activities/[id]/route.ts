@@ -4,6 +4,29 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 
+// The ActivityEditor form always submits `difficulty` and `level` (mapped to
+// journey_level) even when the user never touches them. Both columns were
+// only ever added by a manual, one-off /api/setup-db migration, so on a
+// deployment where that was never run, every save fails on "Unknown column
+// journey_level" -- unconditionally, regardless of activity. Self-heal by
+// running the same idempotent migration here.
+let columnsEnsured = false;
+async function ensureActivityColumns() {
+    if (columnsEnsured) return;
+    try {
+        await pool.query(`
+            ALTER TABLE activity_catalogue
+            ADD COLUMN IF NOT EXISTS difficulty ENUM('Beginner', 'Intermediate', 'Advanced') DEFAULT 'Beginner',
+            ADD COLUMN IF NOT EXISTS journey_level ENUM('Explorer', 'Foundation', 'Practitioner', 'Leader', 'Fellow') DEFAULT 'Explorer',
+            ADD COLUMN IF NOT EXISTS activity_pack VARCHAR(200) DEFAULT NULL,
+            ADD COLUMN IF NOT EXISTS faculty_name VARCHAR(200) DEFAULT NULL,
+            ADD COLUMN IF NOT EXISTS sdgs JSON DEFAULT NULL,
+            ADD COLUMN IF NOT EXISTS hours DECIMAL(5,1) DEFAULT 0.0;
+        `);
+    } catch { /* best-effort; the UPDATE below will surface a real error if this didn't work */ }
+    columnsEnsured = true;
+}
+
 async function getLeadClubData() {
     const cookieStore = await cookies();
     const token = cookieStore.get('tck')?.value;
@@ -121,6 +144,8 @@ const JSON_FIELDS = new Set([
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        await ensureActivityColumns();
+
         const leadData = await getLeadClubData();
         if (!leadData) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 

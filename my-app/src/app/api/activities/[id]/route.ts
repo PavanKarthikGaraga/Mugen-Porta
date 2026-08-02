@@ -13,6 +13,32 @@ const EDITABLE_ACTIVITY_FIELDS = new Set([
     'national_mission', 'pack', 'status', 'journey_level', 'activity_pack', 'faculty_name', 'hours', 'graduate_attributes'
 ]);
 
+// The ActivityEditor form always submits `difficulty` and `level` (mapped to
+// journey_level) even when the user never touches those fields -- they're
+// tracked in form state with a default value from mount. Both columns were
+// only ever added by a manual, one-off /api/setup-db migration, so on any
+// deployment where that was never triggered, this UPDATE fails outright on
+// "Unknown column journey_level" the moment either field is included --
+// which is unconditionally, on every save, regardless of activity. Self-heal
+// by running the same idempotent migration here so editing never depends on
+// someone having remembered to call setup-db first.
+let columnsEnsured = false;
+async function ensureActivityColumns() {
+    if (columnsEnsured) return;
+    try {
+        await pool.query(`
+            ALTER TABLE activity_catalogue
+            ADD COLUMN IF NOT EXISTS difficulty ENUM('Beginner', 'Intermediate', 'Advanced') DEFAULT 'Beginner',
+            ADD COLUMN IF NOT EXISTS journey_level ENUM('Explorer', 'Foundation', 'Practitioner', 'Leader', 'Fellow') DEFAULT 'Explorer',
+            ADD COLUMN IF NOT EXISTS activity_pack VARCHAR(200) DEFAULT NULL,
+            ADD COLUMN IF NOT EXISTS faculty_name VARCHAR(200) DEFAULT NULL,
+            ADD COLUMN IF NOT EXISTS sdgs JSON DEFAULT NULL,
+            ADD COLUMN IF NOT EXISTS hours DECIMAL(5,1) DEFAULT 0.0;
+        `);
+    } catch { /* best-effort; the UPDATE below will surface a real error if this didn't work */ }
+    columnsEnsured = true;
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -88,6 +114,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (auth.response) return auth.response;
 
   try {
+    await ensureActivityColumns();
+
     const { id } = await params;
     const data = await request.json();
 
