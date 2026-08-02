@@ -7,10 +7,11 @@ import {
   FiBookOpen, FiFileText, FiMessageSquare, FiEdit3,
   FiCalendar, FiAward, FiTarget, FiGlobe, FiTrendingUp,
   FiDownload, FiExternalLink, FiZap, FiFlag, FiVideo, FiLink,
-  FiAlertTriangle, FiBriefcase, FiHeart, FiClock, FiLock, FiInbox
+  FiAlertTriangle, FiBriefcase, FiHeart, FiClock, FiLock, FiInbox, FiMapPin
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";
+import { formatActivityDate, formatTimeRange } from "@/lib/formatSchedule";
 import ProgressCard from "@/app/components/dashboard/ProgressCard";
 import EnrollModal from "@/app/components/dashboard/EnrollModal";
 
@@ -275,6 +276,8 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   const diff   = DIFFICULTY_COLOR[activity.difficulty] || DIFFICULTY_COLOR.Beginner;
   const currentEnrolled = enrolledCount || activity.enrolledCount || 0;
   const maxSeats = activity.maxEnrollment || activity.max_seats || 0;
+  const scheduleDate = formatActivityDate(activity.activity_date);
+  const scheduleTime = formatTimeRange(activity.start_time, activity.end_time);
   const isFull = maxSeats > 0 && currentEnrolled >= maxSeats;
   const fillPct = maxSeats > 0 ? Math.round((currentEnrolled / maxSeats) * 100) : 0;
 
@@ -363,6 +366,10 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
               { label: "SAMAM Points", value: activity.credits, icon: <FiStar size={14} style={{ color: BRAND }} /> },
               { label: "Enrolled",    value: `${currentEnrolled}/${maxSeats || "∞"}`, icon: <FiUser size={14} className="text-gray-400" /> },
               { label: "Badge",       value: activity.badge, icon: <FiAward size={14} className="text-amber-500" /> },
+              // Schedule tiles only appear once the organiser has filled them in.
+              ...(scheduleDate ? [{ label: "Date", value: scheduleDate, icon: <FiCalendar size={14} className="text-gray-400" /> }] : []),
+              ...(scheduleTime ? [{ label: "Time", value: scheduleTime, icon: <FiClock size={14} className="text-gray-400" /> }] : []),
+              ...(activity.venue ? [{ label: "Venue", value: activity.venue, icon: <FiMapPin size={14} className="text-gray-400" /> }] : []),
             ].map((s) => (
               <div key={s.label} className="flex items-center gap-2.5 p-3 bg-gray-50 rounded-xl">
                 {s.icon}
