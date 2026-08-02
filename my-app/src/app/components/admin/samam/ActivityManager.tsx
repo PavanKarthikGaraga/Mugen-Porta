@@ -1,7 +1,8 @@
 "use client";
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { FiSearch, FiRefreshCw, FiPlus, FiActivity, FiCheckCircle, FiAlertCircle, FiEdit2, FiTrash2, FiUserCheck, FiUsers } from "react-icons/fi";
+import { FiSearch, FiRefreshCw, FiPlus, FiActivity, FiCheckCircle, FiAlertCircle, FiEdit2, FiTrash2, FiUserCheck, FiUsers, FiDownload } from "react-icons/fi";
+import { toast } from "sonner";
 import { BRAND, DOMAIN_COLORS } from "./SharedUI";
 
 const DOMAIN_NAMES: Record<string, string> = {
@@ -17,6 +18,7 @@ export default function ActivityManager({
 }: any) {
   const [selectedDomain, setSelectedDomain] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   const displayActivities = useMemo(() => {
     return filteredActivities.filter((a: any) => {
@@ -29,13 +31,29 @@ export default function ActivityManager({
   const groupedActivities = displayActivities.reduce((acc: any, curr: any) => {
     const domain = curr.domain || "Other";
     const category = curr.category || "General";
-    
+
     if (!acc[domain]) acc[domain] = {};
     if (!acc[domain][category]) acc[domain][category] = [];
-    
+
     acc[domain][category].push(curr);
     return acc;
   }, {});
+
+  // Render domain groups in the canonical TEC→LCH→ESO→IIE→HWB order. Object
+  // key order otherwise follows insertion, which follows the API's
+  // created_at DESC — so whichever domain had the most recently created
+  // activity floated to the top and looked like the list was filtered to it.
+  const orderedDomainGroups = Object.entries(groupedActivities).sort(
+    ([a], [b]) => {
+      const order = Object.keys(DOMAIN_NAMES);
+      const ia = order.indexOf(a);
+      const ib = order.indexOf(b);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.localeCompare(b);
+    }
+  );
 
   // Extract unique domains and categories for dropdown options
   const rawDomains = Array.from(new Set(filteredActivities.map((a: any) => a.domain || "Other"))) as string[];
@@ -54,6 +72,84 @@ export default function ActivityManager({
       .map((a: any) => a.category || "General")
   )) as string[];
 
+  // Exports exactly what's currently listed — same search + domain + category
+  // filters the table is showing, in the same canonical domain order.
+  const exportXlsx = async () => {
+    if (displayActivities.length === 0) { toast.error("No activities to export"); return; }
+    setExporting(true);
+    try {
+      const ExcelJS = (await import("exceljs")).default;
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet("Activities");
+      ws.columns = [
+        { header: "S.No", key: "sno", width: 7 },
+        { header: "Code", key: "code", width: 14 },
+        { header: "Title", key: "title", width: 40 },
+        { header: "Domain", key: "domain", width: 10 },
+        { header: "Category", key: "category", width: 26 },
+        { header: "Points", key: "points", width: 9 },
+        { header: "Enrolled", key: "enrolled", width: 10 },
+        { header: "Max Seats", key: "max", width: 11 },
+        { header: "Date", key: "date", width: 13 },
+        { header: "Start", key: "start", width: 9 },
+        { header: "End", key: "end", width: 9 },
+        { header: "Venue", key: "venue", width: 26 },
+        { header: "Registration", key: "reg", width: 13 },
+        { header: "Status", key: "status", width: 11 },
+      ];
+
+      const header = ws.getRow(1);
+      header.eachCell(c => {
+        c.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        c.alignment = { horizontal: "center", vertical: "middle" };
+        c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF970003" } };
+      });
+      header.height = 22;
+      ws.views = [{ state: "frozen", ySplit: 1 }];
+      ws.autoFilter = { from: "A1", to: "N1" };
+
+      const ordered = orderedDomainGroups.flatMap(([, categoriesObj]: [string, any]) =>
+        Object.values(categoriesObj).flat() as any[]
+      );
+
+      ordered.forEach((a: any, i: number) => {
+        const row = ws.addRow({
+          sno: i + 1,
+          code: a.code,
+          title: a.title,
+          domain: a.domain || "—",
+          category: a.category || "General",
+          points: a.points ?? a.sdc_credits ?? 0,
+          enrolled: a.enrolledCount || 0,
+          max: a.max_participants || a.max_seats || "∞",
+          date: a.activity_date ? String(a.activity_date).slice(0, 10) : "—",
+          start: a.start_time ? String(a.start_time).slice(0, 5) : "—",
+          end: a.end_time ? String(a.end_time).slice(0, 5) : "—",
+          venue: a.venue || "—",
+          reg: Number(a.registration_open ?? 1) === 1 ? "Open" : "Closed",
+          status: a.status === "active" || a.is_active ? "Active" : "Inactive",
+        });
+        if (i % 2 === 1) {
+          row.eachCell(c => { c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF9FAFB" } }; });
+        }
+      });
+
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `activities_${new Date().toISOString().split("T")[0]}.xlsx`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      toast.success(`Exported ${ordered.length} activities`);
+    } catch {
+      toast.error("Failed to export activities");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
@@ -64,29 +160,36 @@ export default function ActivityManager({
             className="w-full h-9 pl-9 pr-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm" />
         </div>
         
+        {/* Fixed widths: a <select> sizes itself to the selected option's
+            text, so picking a long domain/category name used to widen it and
+            shove the Refresh / New Activity buttons across the row. */}
         <div className="flex items-center gap-3 shrink-0">
-          <select 
-            value={selectedDomain} 
+          <select
+            value={selectedDomain}
             onChange={(e) => { setSelectedDomain(e.target.value); setSelectedCategory(""); }}
-            className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32"
+            className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white w-44 truncate"
           >
             <option value="">All Domains</option>
             {availableDomains.map(d => <option key={d} value={d}>{DOMAIN_NAMES[d] || d}</option>)}
           </select>
 
-          <select 
-            value={selectedCategory} 
+          <select
+            value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white min-w-32"
-            disabled={!selectedDomain && availableCategories.length > 20}
+            className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white w-44 truncate"
           >
             <option value="">All Categories</option>
             {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <button onClick={fetchActivities}
-          className="h-9 px-4 text-[13px] font-medium border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors shadow-sm">
+          className="h-9 px-4 text-[13px] font-medium border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors shadow-sm shrink-0">
           <FiRefreshCw size={14} className={activitiesLoading ? "animate-spin" : ""} /> Refresh
+        </button>
+        <button onClick={exportXlsx}
+          disabled={exporting || displayActivities.length === 0}
+          className="h-9 px-4 text-[13px] font-medium border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors shadow-sm shrink-0 disabled:opacity-50">
+          <FiDownload size={14} /> {exporting ? "Exporting…" : `Export XLSX (${displayActivities.length})`}
         </button>
         <Link
           href={role === "admin" ? "/dashboard/admin/samam/activities/new" : "/dashboard/lead/samam/activities/new"}
@@ -106,7 +209,7 @@ export default function ActivityManager({
             </div>
           ) : (
             <div className="space-y-12">
-              {Object.entries(groupedActivities).map(([domain, categoriesObj]: [string, any]) => (
+              {orderedDomainGroups.map(([domain, categoriesObj]: [string, any]) => (
                 <div key={domain} className="space-y-6">
                   <div className="flex items-center gap-3">
                     <h2 className="text-xl font-bold text-gray-900">{DOMAIN_NAMES[domain] || domain}</h2>

@@ -18,6 +18,9 @@ export async function GET(request: Request) {
     try {
         if (!await checkAdmin()) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
+        // The SELECT below reads the schedule/registration columns.
+        await ensureActivitySchema();
+
         const { searchParams } = new URL(request.url);
         const domain = searchParams.get('domain') || '';
         const search = searchParams.get('search') || '';
@@ -35,6 +38,7 @@ export async function GET(request: Request) {
             SELECT id, code, title, description, domain, category,
                    sdc_credits as points, max_seats as max_participants, status,
                    difficulty, activity_pack, faculty_name, sdgs, hours,
+                   activity_date, start_time, end_time, venue, registration_open,
                    created_at,
                    (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = activity_catalogue.code) as enrolledCount
             FROM activity_catalogue
