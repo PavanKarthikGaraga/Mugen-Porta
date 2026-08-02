@@ -419,65 +419,75 @@ export default function CareerRoadmapPage() {
   // ─── Intro ─────────────────────────────────────────────────────────────────
   if (step === "intro") {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-10 space-y-7">
-        <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold text-white uppercase tracking-wider" style={{ backgroundColor: BRAND }}>
-            <FiMapPin size={10} /> AI-Powered Career Guidance
-          </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
-            Discover Your<br />Career Roadmap
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-lg">
-            Answer 12 questions about your goals, strengths, and interests — tailored for all UG and PG students across every discipline. Our AI generates a personalised career roadmap with milestones, skill priorities, and university recommendations specific to your profile.
-          </p>
-        </div>
+      // Two columns from lg up so the intro fills the width instead of
+      // leaving large empty margins either side of a narrow centred column.
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-6 lg:gap-10 items-start">
 
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { icon: FiTarget, label: "12 Questions", sub: "~5 minutes" },
-            { icon: FiLayers, label: "AI Analysis", sub: "Groq-powered" },
-            { icon: FiMapPin, label: "Full Roadmap", sub: "4 years, personalised" },
-          ].map(({ icon: Icon, label, sub }) => (
-            <div key={label} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 p-4 text-center space-y-1.5">
-              <div className="w-8 h-8 rounded-lg mx-auto flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
-                <Icon size={14} style={{ color: BRAND }} />
+          {/* Left — pitch, highlights and the CTA */}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold text-white uppercase tracking-wider" style={{ backgroundColor: BRAND }}>
+                <FiMapPin size={10} /> AI-Powered Career Guidance
               </div>
-              <p className="text-xs font-bold text-gray-900 dark:text-white">{label}</p>
-              <p className="text-xs text-gray-400">{sub}</p>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white leading-[1.15]">
+                Discover Your Career Roadmap
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Answer 12 questions about your goals, strengths, and interests — tailored for all UG and PG students across every discipline. Our AI generates a personalised career roadmap with milestones, skill priorities, and university recommendations specific to your profile.
+              </p>
             </div>
-          ))}
-        </div>
 
-        <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 p-5 space-y-3">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Your roadmap includes</p>
-          <div className="grid grid-cols-2 gap-y-2.5 gap-x-4">
-            {([
-              [FiTrendingUp, "Top career paths ranked by fit"],
-              [FiLayers,     "Year-wise academic roadmap"],
-              [FiSearch,     "Research areas to explore"],
-              [FiCode,       "Project & portfolio ideas"],
-              [FiGlobe,      "Top universities for Masters / PhD"],
-              [FiUsers,      "SAC club recommendations"],
-              [FiZap,        "Skills to build with priority"],
-              [FiBriefcase,  "Top employers in your domain"],
-            ] as [React.ComponentType<any>, string][]).map(([Icon, text]) => (
-              <div key={text} className="flex items-center gap-2.5">
-                <div className="w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
-                  <Icon size={10} style={{ color: BRAND }} />
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { icon: FiTarget, label: "12 Questions", sub: "~5 minutes" },
+                { icon: FiLayers, label: "AI Analysis", sub: "Groq-powered" },
+                { icon: FiMapPin, label: "Full Roadmap", sub: "4 years" },
+              ].map(({ icon: Icon, label, sub }) => (
+                <div key={label} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 p-3 text-center space-y-1.5">
+                  <div className="w-8 h-8 rounded-lg mx-auto flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
+                    <Icon size={14} style={{ color: BRAND }} />
+                  </div>
+                  <p className="text-xs font-bold text-gray-900 dark:text-white leading-tight">{label}</p>
+                  <p className="text-[11px] text-gray-400 leading-tight">{sub}</p>
                 </div>
-                <span className="text-xs text-gray-600 dark:text-gray-400">{text}</span>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            <button
+              onClick={() => setStep("quiz")}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-sm shadow-md hover:opacity-90 transition-all"
+              style={{ backgroundColor: BRAND }}
+            >
+              Begin Assessment <FiArrowRight size={14} />
+            </button>
+          </div>
+
+          {/* Right — what they get. Single column here so the longer lines
+              ("Top universities for Masters / PhD") don't wrap awkwardly. */}
+          <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 p-5 space-y-3.5">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Your roadmap includes</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-y-3 gap-x-4">
+              {([
+                [FiTrendingUp, "Top career paths ranked by fit"],
+                [FiLayers,     "Year-wise academic roadmap"],
+                [FiSearch,     "Research areas to explore"],
+                [FiCode,       "Project & portfolio ideas"],
+                [FiGlobe,      "Top universities for Masters / PhD"],
+                [FiUsers,      "SAC club recommendations"],
+                [FiZap,        "Skills to build with priority"],
+                [FiBriefcase,  "Top employers in your domain"],
+              ] as [React.ComponentType<any>, string][]).map(([Icon, text]) => (
+                <div key={text} className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
+                    <Icon size={10} style={{ color: BRAND }} />
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">{text}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
-        <button
-          onClick={() => setStep("quiz")}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-sm shadow-md hover:opacity-90 transition-all"
-          style={{ backgroundColor: BRAND }}
-        >
-          Begin Assessment <FiArrowRight size={14} />
-        </button>
       </div>
     );
   }

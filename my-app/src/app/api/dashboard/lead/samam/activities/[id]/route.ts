@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
-import { ensureActivitySchema } from '@/lib/dbMigrate';
+import { ensureActivitySchema, getTableColumns, bustTableColumnCache } from '@/lib/dbMigrate';
 
 // The ActivityEditor form always submits `difficulty` even when the user
 // never touches it. This and the other columns below were only ever added
@@ -153,7 +153,14 @@ const JSON_FIELDS = new Set([
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         await ensureActivityColumns();
-        await ensureActivitySchema(); // schedule/venue/registration_open columns
+        // Best-effort: a failed migration must not block saving the columns
+        // that do exist.
+        try {
+            await ensureActivitySchema();
+            bustTableColumnCache('activity_catalogue');
+        } catch (migrateErr) {
+            console.error('Activity schema migration failed (continuing):', migrateErr);
+        }
 
         const leadData = await getLeadClubData();
         if (!leadData) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -174,6 +181,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         // faculty_name) must never turn into an `undefined` bind parameter,
         // which mysql2 rejects outright and previously surfaced here as a
         // generic 500 on every save.
+        const existingColumns = await getTableColumns('activity_catalogue');
         const fields: string[] = [];
         const values: any[] = [];
         const seenColumns = new Set<string>();
@@ -181,6 +189,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             if (!EDITABLE_ACTIVITY_FIELDS.has(key)) continue;
             const col = COLUMN_ALIASES[key] ?? key;
             if (seenColumns.has(col)) continue;
+            // Skip anything the table doesn't actually have, so a column
+            // missing in this environment can't fail the entire save.
+            if (existingColumns.size > 0 && !existingColumns.has(col)) continue;
             seenColumns.add(col);
             fields.push(`${col} = ?`);
             if (JSON_FIELDS.has(key)) {
@@ -210,7 +221,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     } catch (error: any) {
         console.error('Update activity error:', error);
-        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
+        // Lead-gated editing endpoint: surface the real database error so a
+        // failure is actionable instead of a generic string.
+        return NextResponse.json(
+            { error: `Failed to update activity: ${error.message}` },
+            { status: 500 }
+        );
     }
 }
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
-import { ensureActivitySchema } from '@/lib/dbMigrate';
+import { ensureActivitySchema, getTableColumns, bustTableColumnCache } from '@/lib/dbMigrate';
 
 // Columns callers are allowed to modify via PUT. Anything not in this list
 // (e.g. `id`, `code`, `badge_id`, `created_at`) is silently ignored, so a
@@ -123,10 +123,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     await ensureActivityColumns();
-    await ensureActivitySchema(); // schedule/venue/registration_open columns
+    // Migrations are best-effort: if one fails (permissions, unsupported
+    // syntax on this MySQL version), the save must still go through for
+    // every column that does exist rather than failing outright.
+    try {
+      await ensureActivitySchema();
+      bustTableColumnCache('activity_catalogue');
+    } catch (migrateErr) {
+      console.error('Activity schema migration failed (continuing):', migrateErr);
+    }
 
     const { id } = await params;
     const data = await request.json();
+    const existingColumns = await getTableColumns('activity_catalogue');
 
     // The user might send partial updates, so we only update the fields provided.
     // Only columns in the explicit allow-list can be written - this blocks
@@ -148,6 +157,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
       const col = COLUMN_ALIASES[key] ?? key;
       if (seenColumns.has(col)) continue; // skip duplicate if both 'outcomes' and 'learning_outcomes' sent
+      // Skip anything the table doesn't actually have — a column missing in
+      // this environment must not fail the entire save.
+      if (existingColumns.size > 0 && !existingColumns.has(col)) continue;
       seenColumns.add(col);
 
       fields.push(`${col} = ?`);
@@ -172,7 +184,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ success: true, affectedRows: result.affectedRows });
   } catch (error: any) {
     console.error("PUT Activity Error:", error);
-    return NextResponse.json({ success: false, error: safeMessage(error, 'Failed to update activity') }, { status: 500 });
+    // Admin/faculty-gated editing endpoint: return the real database error.
+    // A bare "Failed to update activity" gave nothing to act on and has now
+    // hidden two separate schema problems.
+    return NextResponse.json(
+      { success: false, error: `Failed to update activity: ${error.message}` },
+      { status: 500 }
+    );
   }
 }
 

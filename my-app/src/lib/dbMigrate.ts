@@ -52,3 +52,42 @@ export async function ensureActivitySchema() {
 
     _done = true;
 }
+
+/**
+ * The set of columns that actually exist on a table, read from
+ * INFORMATION_SCHEMA.
+ *
+ * Activity editing has broken twice now because the form submitted a field
+ * whose column was missing in production (journey_level, then the new
+ * schedule columns), and mysql2 fails the whole UPDATE on the first unknown
+ * column. Callers use this to drop unknown fields instead of 500ing, so a
+ * schema that's behind the code degrades to "that one field didn't save"
+ * rather than "nothing saves at all".
+ *
+ * Cached per process, with an explicit bust so a caller can re-read after
+ * running a migration.
+ */
+const _columnCache = new Map<string, Set<string>>();
+
+export async function getTableColumns(table: string): Promise<Set<string>> {
+    const cached = _columnCache.get(table);
+    if (cached) return cached;
+    try {
+        const [rows]: any = await pool.query(
+            `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
+            [table]
+        );
+        const set = new Set<string>((rows as any[]).map((r: any) => r.COLUMN_NAME));
+        _columnCache.set(table, set);
+        return set;
+    } catch {
+        // If introspection itself fails, return an empty set and let callers
+        // treat that as "unknown — don't filter", rather than blocking writes.
+        return new Set<string>();
+    }
+}
+
+export function bustTableColumnCache(table: string) {
+    _columnCache.delete(table);
+}
