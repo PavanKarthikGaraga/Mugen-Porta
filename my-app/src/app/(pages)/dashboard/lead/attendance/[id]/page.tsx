@@ -227,7 +227,8 @@ export default function LeadAttendanceDetailPage({ params }: { params: Promise<{
         {students.length === 0 ? (
           <div className="p-8 text-center text-sm text-gray-400">No enrolled students.</div>
         ) : (
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px] text-left text-sm">
             <thead>
               <tr className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100">
                 <th className="px-5 py-3">#</th>
@@ -255,6 +256,7 @@ export default function LeadAttendanceDetailPage({ params }: { params: Promise<{
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

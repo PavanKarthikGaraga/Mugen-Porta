@@ -276,7 +276,8 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
             <p>100% Attendance — no absentees.</p>
           </div>
         ) : (
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px] text-left text-sm">
             <thead>
               <tr className="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider border-b">
                 {!attendanceMarked && <th className="p-4 font-semibold w-14 text-center">Absent</th>}
@@ -313,6 +314,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

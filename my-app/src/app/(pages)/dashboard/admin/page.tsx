@@ -539,7 +539,7 @@ export default function AdminOverviewPage() {
         </div>
 
         {/* Domain mini-cards */}
-        <div className="grid grid-cols-5 gap-2 mt-5">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-5">
           {domainMeta.map((d) => (
             <div key={d.key} className="rounded-lg p-3 text-center border" style={{ backgroundColor: `${d.color}10`, borderColor: `${d.color}30` }}>
               <div className="text-sm mb-0.5">{d.icon}</div>

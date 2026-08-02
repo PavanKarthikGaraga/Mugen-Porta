@@ -113,7 +113,7 @@ export default function FacultyDashboardLayout({ children }) {
                 {/* Sidebar - Fixed */}
                 <div
                     className={`
-                        fixed lg:static inset-y-0 left-0 z-20 mt-16 lg:mt-0
+                        fixed lg:static inset-y-0 left-0 z-20 mt-14 lg:mt-0
                         w-64 text-white transform transition-transform duration-300 ease-in-out flex-shrink-0
                         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     `}

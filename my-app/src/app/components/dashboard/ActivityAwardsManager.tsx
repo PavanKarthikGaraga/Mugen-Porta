@@ -233,8 +233,8 @@ export default function ActivityAwardsManager() {
                     : selected.size > 0 ? <FiCheckSquare size={16} className="text-gray-300" /> : <FiSquare size={16} className="text-gray-300" />}
                 </button>
                 <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex-1">Student</span>
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider w-32 text-right">Attendance</span>
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider w-28 text-right">Certificate</span>
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider w-24 sm:w-32 text-right">Status</span>
+                <span className="hidden sm:block text-[11px] font-bold text-gray-500 uppercase tracking-wider w-28 text-right">Certificate</span>
               </div>
 
               <div className="divide-y divide-gray-50 max-h-[45vh] overflow-y-auto">
@@ -247,13 +247,15 @@ export default function ActivityAwardsManager() {
                         <p className="text-sm font-semibold text-gray-900 truncate">{s.name}</p>
                         <p className="text-[11px] text-gray-400">{s.username}</p>
                       </div>
-                      <span className={`w-32 text-right text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center justify-end gap-1 ${
+                      <span className={`w-24 sm:w-32 flex-shrink-0 text-right text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center justify-end gap-1 ${
                         s.eligible ? "text-emerald-700" : s.attendance === 0 ? "text-red-600" : "text-amber-600"
                       }`}>
-                        {s.eligible ? <FiCheckCircle size={11} /> : s.attendance === 0 ? <FiXCircle size={11} /> : <FiClock size={11} />}
-                        {s.eligible ? "Completed" : s.enrollmentStatus || "Pending"}
+                        {s.eligible ? <FiCheckCircle size={11} className="flex-shrink-0" /> : s.attendance === 0 ? <FiXCircle size={11} className="flex-shrink-0" /> : <FiClock size={11} className="flex-shrink-0" />}
+                        <span className="truncate">{s.eligible ? "Completed" : s.enrollmentStatus || "Pending"}</span>
                       </span>
-                      <span className="w-28 text-right">
+                      {/* Certificate state is secondary — dropped on phones so the
+                          student name keeps usable width. */}
+                      <span className="hidden sm:block w-28 flex-shrink-0 text-right">
                         {s.certificate ? (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Issued</span>
                         ) : (
@@ -269,23 +271,31 @@ export default function ActivityAwardsManager() {
             {/* Award actions */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="flex border-b border-gray-100">
+                {/* Labels shorten on phones so all three tabs stay on one row
+                    without wrapping or truncating mid-word. */}
                 <button
-                  className={`flex-1 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${tab === "certificate" ? "text-gray-900 border-b-2 border-red-600 bg-gray-50/50" : "text-gray-400 hover:bg-gray-50"}`}
+                  className={`flex-1 py-3 sm:py-4 text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-colors ${tab === "certificate" ? "text-gray-900 border-b-2 border-red-600 bg-gray-50/50" : "text-gray-400 hover:bg-gray-50"}`}
                   onClick={() => setTab("certificate")}
                 >
-                  <FiFileText /> Issue Certificate
+                  <FiFileText className="flex-shrink-0" />
+                  <span className="sm:hidden">Certificate</span>
+                  <span className="hidden sm:inline">Issue Certificate</span>
                 </button>
                 <button
-                  className={`flex-1 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${tab === "points" ? "text-gray-900 border-b-2 border-red-600 bg-gray-50/50" : "text-gray-400 hover:bg-gray-50"}`}
+                  className={`flex-1 py-3 sm:py-4 text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-colors ${tab === "points" ? "text-gray-900 border-b-2 border-red-600 bg-gray-50/50" : "text-gray-400 hover:bg-gray-50"}`}
                   onClick={() => setTab("points")}
                 >
-                  <FiStar /> Award Points
+                  <FiStar className="flex-shrink-0" />
+                  <span className="sm:hidden">Points</span>
+                  <span className="hidden sm:inline">Award Points</span>
                 </button>
                 <button
-                  className={`flex-1 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${tab === "badge" ? "text-gray-900 border-b-2 border-red-600 bg-gray-50/50" : "text-gray-400 hover:bg-gray-50"}`}
+                  className={`flex-1 py-3 sm:py-4 text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-colors ${tab === "badge" ? "text-gray-900 border-b-2 border-red-600 bg-gray-50/50" : "text-gray-400 hover:bg-gray-50"}`}
                   onClick={() => setTab("badge")}
                 >
-                  <FiAward /> Award Badge
+                  <FiAward className="flex-shrink-0" />
+                  <span className="sm:hidden">Badge</span>
+                  <span className="hidden sm:inline">Award Badge</span>
                 </button>
               </div>
 

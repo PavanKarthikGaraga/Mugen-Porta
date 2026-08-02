@@ -322,13 +322,13 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
 
                       {/* Reject notes input */}
                       {showNotesFor === rec.activity_code && (
-                        <div className="mt-3 flex gap-2 items-start">
+                        <div className="mt-3 flex flex-wrap gap-2 items-start">
                           <input
                             type="text"
                             placeholder="Rejection reason (optional)"
                             value={rejectNotes[rec.activity_code] ?? ""}
                             onChange={e => setRejectNotes(prev => ({ ...prev, [rec.activity_code]: e.target.value }))}
-                            className="flex-1 text-xs px-3 py-2 border border-red-200 rounded-lg outline-none focus:border-red-400 bg-red-50 placeholder:text-gray-400"
+                            className="flex-1 min-w-[150px] text-xs px-3 py-2 border border-red-200 rounded-lg outline-none focus:border-red-400 bg-red-50 placeholder:text-gray-400"
                           />
                           <button
                             onClick={() => handleReview(rec.activity_code, "rejected")}
