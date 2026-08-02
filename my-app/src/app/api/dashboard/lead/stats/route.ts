@@ -26,24 +26,24 @@ export async function GET() {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
         // Run all queries in parallel
-        const [[totalRes], [recentRes], [yearRes], [domainRes]]: any[] = await Promise.all([
+        const [[totalRes], [recentRes], [yearRes], [residenceRes]]: any[] = await Promise.all([
             pool.execute('SELECT COUNT(*) as count FROM students WHERE clubId = ?', [clubId]),
             pool.execute('SELECT COUNT(*) as count FROM students WHERE clubId = ? AND created_at >= ?', [clubId, thirtyDaysAgo.toISOString().slice(0, 19).replace('T', ' ')]),
             pool.execute('SELECT year, COUNT(*) as count FROM students WHERE clubId = ? GROUP BY year ORDER BY year', [clubId]),
-            pool.execute('SELECT selectedDomain, COUNT(*) as count FROM students WHERE clubId = ? GROUP BY selectedDomain ORDER BY count DESC', [clubId]),
+            pool.execute('SELECT residenceType, COUNT(*) as count FROM students WHERE clubId = ? GROUP BY residenceType', [clubId]),
         ]);
 
         const yearWiseCount: Record<string, number> = {};
         (yearRes as any[]).forEach(row => { yearWiseCount[row.year] = row.count; });
 
-        const domainWiseCount: Record<string, number> = {};
-        (domainRes as any[]).forEach(row => { domainWiseCount[row.selectedDomain] = row.count; });
+        const residenceWiseCount: Record<string, number> = { Hostel: 0, 'Day Scholar': 0 };
+        (residenceRes as any[]).forEach(row => { if (row.residenceType) residenceWiseCount[row.residenceType] = row.count; });
 
         return NextResponse.json({
             totalStudents: (totalRes as any[])[0].count,
             recentRegistrations: (recentRes as any[])[0].count,
             yearWiseCount,
-            domainWiseCount,
+            residenceWiseCount,
         });
     } catch (error) {
         console.error('Lead stats error:', error);

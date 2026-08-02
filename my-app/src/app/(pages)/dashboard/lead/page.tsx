@@ -3,9 +3,9 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   FiUsers, FiTrendingUp, FiRefreshCw, FiChevronRight,
-  FiCpu, FiPenTool, FiGlobe, FiZap, FiHeart,
-  FiFileText, FiActivity,
+  FiFileText, FiActivity, FiHome, FiMapPin,
 } from "react-icons/fi";
+import { toast } from "sonner";
 import { handleApiError } from "@/lib/apiErrorHandler";
 import StatCard from "@/app/components/dashboard/StatCard";
 import DashboardCard from "@/app/components/dashboard/DashboardCard";
@@ -19,13 +19,48 @@ const yearLabels: Record<string, string> = {
   "1st": "1st Year", "2nd": "2nd Year", "3rd": "3rd Year", "4th": "4th Year",
 };
 
-const domainMeta = [
-  { key: "TEC", label: "Technical (TEC)",                       color: "#2563EB", icon: <FiCpu   size={13} /> },
-  { key: "LCH", label: "Liberal & Creative Arts (LCH)",         color: "#7C3AED", icon: <FiPenTool size={13} /> },
-  { key: "ESO", label: "Extension & Outreach (ESO)",            color: "#D97706", icon: <FiGlobe size={13} /> },
-  { key: "IIE", label: "Innovation & Entrepreneurship (IIE)",   color: "#059669", icon: <FiZap   size={13} /> },
-  { key: "HWB", label: "Health & Well-being (HWB)",             color: "#E11D48", icon: <FiHeart size={13} /> },
-];
+async function exportResidenceList(type: "Hostel" | "Day Scholar") {
+  const res = await fetch(`/api/dashboard/lead/residence-list?type=${encodeURIComponent(type)}`);
+  if (!res.ok) { toast.error("Failed to fetch student list for export"); return; }
+  const d = await res.json();
+  const students: any[] = d.students ?? [];
+  if (students.length === 0) { toast.error(`No ${type.toLowerCase()} students found`); return; }
+
+  const ExcelJS = (await import("exceljs")).default;
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet(type);
+  ws.columns = [{ width: 16 }, { width: 28 }, { width: 10 }, { width: 18 }, { width: 24 }];
+
+  ws.mergeCells("A1:E1");
+  const tc = ws.getCell("A1");
+  tc.value = `${type} Students`;
+  tc.font = { bold: true, size: 14, color: { argb: "FFFFFFFF" } };
+  tc.alignment = { horizontal: "center", vertical: "middle" };
+  tc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF970003" } };
+  ws.getRow(1).height = 28;
+
+  const headers = type === "Hostel"
+    ? ["Student ID", "Student Name", "Year", "Branch", "Hostel"]
+    : ["Student ID", "Student Name", "Year", "Branch", "Bus Route"];
+  const hr = ws.addRow(headers);
+  hr.eachCell(c => {
+    c.font = { bold: true }; c.alignment = { horizontal: "center" };
+    c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE5E7EB" } };
+  });
+
+  students.forEach((s: any) => {
+    ws.addRow([s.username, s.name, s.year, s.branch, type === "Hostel" ? (s.hostelName ?? "") : (s.busRoute ?? "")]);
+  });
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `${type.replace(" ", "_")}_Students.xlsx`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast.success(`${type} list downloaded`);
+}
 
 function Skeleton() {
   return (
@@ -47,9 +82,15 @@ export default function LeadOverviewPage() {
     totalStudents: 0,
     recentRegistrations: 0,
     yearWiseCount: {} as Record<string, number>,
-    domainWiseCount: {} as Record<string, number>,
+    residenceWiseCount: { Hostel: 0, "Day Scholar": 0 } as Record<string, number>,
   });
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState<"Hostel" | "Day Scholar" | null>(null);
+
+  const handleExport = async (type: "Hostel" | "Day Scholar") => {
+    setExporting(type);
+    try { await exportResidenceList(type); } finally { setExporting(null); }
+  };
 
   const fetchStats = useCallback(async () => {
     try {
@@ -66,8 +107,10 @@ export default function LeadOverviewPage() {
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  const maxYear   = Math.max(...yearOrder.map((y) => stats.yearWiseCount[y] ?? 0), 1);
-  const maxDomain = Math.max(...domainMeta.map((d) => stats.domainWiseCount[d.key] ?? 0), 1);
+  const maxYear = Math.max(...yearOrder.map((y) => stats.yearWiseCount[y] ?? 0), 1);
+  const hostelCount = stats.residenceWiseCount["Hostel"] ?? 0;
+  const dayScholarCount = stats.residenceWiseCount["Day Scholar"] ?? 0;
+  const maxResidence = Math.max(hostelCount, dayScholarCount, 1);
 
   if (loading && !stats.totalStudents) return <Skeleton />;
 
@@ -150,65 +193,55 @@ export default function LeadOverviewPage() {
           )}
         </DashboardCard>
 
-        {/* Domain distribution */}
+        {/* Residence breakdown */}
         <DashboardCard
-          title="Domain Distribution"
-          subtitle="Members across SAMAM domains"
+          title="Residence Breakdown"
+          subtitle="Hostellers vs Day Scholars"
         >
           {loading ? (
             <div className="space-y-3 animate-pulse">
-              {[1,2,3,4,5].map((i) => <div key={i} className="h-6 bg-gray-100 rounded" />)}
-            </div>
-          ) : Object.keys(stats.domainWiseCount).length > 0 ? (
-            <div className="space-y-3">
-              {domainMeta.map((d) => {
-                const count = stats.domainWiseCount[d.key] ?? 0;
-                return (
-                  <div key={d.key}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                        <span style={{ color: d.color }}>{d.icon}</span>
-                        {d.key}
-                      </span>
-                      <span className="text-xs font-bold text-gray-900">{count.toLocaleString()}</span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${Math.round((count / maxDomain) * 100)}%`, backgroundColor: d.color }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+              {[1,2].map((i) => <div key={i} className="h-6 bg-gray-100 rounded" />)}
             </div>
           ) : (
-            <p className="text-xs text-gray-400 italic text-center py-4">No domain data yet</p>
+            <div className="space-y-4">
+              <ProgressCard
+                label="Hostellers"
+                value={hostelCount}
+                max={maxResidence}
+                showPercentage={false}
+                suffix=" students"
+                color="#2563EB"
+              />
+              <ProgressCard
+                label="Day Scholars"
+                value={dayScholarCount}
+                max={maxResidence}
+                showPercentage={false}
+                suffix=" students"
+                color="#D97706"
+              />
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => handleExport("Hostel")}
+                  disabled={exporting !== null || hostelCount === 0}
+                  className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <FiHome size={12} />
+                  {exporting === "Hostel" ? "Exporting…" : "Export Hostellers"}
+                </button>
+                <button
+                  onClick={() => handleExport("Day Scholar")}
+                  disabled={exporting !== null || dayScholarCount === 0}
+                  className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <FiMapPin size={12} />
+                  {exporting === "Day Scholar" ? "Exporting…" : "Export Day Scholars"}
+                </button>
+              </div>
+            </div>
           )}
         </DashboardCard>
       </div>
-
-      {/* Domain mini-cards */}
-      <DashboardCard title="Domain Summary" subtitle="Quick count across all 5 domains">
-        <div className="grid grid-cols-5 gap-2">
-          {domainMeta.map((d) => {
-            const count = stats.domainWiseCount[d.key] ?? 0;
-            return (
-              <div
-                key={d.key}
-                className="rounded-lg p-3 text-center border"
-                style={{ backgroundColor: `${d.color}10`, borderColor: `${d.color}30` }}
-              >
-                <div className="text-sm mb-0.5" style={{ color: d.color }}>{d.icon}</div>
-                <div className="text-xs font-semibold" style={{ color: d.color }}>{d.key}</div>
-                <div className="text-lg font-bold text-gray-900 leading-tight mt-0.5">
-                  {loading ? "—" : count.toLocaleString()}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </DashboardCard>
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

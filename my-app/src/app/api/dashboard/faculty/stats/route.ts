@@ -74,9 +74,9 @@ export async function GET(request) {
             clubsToQuery
         );
 
-        // Get domain-wise count
-        const [domainWiseResult] = await pool.execute(
-            `SELECT selectedDomain, COUNT(*) as count FROM students WHERE clubId IN (${placeholders}) GROUP BY selectedDomain ORDER BY count DESC`,
+        // Get residence-wise count (Hostel vs Day Scholar)
+        const [residenceWiseResult] = await pool.execute(
+            `SELECT residenceType, COUNT(*) as count FROM students WHERE clubId IN (${placeholders}) GROUP BY residenceType`,
             clubsToQuery
         );
 
@@ -86,16 +86,16 @@ export async function GET(request) {
             yearWiseCount[row.year] = row.count;
         });
 
-        const domainWiseCount = {};
-        domainWiseResult.forEach(row => {
-            domainWiseCount[row.selectedDomain] = row.count;
+        const residenceWiseCount = { Hostel: 0, 'Day Scholar': 0 };
+        residenceWiseResult.forEach(row => {
+            if (row.residenceType) residenceWiseCount[row.residenceType] = row.count;
         });
 
         const stats = {
             totalStudents: totalStudentsResult[0].count,
             recentRegistrations: recentRegistrationsResult[0].count,
             yearWiseCount,
-            domainWiseCount
+            residenceWiseCount
         };
 
         return NextResponse.json(stats);
