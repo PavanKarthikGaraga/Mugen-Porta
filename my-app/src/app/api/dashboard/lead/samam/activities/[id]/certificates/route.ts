@@ -1,92 +1,23 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 import {
     ensureCertificatesTable, newCertificateVerificationId,
 } from '@/lib/certificateVerification';
+import { checkIssuer, loadPermittedActivity } from '@/lib/samamActivityAuth';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * Certificate issuance for a single activity.
  *
- * Certificates are never generated automatically: a lead (or faculty/admin)
- * explicitly issues them for students whose enrollment is marked completed.
- * Leads are additionally restricted to activities inside their own assigned
- * categories, matching the existing attendance route's authorisation model.
+ * Certificates are never generated automatically: an admin, council,
+ * faculty, or lead explicitly issues them for students whose enrollment is
+ * marked completed. Non-admin/faculty issuers are restricted to activities
+ * within their own scope — see @/lib/samamActivityAuth.
  */
 
 const MAX_BULK = 500;
-
-async function checkIssuer() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('tck')?.value;
-    if (!token) return null;
-    const decoded: any = await verifyToken(token);
-    if (!decoded) return null;
-
-    // Faculty and admins may issue for any activity.
-    if (decoded.role === 'faculty' || decoded.role === 'admin') {
-        return { decoded, unrestricted: true, clubId: null, assigned_categories: [] as string[] };
-    }
-    if (decoded.role !== 'lead') return null;
-
-    let leadRows: any[] = [];
-    try {
-        const [rows]: any = await pool.execute(
-            'SELECT clubId, assigned_categories FROM leads WHERE username = ?', [decoded.username]
-        );
-        leadRows = rows;
-    } catch (e: any) {
-        if (e.code === 'ER_BAD_FIELD_ERROR' || e.message?.includes('assigned_categories')) {
-            const [rows]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [decoded.username]);
-            leadRows = rows;
-        } else throw e;
-    }
-    if (leadRows.length === 0) return null;
-
-    let assigned_categories: string[] = [];
-    if (leadRows[0].assigned_categories) {
-        try {
-            assigned_categories = typeof leadRows[0].assigned_categories === 'string'
-                ? JSON.parse(leadRows[0].assigned_categories)
-                : leadRows[0].assigned_categories;
-        } catch { /* treat as none */ }
-    }
-    return { decoded, unrestricted: false, clubId: leadRows[0].clubId, assigned_categories };
-}
-
-// Confirms the caller is allowed to act on this activity and returns it.
-//
-// Leads reach activities either through an explicit club→activity mapping (how
-// the SAMAM dashboard lists them) or, for older accounts, through
-// `assigned_categories`. Both paths are accepted; gating on categories alone
-// locks out every lead whose access comes from a mapping.
-async function loadPermittedActivity(issuer: any, code: string) {
-    const [rows]: any = await pool.execute(
-        'SELECT code, title, domain, category, sdc_credits FROM activity_catalogue WHERE code = ? LIMIT 1', [code]
-    );
-    const activity = rows[0];
-    if (!activity) return null;
-
-    if (issuer.unrestricted) return activity;
-
-    if (issuer.clubId) {
-        const [mapRows]: any = await pool.execute(
-            'SELECT 1 FROM club_activity_mappings WHERE club_id = ? AND activity_code = ?',
-            [issuer.clubId, code]
-        );
-        if ((mapRows as any[]).length > 0) return activity;
-    }
-
-    if (issuer.assigned_categories?.length && issuer.assigned_categories.includes(activity.category)) {
-        return activity;
-    }
-
-    return null;
-}
 
 // GET — enrolled students for this activity with their completion and
 // certificate status, so the lead can see who is eligible.
