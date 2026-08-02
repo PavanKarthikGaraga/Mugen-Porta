@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { ensureActivitySchema } from '@/lib/dbMigrate';
 
 async function checkAdmin() {
     const cookieStore = await cookies();
@@ -58,28 +59,36 @@ export async function POST(request: Request) {
         const {
             code, title, description, domain, category, points, max_participants, status,
             difficulty, activity_pack, faculty_name, sdgs, hours,
-            purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline
+            purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
+            activity_date, start_time, end_time, venue, registration_open
         } = body;
 
         if (!title || !domain || !points || !code) {
             return NextResponse.json({ message: 'Code, title, domain and points are required' }, { status: 400 });
         }
 
+        await ensureActivitySchema();
+
         const safeJson = (val: any) => val ? JSON.stringify(val) : null;
+        // MySQL rejects '' for DATE/TIME columns in strict mode.
+        const blankToNull = (val: any) => (val === '' || val === undefined ? null : val);
 
         const [result] = await pool.execute(`
             INSERT INTO activity_catalogue
             (code, title, description, domain, category, sdc_credits, max_seats, status,
              difficulty, activity_pack, faculty_name, sdgs, hours,
              purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
+             activity_date, start_time, end_time, venue, registration_open,
              created_by, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         `, [
             code, title, description || '', domain, category || 'event', points, max_participants || null, status || 'upcoming',
             difficulty || 'Beginner', activity_pack || null, faculty_name || null,
             safeJson(sdgs), hours || 0.0,
             purpose || null, safeJson(learning_outcomes), safeJson(competencies), safeJson(graduate_attributes),
             safeJson(resources), safeJson(assignments), safeJson(timeline),
+            blankToNull(activity_date), blankToNull(start_time), blankToNull(end_time),
+            venue || null, registration_open === undefined ? 1 : Number(registration_open),
             admin.username || 'admin'
         ]);
 

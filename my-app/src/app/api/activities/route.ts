@@ -14,12 +14,14 @@ export async function GET(request: Request) {
     // Resolve the calling student's club so we can filter by mappings
     let studentClubId: number | null = null;
     let hasMappings = false;
+    let isStudent = false;
     try {
       const cookieStore = await cookies();
       const token = cookieStore.get('tck')?.value;
       if (token) {
         const decoded = await verifyToken(token);
         if (decoded && decoded.role === 'student') {
+          isStudent = true;
           const [clubRows]: any = await pool.query(
             `SELECT clubId FROM students WHERE username = ?`, [decoded.username]
           );
@@ -37,6 +39,14 @@ export async function GET(request: Request) {
 
     const conditions: string[] = [`ac.approval_status = 'active'`];
     const params: any[] = [];
+
+    // Students only ever see activities that are open for registration.
+    // Staff (admin/council/faculty/lead) keep seeing everything, because this
+    // same endpoint backs the activity pickers on Activity Awards and the
+    // admin award page, which must be able to reach closed activities too.
+    if (isStudent) {
+      conditions.push(`ac.registration_open = 1`);
+    }
 
     if (domain && domain !== 'all') {
       conditions.push(`ac.domain = ?`);

@@ -62,9 +62,11 @@ export async function POST(
 
         const { id } = await params;
 
-        // Fetch activity to check seats
+        // Fetch activity to check seats and the registration gate
         const [actRows] = await pool.execute(
-            `SELECT id, code, title, max_seats FROM activity_catalogue WHERE code = ? OR id = ? LIMIT 1`,
+            `SELECT id, code, title, max_seats,
+                    COALESCE(registration_open, 1) AS registration_open
+             FROM activity_catalogue WHERE code = ? OR id = ? LIMIT 1`,
             [id, id]
         ) as any[];
 
@@ -74,6 +76,13 @@ export async function POST(
 
         const activity = actRows[0];
         const activityCode = activity.code;
+
+        // Enforce the gate server-side: the catalogue already hides closed
+        // activities, but a stale page or a direct API call must not be able
+        // to slip an enrolment through.
+        if (Number(activity.registration_open) !== 1) {
+            return NextResponse.json({ message: 'Registration is closed for this activity' }, { status: 409 });
+        }
 
         // Check already enrolled
         const [existing] = await pool.execute(

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { ensureActivitySchema } from '@/lib/dbMigrate';
 
 // The ActivityEditor form always submits `difficulty` even when the user
 // never touches it. This and the other columns below were only ever added
@@ -135,11 +136,15 @@ const EDITABLE_ACTIVITY_FIELDS = new Set([
     'resources', 'assignments', 'competencies', 'career', 'sdgs', 'ga', 'facultyFeedback',
     'reflection', 'national_mission', 'pack', 'status', 'activity_pack',
     'faculty_name', 'hours', 'graduate_attributes',
+    'activity_date', 'start_time', 'end_time', 'venue', 'registration_open',
 ]);
 const COLUMN_ALIASES: Record<string, string> = {
     outcomes: 'learning_outcomes',
     learning_outcomes: 'learning_outcomes',
 };
+// Empty strings from the date/time inputs must become NULL, not '' — MySQL
+// rejects '' for DATE/TIME columns in strict mode.
+const NULLABLE_WHEN_BLANK = new Set(['activity_date', 'start_time', 'end_time']);
 const JSON_FIELDS = new Set([
     'outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments',
     'competencies', 'graduate_attributes', 'career', 'sdgs', 'ga',
@@ -148,6 +153,7 @@ const JSON_FIELDS = new Set([
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         await ensureActivityColumns();
+        await ensureActivitySchema(); // schedule/venue/registration_open columns
 
         const leadData = await getLeadClubData();
         if (!leadData) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -177,7 +183,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             if (seenColumns.has(col)) continue;
             seenColumns.add(col);
             fields.push(`${col} = ?`);
-            values.push(JSON_FIELDS.has(key) ? JSON.stringify(value) : value);
+            if (JSON_FIELDS.has(key)) {
+                values.push(JSON.stringify(value));
+            } else if (NULLABLE_WHEN_BLANK.has(key) && (value === '' || value === undefined)) {
+                values.push(null);
+            } else {
+                values.push(value);
+            }
         }
 
         if (fields.length === 0) {

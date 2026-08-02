@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
+import { ensureActivitySchema } from '@/lib/dbMigrate';
 
 // Columns callers are allowed to modify via PUT. Anything not in this list
 // (e.g. `id`, `code`, `badge_id`, `created_at`) is silently ignored, so a
@@ -14,8 +15,13 @@ const EDITABLE_ACTIVITY_FIELDS = new Set([
     'title', 'description', 'domain', 'category', 'purpose', 'difficulty',
     'sdc_credits', 'max_seats', 'maxEnrollment', 'outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments',
     'competencies', 'career', 'sdgs', 'ga', 'facultyFeedback', 'reflection',
-    'national_mission', 'pack', 'status', 'activity_pack', 'faculty_name', 'hours', 'graduate_attributes'
+    'national_mission', 'pack', 'status', 'activity_pack', 'faculty_name', 'hours', 'graduate_attributes',
+    'activity_date', 'start_time', 'end_time', 'venue', 'registration_open'
 ]);
+
+// Empty strings from the date/time inputs must become NULL, not '' — MySQL
+// rejects '' for DATE/TIME columns in strict mode.
+const NULLABLE_WHEN_BLANK = new Set(['activity_date', 'start_time', 'end_time']);
 
 // The ActivityEditor form always submits `difficulty` even when the user
 // never touches it -- it's tracked in form state with a default value from
@@ -117,6 +123,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     await ensureActivityColumns();
+    await ensureActivitySchema(); // schedule/venue/registration_open columns
 
     const { id } = await params;
     const data = await request.json();
@@ -144,7 +151,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       seenColumns.add(col);
 
       fields.push(`${col} = ?`);
-      values.push(JSON_FIELDS.has(key) ? JSON.stringify(value) : value);
+      if (JSON_FIELDS.has(key)) {
+        values.push(JSON.stringify(value));
+      } else if (NULLABLE_WHEN_BLANK.has(key) && (value === '' || value === undefined)) {
+        values.push(null);
+      } else {
+        values.push(value);
+      }
     }
 
     if (fields.length === 0) {

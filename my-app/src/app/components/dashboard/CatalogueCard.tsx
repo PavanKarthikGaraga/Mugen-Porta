@@ -4,9 +4,10 @@ import Link from "next/link";
 import {
   FiBookmark, FiStar, FiUsers, FiCheckCircle,
   FiCpu, FiBookOpen, FiHeart, FiZap, FiActivity,
-  FiArrowRight,
+  FiArrowRight, FiCalendar, FiClock, FiMapPin,
 } from "react-icons/fi";
 import { DOMAINS } from "@/app/Data/activities-mock";
+import { formatActivityDate, formatTimeRange } from "@/lib/formatSchedule";
 import EnrollModal from "./EnrollModal";
 
 const BRAND = "rgb(151,0,3)";
@@ -37,6 +38,11 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
   const fillPct = max > 0 ? Math.min(100, Math.round((enrolled / max) * 100)) : 0;
   const isFull = max > 0 && enrolled >= max;
   const diffConf = DIFFICULTY_CONFIG[activity.difficulty] || DIFFICULTY_CONFIG.Beginner;
+
+  const dateLabel = formatActivityDate(activity.activity_date);
+  const timeLabel = formatTimeRange(activity.start_time, activity.end_time);
+  const venueLabel = activity.venue || null;
+  const hasSchedule = Boolean(dateLabel || timeLabel || venueLabel);
 
   const handleEnroll = async () => {
     setEnrollLoading(true);
@@ -79,6 +85,13 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
             <h3 className="text-sm font-bold text-gray-900 leading-tight group-hover:text-red-800 transition-colors truncate">
               {activity.name}
             </h3>
+            {hasSchedule && (
+              <div className="flex items-center gap-3 mt-1 flex-wrap text-[11px] text-gray-500">
+                {dateLabel && <span className="flex items-center gap-1"><FiCalendar size={10} className="text-gray-400" /> {dateLabel}</span>}
+                {timeLabel && <span className="flex items-center gap-1"><FiClock size={10} className="text-gray-400" /> {timeLabel}</span>}
+                {venueLabel && <span className="flex items-center gap-1 min-w-0"><FiMapPin size={10} className="text-gray-400 flex-shrink-0" /> <span className="truncate">{venueLabel}</span></span>}
+              </div>
+            )}
           </div>
 
           {/* Stats */}
@@ -189,6 +202,28 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
         <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
           {activity.purpose}
         </p>
+
+        {/* Schedule & venue — only rendered when the activity has any set */}
+        {hasSchedule && (
+          <div className="flex flex-col gap-1 rounded-lg bg-gray-50 border border-gray-100 px-2.5 py-2">
+            {dateLabel && (
+              <span className="flex items-center gap-1.5 text-[11px] text-gray-600">
+                <FiCalendar size={11} className="text-gray-400 flex-shrink-0" /> {dateLabel}
+              </span>
+            )}
+            {timeLabel && (
+              <span className="flex items-center gap-1.5 text-[11px] text-gray-600">
+                <FiClock size={11} className="text-gray-400 flex-shrink-0" /> {timeLabel}
+              </span>
+            )}
+            {venueLabel && (
+              <span className="flex items-center gap-1.5 text-[11px] text-gray-600 min-w-0">
+                <FiMapPin size={11} className="text-gray-400 flex-shrink-0" />
+                <span className="truncate">{venueLabel}</span>
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Stats */}
         <div className="flex items-center gap-3 text-xs">

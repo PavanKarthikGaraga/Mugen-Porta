@@ -11,6 +11,20 @@ interface ActivityEditorProps {
   role?: "admin" | "lead";
 }
 
+// MySQL DATE comes back as an ISO timestamp ("2026-08-14T00:00:00.000Z");
+// <input type="date"> requires exactly YYYY-MM-DD or it renders blank.
+function toDateInput(val: any): string {
+  if (!val) return "";
+  if (typeof val === "string") return val.slice(0, 10);
+  try { return new Date(val).toISOString().slice(0, 10); } catch { return ""; }
+}
+
+// MySQL TIME comes back as "HH:MM:SS"; <input type="time"> wants HH:MM.
+function toTimeInput(val: any): string {
+  if (!val) return "";
+  return String(val).slice(0, 5);
+}
+
 export default function ActivityEditor({ activityId, initialData, role = "admin" }: ActivityEditorProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(!!activityId && !initialData);
@@ -32,6 +46,14 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     sdc_credits: initialData?.sdc_credits || initialData?.credits || 0,
     max_seats: initialData?.max_seats || initialData?.maxEnrollment || 50,
     difficulty: initialData?.difficulty || "Beginner",
+    // Schedule + venue. `activity_date` arrives from MySQL as a full ISO
+    // timestamp; the date input needs a bare YYYY-MM-DD, and the time inputs
+    // need HH:MM (MySQL TIME comes back as HH:MM:SS).
+    activity_date: toDateInput(initialData?.activity_date),
+    start_time: toTimeInput(initialData?.start_time),
+    end_time: toTimeInput(initialData?.end_time),
+    venue: initialData?.venue || "",
+    registration_open: initialData?.registration_open === undefined ? 1 : Number(initialData.registration_open),
     assignments: (initialData?.assignments || []) as any[],
     resources: (initialData?.resources || []) as any[],
     outcomes: (initialData?.outcomes || initialData?.learning_outcomes || []) as string[],
@@ -52,6 +74,15 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
               outcomes: data.outcomes || data.learning_outcomes || prev.outcomes,
               assignments: parseJson(data.assignments) || prev.assignments,
               resources: parseJson(data.resources) || prev.resources,
+              // Spreading the raw row would put an ISO timestamp / HH:MM:SS
+              // into the date+time inputs, which render blank unless the value
+              // is exactly YYYY-MM-DD / HH:MM.
+              activity_date: toDateInput(data.activity_date),
+              start_time: toTimeInput(data.start_time),
+              end_time: toTimeInput(data.end_time),
+              venue: data.venue || "",
+              registration_open: data.registration_open === undefined || data.registration_open === null
+                ? prev.registration_open : Number(data.registration_open),
             }));
           } else if (d.code || d.title) {
             setFormData(prev => ({
@@ -59,6 +90,12 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
               outcomes: d.outcomes || d.learning_outcomes || prev.outcomes,
               assignments: parseJson(d.assignments) || prev.assignments,
               resources: parseJson(d.resources) || prev.resources,
+              activity_date: toDateInput(d.activity_date),
+              start_time: toTimeInput(d.start_time),
+              end_time: toTimeInput(d.end_time),
+              venue: d.venue || "",
+              registration_open: d.registration_open === undefined || d.registration_open === null
+                ? prev.registration_open : Number(d.registration_open),
             }));
           } else {
             toast.error("Failed to load activity");
@@ -263,6 +300,50 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             <label className="block text-sm font-medium text-gray-700 mb-1">Max Seats</label>
             <input type="number" name="max_seats" value={formData.max_seats} onChange={handleChange} className="w-full p-2 border rounded" />
           </div>
+        </div>
+      </div>
+
+      {/* Schedule & venue */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <h2 className="text-lg font-bold border-b pb-2">Schedule &amp; Venue</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <input type="date" name="activity_date" value={formData.activity_date} onChange={handleChange} className="w-full p-2 border rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Venue</label>
+            <input type="text" name="venue" value={formData.venue} onChange={handleChange} className="w-full p-2 border rounded" placeholder="e.g. Seminar Hall, C-Block" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+            <input type="time" name="start_time" value={formData.start_time} onChange={handleChange} className="w-full p-2 border rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+            <input type="time" name="end_time" value={formData.end_time} onChange={handleChange} className="w-full p-2 border rounded" />
+          </div>
+        </div>
+
+        {/* Registration gate */}
+        <div className="flex items-start justify-between gap-4 pt-4 border-t">
+          <div>
+            <p className="text-sm font-medium text-gray-900">Registration Open</p>
+            <p className="text-xs text-gray-500 mt-1 max-w-md leading-relaxed">
+              When open, this activity appears in the catalogue for students of the clubs it&apos;s
+              mapped to, and they can enrol. When closed it is hidden from the catalogue and new
+              enrolments are refused — students already enrolled keep it in My Activities.
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-1">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={Number(formData.registration_open) === 1}
+              onChange={(e) => setFormData(prev => ({ ...prev, registration_open: e.target.checked ? 1 : 0 }))}
+            />
+            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+          </label>
         </div>
       </div>
 

@@ -3,8 +3,10 @@ import Link from "next/link";
 import {
   FiChevronRight, FiStar, FiAward, FiCheckCircle, FiAlertCircle,
   FiCpu, FiBookOpen, FiHeart, FiZap, FiActivity,
+  FiCalendar, FiClock, FiMapPin,
 } from "react-icons/fi";
 import { DOMAINS } from "@/app/Data/activities-mock";
+import { formatActivityDate, formatTimeRange } from "@/lib/formatSchedule";
 
 const BRAND = "rgb(151,0,3)";
 
@@ -41,6 +43,11 @@ export default function MyActivityRow({ activity, tabKey }: any) {
   const submittedCount = assignments.filter((a) => a.submitted).length;
   const totalAssignments = assignments.length;
 
+  const dateLabel = formatActivityDate(activity?.activity_date);
+  const timeLabel = formatTimeRange(activity?.start_time, activity?.end_time);
+  const venueLabel = activity?.venue || null;
+  const hasSchedule = Boolean(dateLabel || timeLabel || venueLabel);
+
   return (
     <Link
       href={`/dashboard/student/activity-catalogue/${activity?.code}`}
@@ -73,6 +80,13 @@ export default function MyActivityRow({ activity, tabKey }: any) {
               </h4>
               {activity?.category && (
                 <p className="text-[10px] text-gray-400 mt-0.5 truncate">{activity.category}</p>
+              )}
+              {hasSchedule && (
+                <div className="flex items-center gap-3 mt-1.5 flex-wrap text-[11px] text-gray-500">
+                  {dateLabel && <span className="flex items-center gap-1"><FiCalendar size={10} className="text-gray-400" /> {dateLabel}</span>}
+                  {timeLabel && <span className="flex items-center gap-1"><FiClock size={10} className="text-gray-400" /> {timeLabel}</span>}
+                  {venueLabel && <span className="flex items-center gap-1 min-w-0"><FiMapPin size={10} className="text-gray-400 flex-shrink-0" /> <span className="truncate">{venueLabel}</span></span>}
+                </div>
               )}
             </div>
 

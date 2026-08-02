@@ -19,6 +19,17 @@ export async function ensureActivitySchema() {
     await addColumnIfMissing('activity_catalogue', 'submitted_by', 'VARCHAR(100) DEFAULT NULL');
     await addColumnIfMissing('activity_catalogue', 'rejection_note', 'TEXT DEFAULT NULL');
 
+    // Scheduling + venue, shown to students in the catalogue and My Activities.
+    await addColumnIfMissing('activity_catalogue', 'activity_date', 'DATE DEFAULT NULL');
+    await addColumnIfMissing('activity_catalogue', 'start_time', 'TIME DEFAULT NULL');
+    await addColumnIfMissing('activity_catalogue', 'end_time', 'TIME DEFAULT NULL');
+    await addColumnIfMissing('activity_catalogue', 'venue', 'VARCHAR(255) DEFAULT NULL');
+
+    // Registration gate. Defaults to open so existing activities keep their
+    // current behaviour; when closed, the activity disappears from the
+    // student catalogue and enrolment is refused server-side.
+    await addColumnIfMissing('activity_catalogue', 'registration_open', 'TINYINT(1) NOT NULL DEFAULT 1');
+
     // Table for admin → club → activity mappings
     // club_id is VARCHAR because clubs.id is a manually assigned code (not auto-increment INT)
     await pool.query(`
