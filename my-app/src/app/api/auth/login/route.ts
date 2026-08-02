@@ -5,9 +5,14 @@ import bcrypt from "bcryptjs";
 import { checkRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req) {
-    // Brute-force protection: max 8 attempts per IP per minute on this endpoint.
-    const rateLimit = checkRateLimit(req, 'login', { limit: 8, windowMs: 60 * 1000 });
-    if (rateLimit.limited) return rateLimit.response;
+    // Brute-force protection is metered on two dimensions.
+    //
+    // Per IP the ceiling is deliberately high: an entire campus shares one NAT
+    // address, so a full cohort signing in at the start of a session is normal
+    // traffic, not an attack. This dimension exists only to stop a single host
+    // hammering many different accounts.
+    const ipLimit = checkRateLimit(req, 'login-ip', { limit: 100, windowMs: 60 * 1000 });
+    if (ipLimit.limited) return ipLimit.response;
 
     let db;
     try {
@@ -18,6 +23,20 @@ export async function POST(req) {
         if (!username || !password || username.length > 100 || password.length > 200) {
             return new Response(JSON.stringify({ error: "Username and password are required" }), { status: 400, headers: { "Content-Type": "application/json" } });
         }
+
+        // Per account the ceiling is tight. Ten attempts per 15 minutes is
+        // ample for a real student (who needs one or two) while reducing
+        // password guessing against any single account to ~960 tries a day.
+        // Keyed on the lowercased username so case variation can't be used to
+        // mint fresh buckets. A bucket is created for whatever string is
+        // submitted, so a 429 here reveals nothing about whether that account
+        // actually exists -- the enumeration guarantee below still holds.
+        const userLimit = checkRateLimit(req, 'login-user', {
+            limit: 10,
+            windowMs: 15 * 60 * 1000,
+            key: username.toLowerCase(),
+        });
+        if (userLimit.limited) return userLimit.response;
 
         db = await pool.getConnection();
 
