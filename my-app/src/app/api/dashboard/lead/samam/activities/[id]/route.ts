@@ -99,6 +99,26 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 }
 
+// Columns a lead may write via PUT. Mirrors the admin activity editor's
+// allow-list (@/app/api/activities/[id]/route.ts) so both endpoints behave
+// the same way for the same form.
+const EDITABLE_ACTIVITY_FIELDS = new Set([
+    'code', 'title', 'description', 'domain', 'category', 'purpose', 'difficulty', 'level',
+    'sdc_credits', 'max_seats', 'maxEnrollment', 'outcomes', 'learning_outcomes', 'timeline',
+    'resources', 'assignments', 'competencies', 'career', 'sdgs', 'ga', 'facultyFeedback',
+    'reflection', 'national_mission', 'pack', 'status', 'journey_level', 'activity_pack',
+    'faculty_name', 'hours', 'graduate_attributes',
+]);
+const COLUMN_ALIASES: Record<string, string> = {
+    outcomes: 'learning_outcomes',
+    learning_outcomes: 'learning_outcomes',
+    level: 'journey_level',
+};
+const JSON_FIELDS = new Set([
+    'outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments',
+    'competencies', 'graduate_attributes', 'career', 'sdgs', 'ga',
+]);
+
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const leadData = await getLeadClubData();
@@ -106,13 +126,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
         const { id } = await params;
         const body = await request.json();
-        const {
-            code, title, description, domain, category, sdc_credits, max_seats, status,
-            difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
-            purpose, competencies, graduate_attributes, resources, assignments, timeline
-        } = body;
-        // Form may send either 'outcomes' (ActivityEditor field name) or 'learning_outcomes' (DB column name)
-        const outcomes = body.outcomes ?? body.learning_outcomes;
 
         const [checkRows] = await pool.execute('SELECT category, code FROM activity_catalogue WHERE code = ?', [id]);
         if ((checkRows as any[]).length === 0) return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
@@ -122,26 +135,32 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             return NextResponse.json({ message: 'You are not authorized to edit this activity' }, { status: 403 });
         }
 
-        const safeJson = (val: any) => val != null ? JSON.stringify(val) : null;
+        // Only write columns the form actually sent -- a field the
+        // ActivityEditor form doesn't expose (e.g. status, hours,
+        // faculty_name) must never turn into an `undefined` bind parameter,
+        // which mysql2 rejects outright and previously surfaced here as a
+        // generic 500 on every save.
+        const fields: string[] = [];
+        const values: any[] = [];
+        const seenColumns = new Set<string>();
+        for (const [key, value] of Object.entries(body)) {
+            if (!EDITABLE_ACTIVITY_FIELDS.has(key)) continue;
+            const col = COLUMN_ALIASES[key] ?? key;
+            if (seenColumns.has(col)) continue;
+            seenColumns.add(col);
+            fields.push(`${col} = ?`);
+            values.push(JSON_FIELDS.has(key) ? JSON.stringify(value) : value);
+        }
 
-        const [result] = await pool.execute(`
-            UPDATE activity_catalogue
-            SET code = ?, title = ?, description = ?, domain = ?, category = ?,
-                sdc_credits = ?, max_seats = ?, status = ?,
-                difficulty = ?, journey_level = ?, activity_pack = ?, 
-                faculty_name = ?, sdgs = ?, hours = ?,
-                purpose = ?, learning_outcomes = ?, competencies = ?,
-                graduate_attributes = ?, resources = ?, assignments = ?, timeline = ?
-            WHERE code = ?
-        `, [
-            code, title, description, domain, category,
-            sdc_credits, max_seats, status,
-            difficulty, journey_level, activity_pack,
-            faculty_name, safeJson(sdgs), hours,
-            purpose, safeJson(outcomes), safeJson(competencies),
-            safeJson(graduate_attributes), safeJson(resources), safeJson(assignments), safeJson(timeline),
-            id
-        ]);
+        if (fields.length === 0) {
+            return NextResponse.json({ message: 'No fields to update' }, { status: 400 });
+        }
+
+        values.push(id);
+        const [result] = await pool.execute(
+            `UPDATE activity_catalogue SET ${fields.join(', ')} WHERE code = ?`,
+            values
+        );
 
         if ((result as any).affectedRows === 0) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
