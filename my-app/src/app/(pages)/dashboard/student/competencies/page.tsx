@@ -2,10 +2,10 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
-  FiTrendingUp, FiTrendingDown, FiLink, FiTarget, FiArrowRight,
+  FiTrendingUp, FiTrendingDown, FiLink, FiArrowRight,
   FiCpu, FiBriefcase, FiAward, FiSearch, FiZap, FiHeart, FiTag,
   FiBarChart2, FiCompass, FiAlertCircle, FiInfo, FiChevronDown, FiChevronUp,
-  FiCheckCircle, FiPlusCircle, FiGlobe,
+  FiPlusCircle, FiGlobe,
 } from "react-icons/fi";
 import CompetencyRadar from "@/app/components/dashboard/CompetencyRadar";
 
@@ -126,16 +126,6 @@ export default function CompetenciesPage() {
   const totalEvidence = allScored.reduce((s, c) => s + (c.evidence?.length || 0), 0);
   const anyDerived  = allScored.some((c) => c.scoreSource === "derived");
 
-  // "How to improve" — weak scored competencies with suggestions, PLUS 0-score opportunities
-  const allWithSuggestions = categories.flatMap((c: any) =>
-    c.competencies
-      .filter((x: any) => x.suggestions?.length > 0)
-      .map((x: any) => ({ ...x, categoryTitle: c.title, categoryId: c.id }))
-  );
-  const growth = [...allWithSuggestions]
-    .sort((a, b) => (a.score - b.score) || (b.opportunityCount - a.opportunityCount))
-    .slice(0, 6);
-
   const hasAnyData = allScored.length > 0;
 
   return (
@@ -197,7 +187,6 @@ export default function CompetenciesPage() {
       <div className="flex gap-1 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl p-1 w-fit shadow-sm">
         {[
           { key: "overview",  label: "Competencies",    icon: FiCompass },
-          { key: "grow",      label: "How to improve",  icon: FiTarget },
           { key: "insights",  label: "Insights",        icon: FiBarChart2 },
         ].map((v) => (
           <button
@@ -318,97 +307,12 @@ export default function CompetenciesPage() {
         </div>
       )}
 
-      {/* ══ HOW TO IMPROVE ══ */}
-      {activeView === "grow" && (
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5">
-            <h2 className="text-sm font-bold text-gray-900 dark:text-white">Your biggest growth opportunities</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Competencies you can build right now, ranked by lowest score first.
-              Each card links to real catalogue activities that develop them.
-            </p>
-          </div>
-
-          {growth.length === 0 ? (
-            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm text-center py-14 px-6">
-              <FiCheckCircle size={28} className="mx-auto mb-3 text-emerald-400" />
-              <p className="text-sm font-semibold text-gray-700 dark:text-white">You&apos;re on top of it!</p>
-              <p className="text-xs text-gray-500 mt-1.5 max-w-md mx-auto leading-relaxed">
-                You&apos;re either enrolled in every activity that maps to your competencies,
-                or more activities are being added to the catalogue soon.
-              </p>
-            </div>
-          ) : growth.map((c: any) => (
-            <div key={c.id} className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
-              <div className="p-4 flex items-center justify-between gap-3 flex-wrap border-b border-gray-50 dark:border-zinc-800">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-gray-400"><CategoryIcon id={c.categoryId} /></span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{c.name}</p>
-                    <p className="text-[10px] text-gray-400">{c.categoryTitle}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="w-28 h-2 bg-gray-100 dark:bg-zinc-700 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${c.score}%`, backgroundColor: c.color || BRAND }} />
-                  </div>
-                  <span className="text-xs font-bold text-gray-700 dark:text-gray-200 w-9 text-right">{c.score}%</span>
-                </div>
-              </div>
-
-              {/* What's built so far */}
-              {c.evidence?.length > 0 && (
-                <div className="px-4 pt-3 pb-0">
-                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Already built via</p>
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {c.evidence.slice(0, 4).map((ev: any, i: number) => {
-                      const t = EVIDENCE_TYPE[ev.type] || EVIDENCE_TYPE.activity;
-                      return (
-                        <span key={i} className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${t.bg} ${t.text}`}>
-                          {ev.title.length > 30 ? ev.title.slice(0, 29) + "…" : ev.title}
-                        </span>
-                      );
-                    })}
-                    {c.evidence.length > 4 && (
-                      <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                        +{c.evidence.length - 4} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <p className="col-span-full text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
-                  Activities to boost this ({c.opportunityCount} in catalogue)
-                </p>
-                {c.suggestions.map((s: any) => (
-                  <Link
-                    key={s.code}
-                    href={`/dashboard/student/activity-catalogue/${s.code}`}
-                    className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-gray-100 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-500 hover:shadow-sm transition-all group"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">{s.title}</p>
-                      <p className="text-[10px] font-mono text-gray-400">
-                        {s.code}{s.domain ? ` · ${s.domain}` : ""}{s.credits ? ` · ${s.credits} pts` : ""}
-                      </p>
-                    </div>
-                    <FiArrowRight size={13} className="text-gray-300 group-hover:text-gray-700 flex-shrink-0" />
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* ══ INSIGHTS ══ */}
       {activeView === "insights" && (
         <div className="space-y-4">
 
           {/* Stats row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               {
                 label: "Strongest area",
@@ -427,12 +331,6 @@ export default function CompetenciesPage() {
                 value: `${totalEvidence}`,
                 sub: "pieces of evidence recorded",
                 icon: FiLink,
-              },
-              {
-                label: "Growth opportunities",
-                value: `${growth.length}`,
-                sub: "areas with activities available",
-                icon: FiTarget,
               },
             ].map((s) => (
               <div key={s.label} className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4">

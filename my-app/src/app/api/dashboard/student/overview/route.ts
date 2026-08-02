@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
+import { resolveLevel } from '@/lib/samamLevels';
 
 export const dynamic = 'force-dynamic';
 
@@ -90,7 +91,6 @@ export async function GET() {
         };
 
         // ── Build SDC ────────────────────────────────────────────────────────
-        const SDC_TARGET = 350;
         let totalCredits = 0;
         const domainRaw = domainRows[0] as any[];
         domainRaw.forEach((r: any) => { totalCredits += Number(r.total_credits ?? 0); });
@@ -104,7 +104,70 @@ export async function GET() {
                 pct: totalCredits > 0 ? Math.round((credits / totalCredits) * 100) : 0,
             };
         });
-        const sdc = { total: totalCredits, target: SDC_TARGET, byDomain };
+        // Target is the next level's threshold, derived from the canonical
+        // ladder — it used to be a hardcoded 350, which contradicted the
+        // "next level: Foundation (500)" shown right beside it.
+        const resolved = resolveLevel(totalCredits);
+        const sdc = {
+            total: totalCredits,
+            target: resolved.nextLevelAt ?? totalCredits,
+            byDomain,
+        };
+
+        // level_progress / next_level in student_profiles are never
+        // recalculated when points are awarded, so they read 0 / stale for
+        // everyone. Derive both from the actual point total instead.
+        profile.samam.level = resolved.level;
+        profile.samam.nextLevel = resolved.nextLevel ?? resolved.level;
+        profile.samam.levelProgress = resolved.levelProgress;
+
+        // ── Derive competency evidence from completed work ────────────────────
+        // student_competencies only ever holds admin-recorded scores, so a
+        // student who earned competencies purely by completing activities and
+        // badges showed 0 across the board here — while the dedicated
+        // Competencies page (which derives them) showed the real figure.
+        // Mirror that derivation so both agree.
+        const derivedCounts = new Map<string, { activities: number; badges: number }>();
+        const bump = (raw: any, kind: 'activities' | 'badges') => {
+            const key = String(raw ?? '').trim().toLowerCase();
+            if (!key) return;
+            if (!derivedCounts.has(key)) derivedCounts.set(key, { activities: 0, badges: 0 });
+            derivedCounts.get(key)![kind]++;
+        };
+        const asArray = (v: any): any[] => {
+            if (!v) return [];
+            if (Array.isArray(v)) return v;
+            try { const p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch { return []; }
+        };
+
+        try {
+            const [actComp]: any = await pool.execute(
+                `SELECT ac.competencies
+                 FROM activity_enrollments ae
+                 JOIN activity_catalogue ac ON ae.activity_code = ac.code
+                 WHERE ae.username = ? AND ae.status = 'completed'`,
+                [username]
+            );
+            for (const r of actComp) for (const c of asArray(r.competencies)) bump(c, 'activities');
+        } catch { /* optional */ }
+
+        try {
+            const [badgeComp]: any = await pool.execute(
+                `SELECT bd.competencies
+                 FROM student_badges sb
+                 JOIN badge_definitions bd ON sb.badge_id = bd.id
+                 WHERE sb.username = ?`,
+                [username]
+            );
+            for (const r of badgeComp) for (const c of asArray(r.competencies)) bump(c, 'badges');
+        } catch { /* optional */ }
+
+        // Same curve as the Competencies page: 1 activity ≈ 18%, badges +15%.
+        const deriveScore = (activities: number, badges: number) => {
+            if (activities === 0 && badges === 0) return 0;
+            const act = Math.round((1 - Math.pow(0.82, activities)) * 100);
+            return Math.max(0, Math.min(100, act + badges * 15));
+        };
 
         // ── Build competencies (grouped by category) ─────────────────────────
         const compRaw = compRows[0] as any[];
@@ -119,10 +182,18 @@ export async function GET() {
                     competencies: [],
                 });
             }
+            // An admin-recorded score wins; otherwise fall back to what the
+            // student's completed activities and badges imply.
+            const recorded = Number(r.score ?? 0);
+            const d = derivedCounts.get(String(r.name ?? '').trim().toLowerCase());
+            const score = recorded > 0
+                ? recorded
+                : (d ? deriveScore(d.activities, d.badges) : 0);
+
             catMap.get(catKey)!.competencies.push({
                 id: r.id,
                 name: r.name,
-                score: Number(r.score ?? 0),
+                score,
                 level: r.level ?? 'Explorer',
                 color: r.color ?? '#6B7280',
                 isOpportunity: false,

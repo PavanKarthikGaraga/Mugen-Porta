@@ -110,12 +110,46 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
         }
 
-        // ── 1. Catalogue: all active activities with competencies ──────────────
+        // ── 1. Catalogue: activities with competencies that this student can
+        // actually reach. Scoped exactly like /api/activities — restricted to
+        // the clubs mapped to the student's club, and open for registration.
+        // Without this the page suggested (and counted) hundreds of
+        // activities across every club that the student cannot enrol in.
+        let clubScopedCodes: string[] | null = null;
+        try {
+            const [clubRows]: any = await pool.execute(
+                `SELECT clubId FROM students WHERE username = ?`, [username]
+            );
+            const clubId = clubRows[0]?.clubId;
+            if (clubId) {
+                const [mapRows]: any = await pool.execute(
+                    `SELECT activity_code FROM club_activity_mappings WHERE club_id = ?`, [clubId]
+                );
+                // Only constrain when mappings exist; a club with none keeps
+                // the previous behaviour rather than showing an empty page.
+                if ((mapRows as any[]).length > 0) {
+                    clubScopedCodes = (mapRows as any[]).map((r: any) => r.activity_code);
+                }
+            }
+        } catch { /* mappings table may not exist — fall through unscoped */ }
+
+        const catConditions = [
+            `competencies IS NOT NULL`,
+            `approval_status IN ('active', 'pending_approval')`,
+            `COALESCE(registration_open, 1) = 1`,
+        ];
+        const catParams: any[] = [];
+        if (clubScopedCodes) {
+            catConditions.push(`code IN (${clubScopedCodes.map(() => '?').join(',')})`);
+            catParams.push(...clubScopedCodes);
+        }
+
         const [catRows]: any = await pool.execute(
             `SELECT code, title, category, domain, sdc_credits, difficulty, competencies
              FROM activity_catalogue
-             WHERE competencies IS NOT NULL AND approval_status IN ('active', 'pending_approval')
-             ORDER BY sdc_credits DESC`
+             WHERE ${catConditions.join(' AND ')}
+             ORDER BY sdc_credits DESC`,
+            catParams
         ).catch(() => [[]]);
 
         // Build: competency name → list of activities that develop it
