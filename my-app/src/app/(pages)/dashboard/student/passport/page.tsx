@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 import {
   FiGithub, FiLinkedin, FiGlobe, FiDownload, FiExternalLink,
@@ -279,9 +280,10 @@ export default function PassportPage() {
                 {(profile.name || profile.username)?.charAt(0).toUpperCase()}
               </span>
               {profile.avatar_url && (
-                <img
+                <Image
                   src={profile.avatar_url}
                   alt={profile.name || "Avatar"}
+                  fill
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               )}

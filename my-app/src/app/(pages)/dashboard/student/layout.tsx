@@ -162,7 +162,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
           SAMAM Access Pending
         </h1>
         <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm mb-1 text-sm">
-          Your SAMAM dashboard hasn't been unlocked yet.
+          Your SAMAM dashboard hasn&apos;t been unlocked yet.
         </p>
         <p className="text-gray-400 dark:text-gray-500 text-center max-w-sm mb-8 text-xs">
           Contact your club lead or SAC admin to get access.
