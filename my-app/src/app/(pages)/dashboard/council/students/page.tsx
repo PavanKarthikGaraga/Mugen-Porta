@@ -55,7 +55,7 @@ export default function CouncilStudentsPage() {
             if (r.ok) {
                 const d = await r.json();
                 setStudents(d.students ?? []);
-                setPagination(d.pagination ?? { page: 1, limit: 50, total: 0, pages: 0 });
+                setPagination({ page: d.page ?? 1, limit: 50, total: d.total ?? 0, pages: d.pages ?? 0 });
             }
         } catch {} finally { setLoading(false); }
     }, [search, yearFilter, clubFilter]);

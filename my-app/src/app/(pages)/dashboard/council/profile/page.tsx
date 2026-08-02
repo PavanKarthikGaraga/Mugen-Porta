@@ -28,7 +28,7 @@ export default function CouncilProfilePage() {
     useEffect(() => {
         fetch('/api/dashboard/council/profile')
             .then(r => r.ok ? r.json() : null)
-            .then(d => { if (d?.profile) setProfile(d.profile); })
+            .then(d => { if (d?.user) setProfile(d.user); })
             .catch(() => {})
             .finally(() => setLoading(false));
     }, []);
