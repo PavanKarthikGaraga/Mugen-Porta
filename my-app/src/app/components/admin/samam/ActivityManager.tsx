@@ -199,7 +199,7 @@ export default function ActivityManager({
       </div>
 
       <div className="bg-white rounded-md border border-gray-200 flex-1 flex flex-col">
-        <div className="overflow-x-auto">
+        <div>
           {activitiesLoading ? (
             <div className="p-5 space-y-4">{[...Array(6)].map((_,i) => <div key={i} className="h-8 bg-gray-100 rounded-sm animate-pulse" />)}</div>
           ) : filteredActivities.length === 0 ? (
@@ -220,19 +220,29 @@ export default function ActivityManager({
                   </div>
                   
                   <div className="space-y-8 pl-4">
+                    {/* overflow-hidden + the inner scroller keep each table
+                        inside its card's border. The scroll container used to
+                        sit above the headings, so a table wider than the
+                        viewport spilled out past the card's own border
+                        instead of scrolling within it. */}
                     {Object.entries(categoriesObj).map(([category, items]: [string, any]) => (
-                      <div key={category} className="bg-white rounded-md border border-gray-200">
+                      <div key={category} className="bg-white rounded-md border border-gray-200 overflow-hidden">
                         <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 flex justify-between items-center">
                           <h3 className="font-semibold text-gray-800 text-[14px]">{category}</h3>
                           <span className="text-[11px] font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{items.length} Activities</span>
                         </div>
+                        <div className="overflow-x-auto">
                         {/* min-width sized for every column plus the labelled
                             action buttons, so the table scrolls horizontally
                             rather than compressing until buttons wrap. */}
-                        <table className="w-full min-w-[1150px] text-[13px]">
+                        <table className="w-full min-w-[1020px] text-[13px]">
                           <thead className="bg-gray-50/50 border-b border-gray-100">
                             <tr>
-                              {["Code", "Title", "Type", "Points", "Enrollment", "Status", "Actions"].map((h, i) => (
+                              {/* No "Type" column — it repeated the category,
+                                  which is already this card's heading and the
+                                  dropdown filter, and its long values were
+                                  what forced the table past the card. */}
+                              {["Code", "Title", "Points", "Enrollment", "Status", "Actions"].map((h, i) => (
                                 <th
                                   key={i}
                                   className={`px-5 py-3 font-semibold text-gray-600 whitespace-nowrap ${h === "Actions" ? "text-right" : "text-left"}`}
@@ -252,7 +262,6 @@ export default function ActivityManager({
                                   <p className="font-medium text-gray-900 max-w-[320px] leading-snug">{a.title}</p>
                                   {a.description && <p className="text-[11px] text-gray-500 truncate max-w-[320px] mt-0.5">{a.description}</p>}
                                 </td>
-                                <td className="px-5 py-3 capitalize text-gray-600">{a.activity_type || a.category || "General"}</td>
                                 <td className="px-5 py-3 font-medium text-gray-900">{a.points || a.sdc_credits}</td>
                                 <td className="px-5 py-3">
                                   <div className="flex items-center gap-1.5 text-gray-600">
@@ -278,14 +287,14 @@ export default function ActivityManager({
                                     borders clip. */}
                                 <td className="px-5 py-3 whitespace-nowrap w-px align-middle">
                                   <div className="flex items-center gap-2 justify-end">
-                                    {role === "lead" && (
-                                      <Link
-                                        href={`/dashboard/lead/samam/activities/${a.code}/students`}
-                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors whitespace-nowrap"
-                                      >
-                                        <FiUsers size={13} /> Students
-                                      </Link>
-                                    )}
+                                    {/* Registrations come before Attendance —
+                                        you check who signed up, then mark them. */}
+                                    <Link
+                                      href={role === "admin" ? `/dashboard/admin/samam/activities/${a.code}/students` : `/dashboard/lead/samam/activities/${a.code}/students`}
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors whitespace-nowrap"
+                                    >
+                                      <FiUsers size={13} /> Registrations
+                                    </Link>
                                     <Link
                                       href={role === "admin" ? `/dashboard/admin/activities/${a.code}/attendance` : `/dashboard/lead/samam/activities/${a.code}/attendance`}
                                       className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors whitespace-nowrap"
@@ -310,6 +319,7 @@ export default function ActivityManager({
                             ))}
                           </tbody>
                         </table>
+                        </div>
                       </div>
                     ))}
                   </div>

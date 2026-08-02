@@ -1,62 +1,34 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { checkIssuer, loadPermittedActivity } from '@/lib/samamActivityAuth';
 
-async function getLeadData() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('tck')?.value;
-    if (!token) return null;
-    const decoded = await verifyToken(token);
-    if (!decoded || decoded.role !== 'lead') return null;
-
-    const [rows]: any = await pool.execute(
-        'SELECT clubId FROM leads WHERE username = ?',
-        [decoded.username as string]
-    );
-    if (rows.length === 0) return null;
-    return { username: decoded.username as string, clubId: rows[0].clubId };
-}
-
-async function canAccessActivity(leadData: any, activityCode: string): Promise<boolean> {
-    if (leadData.clubId) {
-        const [mapRows]: any = await pool.execute(
-            'SELECT 1 FROM club_activity_mappings WHERE club_id = ? AND activity_code = ?',
-            [leadData.clubId, activityCode]
-        );
-        if ((mapRows as any[]).length > 0) return true;
-
-        const [anyMaps]: any = await pool.execute(
-            'SELECT 1 FROM club_activity_mappings WHERE club_id = ? LIMIT 1',
-            [leadData.clubId]
-        );
-        if ((anyMaps as any[]).length > 0) return false;
-    }
-    // Fall back: any activity the lead can see is accessible
-    return true;
+/**
+ * Enrolled students for one activity — list, export and remove a
+ * registration.
+ *
+ * Originally lead-only. Now shared by admin, faculty, council and lead via
+ * the standard activity scoping (admin/faculty unrestricted; council scoped
+ * to their domain's clubs; lead to their own club), so admins get the same
+ * pre-attendance roster view rather than a lead-only feature.
+ */
+async function getAccess(activityCode: string) {
+    const issuer = await checkIssuer();
+    if (!issuer) return null;
+    const activity = await loadPermittedActivity(issuer, activityCode);
+    if (!activity) return null;
+    return { issuer, activity };
 }
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const leadData = await getLeadData();
-        if (!leadData) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
         const { id } = await params;
 
-        // Verify activity exists
-        const [actRows]: any = await pool.execute(
-            'SELECT code, title FROM activity_catalogue WHERE code = ?',
-            [id]
-        );
-        if ((actRows as any[]).length === 0) {
-            return NextResponse.json({ error: 'Activity not found' }, { status: 404 });
-        }
-        const activity = (actRows as any[])[0];
-
-        if (!await canAccessActivity(leadData, id)) {
+        const access = await getAccess(id);
+        if (!access) {
             return NextResponse.json({ error: 'Not authorized to view this activity' }, { status: 403 });
         }
+        const { activity } = access;
 
         // NOTE: activity_enrollments stores the enrolment state in `status`,
         // not `enrollment_status` — selecting the latter 500s the request.
@@ -64,15 +36,21 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
             SELECT
                 ae.username      AS student_id,
                 s.name,
+                s.email,
+                s.phoneNumber,
+                s.gender,
                 s.branch,
                 s.year,
+                s.selectedDomain,
                 s.residenceType,
                 s.hostelName,
                 s.busRoute,
+                c.name           AS clubName,
                 ae.status        AS enrollment_status,
                 ae.enrolled_at
             FROM activity_enrollments ae
             JOIN students s ON ae.username = s.username
+            LEFT JOIN clubs c ON s.clubId = c.id
             WHERE ae.activity_code = ?
             ORDER BY s.name ASC
         `, [id]);
@@ -91,9 +69,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const leadData = await getLeadData();
-        if (!leadData) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
         const { id } = await params;
         const url = new URL(request.url);
         const studentId = url.searchParams.get("studentId");
@@ -102,7 +77,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
             return NextResponse.json({ error: 'Student ID is required' }, { status: 400 });
         }
 
-        if (!await canAccessActivity(leadData, id)) {
+        const access = await getAccess(id);
+        if (!access) {
             return NextResponse.json({ error: 'Not authorized to manage this activity' }, { status: 403 });
         }
 
