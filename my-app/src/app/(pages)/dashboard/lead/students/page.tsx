@@ -370,10 +370,9 @@ export default function LeadStudents() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <button
                                                     onClick={() => handleViewClick(student)}
-                                                    className="text-blue-600 cursor-pointer hover:text-blue-900 p-1 rounded"
-                                                    title="View Details"
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors whitespace-nowrap"
                                                 >
-                                                    <FiEye className="h-4 w-4" />
+                                                    <FiEye className="h-3.5 w-3.5" /> View
                                                 </button>
                                             </td>
                                         </tr>

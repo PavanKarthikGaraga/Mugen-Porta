@@ -226,11 +226,18 @@ export default function ActivityManager({
                           <h3 className="font-semibold text-gray-800 text-[14px]">{category}</h3>
                           <span className="text-[11px] font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{items.length} Activities</span>
                         </div>
-                        <table className="w-full text-[13px]">
+                        {/* min-width so the now-labelled action buttons scroll
+                            horizontally rather than crushing Title/Type. */}
+                        <table className="w-full min-w-[980px] text-[13px]">
                           <thead className="bg-gray-50/50 border-b border-gray-100">
                             <tr>
-                              {["Code", "Title", "Type", "Points", "Enrollment", "Status", ""].map((h, i) => (
-                                <th key={i} className="px-5 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
+                              {["Code", "Title", "Type", "Points", "Enrollment", "Status", "Actions"].map((h, i) => (
+                                <th
+                                  key={i}
+                                  className={`px-5 py-3 font-semibold text-gray-600 whitespace-nowrap ${h === "Actions" ? "text-right" : "text-left"}`}
+                                >
+                                  {h}
+                                </th>
                               ))}
                             </tr>
                           </thead>
@@ -258,38 +265,38 @@ export default function ActivityManager({
                                     {a.status === 'active' || a.is_active ? "Active" : "Inactive"}
                                   </span>
                                 </td>
+                                {/* Always visible and labelled. These used to be
+                                    icon-only and opacity-0 until row hover, so the
+                                    actions were invisible until you happened to
+                                    mouse over — and unreachable entirely on a
+                                    touch device, which has no hover state. */}
                                 <td className="px-5 py-3">
-                                  <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                                  <div className="flex items-center gap-2 justify-end">
                                     {role === "lead" && (
                                       <Link
                                         href={`/dashboard/lead/samam/activities/${a.code}/students`}
-                                        className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
-                                        title="View Enrolled Students"
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors whitespace-nowrap"
                                       >
-                                        <FiUsers size={14} />
+                                        <FiUsers size={13} /> Students
                                       </Link>
                                     )}
                                     <Link
                                       href={role === "admin" ? `/dashboard/admin/activities/${a.code}/attendance` : `/dashboard/lead/samam/activities/${a.code}/attendance`}
-                                      className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
-                                      title="Mark Attendance"
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors whitespace-nowrap"
                                     >
-                                      <FiUserCheck size={14} />
+                                      <FiUserCheck size={13} /> Attendance
                                     </Link>
-
                                     <Link
                                       href={role === "admin" ? `/dashboard/admin/samam/activities/${a.code}/edit` : `/dashboard/lead/samam/activities/${a.code}/edit`}
-                                      className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                                      title="Edit Activity"
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors whitespace-nowrap"
                                     >
-                                      <FiEdit2 size={14} />
+                                      <FiEdit2 size={13} /> Edit
                                     </Link>
-                                    <button 
+                                    <button
                                       onClick={() => deleteActivity(a.code)}
-                                      className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                      title="Delete Activity"
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-colors whitespace-nowrap"
                                     >
-                                      <FiTrash2 size={14} />
+                                      <FiTrash2 size={13} /> Delete
                                     </button>
                                   </div>
                                 </td>

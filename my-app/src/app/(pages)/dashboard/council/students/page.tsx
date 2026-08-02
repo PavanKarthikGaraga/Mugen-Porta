@@ -222,10 +222,9 @@ export default function CouncilStudentsPage() {
                                         <td className="px-4 py-3">
                                             <button
                                                 onClick={() => setSelectedStudent(s)}
-                                                className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                                                title="View Details"
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors whitespace-nowrap"
                                             >
-                                                <FiEye size={14} />
+                                                <FiEye size={12} /> View
                                             </button>
                                         </td>
                                     </tr>

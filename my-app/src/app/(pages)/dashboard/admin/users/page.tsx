@@ -539,19 +539,21 @@ export default function UsersPage() {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <button
-                                                onClick={() => startEdit(user)}
-                                                className="text-blue-600 cursor-pointer hover:text-blue-900 p-1 rounded"
-                                            >
-                                                <FiEdit2 className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(user.username)}
-                                                className="text-red-600 cursor-pointer hover:text-red-900 p-1 rounded"
-                                            >
-                                                <FiTrash2 className="h-4 w-4" />
-                                            </button>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => startEdit(user)}
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors whitespace-nowrap"
+                                                >
+                                                    <FiEdit2 className="h-3.5 w-3.5" /> Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(user.username)}
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-colors whitespace-nowrap"
+                                                >
+                                                    <FiTrash2 className="h-3.5 w-3.5" /> Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
