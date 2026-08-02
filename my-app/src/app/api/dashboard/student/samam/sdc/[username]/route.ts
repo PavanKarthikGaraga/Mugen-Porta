@@ -24,8 +24,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
         const sdcData = {
             total: 0,
             target: 350,
-            semesterTarget: 80,
-            semesterCurrent: 0,
+            monthTarget: 80,
+            monthCurrent: 0,
             yearlyData: [],
             byDomain: [],
             history: [],
@@ -62,16 +62,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
         sdcData.total = totalCredits;
         sdcData.byDomain = byDomain;
 
-        // 2. Get current semester total
-        // We'll approximate current semester as '2025' or whatever the most recent is. 
-        // For now, let's just sum where semester = 2 (assuming even semesters are current).
-        const [semRows] = await pool.execute(`
-            SELECT SUM(credits) as sem_total
+        // 2. Get current calendar month total
+        const [monthRows] = await pool.execute(`
+            SELECT SUM(credits) as month_total
             FROM sdc_transactions
-            WHERE username = ? AND academic_year = '2024-25' AND semester IN (2, 4, 6, 8)
+            WHERE username = ?
+              AND YEAR(granted_at) = YEAR(CURDATE())
+              AND MONTH(granted_at) = MONTH(CURDATE())
         `, [username]) as any[];
-        
-        sdcData.semesterCurrent = semRows[0]?.sem_total ? Number(semRows[0].sem_total) : 0;
+
+        sdcData.monthCurrent = monthRows[0]?.month_total ? Number(monthRows[0].month_total) : 0;
 
         // 3. Get History (Recent activities)
         const [historyRows] = await pool.execute(`

@@ -101,11 +101,11 @@ export default function AnalyticsPage() {
   const totalPoints = sdc?.total || 0;
   const activeDomains = (sdc?.byDomain || []).filter((d: any) => d.credits > 0).length;
   const badgesEarned = badges?.earned?.length || 0;
-  const semesterPoints = sdc?.semesterCurrent || 0;
+  const monthPoints = sdc?.monthCurrent || 0;
 
   const STATS = [
     { label: "Total Points", value: totalPoints, icon: <FiZap />, color: "#D97706", bg: "bg-orange-50 dark:bg-orange-500/10" },
-    { label: "Semester Points", value: semesterPoints, icon: <FiTrendingUp />, color: "#2563EB", bg: "bg-blue-50 dark:bg-blue-500/10" },
+    { label: "Month Points", value: monthPoints, icon: <FiTrendingUp />, color: "#2563EB", bg: "bg-blue-50 dark:bg-blue-500/10" },
     { label: "Badges Earned", value: badgesEarned, icon: <FiAward />, color: "#7C3AED", bg: "bg-purple-50 dark:bg-purple-500/10" },
     { label: "Active Domains", value: `${activeDomains}/5`, icon: <FiActivity />, color: "#059669", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
   ];

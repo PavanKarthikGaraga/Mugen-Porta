@@ -74,9 +74,9 @@ export default function SDCPage() {
     );
   }
 
-  const { total, target, semesterTarget, semesterCurrent, yearlyData, byDomain, history, monthlyTrend } = sdcData;
+  const { total, target, monthTarget, monthCurrent, yearlyData, byDomain, history, monthlyTrend } = sdcData;
   const overallPct = target > 0 ? Math.round((total / target) * 100) : 0;
-  const semPct     = semesterTarget > 0 ? Math.round((semesterCurrent / semesterTarget) * 100) : 0;
+  const monthPct   = monthTarget > 0 ? Math.round((monthCurrent / monthTarget) * 100) : 0;
 
   const trendSeries = [{ key: "credits", color: BRAND, label: "Credits Earned" }];
 
@@ -89,12 +89,12 @@ export default function SDCPage() {
         <div className="p-5">
           <h1 className="text-xl font-bold text-gray-900">SAMAM Points</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Your comprehensive SAMAM Points record — by domain, semester, and over time.
+            Your comprehensive SAMAM Points record — by domain, month, and over time.
           </p>
         </div>
       </div>
 
-      {/* ── Top row: Rings + Semester ── */}
+      {/* ── Top row: Rings + Month ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
         {/* Overall Points */}
@@ -110,17 +110,17 @@ export default function SDCPage() {
           <p className="text-xs text-gray-400">Overall earned</p>
         </div>
 
-        {/* Semester Points */}
+        {/* Month Points */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col justify-center items-center gap-3">
           <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 mb-2">
             <FiTrendingUp size={24} />
           </div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">This Semester</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">This Month</p>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-5xl font-black tracking-tighter text-blue-600">{semesterCurrent}</span>
+            <span className="text-5xl font-black tracking-tighter text-blue-600">{monthCurrent}</span>
             <span className="text-lg font-medium text-blue-300">pts</span>
           </div>
-          <p className="text-xs text-gray-400">Current active semester</p>
+          <p className="text-xs text-gray-400">Current calendar month</p>
         </div>
 
         {/* Yearly breakdown */}
