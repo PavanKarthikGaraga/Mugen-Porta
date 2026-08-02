@@ -47,9 +47,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
         const { id } = await params;
         const body = await request.json();
-        const { 
+        const {
             code, title, description, domain, category, points, max_participants, status,
-            difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
+            difficulty, activity_pack, faculty_name, sdgs, hours,
             purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline
         } = body;
 
@@ -59,7 +59,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             UPDATE activity_catalogue
             SET code = ?, title = ?, description = ?, domain = ?, category = ?,
                 sdc_credits = ?, max_seats = ?, status = ?,
-                difficulty = ?, journey_level = ?, activity_pack = ?, 
+                difficulty = ?, activity_pack = ?,
                 faculty_name = ?, sdgs = ?, hours = ?,
                 purpose = ?, learning_outcomes = ?, competencies = ?,
                 graduate_attributes = ?, resources = ?, assignments = ?, timeline = ?
@@ -67,7 +67,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         `, [
             code, title, description, domain, category,
             points, max_participants, status,
-            difficulty, journey_level, activity_pack,
+            difficulty, activity_pack,
             faculty_name, safeJson(sdgs), hours,
             purpose, safeJson(learning_outcomes), safeJson(competencies),
             safeJson(graduate_attributes), safeJson(resources), safeJson(assignments), safeJson(timeline),

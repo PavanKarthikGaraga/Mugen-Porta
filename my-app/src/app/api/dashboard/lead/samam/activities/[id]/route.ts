@@ -4,12 +4,12 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 
-// The ActivityEditor form always submits `difficulty` and `level` (mapped to
-// journey_level) even when the user never touches them. Both columns were
-// only ever added by a manual, one-off /api/setup-db migration, so on a
-// deployment where that was never run, every save fails on "Unknown column
-// journey_level" -- unconditionally, regardless of activity. Self-heal by
-// running the same idempotent migration here.
+// The ActivityEditor form always submits `difficulty` even when the user
+// never touches it. This and the other columns below were only ever added
+// by a manual, one-off /api/setup-db migration, so on a deployment where
+// that was never run, every save fails on "Unknown column" -- unconditionally,
+// regardless of activity. Self-heal by running the same idempotent migration
+// here.
 let columnsEnsured = false;
 async function ensureActivityColumns() {
     if (columnsEnsured) return;
@@ -17,7 +17,6 @@ async function ensureActivityColumns() {
         await pool.query(`
             ALTER TABLE activity_catalogue
             ADD COLUMN IF NOT EXISTS difficulty ENUM('Beginner', 'Intermediate', 'Advanced') DEFAULT 'Beginner',
-            ADD COLUMN IF NOT EXISTS journey_level ENUM('Explorer', 'Foundation', 'Practitioner', 'Leader', 'Fellow') DEFAULT 'Explorer',
             ADD COLUMN IF NOT EXISTS activity_pack VARCHAR(200) DEFAULT NULL,
             ADD COLUMN IF NOT EXISTS faculty_name VARCHAR(200) DEFAULT NULL,
             ADD COLUMN IF NOT EXISTS sdgs JSON DEFAULT NULL,
@@ -125,17 +124,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 // Columns a lead may write via PUT. Mirrors the admin activity editor's
 // allow-list (@/app/api/activities/[id]/route.ts) so both endpoints behave
 // the same way for the same form.
+//
+// Journey level is a student-progression concept only (computed from SAMAM
+// points earned, see student_profiles.level) -- it is never mapped to or
+// stored against individual activities, so 'level'/'journey_level' is
+// deliberately not in this list.
 const EDITABLE_ACTIVITY_FIELDS = new Set([
-    'code', 'title', 'description', 'domain', 'category', 'purpose', 'difficulty', 'level',
+    'code', 'title', 'description', 'domain', 'category', 'purpose', 'difficulty',
     'sdc_credits', 'max_seats', 'maxEnrollment', 'outcomes', 'learning_outcomes', 'timeline',
     'resources', 'assignments', 'competencies', 'career', 'sdgs', 'ga', 'facultyFeedback',
-    'reflection', 'national_mission', 'pack', 'status', 'journey_level', 'activity_pack',
+    'reflection', 'national_mission', 'pack', 'status', 'activity_pack',
     'faculty_name', 'hours', 'graduate_attributes',
 ]);
 const COLUMN_ALIASES: Record<string, string> = {
     outcomes: 'learning_outcomes',
     learning_outcomes: 'learning_outcomes',
-    level: 'journey_level',
 };
 const JSON_FIELDS = new Set([
     'outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments',

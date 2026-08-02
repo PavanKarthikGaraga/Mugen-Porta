@@ -6,22 +6,25 @@ import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 // (e.g. `id`, `code`, `badge_id`, `created_at`) is silently ignored, so a
 // caller can never use this endpoint to repoint a badge or forge an id via
 // mass assignment, even though the endpoint is admin-gated.
+// Journey level is a student-progression concept only (computed from SAMAM
+// points earned, see student_profiles.level) -- it is never mapped to or
+// stored against individual activities, so 'level'/'journey_level' is
+// deliberately not in this list.
 const EDITABLE_ACTIVITY_FIELDS = new Set([
-    'title', 'description', 'domain', 'category', 'purpose', 'difficulty', 'level',
+    'title', 'description', 'domain', 'category', 'purpose', 'difficulty',
     'sdc_credits', 'max_seats', 'maxEnrollment', 'outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments',
     'competencies', 'career', 'sdgs', 'ga', 'facultyFeedback', 'reflection',
-    'national_mission', 'pack', 'status', 'journey_level', 'activity_pack', 'faculty_name', 'hours', 'graduate_attributes'
+    'national_mission', 'pack', 'status', 'activity_pack', 'faculty_name', 'hours', 'graduate_attributes'
 ]);
 
-// The ActivityEditor form always submits `difficulty` and `level` (mapped to
-// journey_level) even when the user never touches those fields -- they're
-// tracked in form state with a default value from mount. Both columns were
-// only ever added by a manual, one-off /api/setup-db migration, so on any
-// deployment where that was never triggered, this UPDATE fails outright on
-// "Unknown column journey_level" the moment either field is included --
-// which is unconditionally, on every save, regardless of activity. Self-heal
-// by running the same idempotent migration here so editing never depends on
-// someone having remembered to call setup-db first.
+// The ActivityEditor form always submits `difficulty` even when the user
+// never touches it -- it's tracked in form state with a default value from
+// mount. This and the other columns below were only ever added by a manual,
+// one-off /api/setup-db migration, so on any deployment where that was never
+// triggered, saving fails outright on "Unknown column" the moment one is
+// included -- which is unconditionally, on every save, regardless of
+// activity. Self-heal by running the same idempotent migration here so
+// editing never depends on someone having remembered to call setup-db first.
 let columnsEnsured = false;
 async function ensureActivityColumns() {
     if (columnsEnsured) return;
@@ -29,7 +32,6 @@ async function ensureActivityColumns() {
         await pool.query(`
             ALTER TABLE activity_catalogue
             ADD COLUMN IF NOT EXISTS difficulty ENUM('Beginner', 'Intermediate', 'Advanced') DEFAULT 'Beginner',
-            ADD COLUMN IF NOT EXISTS journey_level ENUM('Explorer', 'Foundation', 'Practitioner', 'Leader', 'Fellow') DEFAULT 'Explorer',
             ADD COLUMN IF NOT EXISTS activity_pack VARCHAR(200) DEFAULT NULL,
             ADD COLUMN IF NOT EXISTS faculty_name VARCHAR(200) DEFAULT NULL,
             ADD COLUMN IF NOT EXISTS sdgs JSON DEFAULT NULL,
@@ -126,11 +128,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const fields = [];
     const values = [];
 
-    // Form sends 'outcomes'/'level'; DB columns are 'learning_outcomes'/'journey_level'
+    // Form sends 'outcomes'; DB column is 'learning_outcomes'
     const COLUMN_ALIASES: Record<string, string> = {
       outcomes: 'learning_outcomes',
       learning_outcomes: 'learning_outcomes',
-      level: 'journey_level',
     };
     const JSON_FIELDS = new Set(['outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments', 'competencies', 'graduate_attributes', 'career', 'sdgs', 'ga']);
 

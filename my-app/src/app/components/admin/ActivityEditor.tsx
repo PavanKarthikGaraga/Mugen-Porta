@@ -32,7 +32,6 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     sdc_credits: initialData?.sdc_credits || initialData?.credits || 0,
     max_seats: initialData?.max_seats || initialData?.maxEnrollment || 50,
     difficulty: initialData?.difficulty || "Beginner",
-    level: initialData?.level || "explorer",
     assignments: (initialData?.assignments || []) as any[],
     resources: (initialData?.resources || []) as any[],
     outcomes: (initialData?.outcomes || initialData?.learning_outcomes || []) as string[],

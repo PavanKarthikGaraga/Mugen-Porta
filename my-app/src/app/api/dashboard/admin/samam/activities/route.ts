@@ -33,7 +33,7 @@ export async function GET(request: Request) {
         const [rows] = await pool.execute(`
             SELECT id, code, title, description, domain, category,
                    sdc_credits as points, max_seats as max_participants, status,
-                   difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
+                   difficulty, activity_pack, faculty_name, sdgs, hours,
                    created_at,
                    (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = activity_catalogue.code) as enrolledCount
             FROM activity_catalogue
@@ -55,9 +55,9 @@ export async function POST(request: Request) {
         if (!admin) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const body = await request.json();
-        const { 
+        const {
             code, title, description, domain, category, points, max_participants, status,
-            difficulty, journey_level, activity_pack, faculty_name, sdgs, hours,
+            difficulty, activity_pack, faculty_name, sdgs, hours,
             purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline
         } = body;
 
@@ -68,15 +68,15 @@ export async function POST(request: Request) {
         const safeJson = (val: any) => val ? JSON.stringify(val) : null;
 
         const [result] = await pool.execute(`
-            INSERT INTO activity_catalogue 
-            (code, title, description, domain, category, sdc_credits, max_seats, status, 
-             difficulty, journey_level, activity_pack, faculty_name, sdgs, hours, 
+            INSERT INTO activity_catalogue
+            (code, title, description, domain, category, sdc_credits, max_seats, status,
+             difficulty, activity_pack, faculty_name, sdgs, hours,
              purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
              created_by, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         `, [
             code, title, description || '', domain, category || 'event', points, max_participants || null, status || 'upcoming',
-            difficulty || 'Beginner', journey_level || 'Explorer', activity_pack || null, faculty_name || null, 
+            difficulty || 'Beginner', activity_pack || null, faculty_name || null,
             safeJson(sdgs), hours || 0.0,
             purpose || null, safeJson(learning_outcomes), safeJson(competencies), safeJson(graduate_attributes),
             safeJson(resources), safeJson(assignments), safeJson(timeline),
