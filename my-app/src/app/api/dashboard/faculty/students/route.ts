@@ -95,13 +95,14 @@ export async function GET(request) {
         }
 
         const { searchParams } = new URL(request.url);
+        const exportAll = searchParams.get('all') === 'true';
         const page = clampInt(searchParams.get('page'), { min: 1, max: 100000, fallback: 1 });
-        const limit = clampInt(searchParams.get('limit'), { min: 1, max: 500, fallback: 50 });
+        const limit = exportAll ? 100000 : clampInt(searchParams.get('limit'), { min: 1, max: 500, fallback: 50 });
         const search = searchParams.get('search')?.trim() || '';
         const year = searchParams.get('year')?.trim() || '';
         const category = searchParams.get('category')?.trim() || '';
 
-        const offset = (page - 1) * limit;
+        const offset = exportAll ? 0 : (page - 1) * limit;
 
         // Build WHERE conditions
         let whereConditions = [`s.clubId IN (${assignedClubs.map(() => '?').join(',')})`];
@@ -137,10 +138,15 @@ export async function GET(request) {
                 s.id,
                 s.username,
                 s.name,
+                s.email,
+                s.gender,
                 s.year,
                 s.branch,
                 s.phoneNumber,
                 s.selectedDomain,
+                s.residenceType,
+                s.hostelName,
+                s.busRoute,
                 s.clubId,
                 c.name as clubName,
                 -- External submissions

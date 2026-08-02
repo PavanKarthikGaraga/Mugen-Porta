@@ -40,13 +40,14 @@ export async function GET(request) {
         const clubId = leadResult[0].clubId;
 
         const { searchParams } = new URL(request.url);
+        const exportAll = searchParams.get('all') === 'true';
         const page = clampInt(searchParams.get('page'), { min: 1, max: 100000, fallback: 1 });
-        const limit = clampInt(searchParams.get('limit'), { min: 1, max: 500, fallback: 50 });
+        const limit = exportAll ? 100000 : clampInt(searchParams.get('limit'), { min: 1, max: 500, fallback: 50 });
         const search = searchParams.get('search')?.trim() || '';
         const year = searchParams.get('year')?.trim() || '';
         const category = searchParams.get('category')?.trim() || '';
 
-        const offset = (page - 1) * limit;
+        const offset = exportAll ? 0 : (page - 1) * limit;
 
         try {
             let whereConditions = ['s.clubId = ?'];
@@ -82,10 +83,17 @@ export async function GET(request) {
                     s.id,
                     s.username,
                     s.name,
+                    s.email,
+                    s.gender,
                     s.year,
                     s.branch,
                     s.phoneNumber,
                     s.selectedDomain,
+                    s.residenceType,
+                    s.hostelName,
+                    s.busRoute,
+                    s.clubId,
+                    c.name as clubName,
                     s.created_at,
                     -- External submissions
                     ses.fr as final_report, ses.fyt_l as final_youtube, ses.flk_l as final_linkedin,
@@ -94,6 +102,7 @@ export async function GET(request) {
                     sem.flk_m as final_linkedin_marks, sem.total as external_total,
                     sem.evaluated_by as evaluated_by
                 FROM students s
+                LEFT JOIN clubs c ON s.clubId = c.id
                 LEFT JOIN student_external_submissions ses ON s.username = ses.username
                 LEFT JOIN student_external_marks sem ON s.username = sem.username
                 ${whereClause}

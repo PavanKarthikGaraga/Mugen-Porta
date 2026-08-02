@@ -15,12 +15,13 @@ export async function GET(request: Request) {
         const domain = councilRows[0].assignedDomain as string;
 
         const { searchParams } = new URL(request.url);
+        const exportAll = searchParams.get('all') === 'true';
         const search = searchParams.get('search') || '';
         const year = searchParams.get('year') || '';
         const clubId = searchParams.get('clubId') || '';
         const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-        const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
-        const offset = (page - 1) * limit;
+        const limit = exportAll ? 100000 : Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
+        const offset = exportAll ? 0 : (page - 1) * limit;
 
         const [clubRows]: any = await pool.execute('SELECT id FROM clubs WHERE domain = ?', [domain]);
         const allClubIds = (clubRows as any[]).map((c: any) => c.id as string);
@@ -45,7 +46,8 @@ export async function GET(request: Request) {
             `SELECT COUNT(*) as total FROM students s WHERE ${where}`, params
         );
         const [students]: any = await pool.execute(
-            `SELECT s.username, s.name, s.email, s.year, s.branch, s.clubId, c.name as clubName
+            `SELECT s.username, s.name, s.email, s.gender, s.year, s.branch, s.phoneNumber,
+                    s.residenceType, s.hostelName, s.busRoute, s.clubId, c.name as clubName
              FROM students s LEFT JOIN clubs c ON s.clubId = c.id
              WHERE ${where} ORDER BY s.name ASC LIMIT ? OFFSET ?`,
             [...params, limit, offset]
