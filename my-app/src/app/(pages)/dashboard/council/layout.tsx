@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX,
-    FiActivity, FiCheckSquare, FiAward, FiKey, FiUnlock,
+    FiActivity, FiCheckSquare, FiAward, FiKey, FiUnlock, FiStar,
 } from "react-icons/fi";
 import ChangePassword from "@/app/components/ChangePassword";
 
@@ -36,6 +36,7 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
         { name: 'Overview',           href: '/dashboard/council',                  icon: FiHome        },
         { name: 'Students',           href: '/dashboard/council/students',          icon: FiUsers       },
         { name: 'SAMAM Access',       href: '/dashboard/council/samam-access',      icon: FiUnlock      },
+        { name: 'Activity Awards',    href: '/dashboard/council/activity-awards',   icon: FiStar        },
         { name: 'Attendance Records', href: '/dashboard/council/attendance-records',icon: FiActivity    },
         { name: 'Passport Approvals', href: '/dashboard/council/passport-approvals',icon: FiAward       },
         { name: 'Profile',            href: '/dashboard/council/profile',           icon: FiUser        },
