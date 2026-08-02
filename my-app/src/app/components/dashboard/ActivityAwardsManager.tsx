@@ -129,12 +129,18 @@ export default function ActivityAwardsManager() {
     if (!selectedBadge) return toast.error("Select a badge");
     setSubmitting(true);
     let ok = 0, failed = 0;
+    // Leaving the reason blank falls back to a generic badge-name-based
+    // line server-side. Since this flow is always scoped to one activity,
+    // default it to that activity's title instead, so "Recognition For" on
+    // the credential reads "Participating in <Activity Title>" rather than
+    // just the badge's own name.
+    const reason = badgeReason.trim() || (activityInfo ? `Participating in "${activityInfo.title}"` : undefined);
     try {
       for (const username of selected) {
         const res = await fetch("/api/dashboard/admin/samam/award-badge", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, badge_id: selectedBadge, reason: badgeReason || undefined }),
+          body: JSON.stringify({ username, badge_id: selectedBadge, reason }),
         });
         if (res.ok) ok++; else failed++;
       }

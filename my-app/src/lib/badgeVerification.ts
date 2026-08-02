@@ -56,7 +56,7 @@ export async function presentableRecognition(earnedFrom: string | null | undefin
     }
 
     if (req) return req;
-    return `Recognized for outstanding achievement in "${badgeName}"`;
+    return `Participating in "${badgeName}"`;
 }
 
 export type BadgeVerificationResult =
@@ -105,7 +105,7 @@ export async function getBadgeVerification(verificationId: string): Promise<Badg
                 institution: ISSUER_INSTITUTION,
             },
             issuer: {
-                name: 'SAMAM Activity Management Program',
+                name: ISSUER_INSTITUTION,
                 institution: ISSUER_INSTITUTION,
                 website: VERIFY_ORIGIN,
             },
@@ -179,7 +179,7 @@ export async function getBadgeVerification(verificationId: string): Promise<Badg
             institution: ISSUER_INSTITUTION,
         },
         issuer: {
-            name: 'SAMAM Activity Management Program',
+            name: ISSUER_INSTITUTION,
             institution: ISSUER_INSTITUTION,
             website: VERIFY_ORIGIN,
         },

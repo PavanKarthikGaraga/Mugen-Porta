@@ -92,7 +92,7 @@ export async function POST(request: Request) {
         // show up on a public credential as "Awarded by admin: 24...").
         const recognitionText = (reason && reason.trim())
             ? reason.trim()
-            : `Recognized for outstanding achievement in "${(badgeRows as any[])[0].name}"`;
+            : `Participating in "${(badgeRows as any[])[0].name}"`;
 
         await pool.execute(`
             INSERT INTO student_badges (username, badge_id, earned_from, verification_id, share_url, issued_on)
