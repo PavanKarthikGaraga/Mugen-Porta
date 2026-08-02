@@ -7,7 +7,7 @@ const BRAND = "rgb(151,0,3)";
 
 const DOMAIN_META: Record<string, { label: string; color: string }> = {
   TEC: { label: "Technical",            color: "#2563eb" },
-  LCH: { label: "Cultural & Heritage",  color: "#7c3aed" },
+  LCH: { label: "Liberal Arts, Culture and Heritage",  color: "#7c3aed" },
   ESO: { label: "Social Outreach",      color: "#16a34a" },
   HWB: { label: "Health & Wellbeing",   color: "#ea580c" },
   IIE: { label: "Innovation",           color: "#d97706" },

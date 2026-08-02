@@ -25,7 +25,7 @@ import {
 
 // ── Legacy emoji → canonical icon name ────────────────────────────────────────
 export const EMOJI_TO_ICON_NAME: Record<string, string> = {
-  // Literary, Cultural & Heritage packs
+  // Liberal Arts, Culture and Heritage packs
   "💃": "activity",      // Dance
   "🎭": "users",         // Theatre
   "🎬": "film",          // Film
@@ -78,7 +78,7 @@ export const EMOJI_TO_ICON_NAME: Record<string, string> = {
 // ── Fallback icon per SAMAM domain ────────────────────────────────────────────
 export const DOMAIN_ICON_NAME: Record<string, string> = {
   TEC: "cpu",        // Technology & Emerging Technologies
-  LCH: "book-open",  // Literary, Cultural & Heritage
+  LCH: "book-open",  // Liberal Arts, Culture and Heritage
   ESO: "heart",      // Extension & Social Outreach
   IIE: "zap",        // Innovation & Entrepreneurship
   HWB: "activity",   // Health & Well-being

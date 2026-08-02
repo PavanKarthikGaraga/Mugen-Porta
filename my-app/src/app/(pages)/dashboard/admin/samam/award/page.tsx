@@ -11,7 +11,7 @@ const BRAND = "rgb(151,0,3)";
 
 const DOMAIN_NAMES: Record<string, string> = {
   TEC: "Technology & Emerging Technologies",
-  LCH: "Literary, Cultural & Heritage",
+  LCH: "Liberal Arts, Culture and Heritage",
   ESO: "Extension & Social Outreach",
   IIE: "Innovation & Entrepreneurship",
   HWB: "Health & Well-being",
@@ -354,7 +354,7 @@ export default function AdminAwardPage() {
                       className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-red-600 focus:bg-white transition-colors"
                     >
                       <option value="TEC">TEC - Technical</option>
-                      <option value="LCH">LCH - Literary & Cultural</option>
+                      <option value="LCH">LCH - Liberal Arts, Culture and Heritage</option>
                       <option value="ESO">ESO - Extension & Social</option>
                       <option value="IIE">IIE - Innovation</option>
                       <option value="HWB">HWB - Health</option>

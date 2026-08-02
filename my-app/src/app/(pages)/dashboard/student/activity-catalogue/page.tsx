@@ -19,7 +19,7 @@ const EMPTY_FILTERS: Record<string, string> = {
 
 const DOMAIN_META: Record<string, { name: string; short: string; Icon: React.ElementType }> = {
   TEC: { name: "Technology & Emerging Tech",    short: "Technology",   Icon: FiCpu      },
-  LCH: { name: "Literary, Cultural & Heritage", short: "Cultural",     Icon: FiBookOpen },
+  LCH: { name: "Liberal Arts, Culture and Heritage", short: "Cultural",     Icon: FiBookOpen },
   ESO: { name: "Extension & Social Outreach",   short: "Social",       Icon: FiHeart    },
   IIE: { name: "Innovation & Entrepreneurship", short: "Innovation",   Icon: FiZap      },
   HWB: { name: "Health & Well-being",           short: "Health",       Icon: FiActivity },

@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 const DOMAIN_MAP: Record<string, { label: string; color: string }> = {
     TEC: { label: 'Technical',                color: '#2563EB' },
-    LCH: { label: 'Literary & Cultural',      color: '#7C3AED' },
+    LCH: { label: 'Liberal Arts, Culture and Heritage',      color: '#7C3AED' },
     ESO: { label: 'Extension & Outreach',     color: '#059669' },
     IIE: { label: 'Innovation',               color: '#D97706' },
     HWB: { label: 'Health & Well-being',      color: '#DC2626' },

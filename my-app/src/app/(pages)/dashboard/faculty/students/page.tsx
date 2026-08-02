@@ -209,7 +209,7 @@ export default function FacultyStudents() {
 
     const categoryLabels = {
         'TEC': 'Technical',
-        'LCH': 'Liberal Arts, Creative Arts and Hobby ',
+        'LCH': 'Liberal Arts, Culture and Heritage',
         'ESO': 'Extension & Society Outreach',
         'IIE': 'Innovation, Incubation & Entrepreneurship',
         'HWB': 'Health & Well-being'
@@ -329,7 +329,7 @@ export default function FacultyStudents() {
                                 <SelectContent>
                                     <SelectItem value="all">All Categories</SelectItem>
                                     <SelectItem value="TEC">Technical (TEC)</SelectItem>
-                                    <SelectItem value="LCH">Liberal Arts, Creative Arts and Hobby  (LCH)</SelectItem>
+                                    <SelectItem value="LCH">Liberal Arts, Culture and Heritage (LCH)</SelectItem>
                                     <SelectItem value="ESO">Extension & Society Outreach (ESO)</SelectItem>
                                     <SelectItem value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</SelectItem>
                                     <SelectItem value="HWB">Health & Well-being (HWB)</SelectItem>

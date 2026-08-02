@@ -13,7 +13,7 @@ const BRAND = "rgb(151,0,3)";
 
 const DOMAIN_LABEL: Record<string, string> = {
   TEC: "Technology & Emerging Tech",
-  LCH: "Literary, Cultural & Heritage",
+  LCH: "Liberal Arts, Culture and Heritage",
   ESO: "Extension & Social Outreach",
   IIE: "Innovation & Entrepreneurship",
   HWB: "Health & Well-being",

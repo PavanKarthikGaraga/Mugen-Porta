@@ -18,7 +18,7 @@ const BRAND = "rgb(151,0,3)";
 // ── Domain metadata ────────────────────────────────────────────────────────────
 const domainMeta = [
   { key: "tec", label: "Technical (TEC)",                      color: "#2563EB", icon: <FiCpu /> },
-  { key: "lch", label: "Liberal & Creative Arts (LCH)",        color: "#7C3AED", icon: <FiPenTool /> },
+  { key: "lch", label: "Liberal Arts, Culture and Heritage (LCH)",        color: "#7C3AED", icon: <FiPenTool /> },
   { key: "eso", label: "Extension & Outreach (ESO)",           color: "#D97706", icon: <FiGlobe /> },
   { key: "iie", label: "Innovation & Entrepreneurship (IIE)",  color: "#059669", icon: <FiZap /> },
   { key: "hwb", label: "Health & Well-being (HWB)",            color: "#E11D48", icon: <FiHeart /> },
@@ -225,7 +225,7 @@ export default function AdminOverviewPage() {
                 >
                   <option value="all">All Domains</option>
                   <option value="TEC">Technical (TEC)</option>
-                  <option value="LCH">Liberal Arts, Creative Arts and Hobby (LCH)</option>
+                  <option value="LCH">Liberal Arts, Culture and Heritage (LCH)</option>
                   <option value="ESO">Extension &amp; Society Outreach (ESO)</option>
                   <option value="IIE">Innovation, Incubation &amp; Entrepreneurship (IIE)</option>
                   <option value="HWB">Health &amp; Well-being (HWB)</option>

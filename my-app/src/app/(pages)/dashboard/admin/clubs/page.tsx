@@ -193,7 +193,7 @@ export default function ClubsPage() {
                         >
                             <option value="">All Domains</option>
                             <option value="TEC">Technical (TEC)</option>
-                            <option value="LCH">Liberal Arts, Creative Arts and Hobby  (LCH)</option>
+                            <option value="LCH">Liberal Arts, Culture and Heritage (LCH)</option>
                             <option value="ESO">Extension & Society Outreach (ESO)</option>
                             <option value="IIE">Innovation, Incubation & Entrepreneurship (IIE)</option>
                             <option value="HWB">Health & Well-being (HWB)</option>

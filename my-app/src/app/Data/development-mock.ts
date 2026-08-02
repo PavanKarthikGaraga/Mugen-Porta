@@ -165,7 +165,7 @@ export const SDC_DATA = {
     { domain: "Technical",                   credits: 80, color: "#2563EB", pct: 32 },
     { domain: "Extension & Social Outreach", credits: 55, color: "#059669", pct: 22 },
     { domain: "Innovation",                  credits: 48, color: "#D97706", pct: 19 },
-    { domain: "Literary & Cultural",         credits: 38, color: "#7C3AED", pct: 15 },
+    { domain: "Liberal Arts, Culture and Heritage",         credits: 38, color: "#7C3AED", pct: 15 },
     { domain: "Health & Well-being",         credits: 26, color: "#DC2626", pct: 11 },
   ],
   history: [

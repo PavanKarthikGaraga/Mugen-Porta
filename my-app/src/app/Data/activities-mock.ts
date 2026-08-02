@@ -4,7 +4,7 @@
 
 export const DOMAINS: Record<string, any> = {
   TEC: { id: "TEC", name: "Technology & Emerging Technologies", color: "#2563EB", bg: "#EFF6FF" },
-  LCH: { id: "LCH", name: "Literary, Cultural & Heritage",      color: "#7C3AED", bg: "#F5F3FF" },
+  LCH: { id: "LCH", name: "Liberal Arts, Culture and Heritage",      color: "#7C3AED", bg: "#F5F3FF" },
   ESO: { id: "ESO", name: "Extension & Social Outreach",        color: "#059669", bg: "#ECFDF5" },
   IIE: { id: "IIE", name: "Innovation & Entrepreneurship",      color: "#D97706", bg: "#FFFBEB" },
   HWB: { id: "HWB", name: "Health & Well-being",                color: "#DC2626", bg: "#FEF2F2" },

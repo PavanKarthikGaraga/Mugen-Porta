@@ -71,7 +71,7 @@ function VerifyingScreen({ verificationId, stepIndex }: { verificationId: string
 }
 
 const DOMAIN_LONG: Record<string, string> = {
-    TEC: "Technology", LCH: "Literary & Cultural Heritage",
+    TEC: "Technology", LCH: "Liberal Arts, Culture and Heritage",
     ESO: "Extension & Social Outreach", IIE: "Innovation & Incubation", HWB: "Health & Wellness",
 };
 

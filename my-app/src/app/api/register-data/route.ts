@@ -83,7 +83,7 @@ export async function GET(request) {
         // Domain categories for reference
         const domains = [
             { id: "TEC", name: "Technical", description: "Technology and Engineering activities" },
-            { id: "LCH", name: "Literary, Cultural & Heritage", description: "Arts, Literature and Cultural preservation" },
+            { id: "LCH", name: "Liberal Arts, Culture and Heritage", description: "Arts, Literature and Cultural preservation" },
             { id: "ESO", name: "Extension & Social Outreach", description: "Community service and social initiatives" },
             { id: "IIE", name: "Innovation, Incubation & Entrepreneurship", description: "Startup and Innovation activities" },
             { id: "HWB", name: "Health & Well-being", description: "Health, fitness and wellness programs" }

@@ -24,7 +24,7 @@ const DOMAIN_COLORS: Record<string, string> = {
   TEC: "#2563eb", LCH: "#7c3aed", ESO: "#16a34a", HWB: "#ea580c", IIE: "#d97706",
 };
 const DOMAIN_LABELS: Record<string, string> = {
-  TEC: "Technical", LCH: "Cultural & Heritage", ESO: "Social Outreach",
+  TEC: "Technical", LCH: "Liberal Arts, Culture and Heritage", ESO: "Social Outreach",
   HWB: "Health & Wellbeing", IIE: "Innovation & Entrepreneurship",
 };
 const YEAR_COLORS = [BRAND, "#2563eb", "#7c3aed", "#16a34a"];
