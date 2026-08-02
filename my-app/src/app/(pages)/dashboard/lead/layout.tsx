@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText, FiUserCheck, FiActivity,
-    FiDatabase, FiAward, FiKey,
+    FiDatabase, FiAward, FiKey, FiCheckSquare,
 } from "react-icons/fi";
 import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
@@ -56,6 +56,7 @@ export default function LeadDashboardLayout({ children }) {
         { name: 'Students',            href: '/dashboard/lead/students',         icon: FiUsers    },
         { name: 'SAMAM',               href: '/dashboard/lead/samam',            icon: FiActivity },
         { name: 'Submissions',         href: '/dashboard/lead/reports',          icon: FiFileText },
+        { name: 'Attendance',          href: '/dashboard/lead/attendance',       icon: FiCheckSquare },
         { name: 'Attendance Records',  href: '/dashboard/lead/attendance-records', icon: FiDatabase },
         { name: 'Passport Approvals',  href: '/dashboard/lead/passport-approvals', icon: FiAward    },
     ];

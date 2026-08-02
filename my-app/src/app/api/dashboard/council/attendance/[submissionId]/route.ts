@@ -4,27 +4,22 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 
-async function getFaculty() {
+async function getCouncil() {
   const cookieStore = await cookies();
   const token = cookieStore.get('tck')?.value;
   if (!token) return null;
   const decoded = await verifyToken(token);
-  if (!decoded || decoded.role !== 'faculty') return null;
-  const [rows]: any = await pool.execute('SELECT assignedClubs FROM faculty WHERE username = ?', [decoded.username as string]);
+  if (!decoded || decoded.role !== 'council') return null;
+  const [rows]: any = await pool.execute('SELECT assignedDomain FROM council WHERE username = ?', [decoded.username as string]);
   if (rows.length === 0) return null;
-  let clubs: string[] = [];
-  try {
-    clubs = Array.isArray(rows[0].assignedClubs)
-      ? rows[0].assignedClubs
-      : JSON.parse(rows[0].assignedClubs ?? '[]');
-  } catch { clubs = []; }
-  return { decoded, assignedClubs: clubs };
+  const [clubRows]: any = await pool.execute('SELECT id FROM clubs WHERE domain = ?', [rows[0].assignedDomain]);
+  return { decoded, clubIds: (clubRows as any[]).map((c: any) => c.id as string) };
 }
 
-export async function GET(request: Request, { params }: { params: Promise<{ submissionId: string }> }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ submissionId: string }> }) {
   try {
-    const faculty = await getFaculty();
-    if (!faculty) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const council = await getCouncil();
+    if (!council) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { submissionId } = await params;
     const [subRows]: any = await pool.execute(
@@ -34,11 +29,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ subm
     if (subRows.length === 0) return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
 
     const sub = subRows[0];
-    if (!faculty.assignedClubs.includes(sub.club_id)) {
-      return NextResponse.json({ error: 'You are not assigned to this club' }, { status: 403 });
+    if (!council.clubIds.includes(sub.club_id)) {
+      return NextResponse.json({ error: 'This club is not in your domain' }, { status: 403 });
     }
 
-    // Fetch students with attendance status
     const [students]: any = await pool.execute(`
       SELECT ae.username, s.name, ae.attendance_percentage, ae.attendance_marked
       FROM activity_enrollments ae
@@ -55,8 +49,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ subm
 
 export async function POST(request: Request, { params }: { params: Promise<{ submissionId: string }> }) {
   try {
-    const faculty = await getFaculty();
-    if (!faculty) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const council = await getCouncil();
+    if (!council) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { submissionId } = await params;
     const [subRows]: any = await pool.execute(
@@ -66,8 +60,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
     if (subRows.length === 0) return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
 
     const sub = subRows[0];
-    if (!faculty.assignedClubs.includes(sub.club_id)) {
-      return NextResponse.json({ error: 'You are not assigned to this club' }, { status: 403 });
+    if (!council.clubIds.includes(sub.club_id)) {
+      return NextResponse.json({ error: 'This club is not in your domain' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -81,13 +75,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
       UPDATE attendance_submissions
       SET status = ?, scanned_copy_url = ?, verified_by = ?, verified_at = NOW(), faculty_notes = ?
       WHERE id = ?
-    `, [status, scannedCopyUrl ?? null, faculty.decoded.username, notes ?? null, submissionId]);
+    `, [status, scannedCopyUrl ?? null, council.decoded.username, notes ?? null, submissionId]);
 
-    // When approved: mark enrolled+attending students as completed. This
-    // was previously missing here (unlike the /attendance-records review
-    // endpoint), so verifying through this page never made students
-    // certificate/points eligible even though the submission itself showed
-    // "Verified".
+    // When approved: mark enrolled+attending students as completed
     if (status === 'verified') {
       await pool.execute(
         `UPDATE activity_enrollments
@@ -99,7 +89,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
 
     return NextResponse.json({ success: true, message: `Attendance ${status} successfully` });
   } catch (error: any) {
-    console.error('Faculty verify error:', error);
+    console.error('Council verify error:', error);
     return NextResponse.json({ error: safeMessage(error, 'Failed to verify attendance') }, { status: 500 });
   }
 }
