@@ -8,18 +8,18 @@ import { safeMessage } from "@/lib/apiSecurity";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9]+$/;
 
-// clubId/selectedDomain were required at registration until 1st years
-// started deferring club selection — in production they're almost
-// certainly still defined NOT NULL from before that, so inserting NULL for
-// a deferred 1st year 500s. Rather than depend on a runtime ALTER TABLE
-// succeeding (itself unreliable: DDL over mysql2's prepared-statement
-// protocol, and needs ALTER privilege this app's DB user may not have),
-// use '' instead of NULL — a plain NOT NULL VARCHAR always accepts it, no
-// schema change required. Every reader of these columns already treats
-// them as "no club yet" via a falsy check (!clubId), so '' behaves
-// identically to NULL everywhere except the one SQL `IS NULL` comparison
-// in select-club/route.ts, which is updated to match both.
-const NO_CLUB_YET = '';
+// `students.clubId` is a foreign key to `clubs.id` (confirmed via production
+// logs: ER_NO_REFERENCED_ROW_2, constraint students_ibfk_2) — '' doesn't
+// reference any real club row, so it was rejected by the FK check, not a
+// NOT NULL check as I'd assumed when I switched this to '' previously. NULL
+// is the correct sentinel here: a NULL foreign key is exempt from the
+// reference check entirely (standard SQL/InnoDB behaviour), no schema
+// change required either way. Every reader of this column already treats
+// it as "no club yet" via a falsy check (!clubId), so this is a drop-in
+// swap; the one raw SQL `clubId = ''` comparison added alongside `IS NULL`
+// in select-club/route.ts is harmless to leave (covers any row already
+// written with '' before this fix) but NULL is what's written from now on.
+const NO_CLUB_YET = null;
 
 // The actual, confirmed cause of the registration 500s: `users.username` /
 // `students.username` are narrower (almost certainly VARCHAR(10)) than the
@@ -296,7 +296,7 @@ export async function POST(req) {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
-                    deferClubSelection ? NO_CLUB_YET : selectedClub, // 1st years: '' until chosen from their dashboard
+                    deferClubSelection ? NO_CLUB_YET : selectedClub, // 1st years: NULL until chosen from their dashboard
                     name, email, branch, gender,
                     campus,
                     year, phoneNumber, residenceType,
