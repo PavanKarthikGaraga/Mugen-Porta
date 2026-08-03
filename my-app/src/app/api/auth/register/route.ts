@@ -212,16 +212,6 @@ export async function POST(req) {
         const saltRounds = 12;
         const hashedPassword = await bcrypt.hash(generatedPassword, saltRounds);
 
-        // 1st years land straight on their SAMAM dashboard (restricted to the
-        // Career Roadmap page — see dashboard/student/layout.tsx) so they can
-        // take the assessment that recommends their club; everyone else still
-        // needs an admin/faculty/lead/council grant as before.
-        try {
-            await pool.execute(`ALTER TABLE students ADD COLUMN samam_access TINYINT(1) NOT NULL DEFAULT 0`);
-        } catch (e: any) {
-            if (e.code !== 'ER_DUP_FIELDNAME') throw e;
-        }
-
         // Get connection for transaction
         const connection = await pool.getConnection();
 
@@ -256,9 +246,8 @@ export async function POST(req) {
                 `INSERT INTO students (
                     username, clubId, name, email, branch, gender,
                     campus, year, phoneNumber, residenceType, hostelName, busRoute,
-                    country, state, district, pincode, selectedDomain, pathway, careerChoice,
-                    samam_access
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    country, state, district, pincode, selectedDomain, pathway, careerChoice
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
                     deferClubSelection ? null : selectedClub, // 1st years: NULL until chosen from their dashboard
@@ -268,14 +257,28 @@ export async function POST(req) {
                     hostelName || 'N/A', busRoute || null,
                     countryName || country, state, district, pincode,
                     deferClubSelection ? null : selectedDomain,
-                    pathway || null, careerChoice || null,
-                    deferClubSelection ? 1 : 0, // 1st years: unlocked immediately to take the roadmap assessment
+                    pathway || null, careerChoice || null
                 ]
             );
 
             // Commit transaction
             await connection.commit();
             connection.release();
+
+            // 1st years land straight on their SAMAM dashboard (restricted to
+            // the Career Roadmap page — see dashboard/student/layout.tsx) so
+            // they can take the assessment that recommends their club.
+            // Best-effort and outside the transaction: if the samam_access
+            // column isn't there yet or this update fails for any reason,
+            // registration must still succeed — an admin can always grant
+            // access manually from the SAMAM Access page as a fallback.
+            if (deferClubSelection) {
+                try {
+                    await pool.execute('UPDATE students SET samam_access = 1 WHERE username = ?', [username]);
+                } catch (e) {
+                    console.error('Failed to auto-unlock SAMAM access for 1st year (non-fatal):', e);
+                }
+            }
 
             // Fetch club details for email
             let clubDetails = null;
