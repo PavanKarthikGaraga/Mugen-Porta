@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getCouncilClubIds } from '@/lib/councilScope';
 
 async function getUser() {
   const cookieStore = await cookies();
@@ -54,11 +55,7 @@ export async function GET(request: Request) {
         queryParams = clubs;
       }
     } else if (role === 'council') {
-      const [councilRows]: any = await pool.execute('SELECT assignedDomain FROM council WHERE username = ?', [username]);
-      if (councilRows.length === 0) return NextResponse.json({ records: [] });
-      const domain = councilRows[0].assignedDomain as string;
-      const [clubRows]: any = await pool.execute('SELECT id FROM clubs WHERE domain = ?', [domain]);
-      const clubs = (clubRows as any[]).map((c: any) => c.id as string);
+      const clubs = await getCouncilClubIds(username);
       if (clubs.length === 0) return NextResponse.json({ records: [] });
 
       if (clubFilter && clubs.includes(clubFilter)) {

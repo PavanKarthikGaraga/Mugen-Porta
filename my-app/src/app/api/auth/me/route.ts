@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyToken } from "@/lib/jwt";
 import { cookies } from 'next/headers';
 import pool from '@/lib/db';
+import { getCouncilDomains } from '@/lib/councilScope';
 
 export async function GET(request) {
     try {
@@ -77,16 +78,15 @@ export async function GET(request) {
             }
         } else if (payload.role === 'council') {
             try {
-                const [councilResult]: any = await pool.execute(
-                    'SELECT assignedDomain FROM council WHERE username = ?',
-                    [payload.username]
-                );
-                if (councilResult.length > 0) {
-                    const domain = councilResult[0].assignedDomain as string;
+                const domains = await getCouncilDomains(payload.username as string);
+                if (domains.length > 0) {
+                    const ph = domains.map(() => '?').join(',');
                     const [clubRows]: any = await pool.execute(
-                        'SELECT id, name FROM clubs WHERE domain = ?', [domain]
+                        `SELECT id, name, domain FROM clubs WHERE domain IN (${ph})`, domains
                     );
-                    additionalData = { assignedDomain: domain, clubs: clubRows };
+                    // assignedDomain (singular, first domain) kept for any
+                    // consumer not yet updated for multi-domain support.
+                    additionalData = { assignedDomain: domains[0], assignedDomains: domains, clubs: clubRows };
                 }
             } catch (error) {
                 console.error('Error fetching council data:', error);

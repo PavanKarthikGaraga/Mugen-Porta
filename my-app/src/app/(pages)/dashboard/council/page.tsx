@@ -23,7 +23,7 @@ const DOMAIN_META: Record<string, { label: string; color: string; icon: React.Re
     HWB: { label: "Health & Well-being (HWB)",            color: "#E11D48", icon: <FiHeart   size={13} /> },
 };
 
-interface Club { id: string; name: string }
+interface Club { id: string; name: string; domain: string }
 
 function Skeleton() {
     return (
@@ -36,14 +36,15 @@ function Skeleton() {
 }
 
 export default function CouncilOverviewPage() {
-    const [stats, setStats] = useState({ totalStudents: 0, recentRegistrations: 0, yearWiseCount: {} as Record<string, number>, domainWiseCount: {} as Record<string, number>, domain: '' });
+    const [stats, setStats] = useState({ totalStudents: 0, recentRegistrations: 0, yearWiseCount: {} as Record<string, number>, domainWiseCount: {} as Record<string, number>, domains: [] as string[] });
     const [loading, setLoading] = useState(true);
     const [clubs, setClubs] = useState<Club[]>([]);
+    const [selectedDomain, setSelectedDomain] = useState("");
     const [selectedClub, setSelectedClub] = useState("");
 
     useEffect(() => {
         fetchClubs();
-        fetchStats("");
+        fetchStats("", "");
     }, []);
 
     const fetchClubs = async () => {
@@ -53,20 +54,31 @@ export default function CouncilOverviewPage() {
         } catch {}
     };
 
-    const fetchStats = async (clubId: string) => {
+    const fetchStats = async (domain: string, clubId: string) => {
         setLoading(true);
         try {
-            const url = clubId ? `/api/dashboard/council/stats?clubId=${clubId}` : '/api/dashboard/council/stats';
-            const r = await fetch(url);
+            const params = new URLSearchParams();
+            if (domain) params.set('domain', domain);
+            if (clubId) params.set('clubId', clubId);
+            const qs = params.toString();
+            const r = await fetch(`/api/dashboard/council/stats${qs ? `?${qs}` : ''}`);
             if (r.ok) { const d = await r.json(); setStats(d); }
         } catch {} finally { setLoading(false); }
     };
 
-    const handleClubChange = (clubId: string) => { setSelectedClub(clubId); fetchStats(clubId); };
+    // Domain-wise then club-wise: choosing a domain narrows which clubs the
+    // club dropdown offers (and clears any club pick from a different one).
+    const handleDomainChange = (domain: string) => {
+        setSelectedDomain(domain);
+        setSelectedClub("");
+        fetchStats(domain, "");
+    };
+    const handleClubChange = (clubId: string) => { setSelectedClub(clubId); fetchStats(selectedDomain, clubId); };
+
+    const clubsInDomain = selectedDomain ? clubs.filter(c => c.domain === selectedDomain) : clubs;
+    const assignedDomains = Array.from(new Set(clubs.map(c => c.domain))) as string[];
 
     if (loading && stats.totalStudents === 0) return <Skeleton />;
-
-    const domainInfo = DOMAIN_META[stats.domain] || { label: stats.domain, color: BRAND, icon: null };
 
     return (
         <div className="space-y-5 max-w-5xl mx-auto">
@@ -75,23 +87,37 @@ export default function CouncilOverviewPage() {
                 <div className="p-5 flex items-center justify-between flex-wrap gap-3">
                     <div>
                         <h1 className="text-xl font-bold text-gray-900">Council Overview</h1>
-                        {stats.domain && (
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: domainInfo.color }}>
-                                    {domainInfo.label}
-                                </span>
+                        {assignedDomains.length > 0 && (
+                            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                {assignedDomains.map(d => {
+                                    const info = DOMAIN_META[d] || { label: d, color: BRAND, icon: null };
+                                    return (
+                                        <span key={d} className="text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: info.color }}>
+                                            {info.label}
+                                        </span>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
+                        {assignedDomains.length > 1 && (
+                            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                                <FiFilter size={12} className="text-gray-400" />
+                                <select value={selectedDomain} onChange={e => handleDomainChange(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700 pr-4">
+                                    <option value="">All Domains</option>
+                                    {assignedDomains.map(d => <option key={d} value={d}>{DOMAIN_META[d]?.label || d}</option>)}
+                                </select>
+                            </div>
+                        )}
                         <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                             <FiFilter size={12} className="text-gray-400" />
                             <select value={selectedClub} onChange={e => handleClubChange(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700 pr-4">
                                 <option value="">All Clubs</option>
-                                {clubs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                {clubsInDomain.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </select>
                         </div>
-                        <button onClick={() => fetchStats(selectedClub)} disabled={loading} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg text-white disabled:opacity-60" style={{ backgroundColor: BRAND }}>
+                        <button onClick={() => fetchStats(selectedDomain, selectedClub)} disabled={loading} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg text-white disabled:opacity-60" style={{ backgroundColor: BRAND }}>
                             <FiRefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
                     </div>

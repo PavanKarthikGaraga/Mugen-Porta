@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
+import { getCouncilScope } from '@/lib/councilScope';
 
 async function ensureSamamAccessColumn() {
     try {
@@ -28,18 +29,10 @@ async function ensureAuditTable() {
     } catch {}
 }
 
-// For council: returns the club IDs in their assigned domain, or null if the
-// caller is not council (i.e. admin, unrestricted).
+// For council: the club IDs across all of their assigned domains, or null
+// if the caller is not council (i.e. admin, unrestricted).
 async function getCouncilClubScope(auth: any): Promise<string[] | null> {
-    if (auth.user.role !== 'council') return null;
-    const [cRows]: any = await pool.execute(
-        'SELECT assignedDomain FROM council WHERE username = ?', [auth.user.username]
-    );
-    if (!cRows.length) return [];
-    const [clubRows]: any = await pool.execute(
-        'SELECT id FROM clubs WHERE domain = ?', [cRows[0].assignedDomain]
-    );
-    return (clubRows as any[]).map((c: any) => c.id as string);
+    return getCouncilScope(auth.user.role, auth.user.username);
 }
 
 // GET /api/dashboard/admin/samam-access

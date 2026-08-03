@@ -8,13 +8,46 @@ async function ensureCouncilTable() {
         await pool.execute(`
             CREATE TABLE IF NOT EXISTS council (
                 username VARCHAR(10) NOT NULL PRIMARY KEY,
-                assignedDomain VARCHAR(3) NOT NULL
+                assignedDomain VARCHAR(3) NOT NULL,
+                assignedDomains JSON NULL
             )
         `);
         // Ensure 'council' is a valid role value — add it if the column is an ENUM
         try {
             await pool.execute(`ALTER TABLE users MODIFY COLUMN role ENUM('admin','lead','faculty','student','council') NOT NULL DEFAULT 'student'`);
         } catch {}
+
+        // Council users can now be assigned multiple domains — assignedDomains
+        // holds that as a JSON array, added alongside the original single
+        // assignedDomain column (kept, not dropped, so nothing that still
+        // reads it breaks). Uses pool.query (text protocol): DDL over
+        // mysql2's prepared-statement protocol isn't reliably supported.
+        try {
+            await pool.query(`ALTER TABLE council ADD COLUMN assignedDomains JSON NULL`);
+        } catch (e: any) {
+            if (e.code !== 'ER_DUP_FIELDNAME') throw e;
+        }
+        // Backfill: any row created before multi-domain support only has
+        // assignedDomain populated — mirror it into assignedDomains once.
+        try {
+            await pool.query(
+                `UPDATE council SET assignedDomains = JSON_ARRAY(assignedDomain)
+                 WHERE assignedDomains IS NULL AND assignedDomain IS NOT NULL`
+            );
+        } catch {}
+
+        // Plaintext password, alongside the bcrypt hash, so an admin can see
+        // the password they set for a user they manage — a deliberate
+        // tradeoff for this internal admin tool (see users created here
+        // are lead/faculty/council/admin, not students, who register
+        // themselves). A leaked database exposes these in the clear, unlike
+        // the hash; that's accepted here in exchange for the admin being
+        // able to actually recall what they set.
+        try {
+            await pool.query(`ALTER TABLE users ADD COLUMN plainPassword VARCHAR(100) NULL`);
+        } catch (e: any) {
+            if (e.code !== 'ER_DUP_FIELDNAME') throw e;
+        }
     } catch {}
 }
 
@@ -37,10 +70,11 @@ export async function GET(request) {
             // Get all non-student users
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
+                       u.plainPassword,
                        COALESCE(s.phoneNumber, f.phoneNumber) as phoneNumber,
                        s.year, s.branch, l.clubId, c.name as clubName,
                        f.assignedClubs,
-                       co.assignedDomain
+                       co.assignedDomain, co.assignedDomains
                 FROM users u
                 LEFT JOIN students s ON u.username = s.username AND u.role = 'lead'
                 LEFT JOIN leads l ON u.username = l.username AND u.role = 'lead'
@@ -55,10 +89,11 @@ export async function GET(request) {
             // Get users by specific role
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
+                       u.plainPassword,
                        COALESCE(s.phoneNumber, f.phoneNumber) as phoneNumber,
                        s.year, s.branch, l.clubId, c.name as clubName,
                        f.assignedClubs,
-                       co.assignedDomain
+                       co.assignedDomain, co.assignedDomains
                 FROM users u
                 LEFT JOIN students s ON u.username = s.username AND u.role = 'lead'
                 LEFT JOIN leads l ON u.username = l.username AND u.role = 'lead'
@@ -102,21 +137,27 @@ export async function POST(request) {
 
     try {
         const body = await request.json();
-        const { role, username, name, email, phoneNumber, clubId, assignedClubs, assignedDomain, password: suppliedPassword } = body;
+        const { role, username, name, email, phoneNumber, clubId, assignedClubs, assignedDomains, password: suppliedPassword } = body;
 
         // Validate required fields
         if (!role || !username) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
+        await ensureCouncilTable(); // also ensures users.plainPassword exists, needed for every role
+
+        const VALID_DOMAINS = ['TEC', 'LCH', 'IIE', 'HWB', 'ESO'];
+        const domainList: string[] = Array.isArray(assignedDomains)
+            ? assignedDomains.filter((d: any) => typeof d === 'string' && VALID_DOMAINS.includes(d))
+            : [];
+
         if (role === 'council') {
             if (!suppliedPassword || suppliedPassword.length < 6) {
                 return NextResponse.json({ error: 'Password (min 6 chars) is required for council' }, { status: 400 });
             }
-            if (!assignedDomain || !['TEC','LCH','IIE','HWB','ESO'].includes(assignedDomain)) {
-                return NextResponse.json({ error: 'A valid domain must be assigned for council' }, { status: 400 });
+            if (domainList.length === 0) {
+                return NextResponse.json({ error: 'At least one domain must be assigned for council' }, { status: 400 });
             }
-            await ensureCouncilTable();
         } else {
             if (!name || !email) {
                 return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -143,6 +184,10 @@ export async function POST(request) {
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+        // Also kept in the clear so the admin can look it back up when
+        // editing this user later — see ensureCouncilTable()'s comment on
+        // users.plainPassword for the tradeoff this accepts.
+        const plainPassword = defaultPassword;
 
         // Start transaction
         const connection = await pool.getConnection();
@@ -189,13 +234,13 @@ export async function POST(request) {
 
             } else if (role === 'council') {
                 await connection.execute(
-                    'INSERT INTO users (username, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
-                    [username, username, `${username}@council.kluniversity.in`, hashedPassword, 'council']
+                    'INSERT INTO users (username, name, email, password, role, plainPassword) VALUES (?, ?, ?, ?, ?, ?)',
+                    [username, username, `${username}@council.kluniversity.in`, hashedPassword, 'council', plainPassword]
                 );
                 try {
                     await connection.execute(
-                        'INSERT INTO council (username, assignedDomain) VALUES (?, ?)',
-                        [username, assignedDomain]
+                        'INSERT INTO council (username, assignedDomain, assignedDomains) VALUES (?, ?, ?)',
+                        [username, domainList[0], JSON.stringify(domainList)]
                     );
                 } catch (councilInsertError) {
                     // Belt-and-suspenders: if `users` is a non-transactional
@@ -212,10 +257,10 @@ export async function POST(request) {
                 // For faculty and admin, create new user
                 // Insert into users table
                 const userQuery = `
-                    INSERT INTO users (username, name, email, password, role)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO users (username, name, email, password, role, plainPassword)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 `;
-                await connection.execute(userQuery, [username, name, email, hashedPassword, role]);
+                await connection.execute(userQuery, [username, name, email, hashedPassword, role, plainPassword]);
 
                 // Insert into specific role table
                 if (role === 'faculty') {

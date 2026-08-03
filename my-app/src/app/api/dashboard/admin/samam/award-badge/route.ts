@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getCouncilScope } from '@/lib/councilScope';
 
 async function checkAdmin() {
     const cookieStore = await cookies();
@@ -13,18 +14,10 @@ async function checkAdmin() {
     return decoded;
 }
 
-// For council: the club IDs in their assigned domain, or null if the caller
-// is not council (admin/faculty remain unrestricted).
+// For council: the club IDs across all of their assigned domains, or null
+// if the caller is not council (admin/faculty remain unrestricted).
 async function getCouncilClubScope(decoded: any): Promise<string[] | null> {
-    if (decoded.role !== 'council') return null;
-    const [cRows]: any = await pool.execute(
-        'SELECT assignedDomain FROM council WHERE username = ?', [decoded.username]
-    );
-    if (!cRows.length) return [];
-    const [clubRows]: any = await pool.execute(
-        'SELECT id FROM clubs WHERE domain = ?', [cRows[0].assignedDomain]
-    );
-    return (clubRows as any[]).map((c: any) => c.id as string);
+    return getCouncilScope(decoded.role, decoded.username);
 }
 
 export async function GET() {

@@ -21,7 +21,15 @@ interface Student {
     created_at: string;
 }
 
-interface Club { id: string; name: string }
+interface Club { id: string; name: string; domain: string }
+
+const DOMAIN_LABELS: Record<string, string> = {
+    TEC: "Technology (TEC)",
+    LCH: "Liberal Arts (LCH)",
+    IIE: "Innovation & Entrepreneurship (IIE)",
+    HWB: "Health & Wellbeing (HWB)",
+    ESO: "Environment & Social (ESO)",
+};
 
 function Skeleton() {
     return (
@@ -39,6 +47,7 @@ export default function CouncilStudentsPage() {
     const [loading, setLoading]   = useState(true);
     const [search, setSearch]     = useState("");
     const [yearFilter, setYearFilter]   = useState("");
+    const [domainFilter, setDomainFilter] = useState("");
     const [clubFilter, setClubFilter]   = useState("");
     const [pagination, setPagination]   = useState({ page: 1, limit: 50, total: 0, pages: 0 });
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -55,9 +64,10 @@ export default function CouncilStudentsPage() {
         setLoading(true);
         try {
             const params = new URLSearchParams({ page: String(page), limit: "50" });
-            if (search)     params.set("search", search);
-            if (yearFilter) params.set("year",   yearFilter);
-            if (clubFilter) params.set("clubId", clubFilter);
+            if (search)       params.set("search", search);
+            if (yearFilter)   params.set("year",   yearFilter);
+            if (domainFilter) params.set("domain", domainFilter);
+            if (clubFilter)   params.set("clubId", clubFilter);
             const r = await fetch(`/api/dashboard/council/students?${params}`);
             if (r.ok) {
                 const d = await r.json();
@@ -65,18 +75,28 @@ export default function CouncilStudentsPage() {
                 setPagination({ page: d.page ?? 1, limit: 50, total: d.total ?? 0, pages: d.pages ?? 0 });
             }
         } catch {} finally { setLoading(false); }
-    }, [search, yearFilter, clubFilter]);
+    }, [search, yearFilter, domainFilter, clubFilter]);
 
     useEffect(() => { fetchClubs(); }, []);
     useEffect(() => { fetchStudents(1); }, [fetchStudents]);
+
+    // Domain-wise then club-wise: picking a domain narrows the club dropdown
+    // to that domain's clubs and clears any club pick from a different one.
+    const handleDomainChange = (domain: string) => {
+        setDomainFilter(domain);
+        setClubFilter("");
+    };
+    const clubsInDomain = domainFilter ? clubs.filter(c => c.domain === domainFilter) : clubs;
+    const assignedDomains = Array.from(new Set(clubs.map(c => c.domain))) as string[];
 
     const downloadExcel = async () => {
         setDownloading(true);
         try {
             const params = new URLSearchParams({ all: "true" });
-            if (search)     params.set("search", search);
-            if (yearFilter) params.set("year",   yearFilter);
-            if (clubFilter) params.set("clubId", clubFilter);
+            if (search)       params.set("search", search);
+            if (yearFilter)   params.set("year",   yearFilter);
+            if (domainFilter) params.set("domain", domainFilter);
+            if (clubFilter)   params.set("clubId", clubFilter);
             const r = await fetch(`/api/dashboard/council/students?${params}`);
             if (!r.ok) throw new Error("Failed to fetch students");
             const d = await r.json();
@@ -183,11 +203,20 @@ export default function CouncilStudentsPage() {
                         {["1st","2nd","3rd","4th"].map(y => <option key={y} value={y}>{y} Year</option>)}
                     </select>
                 </div>
+                {assignedDomains.length > 1 && (
+                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                        <FiFilter size={12} className="text-gray-400" />
+                        <select value={domainFilter} onChange={e => handleDomainChange(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700">
+                            <option value="">All Domains</option>
+                            {assignedDomains.map(d => <option key={d} value={d}>{DOMAIN_LABELS[d] || d}</option>)}
+                        </select>
+                    </div>
+                )}
                 <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                     <FiUsers size={12} className="text-gray-400" />
                     <select value={clubFilter} onChange={e => setClubFilter(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700">
                         <option value="">All Clubs</option>
-                        {clubs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        {clubsInDomain.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                 </div>
             </div>

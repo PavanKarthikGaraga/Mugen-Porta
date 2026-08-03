@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/apiSecurity';
+import { getCouncilDomains } from '@/lib/councilScope';
 
 export async function GET(request: Request) {
     const auth = await requireAuth(['council']);
@@ -8,17 +9,20 @@ export async function GET(request: Request) {
     const username = auth.user.username as string;
 
     try {
-        const [councilRows]: any = await pool.execute(
-            'SELECT assignedDomain FROM council WHERE username = ?', [username]
-        );
-        if (!councilRows.length) return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
-        const domain = councilRows[0].assignedDomain as string;
+        const domains = await getCouncilDomains(username);
+        if (!domains.length) return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
 
         const { searchParams } = new URL(request.url);
         const clubId = searchParams.get('clubId');
+        const domainFilter = searchParams.get('domain');
+        if (domainFilter && !domains.includes(domainFilter)) {
+            return NextResponse.json({ error: 'Domain not assigned to you' }, { status: 403 });
+        }
+        const scopedDomains = domainFilter ? [domainFilter] : domains;
 
+        const domainPh = scopedDomains.map(() => '?').join(',');
         const [clubRows]: any = await pool.execute(
-            'SELECT id FROM clubs WHERE domain = ?', [domain]
+            `SELECT id FROM clubs WHERE domain IN (${domainPh})`, scopedDomains
         );
         const allClubIds = (clubRows as any[]).map((c: any) => c.id);
         if (!allClubIds.length) {
@@ -54,7 +58,7 @@ export async function GET(request: Request) {
         const domainWiseCount: Record<string, number> = {};
         (domainWise as any[]).forEach((r: any) => { domainWiseCount[r.selectedDomain] = Number(r.count); });
 
-        return NextResponse.json({ totalStudents: Number(totalStudents), recentRegistrations: Number(recentRegistrations), yearWiseCount, domainWiseCount, domain });
+        return NextResponse.json({ totalStudents: Number(totalStudents), recentRegistrations: Number(recentRegistrations), yearWiseCount, domainWiseCount, domains });
     } catch (error: any) {
         console.error('Council stats error:', error);
         return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });

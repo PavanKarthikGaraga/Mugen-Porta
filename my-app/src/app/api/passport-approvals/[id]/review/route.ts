@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getCouncilClubIds } from '@/lib/councilScope';
 
 async function getUser() {
     const cookieStore = await cookies();
@@ -52,10 +53,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
                 return NextResponse.json({ error: 'Access denied: student not in your assigned clubs' }, { status: 403 });
             }
         } else if (role === 'council') {
-            const [cRows]: any = await pool.execute('SELECT assignedDomain FROM council WHERE username = ?', [reviewerUsername]);
-            if (cRows.length === 0) return NextResponse.json({ error: 'Council profile not found' }, { status: 403 });
-            const [clubRows]: any = await pool.execute('SELECT id FROM clubs WHERE domain = ?', [cRows[0].assignedDomain]);
-            const clubIds: string[] = (clubRows as any[]).map((c: any) => c.id as string);
+            const clubIds = await getCouncilClubIds(reviewerUsername);
             if (!clubIds.includes(req.clubId)) {
                 return NextResponse.json({ error: 'Access denied: student not in your domain' }, { status: 403 });
             }

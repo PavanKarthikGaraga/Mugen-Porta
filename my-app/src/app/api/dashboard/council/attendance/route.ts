@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getCouncilClubIds } from '@/lib/councilScope';
 
 const CREATE_TABLE = `
   CREATE TABLE IF NOT EXISTS attendance_submissions (
@@ -29,10 +30,8 @@ async function getCouncil() {
   if (!token) return null;
   const decoded = await verifyToken(token);
   if (!decoded || decoded.role !== 'council') return null;
-  const [rows]: any = await pool.execute('SELECT assignedDomain FROM council WHERE username = ?', [decoded.username as string]);
-  if (rows.length === 0) return null;
-  const [clubRows]: any = await pool.execute('SELECT id FROM clubs WHERE domain = ?', [rows[0].assignedDomain]);
-  return { decoded, clubIds: (clubRows as any[]).map((c: any) => c.id as string) };
+  const clubIds = await getCouncilClubIds(decoded.username as string);
+  return { decoded, clubIds };
 }
 
 export async function GET() {

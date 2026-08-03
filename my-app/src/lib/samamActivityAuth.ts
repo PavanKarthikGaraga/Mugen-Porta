@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
+import { getCouncilClubIds } from '@/lib/councilScope';
 
 /**
  * Shared authorization for activity-scoped SAMAM actions (certificates,
@@ -8,8 +9,8 @@ import { verifyToken } from '@/lib/jwt';
  * resolved.
  *
  *   admin, faculty — unrestricted, may act on any activity
- *   council        — restricted to activities mapped to a club in their
- *                     assigned domain (via club_activity_mappings)
+ *   council        — restricted to activities mapped to a club in any of
+ *                     their assigned domains (via club_activity_mappings)
  *   lead           — restricted to activities mapped to their own club, or
  *                     (legacy accounts) their assigned_categories
  */
@@ -33,18 +34,8 @@ export async function checkIssuer(): Promise<ActivityIssuer | null> {
     }
 
     if (decoded.role === 'council') {
-        const [cRows]: any = await pool.execute(
-            'SELECT assignedDomain FROM council WHERE username = ?', [decoded.username]
-        );
-        if (!cRows.length) return null;
-        const [clubRows]: any = await pool.execute(
-            'SELECT id FROM clubs WHERE domain = ?', [cRows[0].assignedDomain]
-        );
-        return {
-            decoded, unrestricted: false,
-            clubIds: (clubRows as any[]).map((c: any) => c.id as string),
-            assigned_categories: [],
-        };
+        const clubIds = await getCouncilClubIds(decoded.username);
+        return { decoded, unrestricted: false, clubIds, assigned_categories: [] };
     }
 
     if (decoded.role !== 'lead') return null;

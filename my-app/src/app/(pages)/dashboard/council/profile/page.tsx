@@ -22,20 +22,22 @@ function Skeleton() {
 }
 
 export default function CouncilProfilePage() {
-    const [profile, setProfile] = useState({ username: '', email: '', created_at: '', assignedDomain: '' });
+    const [profile, setProfile] = useState<{ username: string; email: string; created_at: string; assignedDomains: string[] }>({
+        username: '', email: '', created_at: '', assignedDomains: [],
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetch('/api/dashboard/council/profile')
             .then(r => r.ok ? r.json() : null)
-            .then(d => { if (d?.user) setProfile(d.user); })
+            .then(d => { if (d?.user) setProfile({ ...d.user, assignedDomains: d.user.assignedDomains || [] }); })
             .catch(() => {})
             .finally(() => setLoading(false));
     }, []);
 
     if (loading) return <Skeleton />;
 
-    const domainLabel = DOMAIN_LABELS[profile.assignedDomain] || profile.assignedDomain;
+    const domainLabels = profile.assignedDomains.map(d => DOMAIN_LABELS[d] || d);
 
     return (
         <div className="space-y-5 max-w-2xl mx-auto">
@@ -66,11 +68,25 @@ export default function CouncilProfilePage() {
                                 <p className="text-sm font-semibold text-gray-900">{profile.email || '—'}</p>
                             </div>
                         </div>
-                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg sm:col-span-2">
                             <FiGrid size={16} className="text-gray-400 mt-0.5" />
-                            <div>
-                                <p className="text-xs text-gray-500">Assigned Domain</p>
-                                <p className="text-sm font-semibold text-gray-900">{domainLabel || '—'}</p>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs text-gray-500">Assigned Domain{domainLabels.length !== 1 ? 's' : ''}</p>
+                                {domainLabels.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1.5 mt-1">
+                                        {domainLabels.map((label, i) => (
+                                            <span
+                                                key={profile.assignedDomains[i]}
+                                                className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+                                                style={{ backgroundColor: BRAND }}
+                                            >
+                                                {label}
+                                            </span>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm font-semibold text-gray-900">—</p>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">

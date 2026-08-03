@@ -19,7 +19,7 @@ const DOMAIN_LABELS: Record<string, string> = {
 export default function CouncilDashboardLayout({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-    const [userData, setUserData] = useState({ username: '', assignedDomain: '' });
+    const [userData, setUserData] = useState<{ username: string; assignedDomains: string[] }>({ username: '', assignedDomains: [] });
     const pathname = usePathname();
     const router = useRouter();
 
@@ -27,7 +27,12 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
         fetch('/api/auth/me')
             .then(r => r.ok ? r.json() : null)
             .then(d => {
-                if (d?.user) setUserData({ username: d.user.username, assignedDomain: d.user.assignedDomain || '' });
+                if (d?.user) {
+                    const domains: string[] = Array.isArray(d.user.assignedDomains) && d.user.assignedDomains.length > 0
+                        ? d.user.assignedDomains
+                        : (d.user.assignedDomain ? [d.user.assignedDomain] : []);
+                    setUserData({ username: d.user.username, assignedDomains: domains });
+                }
             })
             .catch(() => {});
     }, []);
@@ -53,7 +58,7 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
         router.push('/auth/login');
     };
 
-    const domainLabel = DOMAIN_LABELS[userData.assignedDomain] || userData.assignedDomain;
+    const domainLabels = userData.assignedDomains.map(d => DOMAIN_LABELS[d] || d);
 
     return (
         <div className="h-screen flex flex-col" style={{ backgroundColor: '#1a1a1a' }}>
@@ -72,7 +77,9 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
                         <div className="flex items-center space-x-3">
                             <div className="hidden sm:block text-right">
                                 <span className="block text-sm">ID: {userData.username}</span>
-                                {domainLabel && <span className="block text-xs text-red-200">{domainLabel}</span>}
+                                {domainLabels.length > 0 && (
+                                    <span className="block text-xs text-red-200">{domainLabels.join(' · ')}</span>
+                                )}
                             </div>
                             <button
                                 onClick={() => setChangePasswordOpen(true)}

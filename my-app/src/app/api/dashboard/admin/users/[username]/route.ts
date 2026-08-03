@@ -1,6 +1,20 @@
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcrypt';
 import pool from '@/lib/db';
 import { verifyAdminToken } from '../../auth-helper';
+
+const VALID_DOMAINS = ['TEC', 'LCH', 'IIE', 'HWB', 'ESO'];
+
+// Idempotent, matching the sibling create route's ensureCouncilTable — a
+// council row edited before that route ever ran (e.g. this endpoint hit
+// first) still needs assignedDomains to exist.
+async function ensureCouncilDomainsColumn() {
+    try {
+        await pool.query(`ALTER TABLE council ADD COLUMN assignedDomains JSON NULL`);
+    } catch (e: any) {
+        if (e.code !== 'ER_DUP_FIELDNAME') throw e;
+    }
+}
 
 export async function POST(request, { params }) {
     // Verify admin token
@@ -12,7 +26,7 @@ export async function POST(request, { params }) {
     try {
         const { username } = params;
         const body = await request.json();
-        const { name, email, phoneNumber, year, branch, clubId, assignedClubs } = body;
+        const { name, email, phoneNumber, year, branch, clubId, assignedClubs, assignedDomains, password } = body;
 
         if (!username) {
             return NextResponse.json(
@@ -20,6 +34,17 @@ export async function POST(request, { params }) {
                 { status: 400 }
             );
         }
+
+        // A blank password field means "leave it as-is" — only touch it when
+        // the admin actually typed a new one.
+        const newPassword = typeof password === 'string' && password.trim().length > 0 ? password.trim() : null;
+        if (newPassword && newPassword.length < 6) {
+            return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
+        }
+
+        const domainList: string[] = Array.isArray(assignedDomains)
+            ? assignedDomains.filter((d: any) => typeof d === 'string' && VALID_DOMAINS.includes(d))
+            : [];
 
         // Start transaction
         const connection = await pool.getConnection();
@@ -42,11 +67,28 @@ export async function POST(request, { params }) {
 
             const role = userResult[0].role;
 
-            // Update users table
-            await connection.execute(
-                'UPDATE users SET name = ?, email = ? WHERE username = ?',
-                [name, email, username]
-            );
+            if (role === 'council' && domainList.length === 0) {
+                await connection.rollback();
+                return NextResponse.json({ error: 'At least one domain must be assigned for council' }, { status: 400 });
+            }
+
+            // Update users table — name/email for everyone; password only
+            // when a new one was actually supplied. Council has no name/email
+            // of its own (they're synthesized at creation — see admin/users/
+            // route.ts), so this just leaves those columns as they are for
+            // council when the request doesn't include them.
+            if (newPassword) {
+                const hashedPassword = await bcrypt.hash(newPassword, 12);
+                await connection.execute(
+                    'UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email), password = ?, plainPassword = ? WHERE username = ?',
+                    [name || null, email || null, hashedPassword, newPassword, username]
+                );
+            } else {
+                await connection.execute(
+                    'UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE username = ?',
+                    [name || null, email || null, username]
+                );
+            }
 
             // Update role-specific table
             if (role === 'lead') {
@@ -59,6 +101,12 @@ export async function POST(request, { params }) {
                 await connection.execute(
                     'UPDATE faculty SET name = ?, email = ?, phoneNumber = ?, assignedClubs = ? WHERE username = ?',
                     [name, email, phoneNumber, JSON.stringify(assignedClubs), username]
+                );
+            } else if (role === 'council') {
+                await ensureCouncilDomainsColumn();
+                await connection.execute(
+                    'UPDATE council SET assignedDomain = ?, assignedDomains = ? WHERE username = ?',
+                    [domainList[0], JSON.stringify(domainList), username]
                 );
             }
 

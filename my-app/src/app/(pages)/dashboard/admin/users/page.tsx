@@ -11,6 +11,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { branchNames } from "../../../../Data/branches";
 
+const DOMAIN_OPTIONS = [
+    { value: 'TEC', label: 'TEC – Technology' },
+    { value: 'LCH', label: 'LCH – Liberal Arts' },
+    { value: 'IIE', label: 'IIE – Innovation & Entrepreneurship' },
+    { value: 'HWB', label: 'HWB – Health & Wellbeing' },
+    { value: 'ESO', label: 'ESO – Environment & Social' },
+];
+const DOMAIN_LABEL = Object.fromEntries(DOMAIN_OPTIONS.map(d => [d.value, d.label]));
+
+// MySQL sometimes returns a JSON column already parsed, sometimes as a raw
+// string depending on driver/version — every consumer of assignedClubs /
+// assignedDomains has to handle both shapes, so this is shared rather than
+// re-implemented per call site.
+const parseArrayField = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+        try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+    }
+    return [];
+};
+
 export default function UsersPage() {
     const [users, setUsers] = useState([]);
     const [clubs, setClubs] = useState([]);
@@ -32,13 +53,14 @@ export default function UsersPage() {
         branch: '',
         clubId: '',
         assignedClubs: [],
-        assignedDomain: '',
+        assignedDomains: [],
         password: '',
         // Student promotion fields
         studentDetails: null,
         isPromotingStudent: false
     });
     const [newClubAssignment, setNewClubAssignment] = useState('');
+    const [newDomainAssignment, setNewDomainAssignment] = useState('');
     const [defaultPassword, setDefaultPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showCouncilPw, setShowCouncilPw] = useState(false);
@@ -121,17 +143,23 @@ export default function UsersPage() {
         try {
             let url, method, body;
 
-            // Auto-include a club that's selected in the dropdown but not yet added via +
+            // Auto-include a club/domain that's selected in its dropdown but
+            // not yet added via + — otherwise clicking submit right after
+            // picking one silently drops it.
             const effectiveAssignedClubs =
                 formData.role === 'faculty' && newClubAssignment && !formData.assignedClubs.includes(newClubAssignment)
                     ? [...formData.assignedClubs, newClubAssignment]
                     : formData.assignedClubs;
+            const effectiveAssignedDomains =
+                formData.role === 'council' && newDomainAssignment && !formData.assignedDomains.includes(newDomainAssignment)
+                    ? [...formData.assignedDomains, newDomainAssignment]
+                    : formData.assignedDomains;
 
             if (editingUser) {
                 // Update existing user
                 url = `/api/dashboard/admin/users/${editingUser.username}`;
                 method = 'POST';
-                body = { ...formData, assignedClubs: effectiveAssignedClubs };
+                body = { ...formData, assignedClubs: effectiveAssignedClubs, assignedDomains: effectiveAssignedDomains };
             } else if (formData.isPromotingStudent) {
                 // Promote existing student to lead
                 url = '/api/dashboard/admin/users/promote-student';
@@ -144,7 +172,7 @@ export default function UsersPage() {
                 // Create new user
                 url = '/api/dashboard/admin/users';
                 method = 'POST';
-                body = { ...formData, assignedClubs: effectiveAssignedClubs };
+                body = { ...formData, assignedClubs: effectiveAssignedClubs, assignedDomains: effectiveAssignedDomains };
             }
 
             const response = await fetch(url, {
@@ -214,7 +242,7 @@ export default function UsersPage() {
             branch: '',
             clubId: '',
             assignedClubs: [],
-            assignedDomain: '',
+            assignedDomains: [],
             password: '',
             studentDetails: null,
             isPromotingStudent: false
@@ -222,6 +250,7 @@ export default function UsersPage() {
         setEditingUser(null);
         setShowModal(false);
         setNewClubAssignment('');
+        setNewDomainAssignment('');
         setDefaultPassword('');
         setShowPassword(false);
         setShowCouncilPw(false);
@@ -229,6 +258,11 @@ export default function UsersPage() {
 
     const startEdit = (user) => {
         setEditingUser(user);
+        // assignedDomains is the multi-domain array; assignedDomain is the
+        // legacy single-domain column, still populated for council rows
+        // created before multi-domain support — fall back to it as a
+        // single-item list so an old council user still edits correctly.
+        const domains = parseArrayField(user.assignedDomains);
         setFormData({
             role: user.role,
             username: user.username,
@@ -238,19 +272,33 @@ export default function UsersPage() {
             year: user.year || '',
             branch: user.branch || '',
             clubId: user.clubId || '',
-            assignedClubs: (() => {
-                if (Array.isArray(user.assignedClubs)) return user.assignedClubs;
-                if (typeof user.assignedClubs === 'string') {
-                    try { return JSON.parse(user.assignedClubs); } catch { return []; }
-                }
-                return [];
-            })(),
-            assignedDomain: user.assignedDomain || '',
-            password: '',
+            assignedClubs: parseArrayField(user.assignedClubs),
+            assignedDomains: domains.length > 0 ? domains : (user.assignedDomain ? [user.assignedDomain] : []),
+            // Prefills with the password set when this account was created
+            // (or last changed here) — see users.plainPassword. Admin can
+            // leave it as-is or type a new one to change it.
+            password: user.plainPassword || '',
             studentDetails: null,
             isPromotingStudent: false,
         });
         setShowModal(true);
+    };
+
+    const addDomainAssignment = () => {
+        if (newDomainAssignment && !formData.assignedDomains.includes(newDomainAssignment)) {
+            setFormData({
+                ...formData,
+                assignedDomains: [...formData.assignedDomains, newDomainAssignment]
+            });
+            setNewDomainAssignment('');
+        }
+    };
+
+    const removeDomainAssignment = (domainToRemove) => {
+        setFormData({
+            ...formData,
+            assignedDomains: formData.assignedDomains.filter(d => d !== domainToRemove)
+        });
     };
 
     const addClubAssignment = () => {
@@ -498,46 +546,23 @@ export default function UsersPage() {
                                             {user.role === 'lead' && user.clubName && (
                                                 <span className="text-blue-600">Club: {user.clubName}</span>
                                             )}
-                                            {user.role === 'council' && (
-                                                <span className="text-purple-600">Domain: {user.assignedDomain || '—'}</span>
-                                            )}
-                                            {user.role === 'faculty' && (
-                                                <span className="text-green-600">
-                                                    {(() => {
-                                                        // Check if it's already an array (parsed by MySQL)
-                                                        if (Array.isArray(user.assignedClubs)) {
-                                                            return user.assignedClubs.length;
-                                                        }
-                                                        // If it's a string, try to parse it
-                                                        if (typeof user.assignedClubs === 'string') {
-                                                            try {
-                                                                const parsed = JSON.parse(user.assignedClubs);
-                                                                return Array.isArray(parsed) ? parsed.length : 1;
-                                                            } catch (e) {
-                                                                // Fallback to comma-separated string
-                                                                const clubs = user.assignedClubs.split(',').filter(c => c.trim());
-                                                                return clubs.length;
-                                                            }
-                                                        }
-                                                        return 0;
-                                                    })()} club{(() => {
-                                                        if (Array.isArray(user.assignedClubs)) {
-                                                            return user.assignedClubs.length !== 1 ? 's' : '';
-                                                        }
-                                                        if (typeof user.assignedClubs === 'string') {
-                                                            try {
-                                                                const parsed = JSON.parse(user.assignedClubs);
-                                                                const length = Array.isArray(parsed) ? parsed.length : 1;
-                                                                return length !== 1 ? 's' : '';
-                                                            } catch {
-                                                                const clubs = user.assignedClubs.split(',').filter(c => c.trim());
-                                                                return clubs.length !== 1 ? 's' : '';
-                                                            }
-                                                        }
-                                                        return 's';
-                                                    })()} assigned
-                                                </span>
-                                            )}
+                                            {user.role === 'council' && (() => {
+                                                const domains = parseArrayField(user.assignedDomains);
+                                                const list = domains.length > 0 ? domains : (user.assignedDomain ? [user.assignedDomain] : []);
+                                                return (
+                                                    <span className="text-purple-600">
+                                                        {list.length > 0 ? `Domain${list.length !== 1 ? 's' : ''}: ${list.join(', ')}` : 'No domain assigned'}
+                                                    </span>
+                                                );
+                                            })()}
+                                            {user.role === 'faculty' && (() => {
+                                                const count = parseArrayField(user.assignedClubs).length;
+                                                return (
+                                                    <span className="text-green-600">
+                                                        {count} club{count !== 1 ? 's' : ''} assigned
+                                                    </span>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex items-center gap-2">
@@ -676,45 +701,83 @@ export default function UsersPage() {
                                     </div>
                                 )}
 
-                                {formData.role === 'council' && (
-                                    <div className="col-span-2 space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-                                            <div className="relative">
-                                                <input
-                                                    type={showCouncilPw ? "text" : "password"}
-                                                    value={formData.password}
-                                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                                    placeholder="Set a password (min 6 chars)"
-                                                    required={formData.role === 'council'}
-                                                    minLength={6}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowCouncilPw(p => !p)}
-                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                                    tabIndex={-1}
-                                                >
-                                                    {showCouncilPw ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Domain *</label>
-                                            <select
-                                                value={formData.assignedDomain}
-                                                onChange={(e) => setFormData({ ...formData, assignedDomain: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                                required={formData.role === 'council'}
+                                {(editingUser || formData.role === 'council') && (
+                                    <div className="col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Password{formData.role === 'council' && !editingUser ? ' *' : ''}
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type={showCouncilPw ? "text" : "password"}
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                                placeholder={editingUser ? "Change the password, or leave as-is" : "Set a password (min 6 chars)"}
+                                                required={formData.role === 'council' && !editingUser}
+                                                minLength={6}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCouncilPw(p => !p)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                tabIndex={-1}
                                             >
-                                                <option value="">Select Domain</option>
-                                                <option value="TEC">TEC – Technology</option>
-                                                <option value="LCH">LCH – Liberal Arts</option>
-                                                <option value="IIE">IIE – Innovation & Entrepreneurship</option>
-                                                <option value="HWB">HWB – Health & Wellbeing</option>
-                                                <option value="ESO">ESO – Environment & Social</option>
+                                                {showCouncilPw ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                                            </button>
+                                        </div>
+                                        {editingUser && (
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                {formData.password
+                                                    ? "This is the password currently set for this account — edit it to change it, or leave it as-is."
+                                                    : "No password on record for this account yet — set one here if needed."}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {formData.role === 'council' && (
+                                    <div className="col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Assigned Domains *
+                                        </label>
+                                        <div className="flex space-x-2 mb-2">
+                                            <select
+                                                value={newDomainAssignment}
+                                                onChange={(e) => setNewDomainAssignment(e.target.value)}
+                                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                            >
+                                                <option value="">Select Domain to Assign</option>
+                                                {DOMAIN_OPTIONS.filter(d => !formData.assignedDomains.includes(d.value)).map((d) => (
+                                                    <option key={d.value} value={d.value}>{d.label}</option>
+                                                ))}
                                             </select>
+                                            <button
+                                                type="button"
+                                                onClick={addDomainAssignment}
+                                                className="px-3 py-2 bg-red-800 text-white rounded-md hover:bg-red-900 transition-colors"
+                                            >
+                                                <FiPlus className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {formData.assignedDomains.length === 0 && (
+                                                <span className="text-xs text-gray-400">No domains selected yet</span>
+                                            )}
+                                            {formData.assignedDomains.map((domain) => (
+                                                <span
+                                                    key={domain}
+                                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800 border border-purple-300"
+                                                >
+                                                    {DOMAIN_LABEL[domain] || domain}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeDomainAssignment(domain)}
+                                                        className="ml-2 text-purple-600 hover:text-purple-800 transition-colors"
+                                                    >
+                                                        <FiX className="h-3 w-3" />
+                                                    </button>
+                                                </span>
+                                            ))}
                                         </div>
                                     </div>
                                 )}
