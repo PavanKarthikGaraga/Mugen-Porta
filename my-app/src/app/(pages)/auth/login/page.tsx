@@ -106,10 +106,24 @@ export default function Login() {
                             router.push("/dashboard/student");
                         }, 100);
                     }
-                }else if(response.status===404) { 
-                    toast.error("User Not Found");
-                }else if(response.status===401) {
-                    toast.error("Invalid Credentials");
+                }else {
+                    // The API can also return 400 (bad input), 429 (rate
+                    // limited — the likeliest real-world case, since a whole
+                    // campus shares one NAT IP and can legitimately burst past
+                    // the per-IP limit at the start of a session) or 500. All
+                    // of those used to fall through here silently: the button
+                    // just stopped loading with no feedback at all. Show
+                    // whatever message the server actually sent instead of
+                    // only handling 401 specifically.
+                    let message = "Login failed. Please try again.";
+                    try {
+                        const errorData = await response.json();
+                        if (errorData?.error) message = errorData.error;
+                    } catch { /* body wasn't JSON — keep the fallback */ }
+                    if (response.status === 429) {
+                        message = "Too many login attempts right now. Please wait a minute and try again.";
+                    }
+                    toast.error(message);
                 }
             } catch (error) {
                 console.error("Login error:", error);
