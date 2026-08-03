@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import pool from '@/lib/db';
 import { verifyDevAccess } from '../../auth-helper';
 import { safeMessage } from '@/lib/apiSecurity';

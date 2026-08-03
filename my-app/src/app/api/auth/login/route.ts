@@ -1,7 +1,7 @@
 import pool from "@/lib/db";
 import { generateToken } from "@/lib/jwt";
 import { cookies } from "next/headers";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import { checkRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req) {
@@ -11,7 +11,7 @@ export async function POST(req) {
     // address, so a full cohort signing in at the start of a session is normal
     // traffic, not an attack. This dimension exists only to stop a single host
     // hammering many different accounts.
-    const ipLimit = checkRateLimit(req, 'login-ip', { limit: 100, windowMs: 60 * 1000 });
+    const ipLimit = await checkRateLimit(req, 'login-ip', { limit: 100, windowMs: 60 * 1000 });
     if (ipLimit.limited) return ipLimit.response;
 
     let db;
@@ -31,7 +31,7 @@ export async function POST(req) {
         // mint fresh buckets. A bucket is created for whatever string is
         // submitted, so a 429 here reveals nothing about whether that account
         // actually exists -- the enumeration guarantee below still holds.
-        const userLimit = checkRateLimit(req, 'login-user', {
+        const userLimit = await checkRateLimit(req, 'login-user', {
             limit: 10,
             windowMs: 15 * 60 * 1000,
             key: username.toLowerCase(),

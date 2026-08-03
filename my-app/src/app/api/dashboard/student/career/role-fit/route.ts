@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     const isDemo = DEMO_ACCOUNTS.has(username);
 
     if (!isDemo) {
-        const rl = checkRateLimit(request, 'career-role-fit', { limit: 8, windowMs: 10 * 60 * 1000, key: username });
+        const rl = await checkRateLimit(request, 'career-role-fit', { limit: 8, windowMs: 10 * 60 * 1000, key: username });
         if (rl.limited) return rl.response;
     }
 

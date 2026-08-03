@@ -1,38 +1,51 @@
 import { NextResponse } from 'next/server';
+import Redis from 'ioredis';
 
 /**
- * Lightweight in-memory rate limiter for brute-force / abuse protection on
- * sensitive endpoints (login, register, password reset).
+ * Redis-backed rate limiter for brute-force / abuse protection on sensitive
+ * endpoints (login, register, password reset, career-AI calls).
  *
- * This is a single-process, fixed-window limiter keyed by a bucket name plus
- * an identity. Identity defaults to client IP, which is what you want for
- * unauthenticated endpoints (login, register, password reset) where the
- * caller has no account yet and brute force is the threat.
+ * Backed by Redis (rather than an in-process Map) so the count is shared
+ * across every PM2 cluster worker -- required once the app runs as more
+ * than one Node process, otherwise each worker would enforce its own
+ * separate limit and the effective ceiling would silently multiply by the
+ * worker count.
+ *
+ * Identity defaults to client IP, which is what you want for unauthenticated
+ * endpoints (login, register, password reset) where the caller has no
+ * account yet and brute force is the threat.
  *
  * For AUTHENTICATED endpoints, pass `key: <username>` instead. Campus users
  * share a NAT gateway, so hundreds of distinct students present the same
  * public IP -- IP keying would let the first few consume the whole bucket
  * and lock everyone else out. Per-username keying still stops one account
  * from spamming, without penalising students for sharing a network.
- *
- * It is intentionally dependency-free (no Redis) so it works out of the box;
- * if the app is ever scaled to multiple Node processes, swap the in-memory
- * Map below for a shared store (e.g. Redis/ioredis, already a dependency).
  */
 
-const buckets = new Map();
+const redis = new Redis({
+    host: process.env.REDIS_HOST || '127.0.0.1',
+    port: Number(process.env.REDIS_PORT) || 6379,
+    password: process.env.REDIS_PASSWORD || undefined,
+});
 
-// Periodically clear out stale entries so the Map doesn't grow forever.
-const SWEEP_INTERVAL_MS = 5 * 60 * 1000;
-let lastSweep = Date.now();
+// A connection blip must never crash the process -- ioredis throws on an
+// unhandled 'error' event, and this module runs on the request path for
+// login, so an uncaught error here would take the whole app down with it.
+redis.on('error', (err) => {
+    console.error('[rateLimit] Redis connection error:', err.message);
+});
 
-function sweep(now) {
-    if (now - lastSweep < SWEEP_INTERVAL_MS) return;
-    lastSweep = now;
-    for (const [key, entry] of buckets.entries()) {
-        if (now > entry.resetAt) buckets.delete(key);
-    }
-}
+// Atomically increments the bucket and sets its expiry only on the first
+// increment of a window, so concurrent requests can't race past the limit
+// and the window doesn't keep sliding forward under sustained load.
+const INCR_AND_EXPIRE = `
+local current = redis.call("INCR", KEYS[1])
+if current == 1 then
+  redis.call("PEXPIRE", KEYS[1], ARGV[1])
+end
+local ttl = redis.call("PTTL", KEYS[1])
+return {current, ttl}
+`;
 
 function getClientIp(request) {
     const headers = request.headers;
@@ -50,25 +63,28 @@ function getClientIp(request) {
  *   key - identity to meter on. Omit for IP-based limiting (unauthenticated
  *   endpoints); pass a username for authenticated ones so users behind a
  *   shared NAT are not lumped into one bucket.
- * @returns {{ limited: boolean, response: Response | null, remaining: number }}
+ * @returns {Promise<{ limited: boolean, response: Response | null, remaining: number }>}
  */
-export function checkRateLimit(request, bucketName, options = {}) {
+export async function checkRateLimit(request, bucketName, options = {}) {
     const { limit = 10, windowMs = 60 * 1000, key: identity } = options;
-    const now = Date.now();
-    sweep(now);
+    const key = `ratelimit:${bucketName}:${identity || getClientIp(request)}`;
 
-    const key = `${bucketName}:${identity || getClientIp(request)}`;
-
-    let entry = buckets.get(key);
-    if (!entry || now > entry.resetAt) {
-        entry = { count: 0, resetAt: now + windowMs };
-        buckets.set(key, entry);
+    let count;
+    let ttl;
+    try {
+        [count, ttl] = await redis.eval(INCR_AND_EXPIRE, 1, key, windowMs);
+    } catch (err) {
+        // Redis is unreachable. Failing open keeps the site usable during a
+        // Redis outage -- brute-force protection is defense-in-depth here,
+        // not the only thing standing between an attacker and an account
+        // (passwords are still bcrypt-hashed and checked), so availability
+        // wins over strict enforcement in this specific failure mode.
+        console.error('[rateLimit] Redis eval failed, failing open:', err.message);
+        return { limited: false, remaining: limit, response: null };
     }
 
-    entry.count += 1;
-
-    if (entry.count > limit) {
-        const retryAfterSec = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
+    if (count > limit) {
+        const retryAfterSec = Math.max(1, Math.ceil(ttl / 1000));
         return {
             limited: true,
             remaining: 0,
@@ -79,7 +95,7 @@ export function checkRateLimit(request, bucketName, options = {}) {
         };
     }
 
-    return { limited: false, remaining: limit - entry.count, response: null };
+    return { limited: false, remaining: limit - count, response: null };
 }
 
 /**
@@ -87,6 +103,6 @@ export function checkRateLimit(request, bucketName, options = {}) {
  * addition to checkRateLimit for login, to slow down credential stuffing
  * even within the base rate limit window).
  */
-export function recordFailedAttempt(request, bucketName, options = {}) {
+export async function recordFailedAttempt(request, bucketName, options = {}) {
     return checkRateLimit(request, `${bucketName}:fail`, options);
 }

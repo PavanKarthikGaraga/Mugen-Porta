@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import pool from '@/lib/db';
 import { verifyToken } from '@/lib/jwt';
 import { cookies } from 'next/headers';

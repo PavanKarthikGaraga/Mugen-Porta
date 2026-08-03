@@ -6,7 +6,10 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   waitForConnections: true,
-  connectionLimit: 20,
+  // 40 per worker x 2 PM2 cluster workers = 80 total, comfortably under
+  // MySQL's max_connections (151 on this server), leaving headroom for
+  // mysqldump/replication/monitoring/admin connections outside the app.
+  connectionLimit: 40,
   queueLimit: 0,
   // multipleStatements is intentionally NOT enabled. Allowing stacked SQL
   // statements dramatically increases the blast radius of any SQL

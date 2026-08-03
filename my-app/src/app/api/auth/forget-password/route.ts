@@ -8,7 +8,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req) {
     // Prevent this endpoint being used to spam a user's inbox with reset emails.
-    const rateLimit = checkRateLimit(req, 'forget-password', { limit: 5, windowMs: 5 * 60 * 1000 });
+    const rateLimit = await checkRateLimit(req, 'forget-password', { limit: 5, windowMs: 5 * 60 * 1000 });
     if (rateLimit.limited) return rateLimit.response;
 
     let db;

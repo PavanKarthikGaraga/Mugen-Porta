@@ -1,7 +1,7 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 export async function POST(req) {
     let db;

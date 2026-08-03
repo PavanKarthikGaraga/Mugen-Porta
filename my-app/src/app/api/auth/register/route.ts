@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import pool from "@/lib/db";
 import { sendRegistrationEmail } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rateLimit";
@@ -39,7 +39,7 @@ async function ensureUsernameWidth(table: string, minLength: number) {
 export async function POST(req) {
     // Registration creates a DB record and sends email - protect against
     // automated mass-registration / abuse.
-    const rateLimit = checkRateLimit(req, 'register', { limit: 5, windowMs: 60 * 1000 });
+    const rateLimit = await checkRateLimit(req, 'register', { limit: 5, windowMs: 60 * 1000 });
     if (rateLimit.limited) return rateLimit.response;
 
     try {

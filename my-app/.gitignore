@@ -45,3 +45,6 @@ next-env.d.ts
 /public/uploads/
 
 .DS_Store
+
+# one-shot test scripts (contain raw API keys — never commit)
+test-keys.mjs
