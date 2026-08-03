@@ -61,6 +61,12 @@ export async function POST(req) {
             return NextResponse.json({ message: "Username must be alphanumeric" }, { status: 400 });
         }
 
+        // Registration IDs are entered manually — no year-prefix requirement,
+        // just length and digits.
+        if (!/^\d{10,11}$/.test(username)) {
+            return NextResponse.json({ message: "Username must be exactly 10 or 11 digits" }, { status: 400 });
+        }
+
         if (!EMAIL_REGEX.test(email) || email.length > 150) {
             return NextResponse.json({ message: "Please provide a valid email address" }, { status: 400 });
         }
@@ -100,17 +106,12 @@ export async function POST(req) {
 
         // Validation based on student year - unified logic matching frontend
 
-        const isCDOEBranch = branch === "KL CDOE Management (OL) BBA" || branch === "KL CDOE Humanities (OL) BCA";
+        // 1st years defer club selection to their dashboard, after their
+        // Career Roadmap assessment suggests clubs to them — everyone else
+        // must select a club and domain at registration.
+        const deferClubSelection = year === '1st';
 
-        if (!isCDOEBranch && !isY22Student && !isY23Student && !isY24Student && !isY25Student && !isY26Student) {
-            return NextResponse.json(
-                { message: "Invalid username format. Must start with 22, 23, 24, 25, or 26" },
-                { status: 400 }
-            );
-        }
-
-        // All students must select club and domain
-        if (!selectedClub || !selectedDomain) {
+        if (!deferClubSelection && (!selectedClub || !selectedDomain)) {
             return NextResponse.json(
                 { message: "Club and domain selection is required" },
                 { status: 400 }
@@ -126,19 +127,6 @@ export async function POST(req) {
         }
 
         // ERP Fee Receipt is no longer required
-
-        // Additional validations
-        if (isCDOEBranch && username.length > 11) {
-            return NextResponse.json(
-                { message: "CDOE username must be 11 characters or less" },
-                { status: 400 }
-            );
-        } else if (!isCDOEBranch && username.length > 10) {
-            return NextResponse.json(
-                { message: "Username must be 10 characters or less" },
-                { status: 400 }
-            );
-        }
 
         // Determine if user is from KLH campuses to conditionally require hostel/bus fields
         const isKLHCampus = campus === "KLH - Bachupally" || campus === "KLH - Aziz Nagar" || campus === "KLH - GBS";
@@ -188,33 +176,36 @@ export async function POST(req) {
         }
 
 
-        // Check club member limits for all students
-        const [clubInfo] = await pool.execute(
-            "SELECT memberLimit FROM clubs WHERE id = ?",
-            [selectedClub]
-        );
-
-        const [clubMembers] = await pool.execute(
-            "SELECT COUNT(*) as currentMembers FROM students WHERE clubId = ?",
-            [selectedClub]
-        );
-
-        const currentMembers = clubMembers[0].currentMembers;
-        const memberLimit = clubInfo[0]?.memberLimit || 50; // Default to 50 if not found
-
-        if (currentMembers >= memberLimit) {
-            return NextResponse.json(
-                {
-                    message: `This club is full. Maximum ${memberLimit} members allowed per club.`,
-                    errorType: "CLUB_FULL",
-                    clubId: selectedClub,
-                    currentMembers: currentMembers,
-                    maxMembers: memberLimit,
-                    availableSpots: 0,
-                    suggestion: "Please select a different club."
-                },
-                { status: 400 }
+        // Check club member limits — skipped for 1st years, who have no
+        // club selected yet at this point.
+        if (!deferClubSelection) {
+            const [clubInfo] = await pool.execute(
+                "SELECT memberLimit FROM clubs WHERE id = ?",
+                [selectedClub]
             );
+
+            const [clubMembers] = await pool.execute(
+                "SELECT COUNT(*) as currentMembers FROM students WHERE clubId = ?",
+                [selectedClub]
+            );
+
+            const currentMembers = clubMembers[0].currentMembers;
+            const memberLimit = clubInfo[0]?.memberLimit || 50; // Default to 50 if not found
+
+            if (currentMembers >= memberLimit) {
+                return NextResponse.json(
+                    {
+                        message: `This club is full. Maximum ${memberLimit} members allowed per club.`,
+                        errorType: "CLUB_FULL",
+                        clubId: selectedClub,
+                        currentMembers: currentMembers,
+                        maxMembers: memberLimit,
+                        availableSpots: 0,
+                        suggestion: "Please select a different club."
+                    },
+                    { status: 400 }
+                );
+            }
         }
 
         // Hash password
@@ -259,12 +250,13 @@ export async function POST(req) {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
-                    selectedClub,                          // All students can have clubs
+                    deferClubSelection ? null : selectedClub, // 1st years: NULL until chosen from their dashboard
                     name, email, branch, gender,
                     campus,
                     year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
-                    countryName || country, state, district, pincode, selectedDomain,
+                    countryName || country, state, district, pincode,
+                    deferClubSelection ? null : selectedDomain,
                     pathway || null, careerChoice || null
                 ]
             );

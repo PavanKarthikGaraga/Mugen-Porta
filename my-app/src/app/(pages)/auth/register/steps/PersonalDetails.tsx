@@ -2,29 +2,18 @@ import { branchNames } from "../../../../Data/branches";
 import { countryCodes } from "../../../../Data/coutries";
 
 export default function PersonalDetails({ formData, updateFormData }) {
-    const isCDOEBranch = formData.branch === "KL CDOE Management (OL) BBA" || formData.branch === "KL CDOE Humanities (OL) BCA";
-
+    // Registration IDs are entered manually and no longer required to match
+    // a year-encoded prefix (batches/campuses use ID formats that don't fit
+    // a fixed 22/23/24/25/26 scheme) — only length and digit-only remain.
     const validateUsername = (username) => {
         if (!username) return false;
-        if (!isCDOEBranch) {
-            if (username.length !== 10) return false;
-            if (!/^\d{10}$/.test(username)) return false;
-            if (!username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false;
-        } else {
-            if (username.length !== 10 && username.length !== 11) return false;
-            if (!/^\d{10,11}$/.test(username)) return false;
-        }
-        return true;
+        return /^\d{10,11}$/.test(username);
     };
 
     const validateUsernameForTyping = (username) => {
         if (!username) return true;
-        if (!isCDOEBranch && username.length > 10) return false;
-        if (isCDOEBranch && username.length > 11) return false;
+        if (username.length > 11) return false;
         if (!/^\d*$/.test(username)) return false;
-        if (!isCDOEBranch && username.length >= 2) {
-            if (!username.startsWith('23') && !username.startsWith('24') && !username.startsWith('25') && !username.startsWith('26')) return false;
-        }
         return true;
     };
 
@@ -35,55 +24,11 @@ export default function PersonalDetails({ formData, updateFormData }) {
 
         if (name === "username") {
             if (value && !validateUsernameForTyping(value)) return;
-            
-            let prefix = "";
-            if (!isCDOEBranch) {
-                if (formData.year === "1st") prefix = "26";
-                else if (formData.year === "2nd") prefix = "25";
-                else if (formData.year === "3rd") prefix = "24";
-                else if (formData.year === "4th") prefix = "23";
-            }
-
-            // Prevent deleting or modifying the enforced prefix
-            if (prefix && value.length < prefix.length) return;
-            if (prefix && !value.startsWith(prefix)) return;
-
             const email = value ? `${value}@kluniversity.in` : "";
             updateFormData({ [name]: value, email });
         } else if (name === "countryCode") {
             const selectedCountry = countryCodes.find(c => c.dial_code === value);
             updateFormData({ [name]: value, countryName: selectedCountry ? selectedCountry.name : "" });
-        } else if (name === "year") {
-            let currentUsername = formData.username || "";
-            if (!isCDOEBranch) {
-                if (value === "1st" && !currentUsername.startsWith("26")) {
-                    currentUsername = currentUsername.length >= 2 ? "26" + currentUsername.substring(2) : "26" + currentUsername;
-                } else if (value === "2nd" && !currentUsername.startsWith("25")) {
-                    currentUsername = currentUsername.length >= 2 ? "25" + currentUsername.substring(2) : "25" + currentUsername;
-                } else if (value === "3rd" && !currentUsername.startsWith("24")) {
-                    currentUsername = currentUsername.length >= 2 ? "24" + currentUsername.substring(2) : "24" + currentUsername;
-                } else if (value === "4th" && !currentUsername.startsWith("23")) {
-                    currentUsername = currentUsername.length >= 2 ? "23" + currentUsername.substring(2) : "23" + currentUsername;
-                }
-            }
-            const email = currentUsername ? `${currentUsername}@kluniversity.in` : "";
-            updateFormData({ [name]: value, username: currentUsername, email });
-        } else if (name === "branch") {
-            const newIsCDOE = value === "KL CDOE Management (OL) BBA" || value === "KL CDOE Humanities (OL) BCA";
-            let currentUsername = formData.username || "";
-            if (!newIsCDOE && formData.year) {
-                let prefix = "";
-                if (formData.year === "1st") prefix = "26";
-                else if (formData.year === "2nd") prefix = "25";
-                else if (formData.year === "3rd") prefix = "24";
-                else if (formData.year === "4th") prefix = "23";
-                
-                if (prefix && !currentUsername.startsWith(prefix)) {
-                    currentUsername = currentUsername.length >= 2 ? prefix + currentUsername.substring(2) : prefix + currentUsername;
-                }
-            }
-            const email = currentUsername ? `${currentUsername}@kluniversity.in` : "";
-            updateFormData({ [name]: value, username: currentUsername, email });
         } else {
             updateFormData({ [name]: value });
         }
@@ -174,6 +119,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         <option value="2nd">2nd Year</option>
                         <option value="3rd">3rd Year</option>
                         <option value="4th">4th Year</option>
+                        <option value="5th">5th Year</option>
                     </select>
                 </div>
 
@@ -186,7 +132,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         type="text"
                         id="username"
                         name="username"
-                        placeholder={isCDOEBranch ? "Enter 10 or 11-digit username" : "Enter username (must start with 23, 24, 25, or 26)"}
+                        placeholder="Enter your 10 or 11-digit registration ID"
                         className={`w-full h-12 px-4 border rounded-lg focus:ring-2 focus:border-blue-500 outline-none ${
                             formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username)
                                 ? 'border-red-500 focus:ring-red-500'
@@ -194,26 +140,18 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         }`}
                         value={formData.username || ""}
                         onChange={handleInputChange}
-                        pattern={isCDOEBranch ? "^\\d{10,11}$" : "^(23|24|25|26)\\d{8}$"}
-                        maxLength={isCDOEBranch ? 11 : 10}
+                        pattern="^\d{10,11}$"
+                        maxLength={11}
                         minLength={10}
-                        title={isCDOEBranch ? "Username must be 10 or 11 digits long" : "Username must start with 23, 24, 25, or 26 and be exactly 10 characters long"}
+                        title="Username must be 10 or 11 digits long"
                         required
                     />
                     {formData.username && formData.username.length > 0 && !isUsernameComplete(formData.username) ? (
                         <p className="text-xs text-red-500 mt-1">
-                            {!isCDOEBranch && !formData.username.startsWith('23') && !formData.username.startsWith('24') && !formData.username.startsWith('25') && !formData.username.startsWith('26')
-                                ? 'Username must start with 23, 24, 25, or 26'
-                                : isCDOEBranch && formData.username.length !== 10 && formData.username.length !== 11
-                                ? `Username must be 10 or 11 digits (currently ${formData.username.length})`
-                                : !isCDOEBranch && formData.username.length !== 10
-                                ? `Username must be exactly 10 digits (currently ${formData.username.length})`
-                                : 'Username must contain only digits'}
+                            Username must be 10 or 11 digits (currently {formData.username.length})
                         </p>
                     ) : (
-                        <p className="text-xs text-gray-500 mt-1">
-                            {isCDOEBranch ? "Must be 10 or 11 digits long" : "Must start with 23, 24, 25, or 26 and be exactly 10 digits long"}
-                        </p>
+                        <p className="text-xs text-gray-500 mt-1">Must be 10 or 11 digits long</p>
                     )}
                 </div>
 

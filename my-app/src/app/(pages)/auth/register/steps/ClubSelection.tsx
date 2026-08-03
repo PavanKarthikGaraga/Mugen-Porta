@@ -3,6 +3,28 @@ import PropTypes from "prop-types";
 import { toast } from "sonner";
 
 export default function ClubSelection({ formData, updateFormData, onValidationChange }) {
+    // 1st years pick a club from their dashboard after their Career Roadmap
+    // assessment suggests clubs to them, not during registration.
+    if (formData.year === "1st") {
+        return (
+            <div className="bg-white p-6 md:p-8 max-w-none">
+                <h2 className="text-2xl font-bold mb-6 text-center">Club Selection</h2>
+                <div className="max-w-xl mx-auto bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                    <p className="text-blue-900 font-semibold mb-2">No club selection needed right now</p>
+                    <p className="text-sm text-blue-800 leading-relaxed">
+                        As a 1st year student, you&apos;ll choose your club after logging in — once you complete your
+                        Career Roadmap assessment on your dashboard, you&apos;ll see clubs recommended for you and can
+                        confirm your selection there.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    return <ClubSelectionForm formData={formData} updateFormData={updateFormData} onValidationChange={onValidationChange} />;
+}
+
+function ClubSelectionForm({ formData, updateFormData, onValidationChange }) {
     const [clubType, setClubType] = useState(""); // "SAC" or "DEPARTMENT"
     const [selectedDomain, setSelectedDomain] = useState("");
     const [selectedClub, setSelectedClub] = useState("");

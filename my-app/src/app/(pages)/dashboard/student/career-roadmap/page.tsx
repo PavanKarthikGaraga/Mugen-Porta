@@ -8,6 +8,7 @@ import {
   FiSettings, FiMapPin, FiHome, FiList, FiFlag, FiFeather
 } from "react-icons/fi";
 import { toast } from "sonner";
+import ClubSelectionPanel from "@/app/components/dashboard/ClubSelectionPanel";
 
 const BRAND = "rgb(151,0,3)";
 
@@ -293,6 +294,7 @@ export default function CareerRoadmapPage() {
   const [studentInfo, setStudentInfo] = useState<any>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [checkingCache, setCheckingCache] = useState(true);
+  const [me, setMe] = useState<{ year: string | null; clubId: string | null; campus: string | null } | null>(null);
   const otherRef = useRef<HTMLInputElement>(null);
 
   // Check for cached roadmap on mount
@@ -308,7 +310,15 @@ export default function CareerRoadmapPage() {
       })
       .catch(() => {})
       .finally(() => setCheckingCache(false));
+
+    // 1st years defer club selection to here, once their roadmap is ready.
+    fetch("/api/auth/me")
+      .then(r => r.json())
+      .then(d => setMe({ year: d.user?.year ?? null, clubId: d.user?.clubId ?? null, campus: d.user?.campus ?? null }))
+      .catch(() => {});
   }, []);
+
+  const needsClubSelection = me?.year === "1st" && !me?.clubId;
 
   const q = QUESTIONS[currentQ];
   const isMulti = q?.type === "multi";
@@ -644,6 +654,14 @@ export default function CareerRoadmapPage() {
 
     return (
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-7">
+
+        {needsClubSelection && (
+          <ClubSelectionPanel
+            campus={me?.campus ?? null}
+            recommendations={roadmap.clubRecommendations}
+            onDone={() => { window.location.href = "/dashboard/student"; }}
+          />
+        )}
 
         {/* Hero */}
         <div className="rounded-2xl border overflow-hidden" style={{ borderColor: domColor + "28" }}>
