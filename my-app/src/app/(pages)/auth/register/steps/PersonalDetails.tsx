@@ -37,6 +37,13 @@ export default function PersonalDetails({ formData, updateFormData }) {
             if (value && !validateUsernameForTyping(value)) return;
             const email = value ? `${value}@kluniversity.in` : "";
             updateFormData({ [name]: value, email });
+        } else if (name === "name") {
+            if (value && !/^[A-Za-z\s]*$/.test(value)) return;
+            updateFormData({ [name]: value });
+        } else if (name === "phoneNumber") {
+            if (value && !/^\d*$/.test(value)) return;
+            if (value.length > 10) return;
+            updateFormData({ [name]: value });
         } else if (name === "countryCode") {
             const selectedCountry = countryCodes.find(c => c.dial_code === value);
             updateFormData({ [name]: value, countryName: selectedCountry ? selectedCountry.name : "" });
@@ -296,7 +303,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                             value={formData.phoneNumber || ""}
                             onChange={handleInputChange}
                             pattern="[0-9]{10}"
-                            maxLength={15}
+                            maxLength={10}
                             required
                         />
                     </div>
