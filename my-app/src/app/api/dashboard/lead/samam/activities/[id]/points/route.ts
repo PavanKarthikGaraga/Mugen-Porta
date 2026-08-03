@@ -76,3 +76,45 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         return NextResponse.json({ error: safeMessage(error, 'Could not award points') }, { status: 500 });
     }
 }
+
+// DELETE — revoke points previously awarded via this activity for the given
+// students. sdc_transactions is an append-only ledger with no separate
+// running total anywhere (every total is SUM(credits) at query time), so
+// deleting the matching row(s) is sufficient — there's nothing else to fix
+// up. Removes every row this activity ever wrote for that student, in case
+// they were awarded more than once (the award POST isn't idempotent).
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    try {
+        const issuer = await checkIssuer();
+        if (!issuer) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+
+        const { id } = await params;
+        const activity = await loadPermittedActivity(issuer, id);
+        if (!activity) {
+            return NextResponse.json({ message: 'Activity not found or not in your scope' }, { status: 403 });
+        }
+
+        const body = await request.json().catch(() => ({}));
+        const requested: string[] = Array.isArray(body?.usernames)
+            ? body.usernames.filter((u: any) => typeof u === 'string').slice(0, MAX_BULK)
+            : [];
+        if (requested.length === 0) {
+            return NextResponse.json({ message: 'Select at least one student' }, { status: 400 });
+        }
+
+        const placeholders = requested.map(() => '?').join(',');
+        const [result]: any = await pool.execute(
+            `DELETE FROM sdc_transactions WHERE category = ? AND username IN (${placeholders})`,
+            [`Activity: ${activity.code}`, ...requested]
+        );
+
+        return NextResponse.json({
+            success: true,
+            revoked: result.affectedRows,
+            message: `Revoked points from ${requested.length} student${requested.length === 1 ? '' : 's'}.`,
+        });
+    } catch (error: any) {
+        console.error('Points revoke error:', error);
+        return NextResponse.json({ error: safeMessage(error, 'Could not revoke points') }, { status: 500 });
+    }
+}

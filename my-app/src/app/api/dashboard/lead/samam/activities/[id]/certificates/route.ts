@@ -38,11 +38,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
             SELECT
                 ae.username, s.name, ae.status AS enrollment_status,
                 ae.attendance_percentage,
-                sc.verification_id, sc.issued_on, sc.issued_by_name
+                sc.verification_id, sc.issued_on, sc.issued_by_name,
+                (SELECT COALESCE(SUM(credits), 0) FROM sdc_transactions st
+                 WHERE st.username = ae.username AND st.category = CONCAT('Activity: ', ae.activity_code)) AS points_from_activity
             FROM activity_enrollments ae
             JOIN students s ON ae.username = s.username
             LEFT JOIN student_certificates sc
                 ON sc.username = ae.username AND sc.activity_code = ae.activity_code
+                AND sc.status = 'issued'
             WHERE ae.activity_code = ?
             ORDER BY s.name ASC
         `, [id]);
@@ -51,6 +54,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
         // Activity Awards UI offer it directly instead of making the user
         // hunt for it in the full badge catalogue.
         let mappedBadge: any = null;
+        const badgeHolders = new Set<string>();
         if (activity.badge_id) {
             try {
                 const [badgeRows]: any = await pool.execute(
@@ -58,6 +62,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
                     [activity.badge_id]
                 );
                 if (badgeRows.length > 0) mappedBadge = badgeRows[0];
+
+                // Who among these students already holds it — its own guarded
+                // query, since student_badges may not exist in every env.
+                const [holderRows]: any = await pool.execute(
+                    'SELECT username FROM student_badges WHERE badge_id = ?',
+                    [activity.badge_id]
+                );
+                for (const h of holderRows) badgeHolders.add(h.username);
             } catch { /* badge table may not exist yet — fall back to the picker */ }
         }
 
@@ -76,6 +88,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
                 certificate: r.verification_id
                     ? { verificationId: r.verification_id, issuedOn: r.issued_on, issuedByName: r.issued_by_name }
                     : null,
+                pointsFromActivity: Number(r.points_from_activity) || 0,
+                badgeAwarded: badgeHolders.has(r.username),
             })),
         });
     } catch (error: any) {
@@ -127,12 +141,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         let issued = 0;
 
         for (const username of eligible) {
-            // INSERT IGNORE keeps re-issuing idempotent: a student who already
-            // has a certificate for this activity keeps their original id.
+            // ON DUPLICATE KEY UPDATE keeps re-issuing idempotent (a student
+            // who already has an active certificate keeps their original id
+            // and verification_id — only status changes) while also letting a
+            // previously revoked certificate be reactivated, which a plain
+            // INSERT IGNORE could never do once the unique key row existed.
             const [result]: any = await pool.execute(
-                `INSERT IGNORE INTO student_certificates
-                    (username, activity_code, activity_title, domain, credits, verification_id, issued_by, issued_by_name)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO student_certificates
+                    (username, activity_code, activity_title, domain, credits, verification_id, issued_by, issued_by_name, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'issued')
+                 ON DUPLICATE KEY UPDATE status = 'issued'`,
                 [
                     username, activity.code, activity.title, activity.domain ?? null,
                     activity.sdc_credits ?? null, newCertificateVerificationId(),
@@ -143,6 +161,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
                     issuer.decoded.username, 'DIRECTOR-SAC',
                 ]
             );
+            // MySQL reports 1 for a fresh insert, 2 for a reactivated (changed)
+            // row, and 0 when a certificate was already active — all three are
+            // "this student now has a valid certificate", just for reporting
+            // "issued" only counts the ones that changed.
             if (result.affectedRows > 0) issued++;
         }
 
@@ -156,5 +178,49 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     } catch (error: any) {
         console.error('Certificate issue error:', error);
         return NextResponse.json({ error: safeMessage(error, 'Could not issue certificates') }, { status: 500 });
+    }
+}
+
+// DELETE — revoke previously issued certificates for the given usernames.
+// Soft-revoke (status = 'revoked') rather than deleting the row: the public
+// verification page already treats any non-'issued' status as invalid (see
+// @/lib/certificateVerification), and keeping the row preserves who issued
+// it and when for audit purposes, plus lets it be reactivated later via POST.
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    try {
+        const issuer = await checkIssuer();
+        if (!issuer) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+
+        const { id } = await params;
+        await ensureCertificatesTable();
+
+        const activity = await loadPermittedActivity(issuer, id);
+        if (!activity) {
+            return NextResponse.json({ message: 'Activity not found or not in your assigned categories' }, { status: 403 });
+        }
+
+        const body = await request.json().catch(() => ({}));
+        const requested: string[] = Array.isArray(body?.usernames)
+            ? body.usernames.filter((u: any) => typeof u === 'string').slice(0, MAX_BULK)
+            : [];
+        if (requested.length === 0) {
+            return NextResponse.json({ message: 'Select at least one student' }, { status: 400 });
+        }
+
+        const placeholders = requested.map(() => '?').join(',');
+        const [result]: any = await pool.execute(
+            `UPDATE student_certificates SET status = 'revoked'
+             WHERE activity_code = ? AND username IN (${placeholders}) AND status = 'issued'`,
+            [id, ...requested]
+        );
+
+        return NextResponse.json({
+            success: true,
+            revoked: result.affectedRows,
+            message: `Revoked ${result.affectedRows} certificate${result.affectedRows === 1 ? '' : 's'}.`,
+        });
+    } catch (error: any) {
+        console.error('Certificate revoke error:', error);
+        return NextResponse.json({ error: safeMessage(error, 'Could not revoke certificates') }, { status: 500 });
     }
 }

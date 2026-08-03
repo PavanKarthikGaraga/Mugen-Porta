@@ -23,6 +23,8 @@ interface StudentRow {
   attendance: number;
   eligible: boolean;
   certificate: { verificationId: string; issuedOn: string; issuedByName: string } | null;
+  pointsFromActivity: number;
+  badgeAwarded: boolean;
 }
 
 function Spinner() {
@@ -77,6 +79,14 @@ export default function ActivityAwardsManager() {
     (!domain || a.domain === domain) && (!category || a.category === category)
   ), [catalogue, domain, category]);
 
+  // Reloads the roster without touching the current selection or points
+  // amount — used after any award/revoke action so certificate, points and
+  // badge status all stay in sync with what actually happened server-side.
+  const refreshRoster = (code: string) =>
+    fetch(`/api/dashboard/lead/samam/activities/${encodeURIComponent(code)}/certificates`)
+      .then(r => r.json())
+      .then(d => { if (d.success) { setStudents(d.students ?? []); setActivityInfo(d.activity ?? null); } });
+
   useEffect(() => {
     // Reset badge selection whenever the activity changes, so a badge picked
     // for a previous activity can't be awarded against this one by accident.
@@ -105,6 +115,20 @@ export default function ActivityAwardsManager() {
   const toggle = (u: string) => setSelected(p => { const n = new Set(p); n.has(u) ? n.delete(u) : n.add(u); return n; });
   const toggleAll = () => setSelected(selected.size === students.length ? new Set() : new Set(students.map(s => s.username)));
   const eligibleCount = students.filter(s => s.eligible).length;
+  // How many of the currently-selected students actually have something to
+  // revoke for each award type — drives the revoke buttons' labels/disabled
+  // state so an admin isn't offered to "revoke" from students who never
+  // received the award in the first place.
+  const revocableCertCount = students.filter(s => selected.has(s.username) && s.certificate).length;
+  const revocablePointsCount = students.filter(s => selected.has(s.username) && s.pointsFromActivity > 0).length;
+  // badgeAwarded only tracks the activity's own mapped badge (that's all the
+  // roster endpoint knows) — when browsing a different badge from the full
+  // catalogue there's no per-student status to check against, so fall back
+  // to "everyone selected" and let the server no-op on students who don't
+  // actually have it.
+  const revocableBadgeCount = mappedBadge && String(selectedBadge) === String(mappedBadge.id)
+    ? students.filter(s => selected.has(s.username) && s.badgeAwarded).length
+    : selected.size;
 
   const handleIssueCertificates = async () => {
     if (selected.size === 0) return toast.error("Select at least one student");
@@ -116,15 +140,25 @@ export default function ActivityAwardsManager() {
         body: JSON.stringify({ usernames: Array.from(selected) }),
       });
       const d = await res.json();
-      if (d.success) {
-        toast.success(d.message);
-        if (activityInfo) {
-          fetch(`/api/dashboard/lead/samam/activities/${encodeURIComponent(activityCode)}/certificates`)
-            .then(r => r.json()).then(d2 => { if (d2.success) setStudents(d2.students ?? []); });
-        }
-      } else {
-        toast.error(d.message || "Failed to issue certificates");
-      }
+      if (d.success) { toast.success(d.message); await refreshRoster(activityCode); }
+      else toast.error(d.message || "Failed to issue certificates");
+    } catch { toast.error("Network error"); } finally { setSubmitting(false); }
+  };
+
+  const handleRevokeCertificates = async () => {
+    const targets = students.filter(s => selected.has(s.username) && s.certificate);
+    if (targets.length === 0) return toast.error("None of the selected students have a certificate to revoke");
+    if (!confirm(`Revoke the certificate from ${targets.length} student${targets.length === 1 ? "" : "s"}? Their credential will stop verifying.`)) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/dashboard/lead/samam/activities/${encodeURIComponent(activityCode)}/certificates`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usernames: targets.map(s => s.username) }),
+      });
+      const d = await res.json();
+      if (d.success) { toast.success(d.message); await refreshRoster(activityCode); }
+      else toast.error(d.message || "Failed to revoke certificates");
     } catch { toast.error("Network error"); } finally { setSubmitting(false); }
   };
 
@@ -140,8 +174,25 @@ export default function ActivityAwardsManager() {
         body: JSON.stringify({ usernames: Array.from(selected), credits, reason: pointsReason || undefined }),
       });
       const d = await res.json();
-      if (d.success) toast.success(d.message);
+      if (d.success) { toast.success(d.message); await refreshRoster(activityCode); }
       else toast.error(d.message || "Failed to award points");
+    } catch { toast.error("Network error"); } finally { setSubmitting(false); }
+  };
+
+  const handleRevokePoints = async () => {
+    const targets = students.filter(s => selected.has(s.username) && s.pointsFromActivity > 0);
+    if (targets.length === 0) return toast.error("None of the selected students have points from this activity");
+    if (!confirm(`Revoke all points this activity awarded to ${targets.length} student${targets.length === 1 ? "" : "s"}?`)) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/dashboard/lead/samam/activities/${encodeURIComponent(activityCode)}/points`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usernames: targets.map(s => s.username) }),
+      });
+      const d = await res.json();
+      if (d.success) { toast.success(d.message); await refreshRoster(activityCode); }
+      else toast.error(d.message || "Failed to revoke points");
     } catch { toast.error("Network error"); } finally { setSubmitting(false); }
   };
 
@@ -165,8 +216,29 @@ export default function ActivityAwardsManager() {
         });
         if (res.ok) ok++; else failed++;
       }
-      if (ok > 0) toast.success(`Badge awarded to ${ok} student${ok === 1 ? "" : "s"}${failed ? ` (${failed} failed)` : ""}`);
+      if (ok > 0) { toast.success(`Badge awarded to ${ok} student${ok === 1 ? "" : "s"}${failed ? ` (${failed} failed)` : ""}`); await refreshRoster(activityCode); }
       else toast.error("Failed to award badge");
+    } finally { setSubmitting(false); }
+  };
+
+  const handleRevokeBadge = async () => {
+    if (!selectedBadge) return toast.error("Select a badge");
+    const targetUsernames = Array.from(selected);
+    if (targetUsernames.length === 0) return toast.error("Select at least one student");
+    if (!confirm(`Revoke this badge from ${targetUsernames.length} student${targetUsernames.length === 1 ? "" : "s"}? This removes it regardless of how they earned it.`)) return;
+    setSubmitting(true);
+    let ok = 0, failed = 0;
+    try {
+      for (const username of targetUsernames) {
+        const res = await fetch("/api/dashboard/admin/samam/award-badge", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, badge_id: selectedBadge }),
+        });
+        if (res.ok) ok++; else failed++;
+      }
+      if (ok > 0) { toast.success(`Badge revoked from ${ok} student${ok === 1 ? "" : "s"}${failed ? ` (${failed} had no such badge)` : ""}`); await refreshRoster(activityCode); }
+      else toast.error("None of the selected students have this badge");
     } finally { setSubmitting(false); }
   };
 
@@ -255,7 +327,7 @@ export default function ActivityAwardsManager() {
                 </button>
                 <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex-1">Student</span>
                 <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider w-24 sm:w-32 text-right">Status</span>
-                <span className="hidden sm:block text-[11px] font-bold text-gray-500 uppercase tracking-wider w-28 text-right">Certificate</span>
+                <span className="hidden sm:block text-[11px] font-bold text-gray-500 uppercase tracking-wider w-40 text-right">Awards</span>
               </div>
 
               <div className="divide-y divide-gray-50 max-h-[45vh] overflow-y-auto">
@@ -274,12 +346,19 @@ export default function ActivityAwardsManager() {
                         {s.eligible ? <FiCheckCircle size={11} className="flex-shrink-0" /> : s.attendance === 0 ? <FiXCircle size={11} className="flex-shrink-0" /> : <FiClock size={11} className="flex-shrink-0" />}
                         <span className="truncate">{s.eligible ? "Completed" : s.enrollmentStatus || "Pending"}</span>
                       </span>
-                      {/* Certificate state is secondary — dropped on phones so the
+                      {/* Award state is secondary — dropped on phones so the
                           student name keeps usable width. */}
-                      <span className="hidden sm:block w-28 flex-shrink-0 text-right">
-                        {s.certificate ? (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Issued</span>
-                        ) : (
+                      <span className="hidden sm:flex w-40 flex-shrink-0 justify-end items-center gap-1.5">
+                        {s.certificate && (
+                          <span title="Has certificate" className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Cert</span>
+                        )}
+                        {s.pointsFromActivity > 0 && (
+                          <span title={`${s.pointsFromActivity} points from this activity`} className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">{s.pointsFromActivity}pt</span>
+                        )}
+                        {s.badgeAwarded && (
+                          <span title="Has this activity's badge" className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">Badge</span>
+                        )}
+                        {!s.certificate && !(s.pointsFromActivity > 0) && !s.badgeAwarded && (
                           <span className="text-[10px] text-gray-400">—</span>
                         )}
                       </span>
@@ -327,14 +406,23 @@ export default function ActivityAwardsManager() {
                       Certificates are issued to the {selected.size} selected student{selected.size === 1 ? "" : "s"}. Re-issuing a student who
                       already has one for this activity is a no-op — they keep their original credential.
                     </p>
-                    <button
-                      onClick={handleIssueCertificates}
-                      disabled={submitting || selected.size === 0}
-                      className="w-full py-3 text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
-                      style={{ backgroundColor: BRAND }}
-                    >
-                      {submitting ? <FiLoader className="animate-spin" /> : <><FiFileText /> Issue to {selected.size} student{selected.size === 1 ? "" : "s"}</>}
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleIssueCertificates}
+                        disabled={submitting || selected.size === 0}
+                        className="flex-1 py-3 text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+                        style={{ backgroundColor: BRAND }}
+                      >
+                        {submitting ? <FiLoader className="animate-spin" /> : <><FiFileText /> Issue to {selected.size} student{selected.size === 1 ? "" : "s"}</>}
+                      </button>
+                      <button
+                        onClick={handleRevokeCertificates}
+                        disabled={submitting || revocableCertCount === 0}
+                        className="flex-1 py-3 font-medium rounded-xl border-2 border-red-600 text-red-600 bg-white hover:bg-red-50 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {submitting ? <FiLoader className="animate-spin" /> : <>Revoke from {revocableCertCount} student{revocableCertCount === 1 ? "" : "s"}</>}
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -361,14 +449,23 @@ export default function ActivityAwardsManager() {
                         />
                       </div>
                     </div>
-                    <button
-                      onClick={handleAwardPoints}
-                      disabled={submitting || selected.size === 0 || !pointsAmount}
-                      className="w-full py-3 text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
-                      style={{ backgroundColor: BRAND }}
-                    >
-                      {submitting ? <FiLoader className="animate-spin" /> : <><FiStar /> Award to {selected.size} student{selected.size === 1 ? "" : "s"}</>}
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleAwardPoints}
+                        disabled={submitting || selected.size === 0 || !pointsAmount}
+                        className="flex-1 py-3 text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+                        style={{ backgroundColor: BRAND }}
+                      >
+                        {submitting ? <FiLoader className="animate-spin" /> : <><FiStar /> Award to {selected.size} student{selected.size === 1 ? "" : "s"}</>}
+                      </button>
+                      <button
+                        onClick={handleRevokePoints}
+                        disabled={submitting || revocablePointsCount === 0}
+                        className="flex-1 py-3 font-medium rounded-xl border-2 border-red-600 text-red-600 bg-white hover:bg-red-50 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {submitting ? <FiLoader className="animate-spin" /> : <>Revoke from {revocablePointsCount} student{revocablePointsCount === 1 ? "" : "s"}</>}
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -477,14 +574,24 @@ export default function ActivityAwardsManager() {
                         className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-red-600 focus:bg-white transition-colors"
                       />
                     </div>
-                    <button
-                      onClick={handleAwardBadge}
-                      disabled={submitting || selected.size === 0 || !selectedBadge}
-                      className="w-full py-3 text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
-                      style={{ backgroundColor: BRAND }}
-                    >
-                      {submitting ? <FiLoader className="animate-spin" /> : <><FiAward /> Award to {selected.size} student{selected.size === 1 ? "" : "s"}</>}
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleAwardBadge}
+                        disabled={submitting || selected.size === 0 || !selectedBadge}
+                        className="flex-1 py-3 text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+                        style={{ backgroundColor: BRAND }}
+                      >
+                        {submitting ? <FiLoader className="animate-spin" /> : <><FiAward /> Award to {selected.size} student{selected.size === 1 ? "" : "s"}</>}
+                      </button>
+                      <button
+                        onClick={handleRevokeBadge}
+                        disabled={submitting || !selectedBadge || revocableBadgeCount === 0}
+                        className="flex-1 py-3 font-medium rounded-xl border-2 border-red-600 text-red-600 bg-white hover:bg-red-50 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        title="Removes this badge regardless of how it was earned — badges aren't tracked per-activity"
+                      >
+                        {submitting ? <FiLoader className="animate-spin" /> : <>Revoke from {revocableBadgeCount} student{revocableBadgeCount === 1 ? "" : "s"}</>}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

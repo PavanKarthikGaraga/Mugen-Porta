@@ -111,3 +111,45 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
     }
 }
+
+// DELETE — revoke a previously awarded badge.
+//
+// student_badges has no activity_code column and no status column — its
+// only uniqueness is (username, badge_id), so this removes the badge
+// regardless of which activity (or other route) originally awarded it.
+// That's the best this schema can do; the caller (Activity Awards) should
+// make that clear rather than implying it only undoes this activity's award.
+export async function DELETE(request: Request) {
+    try {
+        const admin = await checkAdmin();
+        if (!admin) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+
+        const { username, badge_id } = await request.json();
+        if (!username || !badge_id) {
+            return NextResponse.json({ message: 'Username and badge_id are required' }, { status: 400 });
+        }
+
+        const [studentRows] = await pool.execute('SELECT username, name, clubId FROM students WHERE username = ?', [username]) as any[];
+        if ((studentRows as any[]).length === 0) {
+            return NextResponse.json({ message: 'Student not found' }, { status: 404 });
+        }
+
+        const scope = await getCouncilClubScope(admin);
+        if (scope && !scope.includes((studentRows as any[])[0].clubId)) {
+            return NextResponse.json({ message: 'This student is outside your domain' }, { status: 403 });
+        }
+
+        const [result]: any = await pool.execute(
+            'DELETE FROM student_badges WHERE username = ? AND badge_id = ?',
+            [username, badge_id]
+        );
+        if (result.affectedRows === 0) {
+            return NextResponse.json({ message: 'Student does not have this badge' }, { status: 404 });
+        }
+
+        return NextResponse.json({ success: true, message: `Badge revoked from ${(studentRows as any[])[0].name}` });
+    } catch (error: any) {
+        console.error('Revoke badge error:', error);
+        return NextResponse.json({ error: safeMessage(error, 'Could not revoke badge') }, { status: 500 });
+    }
+}
