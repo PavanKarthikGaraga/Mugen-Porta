@@ -164,7 +164,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
   // ── Render ───────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-950">
+      <div className="h-dvh flex items-center justify-center bg-gray-50 dark:bg-zinc-950">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-700"></div>
       </div>
     );
@@ -172,7 +172,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
 
   if (userData.samam_access !== 1) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-zinc-950 p-4">
+      <div className="h-dvh flex flex-col items-center justify-center bg-gray-50 dark:bg-zinc-950 p-4">
         <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
           <FiLock className="h-9 w-9" style={{ color: "rgb(151,0,3)" }} />
         </div>
@@ -197,7 +197,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
   }
 
   return (
-    <div className="h-screen flex flex-col" style={{ backgroundColor: "#1a1a1a" }}>
+    <div className="h-dvh flex flex-col" style={{ backgroundColor: "#1a1a1a" }}>
       <CommandPalette />
       
       {/* ═══ Career Prompt Modal ══════════════════════════════════════════════ */}
