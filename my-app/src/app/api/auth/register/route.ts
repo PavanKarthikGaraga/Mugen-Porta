@@ -21,6 +21,34 @@ const USERNAME_REGEX = /^[a-zA-Z0-9]+$/;
 // in select-club/route.ts, which is updated to match both.
 const NO_CLUB_YET = '';
 
+// The actual, confirmed cause of the registration 500s: `users.username` /
+// `students.username` are narrower (almost certainly VARCHAR(10)) than the
+// 11-digit IDs this route now legitimately accepts, since the old
+// "must start with 22-26, exactly 10 digits" restriction was removed this
+// session in favour of any 10-or-11-digit ID. Confirmed via production
+// logs: `ER_DATA_TOO_LONG: Data too long for column 'username'`.
+// Self-heals by reading the column's real current width from
+// INFORMATION_SCHEMA and only widening it if it's actually too narrow
+// (never guesses a type/nullability) — same approach used elsewhere in
+// this codebase for lazy schema migrations. Uses pool.query (text
+// protocol), matching src/lib/dbMigrate.ts's addColumnIfMissing.
+async function ensureUsernameWidth(table: string, minLength: number) {
+    try {
+        const [rows]: any = await pool.query(
+            `SELECT CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'username'`,
+            [table]
+        );
+        const col = (rows as any[])[0];
+        if (col && col.CHARACTER_MAXIMUM_LENGTH != null && col.CHARACTER_MAXIMUM_LENGTH < minLength) {
+            const nullability = col.IS_NULLABLE === 'NO' ? 'NOT NULL' : 'NULL';
+            await pool.query(`ALTER TABLE ${table} MODIFY COLUMN username VARCHAR(${minLength}) ${nullability}`);
+        }
+    } catch (e) {
+        console.error(`Failed to widen ${table}.username (non-fatal):`, e);
+    }
+}
+
 export async function POST(req) {
     // Registration creates a DB record and sends email - protect against
     // automated mass-registration / abuse.
@@ -161,6 +189,11 @@ export async function POST(req) {
         // Generate password: username + last 4 digits of phone number
         const last4Digits = phoneNumber.slice(-4);
         const generatedPassword = username + last4Digits;
+
+        // Widen username columns if needed before they're ever inserted
+        // into — see ensureUsernameWidth's comment above.
+        await ensureUsernameWidth('users', 20);
+        await ensureUsernameWidth('students', 20);
 
         // Check if username or email already exists
         const [existingUsers] = await pool.execute(
