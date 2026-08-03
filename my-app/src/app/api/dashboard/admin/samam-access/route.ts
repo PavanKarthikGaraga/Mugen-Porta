@@ -6,7 +6,7 @@ import { getCouncilScope } from '@/lib/councilScope';
 async function ensureSamamAccessColumn() {
     try {
         await pool.execute(
-            `ALTER TABLE students ADD COLUMN samam_access TINYINT(1) NOT NULL DEFAULT 0`
+            `ALTER TABLE students ADD COLUMN samam_access TINYINT(1) NOT NULL DEFAULT 1`
         );
     } catch (e: any) {
         if (e.code !== 'ER_DUP_FIELDNAME') throw e;
