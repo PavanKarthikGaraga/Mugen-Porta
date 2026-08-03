@@ -43,6 +43,5 @@ jobs:
         run: |
           cd /var/www/Mugen-Porta/my-app
           pm2 restart sac 2>/dev/null || true
-          pm2 restart portal 2>/dev/null || true
-          pm2 restart mugen 2>/dev/null || pm2 start npm --name "mugen" -- start
+          pm2 startOrReload ecosystem.config.js
           pm2 save
