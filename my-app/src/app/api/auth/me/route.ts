@@ -66,9 +66,22 @@ export async function GET(request) {
                     [payload.username as string]
                 );
                 if (facultyResult.length > 0) {
-                    const assignedClubs = facultyResult[0].assignedClubs;
+                    const assignedClubsStr = facultyResult[0].assignedClubs;
+                    let parsedClubs: string[] = [];
+                    if (assignedClubsStr) {
+                        if (Array.isArray(assignedClubsStr)) {
+                            parsedClubs = assignedClubsStr;
+                        } else {
+                            try {
+                                parsedClubs = JSON.parse(assignedClubsStr);
+                                if (!Array.isArray(parsedClubs)) parsedClubs = [assignedClubsStr];
+                            } catch {
+                                parsedClubs = [assignedClubsStr];
+                            }
+                        }
+                    }
                     additionalData = {
-                        assignedClubs: assignedClubs ? (Array.isArray(assignedClubs) ? assignedClubs : JSON.parse(assignedClubs)) : []
+                        assignedClubs: parsedClubs
                     };
                 }
             } catch (error) {

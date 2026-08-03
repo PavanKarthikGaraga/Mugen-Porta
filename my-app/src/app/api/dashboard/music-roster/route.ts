@@ -35,9 +35,19 @@ export async function GET(request: Request) {
             }
             let assigned: string[] = [];
             try {
-                assigned = typeof rows[0].assignedClubs === 'string'
-                    ? JSON.parse(rows[0].assignedClubs)
-                    : rows[0].assignedClubs;
+                const val = rows[0].assignedClubs;
+                if (!val) {
+                    assigned = [];
+                } else if (Array.isArray(val)) {
+                    assigned = val;
+                } else {
+                    try {
+                        assigned = JSON.parse(val);
+                        if (!Array.isArray(assigned)) assigned = [val];
+                    } catch {
+                        assigned = [val];
+                    }
+                }
             } catch { assigned = []; }
             if (!Array.isArray(assigned) || !assigned.includes(MUSIC_CLUB_ID)) {
                 return NextResponse.json(

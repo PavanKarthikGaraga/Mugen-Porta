@@ -40,9 +40,19 @@ export async function GET(request: Request) {
       if (facRows.length === 0) return NextResponse.json({ records: [] });
       let clubs: string[] = [];
       try {
-        clubs = Array.isArray(facRows[0].assignedClubs)
-          ? facRows[0].assignedClubs
-          : JSON.parse(facRows[0].assignedClubs ?? '[]');
+        const val = facRows[0].assignedClubs;
+        if (!val) {
+          clubs = [];
+        } else if (Array.isArray(val)) {
+          clubs = val;
+        } else {
+          try {
+            clubs = JSON.parse(val);
+            if (!Array.isArray(clubs)) clubs = [val];
+          } catch {
+            clubs = [val];
+          }
+        }
       } catch { clubs = []; }
       if (clubs.length === 0) return NextResponse.json({ records: [] });
 

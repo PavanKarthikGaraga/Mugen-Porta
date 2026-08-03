@@ -4,7 +4,7 @@ import { FiCheck, FiX, FiExternalLink, FiRefreshCw } from "react-icons/fi";
 import { toast } from "sonner";
 import { BRAND } from "./SharedUI";
 
-export default function SubmissionsManager({ role = "admin" }: { role?: "admin" | "lead" }) {
+export default function SubmissionsManager({ role = "admin" }: { role?: "admin" | "lead" | "faculty" }) {
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("S"); // S = Submitted, A = Approved, R = Rejected

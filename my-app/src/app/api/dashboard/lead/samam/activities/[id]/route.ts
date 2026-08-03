@@ -207,6 +207,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             return NextResponse.json({ message: 'No fields to update' }, { status: 400 });
         }
 
+        // Always require re-approval when a lead edits an activity
+        fields.push(`approval_status = 'pending_approval'`);
+
         values.push(id);
         const [result] = await pool.execute(
             `UPDATE activity_catalogue SET ${fields.join(', ')} WHERE code = ?`,

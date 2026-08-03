@@ -19,6 +19,29 @@ export default function ActivityManager({
   const [selectedDomain, setSelectedDomain] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const approveActivity = async (code: string, action: 'approve' | 'reject', note?: string) => {
+    setActionLoading(code);
+    try {
+      const res = await fetch(`/api/dashboard/admin/samam/activities/${code}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, note })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message);
+        fetchActivities();
+      } else {
+        toast.error(data.message || 'Failed to update approval status');
+      }
+    } catch {
+      toast.error('Network error');
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   const displayActivities = useMemo(() => {
     return filteredActivities.filter((a: any) => {
@@ -242,7 +265,7 @@ export default function ActivityManager({
                                   which is already this card's heading and the
                                   dropdown filter, and its long values were
                                   what forced the table past the card. */}
-                              {["Code", "Title", "Points", "Enrollment", "Status", "Actions"].map((h, i) => (
+                              {["Code", "Title", "Points", "Enrollment", "Status", "Approval", "Actions"].map((h, i) => (
                                 <th
                                   key={i}
                                   className={`px-5 py-3 font-semibold text-gray-600 whitespace-nowrap ${h === "Actions" ? "text-right" : "text-left"}`}
@@ -275,6 +298,12 @@ export default function ActivityManager({
                                     {a.status === 'active' || a.is_active ? "Active" : "Inactive"}
                                   </span>
                                 </td>
+                                <td className="px-5 py-3">
+                                  <span className={`flex items-center gap-1.5 text-[11px] font-medium ${a.approval_status === 'active' ? "text-emerald-700" : a.approval_status === 'pending_approval' ? "text-amber-600" : a.approval_status === 'rejected' ? "text-red-600" : "text-emerald-700"}`}>
+                                    {a.approval_status === 'pending_approval' ? <FiAlertCircle size={12} /> : <FiCheckCircle size={12} />}
+                                    {a.approval_status === 'pending_approval' ? "Pending" : a.approval_status === 'rejected' ? "Rejected" : "Approved"}
+                                  </span>
+                                </td>
                                 {/* Always visible and labelled. These used to be
                                     icon-only and opacity-0 until row hover, so the
                                     actions were invisible until you happened to
@@ -287,6 +316,27 @@ export default function ActivityManager({
                                     borders clip. */}
                                 <td className="px-5 py-3 whitespace-nowrap w-px align-middle">
                                   <div className="flex items-center gap-2 justify-end">
+                                    {(role === "admin" || role === "faculty" || role === "council") && a.approval_status === 'pending_approval' && (
+                                      <>
+                                        <button
+                                          onClick={() => approveActivity(a.code, 'approve')}
+                                          disabled={actionLoading === a.code}
+                                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-200 transition-colors whitespace-nowrap"
+                                        >
+                                          <FiCheckCircle size={13} /> Approve
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            const note = prompt("Reason for rejection:");
+                                            if (note !== null) approveActivity(a.code, 'reject', note);
+                                          }}
+                                          disabled={actionLoading === a.code}
+                                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-red-700 hover:bg-red-50 hover:border-red-200 transition-colors whitespace-nowrap"
+                                        >
+                                          <FiTrash2 size={13} /> Reject
+                                        </button>
+                                      </>
+                                    )}
                                     {/* Registrations come before Attendance —
                                         you check who signed up, then mark them. */}
                                     <Link

@@ -42,6 +42,7 @@ export default function FacultyDashboardLayout({ children }) {
         { name: 'Attendance',          href: '/dashboard/faculty/attendance',        icon: FiCheckSquare },
         { name: 'Attendance Records',  href: '/dashboard/faculty/attendance-records',icon: FiActivity    },
         { name: 'Passport Approvals',  href: '/dashboard/faculty/passport-approvals',icon: FiAward       },
+        { name: 'SAMAM',               href: '/dashboard/faculty/samam/overview',    icon: FiActivity    },
     ];
 
     if (userData.assignedClubs.includes('LCH03')) {
