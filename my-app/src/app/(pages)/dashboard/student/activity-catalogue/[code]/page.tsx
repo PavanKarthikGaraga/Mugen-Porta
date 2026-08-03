@@ -131,7 +131,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
       .then(d => {
         if (d.enrolled) {
           setEnrolled(true);
-          setActivity((prev: any) => prev ? { ...prev, userAttendance: d.userAttendance } : prev);
+          setActivity((prev: any) => prev ? { ...prev, userAttendance: d.userAttendance, attendanceStatus: d.attendanceStatus } : prev);
           fetchSubmissions();
         }
       })
@@ -648,12 +648,28 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
           {/* ATTENDANCE */}
           {activeTab === "attendance" && (
             <div className="space-y-4">
-              {activity.userAttendance === null || activity.userAttendance === undefined ? (
+              {activity.attendanceStatus === 'rejected' ? (
+                <div className="p-8 bg-gray-50 rounded-xl text-center flex flex-col items-center gap-3">
+                  <FiAlertTriangle size={28} className="text-gray-400" />
+                  <div>
+                    <p className="text-lg font-bold text-gray-700">Attendance Rejected</p>
+                    <p className="text-sm text-gray-500 mt-1">Faculty rejected the submitted attendance. Contact your lead.</p>
+                  </div>
+                </div>
+              ) : activity.attendanceStatus === 'pending' ? (
                 <div className="p-8 bg-gray-50 rounded-xl text-center flex flex-col items-center gap-3">
                   <FiClock size={28} className="text-gray-400" />
                   <div>
                     <p className="text-lg font-bold text-gray-700">Pending Approval</p>
                     <p className="text-sm text-gray-500 mt-1">Attendance is being verified by faculty.</p>
+                  </div>
+                </div>
+              ) : (activity.userAttendance === null || activity.userAttendance === undefined) ? (
+                <div className="p-8 bg-gray-50 rounded-xl text-center flex flex-col items-center gap-3">
+                  <FiCalendar size={28} className="text-gray-400" />
+                  <div>
+                    <p className="text-lg font-bold text-gray-700">Attendance Not Yet Taken</p>
+                    <p className="text-sm text-gray-500 mt-1">Your mentor hasn&apos;t recorded attendance for this session yet.</p>
                   </div>
                 </div>
               ) : (

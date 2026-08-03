@@ -35,11 +35,17 @@ export async function GET(
                 `SELECT status FROM attendance_submissions WHERE activity_code = ? ORDER BY submitted_at DESC LIMIT 1`,
                 [id]
             ) as any[];
-            const isVerified = subRows.length > 0 && subRows[0].status === 'verified';
-            return NextResponse.json({ 
-                enrolled: true, 
-                status: rows[0].status, 
-                userAttendance: isVerified ? (rows[0].attendance_percentage || 0) : null 
+            // No submission row at all means the lead hasn't taken/submitted
+            // attendance yet -- distinct from a row that exists and is still
+            // 'pending' faculty verification. Collapsing both into the same
+            // null previously made the student UI show "Pending Approval"
+            // even when nothing had been submitted.
+            const attendanceStatus = subRows.length > 0 ? subRows[0].status : 'not_submitted';
+            return NextResponse.json({
+                enrolled: true,
+                status: rows[0].status,
+                attendanceStatus,
+                userAttendance: attendanceStatus === 'verified' ? (rows[0].attendance_percentage || 0) : null
             });
         }
         return NextResponse.json({ enrolled: false });
