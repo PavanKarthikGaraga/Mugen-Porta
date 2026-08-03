@@ -46,16 +46,11 @@ export async function GET(request) {
         } else if (payload.role === 'student') {
             try {
                 const [studentResult] = await pool.execute(
-                    'SELECT COALESCE(samam_access, 1) as samam_access, clubId, year, campus FROM students WHERE username = ?',
+                    'SELECT COALESCE(samam_access, 1) as samam_access FROM students WHERE username = ?',
                     [payload.username]
                 ) as any[];
                 if (studentResult.length > 0) {
-                    additionalData = {
-                        samam_access: Number(studentResult[0].samam_access),
-                        clubId: studentResult[0].clubId || null,
-                        year: studentResult[0].year || null,
-                        campus: studentResult[0].campus || null,
-                    };
+                    additionalData = { samam_access: Number(studentResult[0].samam_access) };
                 }
             } catch {
                 // Column not yet created — default open so existing users aren't locked out

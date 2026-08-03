@@ -131,9 +131,6 @@ export default function Register() {
                 }
                 break;
             case 5: // Club Selection
-                // 1st years defer club selection to their dashboard, after
-                // their Career Roadmap assessment suggests clubs to them.
-                if (formData.year === "1st") break;
                 const isKLH = ["KLH - Bachupally", "KLH - Aziz Nagar", "KLH - GBS"].includes(formData.campus);
                 if (!formData.selectedClub || (!isKLH && !formData.selectedDomain)) {
                     toast.error(isKLH ? "Please select a club" : "Please select both a domain and a club");

@@ -43,8 +43,8 @@ export default function SamamAccessManager() {
   const [students,      setStudents     ] = useState<Student[]>([]);
   const [loadingStudents,setLoadingStudents] = useState(false);
 
-  // ID/name search — the alternate path to a student list, for 1st years who
-  // haven't chosen a club yet (and so can't be found via domain → club).
+  // ID/name search — the alternate path to a student list, for finding one
+  // student directly instead of drilling into domain → club.
   const [mode,          setMode         ] = useState<"club" | "search">("club");
   const [searchQuery,   setSearchQuery  ] = useState("");
 
@@ -356,13 +356,12 @@ export default function SamamAccessManager() {
         </div>
       </div>
 
-      {/* Search by registration ID — the only way to find 1st years, who
-          have no club (and so no domain) until their Career Roadmap
-          assessment suggests one and they confirm it. */}
+      {/* Search by registration ID — a faster way to find one student
+          directly instead of drilling into domain → club. */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Or Search by Registration ID</p>
         <p className="text-xs text-gray-500 mb-3">
-          Finds a student directly by ID or name — including 1st years who haven&apos;t chosen a club yet.
+          Finds a student directly by ID or name.
         </p>
         <div className="flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">

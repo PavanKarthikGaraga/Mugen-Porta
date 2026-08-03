@@ -8,19 +8,6 @@ import { safeMessage } from "@/lib/apiSecurity";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9]+$/;
 
-// `students.clubId` is a foreign key to `clubs.id` (confirmed via production
-// logs: ER_NO_REFERENCED_ROW_2, constraint students_ibfk_2) — '' doesn't
-// reference any real club row, so it was rejected by the FK check, not a
-// NOT NULL check as I'd assumed when I switched this to '' previously. NULL
-// is the correct sentinel here: a NULL foreign key is exempt from the
-// reference check entirely (standard SQL/InnoDB behaviour), no schema
-// change required either way. Every reader of this column already treats
-// it as "no club yet" via a falsy check (!clubId), so this is a drop-in
-// swap; the one raw SQL `clubId = ''` comparison added alongside `IS NULL`
-// in select-club/route.ts is harmless to leave (covers any row already
-// written with '' before this fix) but NULL is what's written from now on.
-const NO_CLUB_YET = null;
-
 // The actual, confirmed cause of the registration 500s: `users.username` /
 // `students.username` are narrower (almost certainly VARCHAR(10)) than the
 // 11-digit IDs this route now legitimately accepts, since the old
@@ -147,12 +134,8 @@ export async function POST(req) {
 
         // Validation based on student year - unified logic matching frontend
 
-        // 1st years defer club selection to their dashboard, after their
-        // Career Roadmap assessment suggests clubs to them — everyone else
-        // must select a club and domain at registration.
-        const deferClubSelection = year === '1st';
-
-        if (!deferClubSelection && (!selectedClub || !selectedDomain)) {
+        // All students must select club and domain
+        if (!selectedClub || !selectedDomain) {
             return NextResponse.json(
                 { message: "Club and domain selection is required" },
                 { status: 400 }
@@ -222,36 +205,33 @@ export async function POST(req) {
         }
 
 
-        // Check club member limits — skipped for 1st years, who have no
-        // club selected yet at this point.
-        if (!deferClubSelection) {
-            const [clubInfo] = await pool.execute(
-                "SELECT memberLimit FROM clubs WHERE id = ?",
-                [selectedClub]
+        // Check club member limits for all students
+        const [clubInfo] = await pool.execute(
+            "SELECT memberLimit FROM clubs WHERE id = ?",
+            [selectedClub]
+        );
+
+        const [clubMembers] = await pool.execute(
+            "SELECT COUNT(*) as currentMembers FROM students WHERE clubId = ?",
+            [selectedClub]
+        );
+
+        const currentMembers = clubMembers[0].currentMembers;
+        const memberLimit = clubInfo[0]?.memberLimit || 50; // Default to 50 if not found
+
+        if (currentMembers >= memberLimit) {
+            return NextResponse.json(
+                {
+                    message: `This club is full. Maximum ${memberLimit} members allowed per club.`,
+                    errorType: "CLUB_FULL",
+                    clubId: selectedClub,
+                    currentMembers: currentMembers,
+                    maxMembers: memberLimit,
+                    availableSpots: 0,
+                    suggestion: "Please select a different club."
+                },
+                { status: 400 }
             );
-
-            const [clubMembers] = await pool.execute(
-                "SELECT COUNT(*) as currentMembers FROM students WHERE clubId = ?",
-                [selectedClub]
-            );
-
-            const currentMembers = clubMembers[0].currentMembers;
-            const memberLimit = clubInfo[0]?.memberLimit || 50; // Default to 50 if not found
-
-            if (currentMembers >= memberLimit) {
-                return NextResponse.json(
-                    {
-                        message: `This club is full. Maximum ${memberLimit} members allowed per club.`,
-                        errorType: "CLUB_FULL",
-                        clubId: selectedClub,
-                        currentMembers: currentMembers,
-                        maxMembers: memberLimit,
-                        availableSpots: 0,
-                        suggestion: "Please select a different club."
-                    },
-                    { status: 400 }
-                );
-            }
         }
 
         // Hash password
@@ -296,13 +276,12 @@ export async function POST(req) {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
-                    deferClubSelection ? NO_CLUB_YET : selectedClub, // 1st years: NULL until chosen from their dashboard
+                    selectedClub,                          // All students can have clubs
                     name, email, branch, gender,
                     campus,
                     year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
-                    countryName || country, state, district, pincode,
-                    deferClubSelection ? NO_CLUB_YET : selectedDomain,
+                    countryName || country, state, district, pincode, selectedDomain,
                     pathway || null, careerChoice || null
                 ]
             );
@@ -310,21 +289,6 @@ export async function POST(req) {
             // Commit transaction
             await connection.commit();
             connection.release();
-
-            // 1st years land straight on their SAMAM dashboard (restricted to
-            // the Career Roadmap page — see dashboard/student/layout.tsx) so
-            // they can take the assessment that recommends their club.
-            // Best-effort and outside the transaction: if the samam_access
-            // column isn't there yet or this update fails for any reason,
-            // registration must still succeed — an admin can always grant
-            // access manually from the SAMAM Access page as a fallback.
-            if (deferClubSelection) {
-                try {
-                    await pool.execute('UPDATE students SET samam_access = 1 WHERE username = ?', [username]);
-                } catch (e) {
-                    console.error('Failed to auto-unlock SAMAM access for 1st year (non-fatal):', e);
-                }
-            }
 
             // Fetch club details for email
             let clubDetails = null;

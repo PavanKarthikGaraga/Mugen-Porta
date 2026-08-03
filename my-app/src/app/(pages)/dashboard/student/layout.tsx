@@ -43,7 +43,7 @@ const navigation = [
 export default function SAMAMStudentDashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen]           = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-  const [userData, setUserData]                 = useState({ username: "", name: "", samam_access: 1, year: "", clubId: null as string | null });
+  const [userData, setUserData]                 = useState({ username: "", name: "", samam_access: 1 });
   const [isLoading, setIsLoading]               = useState(true);
   const [showCareerPrompt, setShowCareerPrompt] = useState(false);
   const [selectedCareer, setSelectedCareer]     = useState("");
@@ -72,8 +72,6 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             username:     data.user?.username    || "",
             name:         data.user?.name        || "",
             samam_access: data.user?.samam_access ?? 1,
-            year:         data.user?.year        || "",
-            clubId:       data.user?.clubId      ?? null,
           });
           if (data.user?.username) {
             const profileRes = await fetch(`/api/dashboard/student/profile/${data.user.username}`);
@@ -143,23 +141,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
     ? userData.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
     : "ST";
 
-  // 1st years defer club selection to their dashboard until their Career
-  // Roadmap assessment suggests clubs to them — until they confirm one
-  // (clubId gets set), restrict them to just that page. Anyone who already
-  // has a clubId (including the ~60 students registered under the old
-  // flow, who always picked a club at registration) is unaffected.
-  const ROADMAP_HREF = "/dashboard/student/career-roadmap";
-  const needsOnboarding = userData.year === "1st" && !userData.clubId;
-
-  const visibleNav = needsOnboarding
-    ? navigation.filter((item) => item.href === ROADMAP_HREF)
-    : navigation.filter((item) => !item.hidden);
-
-  useEffect(() => {
-    if (!isLoading && needsOnboarding && pathname !== ROADMAP_HREF) {
-      router.replace(ROADMAP_HREF);
-    }
-  }, [isLoading, needsOnboarding, pathname]);
+  const visibleNav = navigation.filter((item) => !item.hidden);
 
   // ── Render ───────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -468,11 +450,6 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             <div className="bg-white dark:bg-zinc-950 border-b border-gray-100 dark:border-zinc-800 px-4 sm:px-6">
               <Breadcrumbs />
             </div>
-            {needsOnboarding && (
-              <div className="px-4 sm:px-6 py-2.5 text-xs font-medium text-amber-800 bg-amber-50 border-b border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900">
-                Complete your Career Roadmap assessment to choose your club and unlock your full dashboard.
-              </div>
-            )}
             <div className="px-4 py-5 sm:px-6 lg:px-8 text-gray-900 dark:text-gray-100">
               {children}
             </div>

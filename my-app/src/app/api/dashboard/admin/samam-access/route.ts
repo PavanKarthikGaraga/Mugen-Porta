@@ -39,9 +39,8 @@ async function getCouncilClubScope(auth: any): Promise<string[] | null> {
 // ?type=log          → audit log (last 100 entries)
 // ?clubId=TEC01      → students in that club
 // ?search=<query>    → students by registration ID or name, regardless of
-//                       club — 1st years defer club selection until their
-//                       Career Roadmap is generated, so they have no clubId
-//                       to find them by until then
+//                       club — faster than drilling into domain → club when
+//                       you already know who you're looking for
 // (no params)        → all clubs grouped by domain
 //
 // Council callers are scoped to their assigned domain automatically: the
