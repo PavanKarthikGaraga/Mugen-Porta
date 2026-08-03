@@ -167,7 +167,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
         <div className="h-1 -mx-6 -mt-6 mb-5" style={{ backgroundColor: BRAND }} />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard/lead/samam" className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+            <Link href="/dashboard/lead/samam/activities" className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
               <FiArrowLeft />
             </Link>
             <div>

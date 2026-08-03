@@ -101,7 +101,7 @@ export default function LeadCertificatesPage({ params }: { params: Promise<{ id:
       <div className="max-w-md mx-auto text-center py-16">
         <FiAlertCircle size={32} className="mx-auto mb-3 text-gray-300" />
         <p className="text-sm font-medium text-gray-700">{error}</p>
-        <Link href="/dashboard/lead/samam" className="text-xs font-semibold mt-3 inline-block hover:underline" style={{ color: BRAND }}>
+        <Link href="/dashboard/lead/samam/activities" className="text-xs font-semibold mt-3 inline-block hover:underline" style={{ color: BRAND }}>
           Back to activities
         </Link>
       </div>
@@ -112,7 +112,7 @@ export default function LeadCertificatesPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
-      <Link href="/dashboard/lead/samam" className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-800">
+      <Link href="/dashboard/lead/samam/activities" className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-800">
         <FiArrowLeft size={13} /> Back to activities
       </Link>
 

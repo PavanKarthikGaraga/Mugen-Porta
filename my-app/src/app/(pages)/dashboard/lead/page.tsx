@@ -246,9 +246,9 @@ export default function LeadOverviewPage() {
       {/* Quick actions */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {[
-          { label: "Members",     icon: <FiUsers    size={18} />, href: "/dashboard/lead/students", color: "#2563EB" },
-          { label: "Submissions", icon: <FiFileText size={18} />, href: "/dashboard/lead/reports",  color: "#7C3AED" },
-          { label: "SAMAM",       icon: <FiActivity size={18} />, href: "/dashboard/lead/samam",    color: BRAND    },
+          { label: "Members",     icon: <FiUsers    size={18} />, href: "/dashboard/lead/students",            color: "#2563EB" },
+          { label: "Submissions", icon: <FiFileText size={18} />, href: "/dashboard/lead/samam/submissions",   color: "#7C3AED" },
+          { label: "SAMAM",       icon: <FiActivity size={18} />, href: "/dashboard/lead/samam/overview",      color: BRAND    },
         ].map((item) => (
           <Link
             key={item.label}

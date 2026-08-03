@@ -56,10 +56,10 @@ export default function AdminActivityDetailPage({ params }) {
 
       {/* ── Back link ── */}
       <Link
-        href="/dashboard/admin/samam"
+        href="/dashboard/admin/samam/activities"
         className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
       >
-        <FiArrowLeft size={13} /> Back to Dashboard
+        <FiArrowLeft size={13} /> Back to Activities
       </Link>
 
       {/* ── Hero Card ── */}

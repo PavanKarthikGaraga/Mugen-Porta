@@ -1,8 +1,17 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { KPI, MiniBar, BRAND, BRAND_ACCENT, DOMAIN_COLORS, DOMAIN_ICONS } from "./SharedUI";
 import { FiUsers, FiStar, FiAward, FiBarChart2 } from "react-icons/fi";
 
-export default function AnalyticsView({ analytics, analyticsLoading, setTab, openStudent }: any) {
+// studentsHref: base path to the Students page for whichever role is
+// rendering this (e.g. "/dashboard/admin/samam/students"), or omitted for
+// roles with no Students page — the leaderboard then just isn't clickable.
+// Each row deep-links with ?username= so the Students page can open that
+// student's detail panel directly, replacing the old same-page
+// setTab("students") + openStudent(s) call now that Overview and Students
+// are separate routes instead of tabs.
+export default function AnalyticsView({ analytics, analyticsLoading, studentsHref }: any) {
+  const router = useRouter();
   const totalClubStudents = analytics?.totalClubStudents ?? 0;
 
   return (
@@ -76,8 +85,10 @@ export default function AnalyticsView({ analytics, analyticsLoading, setTab, ope
           ) : (analytics?.topSdcStudents ?? []).filter((s: any) => Number(s.total_credits) > 0).length > 0 ? (
             <div className="space-y-2">
               {analytics.topSdcStudents.filter((s: any) => Number(s.total_credits) > 0).map((s: any, i: number) => (
-                <div key={s.username} className="flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 border border-transparent hover:border-gray-200 cursor-pointer transition-colors"
-                  onClick={() => { setTab("students"); openStudent(s); }}>
+                <div key={s.username} className={`flex items-center gap-3 p-3 rounded-md border border-transparent transition-colors ${
+                    studentsHref ? "hover:bg-gray-50 hover:border-gray-200 cursor-pointer" : ""
+                  }`}
+                  onClick={studentsHref ? () => router.push(`${studentsHref}?username=${encodeURIComponent(s.username)}`) : undefined}>
                   <div className="text-[12px] font-semibold text-gray-500 w-4 text-center">
                     {i + 1}
                   </div>

@@ -4,5 +4,5 @@ import EnrolledStudentsView from "@/app/components/dashboard/EnrolledStudentsVie
 
 export default function EnrolledStudentsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  return <EnrolledStudentsView activityCode={id} backHref="/dashboard/lead/samam" />;
+  return <EnrolledStudentsView activityCode={id} backHref="/dashboard/lead/samam/activities" />;
 }

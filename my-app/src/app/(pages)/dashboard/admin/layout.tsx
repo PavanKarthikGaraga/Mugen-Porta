@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
     FiTool, FiChevronDown, FiChevronUp, FiLock, FiUnlock, FiSettings, FiUsers, FiAward, FiStar, FiKey, FiMap, FiCheckSquare,
-    FiActivity, FiFileText,
+    FiActivity, FiFileText, FiBarChart2, FiBell,
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ import ChangePassword from "@/app/components/ChangePassword";
 export default function AdminDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [devDropdownOpen, setDevDropdownOpen] = useState(false);
+    const [samamDropdownOpen, setSamamDropdownOpen] = useState(false);
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
     const [userData, setUserData] = useState({ username: '', name: '' });
     const [hasDevAccess, setHasDevAccess] = useState(false);
@@ -67,7 +68,6 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Users',             href: '/dashboard/admin/users',    icon: FiUsers   },
         { name: 'Clubs',             href: '/dashboard/admin/clubs',    icon: FiFolder  },
         { name: 'Students',          href: '/dashboard/admin/students', icon: FiFolder  },
-        { name: 'SAMAM Dashboard',   href: '/dashboard/admin/samam',    icon: FiAward   },
         { name: 'Award Badges/Points', href: '/dashboard/admin/samam/award', icon: FiStar },
         { name: 'Activity Awards',    href: '/dashboard/admin/samam/activity-awards', icon: FiAward },
         { name: 'Activity Mapper',   href: '/dashboard/admin/activity-mapper', icon: FiMap },
@@ -76,6 +76,19 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Attendance Records',   href: '/dashboard/admin/attendance-records',  icon: FiActivity    },
         { name: 'Passport Approvals',   href: '/dashboard/admin/passport-approvals',  icon: FiFileText    },
         { name: 'Controls',             href: '/dashboard/admin/controls',            icon: FiSettings    }
+    ];
+
+    // SAMAM Control used to be one link to a page with 6 client-side tabs —
+    // refreshing on any tab but Overview reset back to it, since the tab
+    // was just useState, not a route. Each is its own page now, grouped here
+    // instead of as a flat sidebar link.
+    const samamNavigation = [
+        { name: 'Overview',      href: '/dashboard/admin/samam/overview',      icon: FiBarChart2 },
+        { name: 'Students',      href: '/dashboard/admin/samam/students',      icon: FiUsers     },
+        { name: 'Activities',    href: '/dashboard/admin/samam/activities',    icon: FiActivity  },
+        { name: 'Submissions',   href: '/dashboard/admin/samam/submissions',   icon: FiFileText  },
+        { name: 'Notifications', href: '/dashboard/admin/samam/notifications', icon: FiBell      },
+        { name: 'Settings',      href: '/dashboard/admin/samam/settings',      icon: FiSettings  },
     ];
 
     const devNavigation = [
@@ -181,15 +194,15 @@ export default function AdminDashboardLayout({ children }) {
                     <div className="flex flex-col h-full">
                         <div className="flex-1 px-0 py-1 overflow-y-auto">
                             <nav className="space-y-1">
-                                {navigation.map((item) => {
+                                {navigation.slice(0, 4).map((item) => {
                                     const isActive = pathname === item.href;
                                     return (
                                         <Link
                                             key={item.name}
                                             href={item.href}
                                             className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
-                                                isActive 
-                                                    ? 'bg-red-700 text-white shadow-lg' 
+                                                isActive
+                                                    ? 'bg-red-700 text-white shadow-lg'
                                                     : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                                             }`}
                                             onClick={() => setSidebarOpen(false)}
@@ -201,7 +214,70 @@ export default function AdminDashboardLayout({ children }) {
                                         </Link>
                                     );
                                 })}
-                                
+
+                                {/* SAMAM Control group — 6 separate pages, not tabs */}
+                                {(() => {
+                                    const inSamam = pathname.startsWith('/dashboard/admin/samam/');
+                                    const isOpen = samamDropdownOpen || inSamam;
+                                    return (
+                                        <div className="border-b border-gray-600">
+                                            <button
+                                                onClick={() => setSamamDropdownOpen(!samamDropdownOpen)}
+                                                className={`flex items-center justify-between w-full px-3 py-3 text-sm font-medium transition-all duration-200 group ${
+                                                    inSamam ? 'text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                }`}
+                                            >
+                                                <div className="flex items-center">
+                                                    <FiAward className={`mr-3 h-5 w-5 ${inSamam ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                                                    SAMAM Control
+                                                </div>
+                                                {isOpen ? <FiChevronUp className="h-4 w-4" /> : <FiChevronDown className="h-4 w-4" />}
+                                            </button>
+                                            {isOpen && (
+                                                <div className="pb-2 ml-6 space-y-1">
+                                                    {samamNavigation.map((item) => {
+                                                        const isActive = pathname === item.href;
+                                                        return (
+                                                            <Link
+                                                                key={item.name}
+                                                                href={item.href}
+                                                                className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
+                                                                    isActive ? 'bg-red-700 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                                                }`}
+                                                                onClick={() => setSidebarOpen(false)}
+                                                            >
+                                                                <item.icon className={`mr-3 h-4 w-4 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'}`} />
+                                                                {item.name}
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+
+                                {navigation.slice(4).map((item) => {
+                                    const isActive = pathname === item.href;
+                                    return (
+                                        <Link
+                                            key={item.name}
+                                            href={item.href}
+                                            className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
+                                                isActive
+                                                    ? 'bg-red-700 text-white shadow-lg'
+                                                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                            }`}
+                                            onClick={() => setSidebarOpen(false)}
+                                        >
+                                            <item.icon className={`mr-3 h-5 w-5 ${
+                                                isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                            }`} />
+                                            {item.name}
+                                        </Link>
+                                    );
+                                })}
+
                                 {/* Dev Dropdown - Only show for authorized users */}
                                 {hasDevAccess && (
                                     <div className="pt-4">

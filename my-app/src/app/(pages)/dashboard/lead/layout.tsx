@@ -4,13 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText, FiUserCheck, FiActivity,
-    FiDatabase, FiAward, FiKey, FiCheckSquare,
+    FiDatabase, FiAward, FiKey, FiCheckSquare, FiBarChart2,
 } from "react-icons/fi";
 import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
 
 export default function LeadDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [samamDropdownOpen, setSamamDropdownOpen] = useState(false);
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
     const [userData, setUserData] = useState({ username: '', name: '', clubName: '' });
     const [isProxySession, setIsProxySession] = useState(false);
@@ -54,11 +55,19 @@ export default function LeadDashboardLayout({ children }) {
         { name: 'Overview',            href: '/dashboard/lead',                  icon: FiHome     },
         { name: 'Profile',             href: '/dashboard/lead/profile',          icon: FiUser     },
         { name: 'Students',            href: '/dashboard/lead/students',         icon: FiUsers    },
-        { name: 'SAMAM',               href: '/dashboard/lead/samam',            icon: FiActivity },
-        { name: 'Submissions',         href: '/dashboard/lead/reports',          icon: FiFileText },
         { name: 'Attendance',          href: '/dashboard/lead/attendance',       icon: FiCheckSquare },
         { name: 'Attendance Records',  href: '/dashboard/lead/attendance-records', icon: FiDatabase },
         { name: 'Passport Approvals',  href: '/dashboard/lead/passport-approvals', icon: FiAward    },
+    ];
+
+    // SAMAM used to be one link to a page with 3 client-side tabs, plus a
+    // separate flat "Submissions" link that duplicated one of those tabs —
+    // refreshing on any tab but Overview reset back to it, since the tab was
+    // just useState, not a route. Each is its own page now, grouped together.
+    const samamNavigation = [
+        { name: 'Overview',    href: '/dashboard/lead/samam/overview',    icon: FiBarChart2 },
+        { name: 'Activities',  href: '/dashboard/lead/samam/activities',  icon: FiActivity  },
+        { name: 'Submissions', href: '/dashboard/lead/samam/submissions', icon: FiFileText  },
     ];
 
     const handleLogout = async () => {
@@ -199,7 +208,70 @@ export default function LeadDashboardLayout({ children }) {
                     <div className="flex flex-col h-full">
                         <div className="flex-1 px-0 py-1 overflow-y-auto">
                             <nav className="space-y-1">
-                                {navigation.map((item) => {
+                                {navigation.slice(0, 3).map((item) => {
+                                    const isActive = pathname === item.href;
+                                    return (
+                                        <Link
+                                            key={item.name}
+                                            href={item.href}
+                                            className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
+                                                isActive
+                                                    ? 'bg-red-700 text-white shadow-lg'
+                                                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                            }`}
+                                            onClick={() => setSidebarOpen(false)}
+                                        >
+                                            <item.icon className={`mr-3 h-5 w-5 ${
+                                                isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                            }`} />
+                                            {item.name}
+                                        </Link>
+                                    );
+                                })}
+
+                                {/* SAMAM group — 3 separate pages, not tabs */}
+                                {(() => {
+                                    const inSamam = pathname.startsWith('/dashboard/lead/samam/');
+                                    const isOpen = samamDropdownOpen || inSamam;
+                                    return (
+                                        <div className="border-b border-gray-600">
+                                            <button
+                                                onClick={() => setSamamDropdownOpen(!samamDropdownOpen)}
+                                                className={`flex items-center justify-between w-full px-3 py-3 text-sm font-medium transition-all duration-200 group ${
+                                                    inSamam ? 'text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                }`}
+                                            >
+                                                <div className="flex items-center">
+                                                    <FiActivity className={`mr-3 h-5 w-5 ${inSamam ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                                                    SAMAM
+                                                </div>
+                                                {isOpen ? <FiChevronUp className="h-4 w-4" /> : <FiChevronDown className="h-4 w-4" />}
+                                            </button>
+                                            {isOpen && (
+                                                <div className="pb-2 ml-6 space-y-1">
+                                                    {samamNavigation.map((item) => {
+                                                        const isActive = pathname === item.href;
+                                                        return (
+                                                            <Link
+                                                                key={item.name}
+                                                                href={item.href}
+                                                                className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
+                                                                    isActive ? 'bg-red-700 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                                                }`}
+                                                                onClick={() => setSidebarOpen(false)}
+                                                            >
+                                                                <item.icon className={`mr-3 h-4 w-4 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'}`} />
+                                                                {item.name}
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+
+                                {navigation.slice(3).map((item) => {
                                     const isActive = pathname === item.href;
                                     return (
                                         <Link
