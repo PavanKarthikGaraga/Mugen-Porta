@@ -37,8 +37,9 @@ export async function GET(request) {
             // Get all non-student users
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
-                       s.phoneNumber, s.year, s.branch, l.clubId, c.name as clubName,
-                       f.phoneNumber as fPhoneNumber, f.assignedClubs,
+                       COALESCE(s.phoneNumber, f.phoneNumber) as phoneNumber,
+                       s.year, s.branch, l.clubId, c.name as clubName,
+                       f.assignedClubs,
                        co.assignedDomain
                 FROM users u
                 LEFT JOIN students s ON u.username = s.username AND u.role = 'lead'
@@ -54,8 +55,9 @@ export async function GET(request) {
             // Get users by specific role
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
-                       s.phoneNumber, s.year, s.branch, l.clubId, c.name as clubName,
-                       f.phoneNumber as fPhoneNumber, f.assignedClubs,
+                       COALESCE(s.phoneNumber, f.phoneNumber) as phoneNumber,
+                       s.year, s.branch, l.clubId, c.name as clubName,
+                       f.assignedClubs,
                        co.assignedDomain
                 FROM users u
                 LEFT JOIN students s ON u.username = s.username AND u.role = 'lead'

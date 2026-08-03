@@ -55,9 +55,10 @@ export async function POST(request, { params }) {
                     [name, email, phoneNumber, year, branch, clubId, username]
                 );
             } else if (role === 'faculty') {
+                // faculty has no year/branch columns (that's students/leads only)
                 await connection.execute(
-                    'UPDATE faculty SET name = ?, email = ?, phoneNumber = ?, year = ?, branch = ?, assignedClubs = ? WHERE username = ?',
-                    [name, email, phoneNumber, year, branch, JSON.stringify(assignedClubs), username]
+                    'UPDATE faculty SET name = ?, email = ?, phoneNumber = ?, assignedClubs = ? WHERE username = ?',
+                    [name, email, phoneNumber, JSON.stringify(assignedClubs), username]
                 );
             }
 
