@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   FiUnlock, FiLock, FiUsers, FiChevronRight, FiAlertCircle,
-  FiCheckSquare, FiSquare, FiRefreshCw, FiList,
+  FiCheckSquare, FiSquare, FiRefreshCw, FiList, FiSearch, FiX,
 } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -17,7 +17,10 @@ const DOMAIN_META: Record<string, { label: string; color: string; bg: string }> 
 };
 
 interface Club    { id: string; name: string; domain: string }
-interface Student { username: string; name: string; branch: string; year: string; samam_access: number }
+interface Student {
+  username: string; name: string; branch: string; year: string; samam_access: number;
+  clubId?: string | null; clubName?: string | null;
+}
 interface LogEntry {
   id: number;
   username: string;
@@ -39,6 +42,11 @@ export default function SamamAccessManager() {
   const [selectedClub,  setSelectedClub ] = useState<Club | null>(null);
   const [students,      setStudents     ] = useState<Student[]>([]);
   const [loadingStudents,setLoadingStudents] = useState(false);
+
+  // ID/name search — the alternate path to a student list, for 1st years who
+  // haven't chosen a club yet (and so can't be found via domain → club).
+  const [mode,          setMode         ] = useState<"club" | "search">("club");
+  const [searchQuery,   setSearchQuery  ] = useState("");
 
   // Grant
   const [selected,      setSelected     ] = useState<Set<string>>(new Set());
@@ -87,6 +95,7 @@ export default function SamamAccessManager() {
   const clubsInDomain = useMemo(() => clubs.filter(c => c.domain === selectedDomain), [clubs, selectedDomain]);
 
   const selectDomain = (domain: string) => {
+    setMode("club");
     setSelectedDomain(domain);
     setSelectedClub(null);
     setStudents([]);
@@ -95,6 +104,7 @@ export default function SamamAccessManager() {
   };
 
   const selectClub = async (club: Club) => {
+    setMode("club");
     setSelectedClub(club);
     setStudents([]);
     setSelected(new Set());
@@ -118,6 +128,43 @@ export default function SamamAccessManager() {
     }
   };
 
+  const runSearch = async () => {
+    const q = searchQuery.trim();
+    if (!q) { toast.error("Enter a registration ID or name to search"); return; }
+    setMode("search");
+    setSelectedDomain(null);
+    setSelectedClub(null);
+    setStudents([]);
+    setSelected(new Set());
+    setSelRevoke(new Set());
+    setLoadingStudents(true);
+    try {
+      const r = await fetch(`/api/dashboard/admin/samam-access?search=${encodeURIComponent(q)}`);
+      const d = await r.json();
+      if (d.success) {
+        const list = d.students as Student[];
+        setStudents(list);
+        setSelected(new Set(list.map(s => s.username)));
+        setSelRevoke(new Set(list.filter(s => s.samam_access === 1).map(s => s.username)));
+        if (list.length === 0) toast.error("No matching students found");
+      } else {
+        toast.error(d.error || "Search failed");
+      }
+    } catch {
+      toast.error("Search failed");
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setMode("club");
+    setSearchQuery("");
+    setStudents([]);
+    setSelected(new Set());
+    setSelRevoke(new Set());
+  };
+
   const toggleStudent   = (u: string) => setSelected(p => { const n = new Set(p); n.has(u) ? n.delete(u) : n.add(u); return n; });
   const toggleRevoke    = (u: string) => setSelRevoke(p => { const n = new Set(p); n.has(u) ? n.delete(u) : n.add(u); return n; });
   const toggleAll       = () => setSelected(selected.size === students.length ? new Set() : new Set(students.map(s => s.username)));
@@ -138,7 +185,7 @@ export default function SamamAccessManager() {
       const d = await res.json();
       if (d.success) {
         toast.success(`SAMAM unlocked for ${d.updated} student${d.updated !== 1 ? "s" : ""}`);
-        await selectClub(selectedClub!);
+        if (mode === "search") await runSearch(); else await selectClub(selectedClub!);
         fetchLogs();
       } else {
         toast.error(d.error || "Failed to unlock SAMAM");
@@ -161,7 +208,7 @@ export default function SamamAccessManager() {
       const d = await res.json();
       if (d.success) {
         toast.success(`SAMAM access revoked for ${d.updated} student${d.updated !== 1 ? "s" : ""}`);
-        await selectClub(selectedClub!);
+        if (mode === "search") await runSearch(); else await selectClub(selectedClub!);
         fetchLogs();
       } else {
         toast.error(d.error || "Failed to revoke access");
@@ -173,6 +220,121 @@ export default function SamamAccessManager() {
 
   const alreadyUnlocked = students.filter(s => s.samam_access === 1).length;
   const pendingUnlock   = selected.size - students.filter(s => s.samam_access === 1 && selected.has(s.username)).length;
+
+  // Label used in the students panel and confirm modals — a club name in
+  // club mode, the query in search mode.
+  const panelLabel = mode === "search" ? `Search: "${searchQuery}"` : selectedClub?.name;
+  const showPanel  = mode === "search" ? true : !!selectedClub;
+
+  // Shared between club mode (Step 3, alongside the club list) and search
+  // mode (full width, no club list) so grant/revoke behave identically
+  // regardless of how the student list was found.
+  const renderStudentsPanel = () => (
+    <div className="space-y-4">
+      {!showPanel ? (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
+          <FiUsers size={32} className="mx-auto text-gray-200 mb-3" />
+          <p className="text-gray-400 text-sm">← Select a club, or search by registration ID above</p>
+        </div>
+      ) : loadingStudents ? (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 flex items-center justify-center">
+          <Spinner />
+        </div>
+      ) : students.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
+          <FiUsers size={32} className="mx-auto text-gray-200 mb-3" />
+          <p className="text-gray-500 font-medium text-sm">
+            {mode === "search" ? "No matching students found" : `No students in ${selectedClub?.name}`}
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Summary bar */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-6 flex-wrap">
+            <div>
+              <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">{mode === "search" ? "Search" : "Club"}</p>
+              <p className="font-bold text-gray-900 text-sm">{panelLabel}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Total</p>
+              <p className="font-bold text-gray-900 text-sm">{students.length}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Unlocked</p>
+              <p className="font-bold text-emerald-600 text-sm">{alreadyUnlocked}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Selected</p>
+              <p className="font-bold text-sm" style={{ color: BRAND }}>{selected.size}</p>
+            </div>
+            <div className="flex-1" />
+            <button
+              onClick={() => setShowConfirm(true)}
+              disabled={selected.size === 0 || saving}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+              style={{ backgroundColor: BRAND }}
+            >
+              <FiUnlock size={13} />
+              {saving ? "Unlocking…" : `Unlock SAMAM (${selected.size})`}
+            </button>
+          </div>
+
+          {/* Student table */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <button onClick={toggleAll} className="flex-shrink-0">
+                {selected.size === students.length
+                  ? <FiCheckSquare size={16} style={{ color: BRAND }} />
+                  : selected.size > 0
+                  ? <FiCheckSquare size={16} className="text-gray-300" />
+                  : <FiSquare size={16} className="text-gray-300" />
+                }
+              </button>
+              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex-1">Student</span>
+              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider w-24 hidden sm:block">Year</span>
+              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider w-24 text-right">Status</span>
+            </div>
+            <div className="divide-y divide-gray-50 max-h-[55vh] overflow-y-auto">
+              {students.map(s => {
+                const isSelected = selected.has(s.username);
+                const unlocked   = s.samam_access === 1;
+                return (
+                  <label
+                    key={s.username}
+                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
+                      isSelected ? "bg-red-50/40" : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleStudent(s.username)}
+                      className="w-4 h-4 rounded border-gray-300 accent-red-700 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{s.name}</p>
+                      <p className="text-[11px] text-gray-400">
+                        {s.username} · {s.branch}
+                        {mode === "search" && (
+                          s.clubName ? <> · {s.clubName}</> : <span className="text-amber-600 font-semibold"> · No club yet</span>
+                        )}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-500 w-24 hidden sm:block">{s.year} Year</span>
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full w-24 text-right inline-block ${
+                      unlocked ? "text-emerald-700 bg-emerald-50" : "text-gray-500 bg-gray-100"
+                    }`}>
+                      {unlocked ? "Unlocked" : "Locked"}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
 
   if (loadingClubs) {
     return <div className="flex items-center justify-center h-64"><Spinner /></div>;
@@ -191,6 +353,41 @@ export default function SamamAccessManager() {
             <h1 className="text-xl font-bold text-gray-900">SAMAM Access</h1>
             <p className="text-sm text-gray-500 mt-0.5">Select a domain → club → students, then grant or revoke SAMAM dashboard access.</p>
           </div>
+        </div>
+      </div>
+
+      {/* Search by registration ID — the only way to find 1st years, who
+          have no club (and so no domain) until their Career Roadmap
+          assessment suggests one and they confirm it. */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Or Search by Registration ID</p>
+        <p className="text-xs text-gray-500 mb-3">
+          Finds a student directly by ID or name — including 1st years who haven&apos;t chosen a club yet.
+        </p>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 max-w-sm">
+            <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && runSearch()}
+              placeholder="Registration ID or name…"
+              className="w-full h-9 pl-9 pr-8 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm"
+            />
+            {searchQuery && (
+              <button onClick={clearSearch} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <FiX size={13} />
+              </button>
+            )}
+          </div>
+          <button
+            onClick={runSearch}
+            disabled={loadingStudents && mode === "search"}
+            className="h-9 px-4 text-[13px] font-semibold rounded-md text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ backgroundColor: BRAND }}
+          >
+            Search
+          </button>
         </div>
       </div>
 
@@ -221,7 +418,9 @@ export default function SamamAccessManager() {
         </div>
       </div>
 
-      {selectedDomain && (
+      {mode === "search" && renderStudentsPanel()}
+
+      {mode === "club" && selectedDomain && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
 
           {/* Step 2: Club */}
@@ -255,102 +454,8 @@ export default function SamamAccessManager() {
           </div>
 
           {/* Step 3: Students */}
-          <div className="lg:col-span-3 space-y-4">
-            {!selectedClub ? (
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
-                <FiUsers size={32} className="mx-auto text-gray-200 mb-3" />
-                <p className="text-gray-400 text-sm">← Select a club to view its students</p>
-              </div>
-            ) : loadingStudents ? (
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 flex items-center justify-center">
-                <Spinner />
-              </div>
-            ) : students.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
-                <FiUsers size={32} className="mx-auto text-gray-200 mb-3" />
-                <p className="text-gray-500 font-medium text-sm">No students in {selectedClub.name}</p>
-              </div>
-            ) : (
-              <>
-                {/* Summary bar */}
-                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-6 flex-wrap">
-                  <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Club</p>
-                    <p className="font-bold text-gray-900 text-sm">{selectedClub.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Total</p>
-                    <p className="font-bold text-gray-900 text-sm">{students.length}</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Unlocked</p>
-                    <p className="font-bold text-emerald-600 text-sm">{alreadyUnlocked}</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Selected</p>
-                    <p className="font-bold text-sm" style={{ color: BRAND }}>{selected.size}</p>
-                  </div>
-                  <div className="flex-1" />
-                  <button
-                    onClick={() => setShowConfirm(true)}
-                    disabled={selected.size === 0 || saving}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                    style={{ backgroundColor: BRAND }}
-                  >
-                    <FiUnlock size={13} />
-                    {saving ? "Unlocking…" : `Unlock SAMAM (${selected.size})`}
-                  </button>
-                </div>
-
-                {/* Student table */}
-                <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <button onClick={toggleAll} className="flex-shrink-0">
-                      {selected.size === students.length
-                        ? <FiCheckSquare size={16} style={{ color: BRAND }} />
-                        : selected.size > 0
-                        ? <FiCheckSquare size={16} className="text-gray-300" />
-                        : <FiSquare size={16} className="text-gray-300" />
-                      }
-                    </button>
-                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex-1">Student</span>
-                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider w-24 hidden sm:block">Year</span>
-                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider w-24 text-right">Status</span>
-                  </div>
-                  <div className="divide-y divide-gray-50 max-h-[55vh] overflow-y-auto">
-                    {students.map(s => {
-                      const isSelected = selected.has(s.username);
-                      const unlocked   = s.samam_access === 1;
-                      return (
-                        <label
-                          key={s.username}
-                          className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
-                            isSelected ? "bg-red-50/40" : "hover:bg-gray-50"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleStudent(s.username)}
-                            className="w-4 h-4 rounded border-gray-300 accent-red-700 flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">{s.name}</p>
-                            <p className="text-[11px] text-gray-400">{s.username} · {s.branch}</p>
-                          </div>
-                          <span className="text-xs text-gray-500 w-24 hidden sm:block">{s.year} Year</span>
-                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full w-24 text-right inline-block ${
-                            unlocked ? "text-emerald-700 bg-emerald-50" : "text-gray-500 bg-gray-100"
-                          }`}>
-                            {unlocked ? "Unlocked" : "Locked"}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            )}
+          <div className="lg:col-span-3">
+            {renderStudentsPanel()}
           </div>
         </div>
       )}
@@ -366,13 +471,13 @@ export default function SamamAccessManager() {
                 <FiLock size={14} style={{ color: BRAND }} />
               </div>
               <h3 className="font-bold text-gray-900 text-sm">Revoke Access</h3>
-              {selectedClub && unlockedStudents.length > 0 && (
+              {showPanel && unlockedStudents.length > 0 && (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
                   {unlockedStudents.length} unlocked
                 </span>
               )}
             </div>
-            {selectedClub && unlockedStudents.length > 0 && (
+            {showPanel && unlockedStudents.length > 0 && (
               <button
                 onClick={() => setShowRevoke(true)}
                 disabled={selRevoke.size === 0 || revoking}
@@ -385,17 +490,17 @@ export default function SamamAccessManager() {
             )}
           </div>
 
-          {!selectedClub ? (
+          {!showPanel ? (
             <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
               <FiLock size={28} className="text-gray-200 mb-2" />
-              <p className="text-sm text-gray-400">Select a club above to manage revocations</p>
+              <p className="text-sm text-gray-400">Select a club, or search by ID, to manage revocations</p>
             </div>
           ) : loadingStudents ? (
             <div className="flex-1 flex items-center justify-center p-10"><Spinner /></div>
           ) : unlockedStudents.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
               <FiLock size={28} className="text-gray-200 mb-2" />
-              <p className="text-sm text-gray-400">No students with SAMAM access in {selectedClub.name}</p>
+              <p className="text-sm text-gray-400">No students with SAMAM access in {panelLabel}</p>
             </div>
           ) : (
             <>
@@ -509,7 +614,7 @@ export default function SamamAccessManager() {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">Confirm SAMAM Unlock</h3>
-                <p className="text-xs text-gray-500">{selectedClub?.name}</p>
+                <p className="text-xs text-gray-500">{panelLabel}</p>
               </div>
             </div>
             <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
@@ -551,7 +656,7 @@ export default function SamamAccessManager() {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">Confirm Revoke Access</h3>
-                <p className="text-xs text-gray-500">{selectedClub?.name}</p>
+                <p className="text-xs text-gray-500">{panelLabel}</p>
               </div>
             </div>
             <div className="bg-red-50 rounded-xl p-4 space-y-2 text-sm">

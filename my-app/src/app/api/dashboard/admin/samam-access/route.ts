@@ -45,11 +45,17 @@ async function getCouncilClubScope(auth: any): Promise<string[] | null> {
 // GET /api/dashboard/admin/samam-access
 // ?type=log          → audit log (last 100 entries)
 // ?clubId=TEC01      → students in that club
+// ?search=<query>    → students by registration ID or name, regardless of
+//                       club — 1st years defer club selection until their
+//                       Career Roadmap is generated, so they have no clubId
+//                       to find them by until then
 // (no params)        → all clubs grouped by domain
 //
 // Council callers are scoped to their assigned domain automatically: the
 // clubs list is filtered to that domain, a clubId outside it is rejected,
-// and the audit log only shows entries for clubs in that domain.
+// search results are filtered to clubs in that domain (so a council member
+// never sees another domain's or an unclubbed student), and the audit log
+// only shows entries for clubs in that domain.
 export async function GET(request: Request) {
     const auth = await requireAuth(['admin', 'council']);
     if (auth.response) return auth.response;
@@ -59,6 +65,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const type   = searchParams.get('type');
     const clubId = searchParams.get('clubId');
+    const search = searchParams.get('search');
 
     try {
         if (type === 'log') {
@@ -86,6 +93,23 @@ export async function GET(request: Request) {
         }
 
         await ensureSamamAccessColumn();
+
+        if (search) {
+            if (scope && scope.length === 0) return NextResponse.json({ success: true, students: [] });
+            const like = `%${search.trim()}%`;
+            const scopeClause = scope ? `AND s.clubId IN (${scope.map(() => '?').join(',')})` : '';
+            const [students]: any = await pool.execute(
+                `SELECT s.username, s.name, s.branch, s.year, s.clubId, c.name AS clubName,
+                        COALESCE(s.samam_access, 0) as samam_access
+                 FROM students s
+                 LEFT JOIN clubs c ON s.clubId = c.id
+                 WHERE (s.username LIKE ? OR s.name LIKE ?) ${scopeClause}
+                 ORDER BY s.name ASC
+                 LIMIT 30`,
+                scope ? [like, like, ...scope] : [like, like]
+            );
+            return NextResponse.json({ success: true, students: students as any[] });
+        }
 
         if (!clubId) {
             const [clubs]: any = scope
