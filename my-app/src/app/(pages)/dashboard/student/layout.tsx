@@ -7,7 +7,7 @@ import {
   FiFileText, FiBriefcase, FiCpu, FiEdit3, FiCheckSquare,
   FiBarChart2, FiBell, FiUser, FiSettings, FiLogOut, FiMenu,
   FiX, FiLock, FiSearch, FiChevronDown, FiFolder, FiSend,
-  FiClipboard, FiInfo, FiUsers, FiMap
+  FiClipboard, FiInfo, FiUsers, FiMap, FiMusic
 } from "react-icons/fi";
 
 const NOTIF_ICON: Record<string, any> = { activity: FiClipboard, badge: FiAward, sdc: FiStar, reminder: FiBell, system: FiInfo };
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
 import Breadcrumbs from "@/app/components/dashboard/Breadcrumbs";
 import CommandPalette from "@/app/components/dashboard/CommandPalette";
+import MusicPreferenceForm from "@/app/components/MusicPreferenceForm";
 
 // ─── Navigation definition ────────────────────────────────────────────────────
 const navigation = [
@@ -35,6 +36,7 @@ const navigation = [
   { name: "Profile",                    href: "/dashboard/student/profile",          icon: FiUser },
   { name: "Settings",                   href: "/dashboard/student/settings",         icon: FiSettings },
   { name: "My Club",                     href: "/dashboard/student/club",             icon: FiUsers },
+  { name: "Music Preference",           href: "/dashboard/student/music-preference", icon: FiMusic, clubOnly: "LCH03" },
   // Legacy routes preserved
   { name: "Submissions",                href: "/dashboard/student/reports",          icon: FiFileText, hidden: true },
 ];
@@ -43,9 +45,10 @@ const navigation = [
 export default function SAMAMStudentDashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen]           = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-  const [userData, setUserData]                 = useState({ username: "", name: "", samam_access: 1 });
+  const [userData, setUserData]                 = useState({ username: "", name: "", samam_access: 1, clubId: "" });
   const [isLoading, setIsLoading]               = useState(true);
   const [showCareerPrompt, setShowCareerPrompt] = useState(false);
+  const [showMusicPrompt, setShowMusicPrompt]   = useState(false);
   const [selectedCareer, setSelectedCareer]     = useState("");
   const [savingCareer, setSavingCareer]         = useState(false);
   const [searchQuery, setSearchQuery]           = useState("");
@@ -72,6 +75,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             username:     data.user?.username    || "",
             name:         data.user?.name        || "",
             samam_access: data.user?.samam_access ?? 1,
+            clubId:       data.user?.clubId      || "",
           });
           if (data.user?.username) {
             const profileRes = await fetch(`/api/dashboard/student/profile/${data.user.username}`);
@@ -80,6 +84,16 @@ export default function SAMAMStudentDashboardLayout({ children }) {
               const cc = profileData.careerChoice;
               if (!cc || cc === "null" || cc === "undefined" || String(cc).trim() === "") {
                 setShowCareerPrompt(true);
+              }
+            }
+
+            if (data.user?.clubId === "LCH03") {
+              const musicRes = await fetch(`/api/dashboard/student/music-preference`);
+              if (musicRes.ok) {
+                const musicData = await musicRes.json();
+                if (musicData.eligible && !musicData.submitted) {
+                  setShowMusicPrompt(true);
+                }
               }
             }
           }
@@ -141,7 +155,11 @@ export default function SAMAMStudentDashboardLayout({ children }) {
     ? userData.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
     : "ST";
 
-  const visibleNav = navigation.filter((item) => !item.hidden);
+  const visibleNav = navigation.filter((item) => {
+    if (item.hidden) return false;
+    if (item.clubOnly && userData.clubId !== item.clubOnly) return false;
+    return true;
+  });
 
   // ── Render ───────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -174,6 +192,16 @@ export default function SAMAMStudentDashboardLayout({ children }) {
         >
           Sign Out
         </button>
+      </div>
+    );
+  }
+
+  if (showMusicPrompt) {
+    return (
+      <div className="h-dvh flex items-center justify-center bg-gray-50 px-4 py-8 overflow-y-auto">
+        <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden">
+          <MusicPreferenceForm onSuccess={() => setShowMusicPrompt(false)} />
+        </div>
       </div>
     );
   }
@@ -215,6 +243,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
           </div>
         </div>
       )}
+
 
       {/* ═══ Top Navigation ═══════════════════════════════════════════════════ */}
       <nav

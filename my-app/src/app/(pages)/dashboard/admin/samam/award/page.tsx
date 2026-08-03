@@ -151,7 +151,6 @@ export default function AdminAwardPage() {
     if (prefillTab === "points" || prefillTab === "badge" || prefillTab === "certificate") {
       setActiveTab(prefillTab);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAwardBadge = async () => {

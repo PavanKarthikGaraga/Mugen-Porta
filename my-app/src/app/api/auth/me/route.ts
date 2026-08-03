@@ -30,9 +30,9 @@ export async function GET(request) {
         // Get additional data based on role
         if (payload.role === 'lead') {
             try {
-                const [leadResult] = await pool.execute(
+                const [leadResult]: any = await pool.execute(
                     'SELECT l.clubId, c.name as clubName FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
-                    [payload.username]
+                    [payload.username as string]
                 );
                 if (leadResult.length > 0) {
                     additionalData = {
@@ -45,22 +45,25 @@ export async function GET(request) {
             }
         } else if (payload.role === 'student') {
             try {
-                const [studentResult] = await pool.execute(
-                    'SELECT COALESCE(samam_access, 1) as samam_access FROM students WHERE username = ?',
-                    [payload.username]
-                ) as any[];
+                const [studentResult]: any = await pool.execute(
+                    'SELECT COALESCE(samam_access, 1) as samam_access, clubId FROM students WHERE username = ?',
+                    [payload.username as string]
+                );
                 if (studentResult.length > 0) {
-                    additionalData = { samam_access: Number(studentResult[0].samam_access) };
+                    additionalData = {
+                        samam_access: Number(studentResult[0].samam_access),
+                        clubId: studentResult[0].clubId ?? '',
+                    };
                 }
             } catch {
                 // Column not yet created — default open so existing users aren't locked out
-                additionalData = { samam_access: 1 };
+                additionalData = { samam_access: 1, clubId: '' };
             }
         } else if (payload.role === 'faculty') {
             try {
-                const [facultyResult] = await pool.execute(
+                const [facultyResult]: any = await pool.execute(
                     'SELECT assignedClubs FROM faculty WHERE username = ?',
-                    [payload.username]
+                    [payload.username as string]
                 );
                 if (facultyResult.length > 0) {
                     const assignedClubs = facultyResult[0].assignedClubs;

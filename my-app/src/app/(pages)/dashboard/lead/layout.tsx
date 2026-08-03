@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText, FiUserCheck, FiActivity,
-    FiDatabase, FiAward, FiKey, FiCheckSquare, FiBarChart2,
+    FiDatabase, FiAward, FiKey, FiCheckSquare, FiBarChart2, FiMusic
 } from "react-icons/fi";
 import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
@@ -13,7 +13,7 @@ export default function LeadDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [samamDropdownOpen, setSamamDropdownOpen] = useState(false);
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-    const [userData, setUserData] = useState({ username: '', name: '', clubName: '' });
+    const [userData, setUserData] = useState({ username: '', name: '', clubName: '', clubId: '' });
     const [isProxySession, setIsProxySession] = useState(false);
     const [proxyStudentInfo, setProxyStudentInfo] = useState(null);
     const pathname = usePathname();
@@ -30,7 +30,8 @@ export default function LeadDashboardLayout({ children }) {
                     setUserData({
                         username: user?.username || '',
                         name: user?.name || '',
-                        clubName: user?.clubName || ''
+                        clubName: user?.clubName || '',
+                        clubId: user?.clubId || ''
                     });
 
                     // Check if this is a proxy session
@@ -59,6 +60,10 @@ export default function LeadDashboardLayout({ children }) {
         { name: 'Attendance Records',  href: '/dashboard/lead/attendance-records', icon: FiDatabase },
         { name: 'Passport Approvals',  href: '/dashboard/lead/passport-approvals', icon: FiAward    },
     ];
+
+    if (userData.clubId === 'LCH03') {
+        navigation.push({ name: 'Music Roster', href: '/dashboard/lead/music-roster', icon: FiMusic });
+    }
 
     // SAMAM used to be one link to a page with 3 client-side tabs, plus a
     // separate flat "Submissions" link that duplicated one of those tabs —

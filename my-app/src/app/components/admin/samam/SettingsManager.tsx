@@ -125,8 +125,8 @@ export default function SettingsManager() {
           Activity Badges
         </h3>
         <p className="text-[12px] text-gray-500 leading-relaxed mb-4">
-          Creates one badge per activity in the catalogue that doesn't already have one, named
-          "&lt;Activity Title&gt; Badge" and mapped to that activity so it's awarded automatically on
+          Creates one badge per activity in the catalogue that doesn&apos;t already have one, named
+          &quot;&lt;Activity Title&gt; Badge&quot; and mapped to that activity so it&apos;s awarded automatically on
           completion. Safe to re-run at any time — existing badges and mappings are left untouched,
           only activities missing a badge are affected.
         </p>

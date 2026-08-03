@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp,
-    FiCheckSquare, FiActivity, FiAward, FiKey,
+    FiCheckSquare, FiActivity, FiAward, FiKey, FiMusic
 } from "react-icons/fi";
 import ChangePassword from "@/app/components/ChangePassword";
 
@@ -43,6 +43,10 @@ export default function FacultyDashboardLayout({ children }) {
         { name: 'Attendance Records',  href: '/dashboard/faculty/attendance-records',icon: FiActivity    },
         { name: 'Passport Approvals',  href: '/dashboard/faculty/passport-approvals',icon: FiAward       },
     ];
+
+    if (userData.assignedClubs.includes('LCH03')) {
+        navigation.push({ name: 'Music Roster', href: '/dashboard/faculty/music-roster', icon: FiMusic });
+    }
 
     const handleLogout = async () => {
         // Clear token and redirect to login
