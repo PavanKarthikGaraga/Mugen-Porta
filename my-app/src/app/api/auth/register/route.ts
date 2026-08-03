@@ -9,30 +9,17 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9]+$/;
 
 // clubId/selectedDomain were required at registration until 1st years
-// started deferring club selection to their dashboard — in production
-// they're very likely still defined NOT NULL from before that, which would
-// reject the NULL this route now inserts for them with a generic 500.
-// Self-heals by reading the column's real current type from
-// INFORMATION_SCHEMA and only loosening it (never guessing a type), same
-// approach as the rest of this codebase's lazy schema migrations. Uses
-// pool.query (text protocol) rather than pool.execute — mysql2's prepared
-// statement protocol doesn't reliably support DDL on every MySQL/MariaDB
-// build, which is exactly what broke this insert in production once already.
-async function ensureNullable(table: string, column: string) {
-    try {
-        const [rows]: any = await pool.query(
-            `SELECT COLUMN_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
-            [table, column]
-        );
-        const col = (rows as any[])[0];
-        if (col && col.IS_NULLABLE === 'NO') {
-            await pool.query(`ALTER TABLE ${table} MODIFY COLUMN ${column} ${col.COLUMN_TYPE} NULL`);
-        }
-    } catch (e) {
-        console.error(`Failed to ensure ${table}.${column} is nullable (non-fatal):`, e);
-    }
-}
+// started deferring club selection — in production they're almost
+// certainly still defined NOT NULL from before that, so inserting NULL for
+// a deferred 1st year 500s. Rather than depend on a runtime ALTER TABLE
+// succeeding (itself unreliable: DDL over mysql2's prepared-statement
+// protocol, and needs ALTER privilege this app's DB user may not have),
+// use '' instead of NULL — a plain NOT NULL VARCHAR always accepts it, no
+// schema change required. Every reader of these columns already treats
+// them as "no club yet" via a falsy check (!clubId), so '' behaves
+// identically to NULL everywhere except the one SQL `IS NULL` comparison
+// in select-club/route.ts, which is updated to match both.
+const NO_CLUB_YET = '';
 
 export async function POST(req) {
     // Registration creates a DB record and sends email - protect against
@@ -234,11 +221,6 @@ export async function POST(req) {
             }
         }
 
-        if (deferClubSelection) {
-            await ensureNullable('students', 'clubId');
-            await ensureNullable('students', 'selectedDomain');
-        }
-
         // Hash password
         const saltRounds = 12;
         const hashedPassword = await bcrypt.hash(generatedPassword, saltRounds);
@@ -281,13 +263,13 @@ export async function POST(req) {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     username,
-                    deferClubSelection ? null : selectedClub, // 1st years: NULL until chosen from their dashboard
+                    deferClubSelection ? NO_CLUB_YET : selectedClub, // 1st years: '' until chosen from their dashboard
                     name, email, branch, gender,
                     campus,
                     year, phoneNumber, residenceType,
                     hostelName || 'N/A', busRoute || null,
                     countryName || country, state, district, pincode,
-                    deferClubSelection ? null : selectedDomain,
+                    deferClubSelection ? NO_CLUB_YET : selectedDomain,
                     pathway || null, careerChoice || null
                 ]
             );
@@ -364,10 +346,10 @@ export async function POST(req) {
             throw error;
         }
 
-    } catch (error) {
-        console.error("Registration error:", error);
+    } catch (error: any) {
+        console.error("Registration error:", error?.code, error?.sqlMessage || error?.message, error);
         return NextResponse.json(
-            { message: "Internal server error. Please try again later." },
+            { message: safeMessage(error, "Internal server error. Please try again later.") },
             { status: 500 }
         );
     }

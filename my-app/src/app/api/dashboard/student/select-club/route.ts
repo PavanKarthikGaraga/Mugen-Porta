@@ -5,8 +5,9 @@ import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 /**
  * Lets a 1st-year student choose their club after registration. Registration
  * defers club selection for 1st years (see /api/auth/register), leaving
- * clubId NULL — this is the only route that fills it in, and only once, so
- * a student can't switch clubs by calling it again later.
+ * clubId empty ('' — not necessarily NULL, since clubId may be a NOT NULL
+ * column in production) — this is the only route that fills it in, and
+ * only once, so a student can't switch clubs by calling it again later.
  */
 export async function POST(req: Request) {
     const auth = await requireAuth(['student']);
@@ -61,7 +62,8 @@ export async function POST(req: Request) {
         }
 
         const [result]: any = await pool.execute(
-            'UPDATE students SET clubId = ?, selectedDomain = ?, pathway = ? WHERE username = ? AND clubId IS NULL',
+            `UPDATE students SET clubId = ?, selectedDomain = ?, pathway = ?
+             WHERE username = ? AND (clubId IS NULL OR clubId = '')`,
             [clubId, domain || club.domain, pathway || null, username]
         );
         if (result.affectedRows === 0) {
