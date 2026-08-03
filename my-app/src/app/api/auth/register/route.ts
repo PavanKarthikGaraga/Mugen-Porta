@@ -8,6 +8,32 @@ import { safeMessage } from "@/lib/apiSecurity";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9]+$/;
 
+// clubId/selectedDomain were required at registration until 1st years
+// started deferring club selection to their dashboard — in production
+// they're very likely still defined NOT NULL from before that, which would
+// reject the NULL this route now inserts for them with a generic 500.
+// Self-heals by reading the column's real current type from
+// INFORMATION_SCHEMA and only loosening it (never guessing a type), same
+// approach as the rest of this codebase's lazy schema migrations. Uses
+// pool.query (text protocol) rather than pool.execute — mysql2's prepared
+// statement protocol doesn't reliably support DDL on every MySQL/MariaDB
+// build, which is exactly what broke this insert in production once already.
+async function ensureNullable(table: string, column: string) {
+    try {
+        const [rows]: any = await pool.query(
+            `SELECT COLUMN_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+            [table, column]
+        );
+        const col = (rows as any[])[0];
+        if (col && col.IS_NULLABLE === 'NO') {
+            await pool.query(`ALTER TABLE ${table} MODIFY COLUMN ${column} ${col.COLUMN_TYPE} NULL`);
+        }
+    } catch (e) {
+        console.error(`Failed to ensure ${table}.${column} is nullable (non-fatal):`, e);
+    }
+}
+
 export async function POST(req) {
     // Registration creates a DB record and sends email - protect against
     // automated mass-registration / abuse.
@@ -206,6 +232,11 @@ export async function POST(req) {
                     { status: 400 }
                 );
             }
+        }
+
+        if (deferClubSelection) {
+            await ensureNullable('students', 'clubId');
+            await ensureNullable('students', 'selectedDomain');
         }
 
         // Hash password
