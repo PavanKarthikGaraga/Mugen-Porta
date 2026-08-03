@@ -1,10 +1,21 @@
+import { useState } from "react";
 import { branchNames } from "../../../../Data/branches";
 import { countryCodes } from "../../../../Data/coutries";
 
+// Auto-fetch only — a convenience default, not an enforced restriction: the
+// ID field's first 2 digits are pre-filled from the selected year, but stay
+// freely editable afterward and aren't validated against this mapping.
+const YEAR_PREFIX = { "1st": "26", "2nd": "25", "3rd": "24", "4th": "23", "5th": "22" };
+
 export default function PersonalDetails({ formData, updateFormData }) {
-    // Registration IDs are entered manually and no longer required to match
-    // a year-encoded prefix (batches/campuses use ID formats that don't fit
-    // a fixed 22/23/24/25/26 scheme) — only length and digit-only remain.
+    const [isOtherBranch, setIsOtherBranch] = useState(false);
+
+    const isCDOEBranch = formData.branch === "KL CDOE Management (OL) BBA" || formData.branch === "KL CDOE Humanities (OL) BCA";
+
+    // Registration IDs are entered manually — only length and digit-only are
+    // validated. The year-prefix is auto-fetched as a starting point (see
+    // YEAR_PREFIX) but never enforced, since CDOE and other formats don't
+    // follow it.
     const validateUsername = (username) => {
         if (!username) return false;
         return /^\d{10,11}$/.test(username);
@@ -29,8 +40,40 @@ export default function PersonalDetails({ formData, updateFormData }) {
         } else if (name === "countryCode") {
             const selectedCountry = countryCodes.find(c => c.dial_code === value);
             updateFormData({ [name]: value, countryName: selectedCountry ? selectedCountry.name : "" });
+        } else if (name === "year") {
+            // Auto-fetch the ID prefix for the selected year — CDOE branches
+            // use their own numbering, so they're exempt entirely.
+            let currentUsername = formData.username || "";
+            if (!isCDOEBranch) {
+                const prefix = YEAR_PREFIX[value];
+                if (prefix) currentUsername = prefix + currentUsername.slice(2);
+            }
+            const email = currentUsername ? `${currentUsername}@kluniversity.in` : "";
+            updateFormData({ [name]: value, username: currentUsername, email });
+        } else if (name === "branch") {
+            const newIsCDOE = value === "KL CDOE Management (OL) BBA" || value === "KL CDOE Humanities (OL) BCA";
+            let currentUsername = formData.username || "";
+            if (!newIsCDOE && formData.year) {
+                const prefix = YEAR_PREFIX[formData.year];
+                if (prefix && !currentUsername.startsWith(prefix)) {
+                    currentUsername = prefix + currentUsername.slice(2);
+                }
+            }
+            const email = currentUsername ? `${currentUsername}@kluniversity.in` : "";
+            updateFormData({ [name]: value, username: currentUsername, email });
         } else {
             updateFormData({ [name]: value });
+        }
+    };
+
+    const handleBranchSelect = (e) => {
+        const value = e.target.value;
+        if (value === "Other") {
+            setIsOtherBranch(true);
+            handleInputChange({ target: { name: "branch", value: "" } });
+        } else {
+            setIsOtherBranch(false);
+            handleInputChange({ target: { name: "branch", value } });
         }
     };
 
@@ -70,15 +113,26 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         id="branch"
                         name="branch"
                         className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
-                        value={formData.branch || ""}
-                        onChange={handleInputChange}
-                        required
+                        value={isOtherBranch ? "Other" : (formData.branch || "")}
+                        onChange={handleBranchSelect}
+                        required={!isOtherBranch}
                     >
                         <option value="">Select Branch</option>
                         {branchNames.map((branch) => (
                             <option key={branch.id} value={branch.name}>{branch.name}</option>
                         ))}
+                        <option value="Other">Other</option>
                     </select>
+                    {isOtherBranch && (
+                        <input
+                            type="text"
+                            placeholder="Enter your branch name"
+                            className="w-full h-12 px-4 mt-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            value={formData.branch || ""}
+                            onChange={(e) => handleInputChange({ target: { name: "branch", value: e.target.value } })}
+                            required
+                        />
+                    )}
                 </div>
 
                 {/* Gender */}
