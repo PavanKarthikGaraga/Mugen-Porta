@@ -257,11 +257,6 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
           </div>
         )}
 
-        {/* Category label */}
-        {activity.category && (
-          <p className="text-[10px] text-gray-400 truncate">{activity.category}</p>
-        )}
-
         {/* Actions — pinned to bottom */}
         <div className="flex gap-2 mt-auto pt-2">
           <Link

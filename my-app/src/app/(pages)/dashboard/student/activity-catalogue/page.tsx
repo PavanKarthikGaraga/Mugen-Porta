@@ -177,11 +177,16 @@ export default function ActivityCataloguePage() {
   }, [search, activeFilters, activities, sort, savedOnly, bookmarks]);
 
   const shown = useMemo(() => filtered.slice(0, visible), [filtered, visible]);
+  // Grouped by category/pack (e.g. "ZeroOne Code Club Activities") rather
+  // than the broad domain (e.g. "Technology & Emerging Tech") -- domain is
+  // still used for filtering and for each section's icon/color, but it's too
+  // coarse a label on its own since many differently-focused activity packs
+  // share the same domain.
   const grouped = useMemo(() =>
     shown.reduce((acc: any, curr: any) => {
-      const d = curr.domain || "Other";
-      if (!acc[d]) acc[d] = [];
-      acc[d].push(curr);
+      const c = curr.category || "General";
+      if (!acc[c]) acc[c] = [];
+      acc[c].push(curr);
       return acc;
     }, {}),
   [shown]);
@@ -482,13 +487,14 @@ export default function ActivityCataloguePage() {
           </div>
         ) : (
           <div className="space-y-8">
-            {Object.entries(grouped).map(([domain, items]: [string, any]) => {
-              const d = (DOMAINS as any)[domain];
-              const meta = DOMAIN_META[domain];
+            {Object.entries(grouped).map(([category, items]: [string, any]) => {
+              const groupDomain = items[0]?.domain;
+              const d = (DOMAINS as any)[groupDomain];
+              const meta = DOMAIN_META[groupDomain];
               const DomainIcon = meta?.Icon;
               const color = d?.color || BRAND;
               return (
-                <section key={domain}>
+                <section key={category}>
                   {/* Section header */}
                   <div className="flex items-center gap-3 mb-4">
                     {DomainIcon && (
@@ -499,7 +505,7 @@ export default function ActivityCataloguePage() {
                         <DomainIcon size={15} style={{ color }} />
                       </div>
                     )}
-                    <h2 className="text-sm font-bold text-gray-900">{meta?.name || domain}</h2>
+                    <h2 className="text-sm font-bold text-gray-900">{category}</h2>
                     <span
                       className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
                       style={{ backgroundColor: d?.bg || "#F3F4F6", color }}
