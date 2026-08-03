@@ -49,7 +49,7 @@ export default function Login() {
                 toast.error("Invalid Captcha");
                 return;
             }
-            if(!username || username.length>10) {
+            if(!username || username.length>11) {
 
                 toast.error("Enter Valid Username");
                 return;
@@ -169,7 +169,7 @@ export default function Login() {
                                 placeholder="Enter your username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                maxLength={10}
+                                maxLength={11}
                                 required
                             />
                         </div>
