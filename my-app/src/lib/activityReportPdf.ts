@@ -16,11 +16,6 @@ const LETTERHEAD_PATH = "/klef-letterhead.png";
 const LETTERHEAD_ASPECT = 1830 / 420;
 const SAC_LOGO_PATH = "/sac-logo.png";
 const SAC_LOGO_ASPECT = 1600 / 408;
-// A separately-trimmed copy of the shared /signature.png (whitespace cropped
-// to the actual scribble) so this module never touches or depends on the
-// exact framing of the original asset used by badge/certificate export.
-const SIGNATURE_PATH = "/signature-trimmed.png";
-const SIGNATURE_ASPECT = 2827 / 947;
 
 const DIRECTOR_NAME = "Er. P Sai Vijay Pisni";
 const DIRECTOR_TITLE = "Director-SAC";
@@ -33,7 +28,7 @@ const MARGIN = 42;
 const CONTENT_W = PAGE_W - MARGIN * 2;
 const BOTTOM_LIMIT = PAGE_H - 46;
 
-export interface GalleryItem { url: string; caption: string }
+export interface GalleryItem { url: string }
 
 export interface ActivityReportInput {
   clubName: string;
@@ -104,10 +99,9 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
 
-  const [letterhead, sacLogo, signature] = await Promise.all([
+  const [letterhead, sacLogo] = await Promise.all([
     loadImage(LETTERHEAD_PATH),
     loadImage(SAC_LOGO_PATH),
-    loadImage(SIGNATURE_PATH),
   ]);
 
   let pageCount = 0;
@@ -224,30 +218,32 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
     doc.setFontSize(12);
     doc.text(input.activityDate || "", MARGIN, y);
 
-    // Signature block near the bottom -- director (left) and faculty (right).
-    const blockY = PAGE_H - 170;
-    const sigW = 130;
-    const sigH = sigW / SIGNATURE_ASPECT;
-    if (signature) doc.addImage(signature.dataUrl, "JPEG", MARGIN, blockY, sigW, sigH);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(20, 20, 20);
-    doc.text(DIRECTOR_NAME, MARGIN, blockY + sigH + 16);
-    doc.setFont("helvetica", "normal");
-    doc.text(DIRECTOR_TITLE, MARGIN, blockY + sigH + 30);
-    doc.text(UNIVERSITY_NAME, MARGIN, blockY + sigH + 44);
+    // Signature block near the bottom -- left blank for both director and
+    // faculty (this copy gets physically signed), just a line and the
+    // name/title underneath.
+    const blockY = PAGE_H - 130;
+    const lineW = 200;
 
-    const rightX = PAGE_W - MARGIN - 200;
     doc.setDrawColor(150, 150, 150);
     doc.setLineWidth(0.75);
-    doc.line(rightX, blockY + sigH - 6, rightX + 200, blockY + sigH - 6);
+    doc.line(MARGIN, blockY, MARGIN + lineW, blockY);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);
     doc.setTextColor(20, 20, 20);
-    doc.text(input.facultyName || "Faculty Name", rightX, blockY + sigH + 16);
+    doc.text(DIRECTOR_NAME, MARGIN, blockY + 16);
     doc.setFont("helvetica", "normal");
-    doc.text(`Faculty Mentor - ${input.clubName || ""}`.trim(), rightX, blockY + sigH + 30);
-    doc.text(UNIVERSITY_NAME, rightX, blockY + sigH + 44);
+    doc.text(DIRECTOR_TITLE, MARGIN, blockY + 30);
+    doc.text(UNIVERSITY_NAME, MARGIN, blockY + 44);
+
+    const rightX = PAGE_W - MARGIN - lineW;
+    doc.line(rightX, blockY, rightX + lineW, blockY);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10.5);
+    doc.setTextColor(20, 20, 20);
+    doc.text(input.facultyName || "Faculty Name", rightX, blockY + 16);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Faculty Mentor - ${input.clubName || ""}`.trim(), rightX, blockY + 30);
+    doc.text(UNIVERSITY_NAME, rightX, blockY + 44);
   }
 
   // ---------- 2. Poster ----------
@@ -256,10 +252,9 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
   if (input.posterUrl) {
     const posterImg = await loadImage(input.posterUrl);
     if (posterImg) {
-      const maxW = 260;
       const maxH = BOTTOM_LIMIT - y - 10;
-      const { w, h } = fitBox(posterImg.ratio, maxW, maxH);
-      doc.addImage(posterImg.dataUrl, "JPEG", MARGIN, y, w, h);
+      const { w, h } = fitBox(posterImg.ratio, CONTENT_W, maxH);
+      doc.addImage(posterImg.dataUrl, "JPEG", MARGIN + (CONTENT_W - w) / 2, y, w, h);
     }
   }
 
@@ -333,9 +328,9 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
     const gap = 16;
     const cellW = (CONTENT_W - gap) / 2;
     const photoH = 175;
-    const captionH = 14;
     const footerH = 22;
-    const cellH = photoH + captionH + footerH + 10;
+    const rowGap = 14;
+    const cellH = photoH + footerH + rowGap;
 
     const loaded = await Promise.all(input.gallery.map((g) => loadImage(g.url)));
 
@@ -353,22 +348,17 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
         doc.addImage(img.dataUrl, "JPEG", cellX + (cellW - w) / 2, cellTop + (photoH - h) / 2, w, h);
       }
 
-      const caption = input.gallery[i].caption || `Photo No: ${i + 1}`;
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(80, 80, 80);
-      doc.text(caption, cellX + cellW / 2, cellTop + photoH + 12, { align: "center", maxWidth: cellW });
-
-      const footerY = cellTop + photoH + captionH + 8;
+      // Footer sits flush against the photo's bottom edge, no gap.
+      const footerY = cellTop + photoH;
       if (sacLogo) {
         const logoW = 60;
         const logoH = logoW / SAC_LOGO_ASPECT;
-        doc.addImage(sacLogo.dataUrl, "JPEG", cellX, footerY, logoW, logoH);
+        doc.addImage(sacLogo.dataUrl, "JPEG", cellX, footerY + 4, logoW, logoH);
       }
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       doc.setTextColor(20, 20, 20);
-      doc.text(input.clubName || "", cellX + cellW, footerY + 10, { align: "right" });
+      doc.text(input.clubName || "", cellX + cellW, footerY + footerH / 2 + 4, { align: "right" });
 
       if (col === 1 || i === input.gallery.length - 1) y = cellTop + cellH;
     }

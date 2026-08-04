@@ -10,9 +10,9 @@ import { generateActivityReportPdf } from "@/lib/activityReportPdf";
 
 const BRAND = "rgb(151,0,3)";
 const MAX_GALLERY = 4;
-const MAX_ATTENDANCE_SHEETS = 4;
+const MAX_ATTENDANCE_SHEETS = 6;
 
-type GalleryItem = { url: string; caption: string };
+type GalleryItem = { url: string };
 
 function currentAcademicYear() {
   const now = new Date();
@@ -78,6 +78,72 @@ function UploadSlot({
   );
 }
 
+/**
+ * Bullet-point editor: one line per bullet. Enter splits off a new bullet
+ * below the cursor (like a list editor, not a plain textarea); Backspace on
+ * an empty bullet removes it and moves focus to the previous one. The
+ * underlying value stays a single newline-joined string, matching the DB
+ * column and the PDF generator's existing bulletList() (splits on "\n"), so
+ * nothing downstream needs to change shape.
+ */
+function BulletListInput({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder?: string }) {
+  const items = value ? value.split("\n") : [""];
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const setItems = (next: string[]) => onChange(next.join("\n"));
+
+  return (
+    <div className="space-y-1">
+      {items.map((item, idx) => (
+        <div key={idx} className="flex items-center gap-2">
+          <span className="text-gray-400 text-sm select-none">•</span>
+          <input
+            ref={(el) => { inputRefs.current[idx] = el; }}
+            value={item}
+            placeholder={idx === 0 ? placeholder : ""}
+            onChange={(e) => {
+              const next = [...items];
+              next[idx] = e.target.value;
+              setItems(next);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const next = [...items];
+                next.splice(idx + 1, 0, "");
+                setItems(next);
+                requestAnimationFrame(() => inputRefs.current[idx + 1]?.focus());
+              } else if (e.key === "Backspace" && item === "" && items.length > 1) {
+                e.preventDefault();
+                const next = items.filter((_, i) => i !== idx);
+                setItems(next);
+                requestAnimationFrame(() => inputRefs.current[Math.max(0, idx - 1)]?.focus());
+              }
+            }}
+            className="flex-1 px-2 py-1.5 text-sm border-b border-gray-200 focus:outline-none focus:border-gray-400"
+          />
+          {items.length > 1 && (
+            <button
+              type="button"
+              onClick={() => setItems(items.filter((_, i) => i !== idx))}
+              className="text-gray-300 hover:text-red-500"
+            >
+              <FiX size={14} />
+            </button>
+          )}
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => { setItems([...items, ""]); requestAnimationFrame(() => inputRefs.current[items.length]?.focus()); }}
+        className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 mt-1"
+      >
+        <FiPlus size={12} /> Add bullet
+      </button>
+    </div>
+  );
+}
+
 export default function ActivityReportFormPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
   const router = useRouter();
@@ -91,6 +157,10 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
   const [club, setClub] = useState<{ id: string; name: string } | null>(null);
   const [studentLead, setStudentLead] = useState<{ name: string; id: string } | null>(null);
   const [reportStatus, setReportStatus] = useState<string | null>(null);
+  // Attendance sheets show one upload slot at a time -- "Add another" reveals
+  // the next one, rather than always showing an empty slot alongside every
+  // filled one.
+  const [showAttendanceSlot, setShowAttendanceSlot] = useState(true);
 
   const [form, setForm] = useState({
     facultyName: "", facultyId: "",
@@ -135,6 +205,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
             gallery: d.report.gallery || [],
             attendanceSheets: d.report.attendance_sheets || [],
           });
+          if ((d.report.attendance_sheets || []).length > 0) setShowAttendanceSlot(false);
         } else {
           setForm((prev) => ({
             ...prev,
@@ -343,7 +414,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
           />
           <UploadSlot
             label="Permission Letter"
-            hint="Scanned copy of the signed permission letter."
+            hint="Scanned copy of the signed permission letter. Portrait, A4-like ratio (roughly 1:1.4)."
             url={form.permissionLetterUrl}
             uploading={uploadingKey === "permission"}
             aspect="w-64 h-auto"
@@ -369,10 +440,12 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
 
         <div>
           <label className="block text-xs font-semibold text-gray-700 mb-1">2. Objectives</label>
-          <p className="text-[11px] text-gray-400 mb-1.5">One per line — each becomes a bullet point.</p>
-          <textarea rows={4} value={form.objectives} onChange={(e) => setForm({ ...form, objectives: e.target.value })}
-            placeholder={"Enhance practical knowledge.\nPromote student participation.\nDevelop teamwork and leadership."}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:border-gray-400" />
+          <p className="text-[11px] text-gray-400 mb-1.5">Press Enter for a new bullet point.</p>
+          <BulletListInput
+            value={form.objectives}
+            onChange={(v) => setForm({ ...form, objectives: v })}
+            placeholder="Enhance practical knowledge."
+          />
         </div>
 
         <div>
@@ -384,18 +457,22 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
 
         <div>
           <label className="block text-xs font-semibold text-gray-700 mb-1">4. Key Highlights</label>
-          <p className="text-[11px] text-gray-400 mb-1.5">One per line — each becomes a bullet point.</p>
-          <textarea rows={4} value={form.keyHighlights} onChange={(e) => setForm({ ...form, keyHighlights: e.target.value })}
-            placeholder={"Active participation from students.\nExpert guidance from the resource person.\nCertificates distributed."}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:border-gray-400" />
+          <p className="text-[11px] text-gray-400 mb-1.5">Press Enter for a new bullet point.</p>
+          <BulletListInput
+            value={form.keyHighlights}
+            onChange={(v) => setForm({ ...form, keyHighlights: v })}
+            placeholder="Active participation from students."
+          />
         </div>
 
         <div>
           <label className="block text-xs font-semibold text-gray-700 mb-1">5. Learning Outcomes</label>
-          <p className="text-[11px] text-gray-400 mb-1.5">One per line — realistic outcomes, not exaggerated impact.</p>
-          <textarea rows={3} value={form.learningOutcomes} onChange={(e) => setForm({ ...form, learningOutcomes: e.target.value })}
-            placeholder={"Improved understanding of the subject.\nEnhanced communication skills.\nPractical exposure."}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:border-gray-400" />
+          <p className="text-[11px] text-gray-400 mb-1.5">Press Enter for a new bullet point. Realistic outcomes, not exaggerated impact.</p>
+          <BulletListInput
+            value={form.learningOutcomes}
+            onChange={(v) => setForm({ ...form, learningOutcomes: v })}
+            placeholder="Improved understanding of the subject."
+          />
         </div>
 
         <div>
@@ -411,38 +488,27 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
         <p className="text-[11px] text-gray-400">Up to {MAX_GALLERY} photos, geo-tagged if possible. Each photo will show the SAC logo and your club name as a footer.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {form.gallery.map((item, idx) => (
-            <div key={idx} className="space-y-2">
-              <div className="relative inline-block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.url} alt={`Gallery ${idx + 1}`} className="w-64 h-48 object-cover rounded-lg border border-gray-200" />
-                <button
-                  type="button"
-                  onClick={() => setForm((p) => ({ ...p, gallery: p.gallery.filter((_, i) => i !== idx) }))}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-red-600"
-                >
-                  <FiX size={13} />
-                </button>
-              </div>
-              <input
-                value={item.caption}
-                onChange={(e) => setForm((p) => {
-                  const gallery = [...p.gallery];
-                  gallery[idx] = { ...gallery[idx], caption: e.target.value };
-                  return { ...p, gallery };
-                })}
-                placeholder="Photo description"
-                className="w-64 px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:border-gray-400"
-              />
+            <div key={idx} className="relative inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={item.url} alt={`Gallery ${idx + 1}`} className="w-64 h-48 object-cover rounded-lg border border-gray-200" />
+              <button
+                type="button"
+                onClick={() => setForm((p) => ({ ...p, gallery: p.gallery.filter((_, i) => i !== idx) }))}
+                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-red-600"
+              >
+                <FiX size={13} />
+              </button>
             </div>
           ))}
           {form.gallery.length < MAX_GALLERY && (
             <UploadSlot
               label={`Photo ${form.gallery.length + 1}`}
+              hint="Landscape works best, roughly 4:3."
               url=""
               uploading={uploadingKey === "gallery"}
               onUpload={async (file) => {
                 const url = await uploadFile(file, "gallery");
-                if (url) setForm((p) => ({ ...p, gallery: [...p.gallery, { url, caption: "" }] }));
+                if (url) setForm((p) => ({ ...p, gallery: [...p.gallery, { url }] }));
               }}
             />
           )}
@@ -452,7 +518,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
       {/* Attendance sheets */}
       <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h2 className="text-sm font-bold text-gray-900">List of Participants</h2>
-        <p className="text-[11px] text-gray-400">Upload scanned copies of the physical attendance sheet(s).</p>
+        <p className="text-[11px] text-gray-400">Upload scanned copies of the physical attendance sheet(s), up to {MAX_ATTENDANCE_SHEETS}.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {form.attendanceSheets.map((url, idx) => (
             <div key={idx} className="relative inline-block">
@@ -467,18 +533,31 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
               </button>
             </div>
           ))}
-          {form.attendanceSheets.length < MAX_ATTENDANCE_SHEETS && (
+          {showAttendanceSlot && form.attendanceSheets.length < MAX_ATTENDANCE_SHEETS && (
             <UploadSlot
               label={`Attendance Sheet ${form.attendanceSheets.length + 1}`}
+              hint="Portrait, A4-like ratio (roughly 1:1.4)."
               url=""
               uploading={uploadingKey === "attendance"}
               onUpload={async (file) => {
                 const url = await uploadFile(file, "attendance");
-                if (url) setForm((p) => ({ ...p, attendanceSheets: [...p.attendanceSheets, url] }));
+                if (url) {
+                  setForm((p) => ({ ...p, attendanceSheets: [...p.attendanceSheets, url] }));
+                  setShowAttendanceSlot(false);
+                }
               }}
             />
           )}
         </div>
+        {!showAttendanceSlot && form.attendanceSheets.length < MAX_ATTENDANCE_SHEETS && (
+          <button
+            type="button"
+            onClick={() => setShowAttendanceSlot(true)}
+            className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900"
+          >
+            <FiPlus size={13} /> Add another sheet
+          </button>
+        )}
       </section>
 
       {/* Actions */}
