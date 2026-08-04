@@ -99,6 +99,10 @@ export default function ControlsPage() {
                     window.location.href = '/dashboard/lead';
                 } else if (data.user.role === 'faculty') {
                     window.location.href = '/dashboard/faculty';
+                } else if (data.user.role === 'council') {
+                    window.location.href = '/dashboard/council';
+                } else if (data.user.role === 'admin') {
+                    window.location.href = '/dashboard/admin';
                 }
             } else {
                 const error = await response.json();
@@ -231,6 +235,7 @@ export default function ControlsPage() {
                                 placeholder="Enter username to login as"
                                 value={proxyUsername}
                                 onChange={(e) => setProxyUsername(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleProxyLogin(); }}
                                 className="mt-1"
                             />
                         </div>
