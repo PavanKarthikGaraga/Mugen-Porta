@@ -16,6 +16,7 @@ import ChangePassword from "@/app/components/ChangePassword";
 import Breadcrumbs from "@/app/components/dashboard/Breadcrumbs";
 import CommandPalette from "@/app/components/dashboard/CommandPalette";
 import MusicPreferenceForm from "@/app/components/MusicPreferenceForm";
+import { linkifyText } from "@/lib/linkify";
 
 // ─── Navigation definition ────────────────────────────────────────────────────
 const navigation = [
@@ -319,7 +320,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
                                 <p className="text-xs font-semibold text-gray-900">{n.title}</p>
                                 {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-red-600" />}
                               </div>
-                              <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
+                              <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{linkifyText(n.message)}</p>
                               <p className="text-xs text-gray-400 mt-0.5">
                                 {new Date(n.time || n.created_at).toLocaleString('en-US', {
                                   month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'

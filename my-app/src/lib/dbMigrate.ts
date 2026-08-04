@@ -53,6 +53,34 @@ export async function ensureActivitySchema() {
     _done = true;
 }
 
+let _notificationsDone = false;
+
+/**
+ * The `notifications` table was never created by any migration -- every
+ * route that reads/writes it (admin send, student list, mark-as-read)
+ * assumed it already existed. Sending a notification threw ER_NO_SUCH_TABLE
+ * (500); the student GET route happened to catch that specific error and
+ * fell back to an empty list, which is what made it look like notifications
+ * were silently vanishing/never marking as read, rather than surfacing the
+ * real "table doesn't exist" cause.
+ */
+export async function ensureNotificationsTable() {
+    if (_notificationsDone) return;
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+            id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+            username   VARCHAR(10) NOT NULL,
+            type       VARCHAR(20) NOT NULL DEFAULT 'system',
+            title      VARCHAR(200) NOT NULL,
+            message    TEXT NOT NULL,
+            is_read    TINYINT(1) NOT NULL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_username (username)
+        )
+    `);
+    _notificationsDone = true;
+}
+
 /**
  * The set of columns that actually exist on a table, read from
  * INFORMATION_SCHEMA.

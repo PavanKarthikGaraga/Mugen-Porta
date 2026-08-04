@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { ensureNotificationsTable } from '@/lib/dbMigrate';
 
 async function getStudentUser() {
     const cookieStore = await cookies();
@@ -17,6 +18,8 @@ export async function GET() {
     try {
         const user = await getStudentUser();
         if (!user || !user.username) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+
+        await ensureNotificationsTable();
 
         const [rows] = await pool.execute(`
             SELECT id, type, title, message, is_read as \`read\`, created_at as time

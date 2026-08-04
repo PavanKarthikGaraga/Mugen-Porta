@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FiBell, FiCheck, FiFilter, FiClipboard, FiAward, FiStar, FiInfo } from "react-icons/fi";
+import { linkifyText } from "@/lib/linkify";
 
 const NOTIF_ICON: Record<string, any> = { activity: FiClipboard, badge: FiAward, sdc: FiStar, reminder: FiBell, system: FiInfo };
 
@@ -82,7 +83,7 @@ export default function NotificationsPage() {
                       <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{n.title}</p>
                       <p className="text-xs text-gray-400 dark:text-zinc-500 whitespace-nowrap">{n.time}</p>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-zinc-300 mt-1 leading-relaxed">{n.message}</p>
+                    <p className="text-sm text-gray-600 dark:text-zinc-300 mt-1 leading-relaxed">{linkifyText(n.message)}</p>
                   </div>
                   {!n.read && (
                     <button 

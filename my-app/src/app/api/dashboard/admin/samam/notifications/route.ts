@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import { safeMessage } from '@/lib/apiSecurity';
+import { ensureNotificationsTable } from '@/lib/dbMigrate';
 
 async function getAdmin() {
   const cookieStore = await cookies();
@@ -23,6 +24,8 @@ export async function POST(req: Request) {
     if (!title || !message) {
       return NextResponse.json({ message: "Title and message are required" }, { status: 400 });
     }
+
+    await ensureNotificationsTable();
 
     // Determine target users
     let usersToNotify: any[] = [];
