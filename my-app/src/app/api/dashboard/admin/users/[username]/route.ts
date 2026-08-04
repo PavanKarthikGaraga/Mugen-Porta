@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import pool from '@/lib/db';
 import { verifyAdminToken } from '../../auth-helper';
+import { ensureLeadChildClubsColumn } from '@/lib/leadScope';
 
 const VALID_DOMAINS = ['TEC', 'LCH', 'IIE', 'HWB', 'ESO'];
 
@@ -26,7 +27,7 @@ export async function POST(request, { params }) {
     try {
         const { username } = params;
         const body = await request.json();
-        const { name, email, phoneNumber, year, branch, clubId, assignedClubs, assignedDomains, password } = body;
+        const { name, email, phoneNumber, year, branch, clubId, assignedClubs, assignedDomains, childClubIds, password } = body;
 
         if (!username) {
             return NextResponse.json(
@@ -92,9 +93,47 @@ export async function POST(request, { params }) {
 
             // Update role-specific table
             if (role === 'lead') {
+                await ensureLeadChildClubsColumn();
+
+                // Child clubs are TEC-domain-only: a lead can only be mapped
+                // to additional clubs beyond their parent club when that
+                // parent club is itself in TEC, and every proposed child
+                // club must also be in TEC. Validated here rather than
+                // trusted from the request body, since this determines what
+                // students/data the lead can see and manage.
+                let childClubIdsJson: string | null = null;
+                if (Array.isArray(childClubIds) && childClubIds.length > 0) {
+                    const [parentRows]: any = await connection.execute(
+                        'SELECT domain FROM clubs WHERE id = ?',
+                        [clubId]
+                    );
+                    if (parentRows[0]?.domain !== 'TEC') {
+                        await connection.rollback();
+                        return NextResponse.json({ error: "Child clubs can only be assigned when the lead's parent club is in the TEC domain" }, { status: 400 });
+                    }
+
+                    const uniqueChildIds = Array.from(new Set(
+                        (childClubIds as any[]).filter((id) => typeof id === 'string' && id && id !== clubId)
+                    ));
+                    if (uniqueChildIds.length > 0) {
+                        const placeholders = uniqueChildIds.map(() => '?').join(',');
+                        const [childRows]: any = await connection.execute(
+                            `SELECT id FROM clubs WHERE id IN (${placeholders}) AND domain = 'TEC'`,
+                            uniqueChildIds
+                        );
+                        const validIds = new Set(childRows.map((r: any) => r.id));
+                        const invalid = uniqueChildIds.filter((id) => !validIds.has(id));
+                        if (invalid.length > 0) {
+                            await connection.rollback();
+                            return NextResponse.json({ error: `These clubs are not in the TEC domain: ${invalid.join(', ')}` }, { status: 400 });
+                        }
+                        childClubIdsJson = JSON.stringify(uniqueChildIds);
+                    }
+                }
+
                 await connection.execute(
-                    'UPDATE leads SET name = ?, email = ?, phoneNumber = ?, year = ?, branch = ?, clubId = ? WHERE username = ?',
-                    [name, email, phoneNumber, year, branch, clubId, username]
+                    'UPDATE leads SET name = ?, email = ?, phoneNumber = ?, year = ?, branch = ?, clubId = ?, childClubIds = ? WHERE username = ?',
+                    [name, email, phoneNumber, year, branch, clubId, childClubIdsJson, username]
                 );
             } else if (role === 'faculty') {
                 // faculty has no year/branch columns (that's students/leads only)

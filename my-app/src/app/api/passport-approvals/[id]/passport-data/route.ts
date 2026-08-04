@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 async function getUser() {
     const cookieStore = await cookies();
@@ -50,8 +51,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
                 return NextResponse.json({ error: 'Access denied' }, { status: 403 });
             }
         } else if (role === 'lead') {
-            const [leadRows]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [reviewerUsername]);
-            if (leadRows.length === 0 || leadRows[0].clubId !== req.clubId) {
+            const clubIds = await getLeadClubIds(reviewerUsername);
+            if (!clubIds.includes(req.clubId)) {
                 return NextResponse.json({ error: 'Access denied' }, { status: 403 });
             }
         }

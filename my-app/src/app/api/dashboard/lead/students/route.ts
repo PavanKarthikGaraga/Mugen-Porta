@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { clampInt, safeMessage } from '@/lib/apiSecurity';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 export async function GET(request) {
     try {
@@ -24,20 +25,15 @@ export async function GET(request) {
             );
         }
 
-        // Get lead's club ID
-        const [leadResult] = await pool.execute(
-            'SELECT clubId FROM leads WHERE username = ?',
-            [payload.username]
-        );
+        // Lead's parent club plus any TEC child clubs they've been mapped to.
+        const clubIds = await getLeadClubIds(payload.username as string);
 
-        if (leadResult.length === 0 || !leadResult[0].clubId) {
+        if (clubIds.length === 0) {
             return NextResponse.json(
                 { error: 'No club assigned to this lead' },
                 { status: 403 }
             );
         }
-
-        const clubId = leadResult[0].clubId;
 
         const { searchParams } = new URL(request.url);
         const exportAll = searchParams.get('all') === 'true';
@@ -50,8 +46,8 @@ export async function GET(request) {
         const offset = exportAll ? 0 : (page - 1) * limit;
 
         try {
-            let whereConditions = ['s.clubId = ?'];
-            let queryParams = [clubId];
+            let whereConditions = [`s.clubId IN (${clubIds.map(() => '?').join(',')})`];
+            let queryParams: any[] = [...clubIds];
 
             // Build search conditions
             if (search && search.length > 0) {

@@ -54,6 +54,7 @@ export default function UsersPage() {
         clubId: '',
         assignedClubs: [],
         assignedDomains: [],
+        childClubIds: [],
         password: '',
         // Student promotion fields
         studentDetails: null,
@@ -61,6 +62,7 @@ export default function UsersPage() {
     });
     const [newClubAssignment, setNewClubAssignment] = useState('');
     const [newDomainAssignment, setNewDomainAssignment] = useState('');
+    const [newChildClubAssignment, setNewChildClubAssignment] = useState('');
     const [defaultPassword, setDefaultPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showCouncilPw, setShowCouncilPw] = useState(false);
@@ -154,12 +156,16 @@ export default function UsersPage() {
                 formData.role === 'council' && newDomainAssignment && !formData.assignedDomains.includes(newDomainAssignment)
                     ? [...formData.assignedDomains, newDomainAssignment]
                     : formData.assignedDomains;
+            const effectiveChildClubIds =
+                formData.role === 'lead' && newChildClubAssignment && !formData.childClubIds.includes(newChildClubAssignment)
+                    ? [...formData.childClubIds, newChildClubAssignment]
+                    : formData.childClubIds;
 
             if (editingUser) {
                 // Update existing user
                 url = `/api/dashboard/admin/users/${editingUser.username}`;
                 method = 'POST';
-                body = { ...formData, assignedClubs: effectiveAssignedClubs, assignedDomains: effectiveAssignedDomains };
+                body = { ...formData, assignedClubs: effectiveAssignedClubs, assignedDomains: effectiveAssignedDomains, childClubIds: effectiveChildClubIds };
             } else if (formData.isPromotingStudent) {
                 // Promote existing student to lead
                 url = '/api/dashboard/admin/users/promote-student';
@@ -243,6 +249,7 @@ export default function UsersPage() {
             clubId: '',
             assignedClubs: [],
             assignedDomains: [],
+            childClubIds: [],
             password: '',
             studentDetails: null,
             isPromotingStudent: false
@@ -251,6 +258,7 @@ export default function UsersPage() {
         setShowModal(false);
         setNewClubAssignment('');
         setNewDomainAssignment('');
+        setNewChildClubAssignment('');
         setDefaultPassword('');
         setShowPassword(false);
         setShowCouncilPw(false);
@@ -274,6 +282,7 @@ export default function UsersPage() {
             clubId: user.clubId || '',
             assignedClubs: parseArrayField(user.assignedClubs),
             assignedDomains: domains.length > 0 ? domains : (user.assignedDomain ? [user.assignedDomain] : []),
+            childClubIds: parseArrayField(user.childClubIds),
             // Prefills with the password set when this account was created
             // (or last changed here) — see users.plainPassword. Admin can
             // leave it as-is or type a new one to change it.
@@ -298,6 +307,23 @@ export default function UsersPage() {
         setFormData({
             ...formData,
             assignedDomains: formData.assignedDomains.filter(d => d !== domainToRemove)
+        });
+    };
+
+    const addChildClubAssignment = () => {
+        if (newChildClubAssignment && !formData.childClubIds.includes(newChildClubAssignment)) {
+            setFormData({
+                ...formData,
+                childClubIds: [...formData.childClubIds, newChildClubAssignment]
+            });
+            setNewChildClubAssignment('');
+        }
+    };
+
+    const removeChildClubAssignment = (clubIdToRemove) => {
+        setFormData({
+            ...formData,
+            childClubIds: formData.childClubIds.filter(id => id !== clubIdToRemove)
         });
     };
 
@@ -815,47 +841,99 @@ export default function UsersPage() {
                                 )}
 
                                 {formData.role === 'faculty' && (
-                                    <>
-                                        <div>
-                                            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                                                Phone Number *
-                                            </label>
-                                            <input
-                                                id="phoneNumber"
-                                                type="tel"
-                                                value={formData.phoneNumber}
-                                                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                                required
-                                                maxLength={15}
-                                            />
-                                        </div>
+                                    <div>
+                                        <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Phone Number *
+                                        </label>
+                                        <input
+                                            id="phoneNumber"
+                                            type="tel"
+                                            value={formData.phoneNumber}
+                                            onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                            required
+                                            maxLength={15}
+                                        />
+                                    </div>
+                                )}
 
-
-                                        {formData.role === 'lead' && (
-                                            <div>
-                                                <label htmlFor="clubId" className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Assigned Club *
-                                                </label>
-                                                <select
-                                                    id="clubId"
-                                                    value={formData.clubId}
-                                                    onChange={(e) => setFormData({ ...formData, clubId: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                                                    required
-                                                >
-                                                    <option value="">Select Club</option>
-                                                    {clubs.map((club) => (
-                                                        <option key={club.id} value={club.id}>
-                                                            {club.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        )}
-                                    </>
+                                {formData.role === 'lead' && (
+                                    <div>
+                                        <label htmlFor="clubId" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Assigned Club (parent club) *
+                                        </label>
+                                        <select
+                                            id="clubId"
+                                            value={formData.clubId}
+                                            onChange={(e) => setFormData({ ...formData, clubId: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                            required
+                                        >
+                                            <option value="">Select Club</option>
+                                            {clubs.map((club) => (
+                                                <option key={club.id} value={club.id}>
+                                                    {club.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 )}
                             </div>
+
+                            {editingUser && formData.role === 'lead' && clubs.find((c) => c.id === formData.clubId)?.domain === 'TEC' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Child Clubs (TEC domain only)
+                                    </label>
+                                    <p className="text-xs text-gray-500 mb-2">
+                                        Map this lead to additional TEC clubs. They&apos;ll manage students and activities across their parent club plus every child club selected here.
+                                    </p>
+                                    <div className="flex space-x-2 mb-2">
+                                        <select
+                                            value={newChildClubAssignment}
+                                            onChange={(e) => setNewChildClubAssignment(e.target.value)}
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                        >
+                                            <option value="">Select Child Club to Add</option>
+                                            {clubs
+                                                .filter((c) => c.domain === 'TEC' && c.id !== formData.clubId && !formData.childClubIds.includes(c.id))
+                                                .map((club) => (
+                                                    <option key={club.id} value={club.id}>{club.name}</option>
+                                                ))}
+                                        </select>
+                                        <button
+                                            type="button"
+                                            onClick={addChildClubAssignment}
+                                            className="px-3 py-2 bg-red-800 text-white rounded-md hover:bg-red-900 transition-colors"
+                                        >
+                                            <FiPlus className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {formData.childClubIds.length === 0 && (
+                                            <span className="text-xs text-gray-400">No child clubs mapped yet</span>
+                                        )}
+                                        {formData.childClubIds.map((id) => {
+                                            const club = clubs.find((c) => c.id === id);
+                                            return (
+                                                <span
+                                                    key={id}
+                                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 border border-blue-300"
+                                                >
+                                                    {club?.name || id}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeChildClubAssignment(id)}
+                                                        className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                                                    >
+                                                        <FiX className="h-3 w-3" />
+                                                    </button>
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
                             {formData.role === 'faculty' && (
                                 <div>

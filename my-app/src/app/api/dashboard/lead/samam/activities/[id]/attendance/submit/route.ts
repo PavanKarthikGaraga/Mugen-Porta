@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 const CREATE_TABLE = `
   CREATE TABLE IF NOT EXISTS attendance_submissions (
@@ -34,15 +35,29 @@ async function checkLead() {
   const decoded = await verifyToken(token);
   if (!decoded || decoded.role !== 'lead') return null;
   try {
-    const [rows]: any = await pool.execute(
-      'SELECT l.clubId, c.name as clubName FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
-      [decoded.username as string]
-    );
-    if (rows.length === 0) return null;
-    return { decoded, clubId: rows[0].clubId, clubName: rows[0].clubName || '' };
+    const clubIds = await getLeadClubIds(decoded.username as string);
+    if (clubIds.length === 0) return null;
+    return { decoded, clubIds };
   } catch {
     return null;
   }
+}
+
+// One attendance_submissions row per activity, attributed to whichever of
+// the lead's clubs actually owns it (via club_activity_mappings) -- not
+// blindly the lead's parent club, since a multi-club lead may be submitting
+// for an activity that belongs to a TEC child club. Falls back to the
+// parent club (clubIds[0] -- getLeadClubIds() always puts it first) when no
+// explicit mapping exists, matching the legacy assigned_categories path.
+async function resolveSubmissionClub(clubIds: string[], activityCode: string) {
+  const placeholders = clubIds.map(() => '?').join(',');
+  const [mapRows]: any = await pool.execute(
+    `SELECT club_id FROM club_activity_mappings WHERE activity_code = ? AND club_id IN (${placeholders}) LIMIT 1`,
+    [activityCode, ...clubIds]
+  );
+  const clubId = mapRows[0]?.club_id || clubIds[0];
+  const [clubRows]: any = await pool.execute('SELECT name FROM clubs WHERE id = ?', [clubId]);
+  return { clubId, clubName: clubRows[0]?.name || '' };
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -51,9 +66,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const lead = await checkLead();
     if (!lead) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { id } = await params;
+    const placeholders = lead.clubIds.map(() => '?').join(',');
     const [rows]: any = await pool.execute(
-      'SELECT * FROM attendance_submissions WHERE activity_code = ? AND club_id = ?',
-      [id, lead.clubId]
+      `SELECT * FROM attendance_submissions WHERE activity_code = ? AND club_id IN (${placeholders})`,
+      [id, ...lead.clubIds]
     );
     return NextResponse.json({ submission: rows[0] ?? null });
   } catch (error: any) {
@@ -83,6 +99,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       [id]
     );
     const actTitle = actInfo[0]?.title ?? id;
+    const { clubId, clubName } = await resolveSubmissionClub(lead.clubIds, id);
 
     await pool.execute(`
       INSERT INTO attendance_submissions (activity_code, club_id, club_name, activity_title, lead_username, status)
@@ -94,7 +111,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         verified_by = NULL,
         verified_at = NULL,
         scanned_copy_url = NULL
-    `, [id, lead.clubId, lead.clubName, actTitle, lead.decoded.username]);
+    `, [id, clubId, clubName, actTitle, lead.decoded.username]);
 
     return NextResponse.json({ success: true, message: 'Attendance submitted for faculty verification' });
   } catch (error: any) {

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 import { getCouncilClubIds } from '@/lib/councilScope';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 async function getUser() {
   const cookieStore = await cookies();
@@ -29,12 +30,18 @@ export async function GET(request: Request) {
     const username = user.username as string;
 
     if (role === 'lead') {
-      // Lead: only see their own club
-      const [leadRows]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [username]);
-      if (leadRows.length === 0) return NextResponse.json({ records: [] });
-      const clubId = leadRows[0].clubId;
-      whereClause = 'WHERE ats.club_id = ?';
-      queryParams = [clubId];
+      // Lead: their parent club plus any TEC child clubs they're mapped to
+      const clubs = await getLeadClubIds(username);
+      if (clubs.length === 0) return NextResponse.json({ records: [] });
+
+      if (clubFilter && clubs.includes(clubFilter)) {
+        whereClause = 'WHERE ats.club_id = ?';
+        queryParams = [clubFilter];
+      } else {
+        const ph = clubs.map(() => '?').join(',');
+        whereClause = `WHERE ats.club_id IN (${ph})`;
+        queryParams = clubs;
+      }
     } else if (role === 'faculty') {
       const [facRows]: any = await pool.execute('SELECT assignedClubs FROM faculty WHERE username = ?', [username]);
       if (facRows.length === 0) return NextResponse.json({ records: [] });

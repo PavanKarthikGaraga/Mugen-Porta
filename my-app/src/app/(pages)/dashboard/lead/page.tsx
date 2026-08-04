@@ -83,6 +83,7 @@ export default function LeadOverviewPage() {
     recentRegistrations: 0,
     yearWiseCount: {} as Record<string, number>,
     residenceWiseCount: { Hostel: 0, "Day Scholar": 0 } as Record<string, number>,
+    clubWiseCount: [] as { clubId: string; clubName: string; count: number }[],
   });
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState<"Hostel" | "Day Scholar" | null>(null);
@@ -242,6 +243,30 @@ export default function LeadOverviewPage() {
           )}
         </DashboardCard>
       </div>
+
+      {/* Club-wise breakdown — only meaningful for a lead mapped to more than
+          one club (parent + TEC child clubs); a single-club lead already
+          sees this same total in the stat tiles above. */}
+      {!loading && stats.clubWiseCount.length > 1 && (
+        <DashboardCard
+          title="Club-wise Breakdown"
+          subtitle="Members across your parent and child clubs"
+        >
+          <div className="space-y-3">
+            {stats.clubWiseCount.map((club, i) => (
+              <ProgressCard
+                key={club.clubId}
+                label={club.clubName}
+                value={club.count}
+                max={Math.max(...stats.clubWiseCount.map((c) => c.count), 1)}
+                showPercentage={false}
+                suffix=" students"
+                color={yearColors[i % yearColors.length]}
+              />
+            ))}
+          </div>
+        </DashboardCard>
+      )}
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

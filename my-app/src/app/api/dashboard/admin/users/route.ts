@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { verifyAdminToken } from '../auth-helper';
 import bcrypt from 'bcrypt';
+import { ensureLeadChildClubsColumn } from '@/lib/leadScope';
 
 async function ensureCouncilTable() {
     try {
@@ -63,6 +64,7 @@ export async function GET(request) {
 
     try {
         await ensureCouncilTable();
+        await ensureLeadChildClubsColumn();
 
         let query, params;
 
@@ -72,7 +74,7 @@ export async function GET(request) {
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
                        u.plainPassword,
                        COALESCE(s.phoneNumber, f.phoneNumber) as phoneNumber,
-                       s.year, s.branch, l.clubId, c.name as clubName,
+                       s.year, s.branch, l.clubId, l.childClubIds, c.name as clubName,
                        f.assignedClubs,
                        co.assignedDomain, co.assignedDomains
                 FROM users u
@@ -91,7 +93,7 @@ export async function GET(request) {
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
                        u.plainPassword,
                        COALESCE(s.phoneNumber, f.phoneNumber) as phoneNumber,
-                       s.year, s.branch, l.clubId, c.name as clubName,
+                       s.year, s.branch, l.clubId, l.childClubIds, c.name as clubName,
                        f.assignedClubs,
                        co.assignedDomain, co.assignedDomains
                 FROM users u

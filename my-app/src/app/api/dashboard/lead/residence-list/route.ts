@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 export async function GET(request: Request) {
     try {
@@ -21,22 +22,18 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'type must be "Hostel" or "Day Scholar"' }, { status: 400 });
         }
 
-        const [leadRows]: any = await pool.execute(
-            'SELECT clubId FROM leads WHERE username = ?',
-            [payload.username as string]
-        );
-        if (leadRows.length === 0 || !leadRows[0].clubId) {
+        const clubIds = await getLeadClubIds(payload.username as string);
+        if (clubIds.length === 0) {
             return NextResponse.json({ error: 'No club assigned' }, { status: 403 });
         }
-        const clubId = leadRows[0].clubId;
 
         const [students]: any = await pool.execute(
             `SELECT s.username, s.name, s.year, s.branch, s.residenceType, s.hostelName, s.busRoute, c.name AS clubName
              FROM students s
              LEFT JOIN clubs c ON s.clubId = c.id
-             WHERE s.clubId = ? AND s.residenceType = ?
+             WHERE s.clubId IN (${clubIds.map(() => '?').join(',')}) AND s.residenceType = ?
              ORDER BY s.name ASC`,
-            [clubId, type]
+            [...clubIds, type]
         );
 
         return NextResponse.json({ students });

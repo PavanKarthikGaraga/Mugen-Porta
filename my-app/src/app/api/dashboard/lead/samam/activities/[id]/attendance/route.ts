@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 async function checkLead() {
     const cookieStore = await cookies();
@@ -34,7 +35,8 @@ async function checkLead() {
         } catch(e) {}
     }
     
-    return { decoded, clubId: leadResult[0].clubId, assigned_categories };
+    const clubIds = await getLeadClubIds(decoded.username as string);
+    return { decoded, clubIds, assigned_categories };
 }
 
 /**
@@ -55,10 +57,11 @@ async function resolveAccessibleActivity(lead: any, code: string) {
     if ((actRows as any[]).length === 0) return null;
     const activity = (actRows as any[])[0];
 
-    if (lead.clubId) {
+    if (lead.clubIds?.length > 0) {
+        const placeholders = lead.clubIds.map(() => '?').join(',');
         const [mapRows]: any = await pool.execute(
-            'SELECT 1 FROM club_activity_mappings WHERE club_id = ? AND activity_code = ?',
-            [lead.clubId, code]
+            `SELECT 1 FROM club_activity_mappings WHERE club_id IN (${placeholders}) AND activity_code = ?`,
+            [...lead.clubIds, code]
         );
         if ((mapRows as any[]).length > 0) return activity;
     }

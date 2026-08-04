@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyToken } from "@/lib/jwt";
 import { cookies } from 'next/headers';
 import pool from '@/lib/db';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 export async function POST(request) {
     try {
@@ -31,20 +32,15 @@ export async function POST(request) {
             );
         }
 
-        // Check if lead has access to students in their club
-        const [leadResult] = await pool.execute(
-            'SELECT clubId FROM leads WHERE username = ?',
-            [payload.username]
-        );
+        // Check if lead has access to students in their club(s)
+        const leadClubIds = await getLeadClubIds(payload.username as string);
 
-        if (leadResult.length === 0 || !leadResult[0].clubId) {
+        if (leadClubIds.length === 0) {
             return NextResponse.json(
                 { error: 'No club assigned to this lead' },
                 { status: 403 }
             );
         }
-
-        const leadClubId = leadResult[0].clubId;
 
         const { studentUsername, day, action, reason } = await request.json();
 
@@ -90,7 +86,7 @@ export async function POST(request) {
             );
         }
 
-        if (studentResult[0].clubId !== leadClubId) {
+        if (!leadClubIds.includes(studentResult[0].clubId)) {
             return NextResponse.json(
                 { error: 'Access denied. Student not in your club.' },
                 { status: 403 }

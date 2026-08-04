@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 async function getLead() {
   const cookieStore = await cookies();
@@ -10,9 +11,9 @@ async function getLead() {
   if (!token) return null;
   const decoded = await verifyToken(token);
   if (!decoded || decoded.role !== 'lead') return null;
-  const [rows]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [decoded.username as string]);
-  if (rows.length === 0 || !rows[0].clubId) return null;
-  return { decoded, clubId: rows[0].clubId as string };
+  const clubIds = await getLeadClubIds(decoded.username as string);
+  if (clubIds.length === 0) return null;
+  return { decoded, clubIds };
 }
 
 // Read-only detail for a lead's own submission. There is no POST here — a
@@ -31,7 +32,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sub
     if (subRows.length === 0) return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
 
     const sub = subRows[0];
-    if (sub.club_id !== lead.clubId) {
+    if (!lead.clubIds.includes(sub.club_id)) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 

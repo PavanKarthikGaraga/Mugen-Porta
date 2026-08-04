@@ -2,6 +2,7 @@ import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { getCouncilClubIds } from '@/lib/councilScope';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 /**
  * Shared authorization for activity-scoped SAMAM actions (certificates,
@@ -62,9 +63,12 @@ export async function checkIssuer(): Promise<ActivityIssuer | null> {
                 : leadRows[0].assigned_categories;
         } catch { /* treat as none */ }
     }
+    // leadRows[0].clubId alone is just the parent club -- getLeadClubIds()
+    // resolves parent + any TEC child clubs this lead has been mapped to.
+    const clubIds = await getLeadClubIds(decoded.username);
     return {
         decoded, unrestricted: false,
-        clubIds: leadRows[0].clubId ? [leadRows[0].clubId] : [],
+        clubIds,
         assigned_categories,
     };
 }

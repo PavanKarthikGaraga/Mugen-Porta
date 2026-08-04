@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 import { ensureActivitySchema } from '@/lib/dbMigrate';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 async function getLeadClubData() {
     const cookieStore = await cookies();
@@ -42,7 +43,13 @@ async function getLeadClubData() {
                     : leadResult[0].assigned_categories;
             } catch(e) {}
         }
-        return { decoded, clubId: leadResult[0].clubId, clubName: leadResult[0].clubName, assigned_categories };
+        // clubId/clubName stay as the parent club (for display); clubIds is
+        // the full parent + TEC child clubs scope used for actual queries.
+        const clubIds = await getLeadClubIds(decoded.username as string);
+        return {
+            decoded, clubId: leadResult[0].clubId, clubName: leadResult[0].clubName,
+            clubIds, assigned_categories,
+        };
     }
     return null;
 }
@@ -57,18 +64,18 @@ export async function GET(request: Request) {
 
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
-        const { assigned_categories, clubId } = leadData;
+        const { assigned_categories, clubIds } = leadData;
 
         const conditions: string[] = [];
         const params: any[] = [];
 
         // Check admin-defined club_activity_mappings first — students see the same set
         let usedMappings = false;
-        if (clubId) {
+        if (clubIds.length > 0) {
             try {
                 const [mapRows]: any = await pool.execute(
-                    'SELECT activity_code FROM club_activity_mappings WHERE club_id = ?',
-                    [clubId]
+                    `SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${clubIds.map(() => '?').join(',')})`,
+                    clubIds
                 );
                 if (mapRows.length > 0) {
                     const codes: string[] = (mapRows as any[]).map((r: any) => r.activity_code);

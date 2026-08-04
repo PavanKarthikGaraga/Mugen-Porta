@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { requireAuth } from '@/lib/apiSecurity';
+import { ensureLeadChildClubsColumn } from '@/lib/leadScope';
 
 const DOMAIN_NAMES: Record<string, string> = {
     TEC: 'Technology & Engineering',
@@ -38,10 +39,14 @@ export async function GET() {
             return NextResponse.json({ success: true, club: null, lead: null });
         }
 
-        // Get lead assigned to this club
+        // Get lead assigned to this club — either as their parent club, or
+        // (TEC only) as one of the child clubs they've been mapped to.
+        await ensureLeadChildClubsColumn();
         const [leadRows] = await pool.execute(
-            `SELECT username, name, email, phoneNumber FROM leads WHERE clubId = ? LIMIT 1`,
-            [clubId]
+            `SELECT username, name, email, phoneNumber FROM leads
+             WHERE clubId = ? OR JSON_CONTAINS(childClubIds, JSON_QUOTE(?))
+             LIMIT 1`,
+            [clubId, clubId]
         ) as any[];
 
         const lead = leadRows[0] || null;

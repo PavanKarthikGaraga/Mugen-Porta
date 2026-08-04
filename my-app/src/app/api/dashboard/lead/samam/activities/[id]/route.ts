@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 import { ensureActivitySchema, getTableColumns, bustTableColumnCache } from '@/lib/dbMigrate';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 // The ActivityEditor form always submits `difficulty` even when the user
 // never touches it. This and the other columns below were only ever added
@@ -62,24 +63,26 @@ async function getLeadClubData() {
                     : leadResult[0].assigned_categories;
             } catch(e) {}
         }
-        return { decoded, clubId: leadResult[0].clubId, assigned_categories };
+        const clubIds = await getLeadClubIds(decoded.username as string);
+        return { decoded, clubIds, assigned_categories };
     }
     return null;
 }
 
 async function isAuthorized(leadData: any, activityCode: string, activityCategory: string): Promise<boolean> {
     // Check club_activity_mappings first (new system)
-    if (leadData.clubId) {
+    if (leadData.clubIds?.length > 0) {
+        const placeholders = leadData.clubIds.map(() => '?').join(',');
         const [mapRows]: any = await pool.execute(
-            'SELECT 1 FROM club_activity_mappings WHERE club_id = ? AND activity_code = ?',
-            [leadData.clubId, activityCode]
+            `SELECT 1 FROM club_activity_mappings WHERE club_id IN (${placeholders}) AND activity_code = ?`,
+            [...leadData.clubIds, activityCode]
         );
         if ((mapRows as any[]).length > 0) return true;
 
-        // If mappings exist for this club but activity isn't in them — deny
+        // If mappings exist for these clubs but activity isn't in them — deny
         const [anyMaps]: any = await pool.execute(
-            'SELECT 1 FROM club_activity_mappings WHERE club_id = ? LIMIT 1',
-            [leadData.clubId]
+            `SELECT 1 FROM club_activity_mappings WHERE club_id IN (${placeholders}) LIMIT 1`,
+            leadData.clubIds
         );
         if ((anyMaps as any[]).length > 0) return false;
     }

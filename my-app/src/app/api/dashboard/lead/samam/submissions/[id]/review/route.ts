@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import { safeMessage } from '@/lib/apiSecurity';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -19,17 +20,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ message: "Invalid status" }, { status: 400 });
     }
 
-    // Verify submission belongs to a student in lead's club
-    const [leadResult]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [decoded.username as string]);
-    if (leadResult.length === 0 || !leadResult[0].clubId) return NextResponse.json({ message: 'No club assigned' }, { status: 403 });
-    const clubId = leadResult[0].clubId;
+    // Verify submission belongs to a student in one of the lead's clubs
+    const clubIds = await getLeadClubIds(decoded.username as string);
+    if (clubIds.length === 0) return NextResponse.json({ message: 'No club assigned' }, { status: 403 });
 
     const [subRows] = await pool.execute(`
-        SELECT i.username, i.num 
+        SELECT i.username, i.num
         FROM internal_submissions i
         JOIN students s ON i.username = s.username
-        WHERE i.id = ? AND s.clubId = ?
-    `, [id, clubId]);
+        WHERE i.id = ? AND s.clubId IN (${clubIds.map(() => '?').join(',')})
+    `, [id, ...clubIds]);
 
     if (!(subRows as any[])[0]) {
       return NextResponse.json({ message: "Submission not found or not in your club" }, { status: 404 });

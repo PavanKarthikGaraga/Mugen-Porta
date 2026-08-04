@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 const CREATE_TABLE = `
   CREATE TABLE IF NOT EXISTS attendance_submissions (
@@ -32,9 +33,9 @@ async function getLead() {
   if (!token) return null;
   const decoded = await verifyToken(token);
   if (!decoded || decoded.role !== 'lead') return null;
-  const [rows]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [decoded.username as string]);
-  if (rows.length === 0 || !rows[0].clubId) return null;
-  return { decoded, clubId: rows[0].clubId as string };
+  const clubIds = await getLeadClubIds(decoded.username as string);
+  if (clubIds.length === 0) return null;
+  return { decoded, clubIds };
 }
 
 export async function GET() {
@@ -50,9 +51,9 @@ export async function GET() {
         (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ats.activity_code AND ae.attendance_percentage = 0)   AS absent_count,
         (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ats.activity_code)                                    AS total_count
       FROM attendance_submissions ats
-      WHERE ats.club_id = ?
+      WHERE ats.club_id IN (${lead.clubIds.map(() => '?').join(',')})
       ORDER BY ats.submitted_at DESC
-    `, [lead.clubId]);
+    `, lead.clubIds);
 
     return NextResponse.json({ submissions: rows });
   } catch (error: any) {

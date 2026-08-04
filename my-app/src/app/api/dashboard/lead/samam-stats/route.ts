@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 async function getLeadClubData() {
     const cookieStore = await cookies();
@@ -40,7 +41,8 @@ async function getLeadClubData() {
                     : leadResult[0].assigned_categories;
             } catch(e) {}
         }
-        return { decoded, clubId: leadResult[0].clubId, clubName: leadResult[0].clubName, assigned_categories };
+        const clubIds = await getLeadClubIds(decoded.username as string);
+        return { decoded, clubId: leadResult[0].clubId, clubName: leadResult[0].clubName, clubIds, assigned_categories };
     }
     return null;
 }
@@ -52,8 +54,8 @@ export async function GET(request: Request) {
         const { assigned_categories } = leadData;
 
         // Always fetch club student count regardless of category assignment
-        const [clubCountResult]: any = leadData.clubId
-            ? await pool.execute('SELECT COUNT(*) as total FROM students WHERE clubId = ?', [leadData.clubId])
+        const [clubCountResult]: any = leadData.clubIds.length > 0
+            ? await pool.execute(`SELECT COUNT(*) as total FROM students WHERE clubId IN (${leadData.clubIds.map(() => '?').join(',')})`, leadData.clubIds)
             : [[{ total: 0 }]];
         const totalClubStudents = Number((clubCountResult as any[])[0]?.total || 0);
 

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 import { getCouncilClubIds } from '@/lib/councilScope';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 async function getUser() {
     const cookieStore = await cookies();
@@ -72,19 +73,19 @@ export async function GET(request: Request) {
             `, clubIds);
             rows = result;
         } else {
-            // lead
-            const [leadRows]: any = await pool.execute('SELECT clubId FROM leads WHERE username = ?', [username]);
-            if (leadRows.length === 0) return NextResponse.json({ requests: [] });
-            const clubId = leadRows[0].clubId;
+            // lead — their parent club plus any TEC child clubs they're mapped to
+            const clubIds = await getLeadClubIds(username);
+            if (clubIds.length === 0) return NextResponse.json({ requests: [] });
+            const ph = clubIds.map(() => '?').join(',');
 
             const [result]: any = await pool.execute(`
                 SELECT pvr.*, s.name AS student_name, s.branch, s.year, s.clubId, c.name AS club_name
                 FROM passport_verification_requests pvr
                 JOIN students s ON pvr.username = s.username
                 LEFT JOIN clubs c ON s.clubId = c.id
-                WHERE s.clubId = ?
+                WHERE s.clubId IN (${ph})
                 ORDER BY pvr.submitted_at DESC
-            `, [clubId]);
+            `, clubIds);
             rows = result;
         }
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyToken } from "@/lib/jwt";
 import { cookies } from 'next/headers';
 import pool from '@/lib/db';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 export async function GET(request) {
     try {
@@ -41,20 +42,17 @@ export async function GET(request) {
             }
             authorized = true;
         } else if (payload.role === 'lead') {
-            // Leads can access submissions for students in their club
-            const [leadResult] = await pool.execute(
-                'SELECT clubId FROM leads WHERE username = ?',
-                [payload.username]
-            );
+            // Leads can access submissions for students in their club(s)
+            const leadClubIds = await getLeadClubIds(payload.username as string);
 
-            if (leadResult.length > 0 && leadResult[0].clubId) {
-                // Check if the requested student is in the lead's club
+            if (leadClubIds.length > 0) {
+                // Check if the requested student is in one of the lead's clubs
                 const [studentResult] = await pool.execute(
                     'SELECT clubId FROM students WHERE username = ?',
                     [requestedUsername]
                 );
 
-                if (studentResult.length > 0 && studentResult[0].clubId === leadResult[0].clubId) {
+                if (studentResult.length > 0 && leadClubIds.includes(studentResult[0].clubId)) {
                     authorized = true;
                     accessUsername = requestedUsername;
                 }
