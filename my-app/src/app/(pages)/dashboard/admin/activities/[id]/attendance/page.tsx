@@ -25,7 +25,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
   useEffect(() => {
     fetch('/api/auth/me')
       .then(r => r.json())
-      .then(d => setIsAdmin(d.role === 'admin'))
+      .then(d => setIsAdmin(d.user?.role === 'admin'))
       .catch(() => {});
   }, []);
 
