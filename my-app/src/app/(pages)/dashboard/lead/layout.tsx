@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText, FiUserCheck, FiActivity,
-    FiDatabase, FiAward, FiKey, FiCheckSquare, FiBarChart2, FiMusic
+    FiDatabase, FiAward, FiKey, FiCheckSquare, FiBarChart2, FiMusic, FiClipboard
 } from "react-icons/fi";
 import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
@@ -70,9 +70,10 @@ export default function LeadDashboardLayout({ children }) {
     // refreshing on any tab but Overview reset back to it, since the tab was
     // just useState, not a route. Each is its own page now, grouped together.
     const samamNavigation = [
-        { name: 'Overview',    href: '/dashboard/lead/samam/overview',    icon: FiBarChart2 },
-        { name: 'Activities',  href: '/dashboard/lead/samam/activities',  icon: FiActivity  },
-        { name: 'Submissions', href: '/dashboard/lead/samam/submissions', icon: FiFileText  },
+        { name: 'Overview',         href: '/dashboard/lead/samam/overview',          icon: FiBarChart2 },
+        { name: 'Activities',       href: '/dashboard/lead/samam/activities',        icon: FiActivity  },
+        { name: 'Submissions',      href: '/dashboard/lead/samam/submissions',       icon: FiFileText  },
+        { name: 'Activity Reports', href: '/dashboard/lead/samam/activity-reports',  icon: FiClipboard },
     ];
 
     const handleLogout = async () => {

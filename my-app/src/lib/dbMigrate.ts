@@ -81,6 +81,52 @@ export async function ensureNotificationsTable() {
     _notificationsDone = true;
 }
 
+let _activityReportsDone = false;
+
+/**
+ * One draft/generated row per activity a lead has started a KL SAC activity
+ * report for. The PDF itself is generated client-side (jsPDF, matching the
+ * existing badge/certificate export pattern in credentialExport.ts) and
+ * never stored server-side -- this table only holds the form data and
+ * uploaded image URLs (poster, permission letter, gallery, attendance
+ * sheets) needed to regenerate it.
+ */
+export async function ensureActivityReportsTable() {
+    if (_activityReportsDone) return;
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS activity_reports (
+            id                    BIGINT AUTO_INCREMENT PRIMARY KEY,
+            activity_code         VARCHAR(50) NOT NULL,
+            club_id               VARCHAR(20) NOT NULL,
+            submitted_by          VARCHAR(10) NOT NULL,
+            faculty_name          VARCHAR(200) DEFAULT NULL,
+            faculty_id            VARCHAR(50) DEFAULT NULL,
+            student_lead_name     VARCHAR(200) DEFAULT NULL,
+            student_lead_id       VARCHAR(50) DEFAULT NULL,
+            academic_year         VARCHAR(20) DEFAULT NULL,
+            time_slot             VARCHAR(100) DEFAULT NULL,
+            venue                 VARCHAR(255) DEFAULT NULL,
+            students_participated INT DEFAULT NULL,
+            poster_url            VARCHAR(500) DEFAULT NULL,
+            permission_letter_url VARCHAR(500) DEFAULT NULL,
+            overview              TEXT,
+            objectives            TEXT,
+            proceedings           TEXT,
+            key_highlights        TEXT,
+            learning_outcomes     TEXT,
+            conclusion            TEXT,
+            gallery               JSON,
+            attendance_sheets     JSON,
+            status                VARCHAR(20) NOT NULL DEFAULT 'draft',
+            generated_at          TIMESTAMP NULL DEFAULT NULL,
+            created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_activity_report (activity_code)
+        )
+    `);
+    _activityReportsDone = true;
+}
+
 /**
  * The set of columns that actually exist on a table, read from
  * INFORMATION_SCHEMA.
