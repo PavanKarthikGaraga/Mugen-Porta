@@ -13,6 +13,31 @@ const DOMAIN_NAMES: Record<string, string> = {
   HWB: "HWB (Health and Wellbeing)",
 };
 
+/**
+ * Status shown to the admin is derived from registration_open + the
+ * activity's date, not the raw `status` enum column -- that column doesn't
+ * track "has this actually happened yet" or "is registration currently
+ * open", so an activity created with status='upcoming' displayed as
+ * "Inactive" even though it was perfectly normal. Once the activity date has
+ * passed it's done regardless of the registration flag; otherwise the
+ * registration flag decides whether it's currently open or not-yet-opened.
+ */
+function getActivityStatusInfo(a: any) {
+  const activityDate = a.activity_date ? new Date(a.activity_date) : null;
+  if (activityDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    activityDate.setHours(0, 0, 0, 0);
+    if (activityDate < today) {
+      return { label: "Completed", color: "text-gray-500" };
+    }
+  }
+  if (Number(a.registration_open ?? 1) === 1) {
+    return { label: "Registrations Active", color: "text-emerald-700" };
+  }
+  return { label: "Not Opened Yet", color: "text-amber-600" };
+}
+
 export default function ActivityManager({
   actSearchStr, setActSearchStr, fetchActivities, activitiesLoading, filteredActivities, deleteActivity, role = "admin"
 }: any) {
@@ -150,7 +175,7 @@ export default function ActivityManager({
           end: a.end_time ? String(a.end_time).slice(0, 5) : "—",
           venue: a.venue || "—",
           reg: Number(a.registration_open ?? 1) === 1 ? "Open" : "Closed",
-          status: a.status === "active" || a.is_active ? "Active" : "Inactive",
+          status: getActivityStatusInfo(a).label,
         });
         if (i % 2 === 1) {
           row.eachCell(c => { c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF9FAFB" } }; });
@@ -293,10 +318,15 @@ export default function ActivityManager({
                                   </div>
                                 </td>
                                 <td className="px-5 py-3">
-                                  <span className={`flex items-center gap-1.5 text-[11px] font-medium ${a.status === 'active' || a.is_active ? "text-emerald-700" : "text-gray-500"}`}>
-                                    {a.status === 'active' || a.is_active ? <FiCheckCircle size={12} /> : <FiAlertCircle size={12} />}
-                                    {a.status === 'active' || a.is_active ? "Active" : "Inactive"}
-                                  </span>
+                                  {(() => {
+                                    const info = getActivityStatusInfo(a);
+                                    return (
+                                      <span className={`flex items-center gap-1.5 text-[11px] font-medium ${info.color}`}>
+                                        {info.label === "Registrations Active" ? <FiCheckCircle size={12} /> : <FiAlertCircle size={12} />}
+                                        {info.label}
+                                      </span>
+                                    );
+                                  })()}
                                 </td>
                                 <td className="px-5 py-3">
                                   <span className={`flex items-center gap-1.5 text-[11px] font-medium ${a.approval_status === 'active' ? "text-emerald-700" : a.approval_status === 'pending_approval' ? "text-amber-600" : a.approval_status === 'rejected' ? "text-red-600" : "text-emerald-700"}`}>
