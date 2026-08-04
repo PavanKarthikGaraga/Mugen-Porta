@@ -215,9 +215,14 @@ export default function AdminDashboardLayout({ children }) {
                                     );
                                 })}
 
-                                {/* SAMAM Control group — 6 separate pages, not tabs */}
+                                {/* SAMAM Control group — 6 separate pages, not tabs.
+                                    Matched by exact href, not a path prefix: /samam/award
+                                    and /samam/activity-awards also live under this prefix
+                                    but are unrelated older pages, not part of this group —
+                                    a prefix match made the dropdown snap open with nothing
+                                    selected whenever either of those was visited. */}
                                 {(() => {
-                                    const inSamam = pathname.startsWith('/dashboard/admin/samam/');
+                                    const inSamam = samamNavigation.some((item) => pathname === item.href);
                                     const isOpen = samamDropdownOpen || inSamam;
                                     return (
                                         <div className="border-b border-gray-600">
