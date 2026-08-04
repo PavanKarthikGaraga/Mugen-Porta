@@ -15,6 +15,19 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
   const [verifyMode, setVerifyMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [attendanceMarked, setAttendanceMarked] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Once attendance is locked, only an admin may still edit it (faculty
+  // cannot) -- the API enforces this too; this just determines whether to
+  // show the controls at all once locked.
+  const canEdit = !attendanceMarked || isAdmin;
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(d => setIsAdmin(d.role === 'admin'))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch(`/api/dashboard/admin/samam/activities/${id}/attendance`)
@@ -24,6 +37,11 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
           setStudents(d.students);
           if (d.students.length > 0 && d.students[0].attendance_marked) {
             setAttendanceMarked(true);
+            // Seed absentees from the saved state so an admin editing after
+            // the lock starts from what's actually recorded, not blank.
+            setAbsentees(new Set(
+              d.students.filter((s: any) => s.attendance_percentage === 0).map((s: any) => s.username)
+            ));
           }
         } else {
           toast.error("Failed to load students");
@@ -37,7 +55,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
   }, [id]);
 
   const toggleAbsent = (username: string) => {
-    if (attendanceMarked) return;
+    if (!canEdit) return;
     const newAbsentees = new Set(absentees);
     if (newAbsentees.has(username)) newAbsentees.delete(username);
     else newAbsentees.add(username);
@@ -45,7 +63,10 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
   };
 
   const handleSave = async () => {
-    if (!confirm("Are you sure you want to save attendance? This action cannot be altered later.")) return;
+    const confirmMsg = attendanceMarked
+      ? "Save these changes to the locked attendance record?"
+      : "Are you sure you want to save attendance? Once saved, only an admin can make further changes.";
+    if (!confirm(confirmMsg)) return;
     
     setSaving(true);
     try {
@@ -87,7 +108,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
         </div>
         {attendanceMarked && (
           <span className="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-lg text-sm font-bold flex items-center gap-2">
-            <FiCheck /> Attendance Locked
+            <FiCheck /> Attendance Locked{isAdmin ? " (admin can still edit)" : ""}
           </span>
         )}
       </div>
@@ -97,7 +118,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
           <h2 className="font-semibold text-gray-700">
             {verifyMode ? "Verifying Absentees" : "All Enrolled Students"} ({displayedStudents.length})
           </h2>
-          {!attendanceMarked && (
+          {canEdit && (
             <div className="flex gap-3">
               {verifyMode ? (
                 <>
@@ -137,7 +158,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
             </thead>
             <tbody className="divide-y divide-gray-100">
               {displayedStudents.map((s) => {
-                const isAbsent = attendanceMarked ? s.attendance_percentage === 0 : absentees.has(s.username);
+                const isAbsent = absentees.has(s.username);
                 return (
                   <tr key={s.id} className={`hover:bg-gray-50 transition-colors ${isAbsent ? 'bg-red-50/30' : ''}`}>
                     <td className="p-4 text-center">
@@ -146,7 +167,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
                         className="w-5 h-5 accent-red-600 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         checked={isAbsent}
                         onChange={() => toggleAbsent(s.username)}
-                        disabled={attendanceMarked}
+                        disabled={!canEdit}
                       />
                     </td>
                     <td className="p-4 font-medium text-gray-900">{s.name}</td>

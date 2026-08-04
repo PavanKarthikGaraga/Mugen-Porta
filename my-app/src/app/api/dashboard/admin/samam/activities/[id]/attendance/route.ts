@@ -36,9 +36,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        if (!await checkAdmin()) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const user = await checkAdmin();
+        if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         const { id } = await params;
         const { absentees } = await request.json(); // Array of usernames
+
+        // Once attendance has been marked/locked for this activity, only an
+        // admin may make further changes -- faculty can mark it the first
+        // time, but not re-edit it afterward.
+        const [lockRows]: any = await pool.execute(
+            'SELECT 1 FROM activity_enrollments WHERE activity_code = ? AND attendance_marked = TRUE LIMIT 1',
+            [id]
+        );
+        if ((lockRows as any[]).length > 0 && user.role !== 'admin') {
+            return NextResponse.json({ message: 'Attendance is locked. Only an admin can make further changes.' }, { status: 403 });
+        }
 
         // Mark everyone in the activity as attendance_marked = TRUE
         // If username in absentees, set attendance_percentage = 0, else 100

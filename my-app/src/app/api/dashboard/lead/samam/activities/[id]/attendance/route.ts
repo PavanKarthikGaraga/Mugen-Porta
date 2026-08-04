@@ -118,6 +118,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             return NextResponse.json({ message: 'Activity not found or not assigned to you' }, { status: 403 });
         }
 
+        // Once attendance has been marked/locked for this activity, only an
+        // admin may make further changes -- a lead can mark it the first
+        // time, but not re-edit it afterward (see the admin-side route for
+        // the admin-only override).
+        const [lockRows]: any = await pool.execute(
+            'SELECT 1 FROM activity_enrollments WHERE activity_code = ? AND attendance_marked = TRUE LIMIT 1',
+            [id]
+        );
+        if ((lockRows as any[]).length > 0) {
+            return NextResponse.json({ message: 'Attendance is locked. Only an admin can make further changes.' }, { status: 403 });
+        }
+
         const absenteesPlaceholders = absentees.length > 0 ? absentees.map(() => '?').join(',') : "''";
         
         let query = `
