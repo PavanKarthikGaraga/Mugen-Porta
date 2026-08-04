@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FiSave, FiArrowLeft, FiPlus, FiTrash2, FiUpload, FiLink, FiFileText } from "react-icons/fi";
 import Link from "next/link";
+import { SDG_MAP } from "@/app/Data/activities-mock";
 
 interface ActivityEditorProps {
   activityId?: string;
@@ -58,6 +59,8 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     resources: (initialData?.resources || []) as any[],
     outcomes: (initialData?.outcomes || initialData?.learning_outcomes || []) as string[],
     competencies: (initialData?.competencies || []) as string[],
+    ga: (initialData?.ga || []) as string[],
+    sdgs: (initialData?.sdgs || []) as number[],
   });
 
   useEffect(() => {
@@ -138,6 +141,13 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     const arr = [...(formData as any)[field]];
     arr.splice(index, 1);
     setFormData(prev => ({ ...prev, [field]: arr }));
+  };
+
+  const toggleSdg = (num: number) => {
+    setFormData(prev => ({
+      ...prev,
+      sdgs: prev.sdgs.includes(num) ? prev.sdgs.filter(n => n !== num) : [...prev.sdgs, num].sort((a, b) => a - b),
+    }));
   };
 
   // Tasks
@@ -475,7 +485,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
       {/* Outcomes & Competencies */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h2 className="text-lg font-bold border-b pb-2">Outcomes & Competencies</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex justify-between mb-2">
               <span className="font-semibold text-sm">Learning Outcomes</span>
@@ -500,6 +510,41 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
               </div>
             ))}
           </div>
+          <div>
+            <div className="flex justify-between mb-2">
+              <span className="font-semibold text-sm">Graduate Attributes</span>
+              <button onClick={() => addStringArrayItem("ga")} className="text-blue-600 text-sm">+ Add</button>
+            </div>
+            {formData.ga.map((item, idx) => (
+              <div key={idx} className="flex gap-2 mb-2">
+                <input type="text" value={item} onChange={e => handleStringArrayChange("ga", idx, e.target.value)} className="flex-1 p-1.5 border rounded text-sm" />
+                <button onClick={() => removeStringArrayItem("ga", idx)} className="text-red-500"><FiTrash2 size={14} /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* SDGs */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <h2 className="text-lg font-bold border-b pb-2">Sustainable Development Goals</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          {Object.entries(SDG_MAP).map(([num, name]) => {
+            const n = Number(num);
+            const selected = formData.sdgs.includes(n);
+            return (
+              <button
+                type="button"
+                key={n}
+                onClick={() => toggleSdg(n)}
+                className={`text-left px-3 py-2 rounded-lg border text-xs font-medium transition-colors ${
+                  selected ? "bg-red-50 border-red-300 text-red-800" : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                SDG {n}: {name}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
