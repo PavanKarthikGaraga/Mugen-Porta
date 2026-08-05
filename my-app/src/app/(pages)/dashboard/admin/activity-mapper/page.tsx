@@ -233,7 +233,12 @@ export default function ActivityMapperPage() {
                     }`}
                     style={isSelected ? { backgroundColor: meta.color } : {}}
                   >
-                    <p className="text-sm font-semibold leading-snug">{club.name}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-semibold leading-snug">{club.name}</p>
+                      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
+                        {club.id}
+                      </span>
+                    </div>
                     <p className={`text-[11px] mt-0.5 ${isSelected ? "text-white/70" : "text-gray-400"}`}>
                       {mappedCount > 0 ? `${mappedCount} activities mapped` : "No mappings yet"}
                     </p>
@@ -255,7 +260,9 @@ export default function ActivityMapperPage() {
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-6 flex-wrap">
                   <div>
                     <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Club</p>
-                    <p className="font-bold text-gray-900 text-sm">{selectedClub.name}</p>
+                    <p className="font-bold text-gray-900 text-sm">
+                      {selectedClub.name} <span className="font-mono font-normal text-gray-400 text-xs">({selectedClub.id})</span>
+                    </p>
                   </div>
                   <div>
                     <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Mapped</p>
