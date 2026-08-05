@@ -64,7 +64,7 @@ export default function AnalyticsView({ analytics, analyticsLoading, studentsHre
                         <span style={{ color: DOMAIN_COLORS[r.domain] }}>{DOMAIN_ICONS[r.domain]}</span> {r.domain}
                       </span>
                       <span className="font-semibold text-gray-900">{Number(r.total_credits).toLocaleString()} pts
-                        <span className="text-gray-400 font-normal ml-1">({r.transaction_count} activities)</span>
+                        <span className="text-gray-400 font-normal ml-1">({r.student_count} students)</span>
                       </span>
                     </div>
                     <MiniBar value={Number(r.total_credits)} max={max} color={DOMAIN_COLORS[r.domain] || BRAND} />

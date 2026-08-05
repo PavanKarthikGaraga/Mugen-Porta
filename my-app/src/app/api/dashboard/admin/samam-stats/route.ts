@@ -74,9 +74,12 @@ export async function GET(request: Request) {
                 LIMIT 5
             `),
 
-            // 5. SDC by domain
+            // 5. SDC by domain. COUNT(DISTINCT username), not COUNT(*) -- a
+            // student completing multiple activities in the same domain
+            // gets one sdc_transactions row per activity, so a plain row
+            // count is "completions awarded", not distinct students.
             pool.execute(`
-                SELECT domain, SUM(credits) as total_credits, COUNT(*) as transaction_count
+                SELECT domain, SUM(credits) as total_credits, COUNT(DISTINCT username) as student_count
                 FROM sdc_transactions
                 GROUP BY domain
                 ORDER BY total_credits DESC
