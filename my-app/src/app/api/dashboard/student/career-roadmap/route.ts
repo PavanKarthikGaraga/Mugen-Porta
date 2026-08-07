@@ -405,10 +405,13 @@ Generate a personalized career roadmap for this student that is specifically tai
 
         return NextResponse.json({ success: true, roadmap, student: { name: student.name, branch: student.branch, year: student.student_year } });
     } catch (error: any) {
-        if (error instanceof GroqConfigError) {
-            return NextResponse.json({ error: 'AI service is not configured. Please contact admin.' }, { status: 503 });
-        }
         console.error('Career roadmap error:', error);
-        return NextResponse.json({ error: safeMessage(error) }, { status: 500 });
+        const errMsg: string = error?.message || String(error);
+        if (error instanceof GroqConfigError || errMsg.includes('All AI providers failed') || errMsg.includes('No OpenRouter keys')) {
+            return NextResponse.json({ error: 'AI service is unavailable. Please contact admin.' }, { status: 503 });
+        }
+        // Expose full error to demo account so issues can be diagnosed
+        const displayMsg = isDemo ? errMsg : safeMessage(error);
+        return NextResponse.json({ error: displayMsg }, { status: 500 });
     }
 }
