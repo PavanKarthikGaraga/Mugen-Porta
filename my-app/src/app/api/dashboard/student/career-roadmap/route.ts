@@ -39,15 +39,16 @@ export async function GET(request: Request) {
 const SYSTEM_PROMPT = `You are the SAMAM Career Intelligence System at KL University's Student Activity Center (SAC).
 A student has completed a comprehensive 24-question career assessment covering personality, learning style, Gardner's Multiple Intelligence, Bloom's Taxonomy, and career vision. Analyse ALL inputs deeply and generate an accurate, highly personalised career roadmap with psychological profiling.
 
-Return ONLY a single valid JSON object — no markdown fences, no extra text — matching EXACTLY this shape:
+Return ONLY a single valid JSON object — no markdown fences, no extra text — with ALL fields populated. Do NOT leave any array empty or any string blank. Schema:
 {
   "headline": string,
   "overview": string,
   "primaryDomain": string,
   "careerDirection": string,
+  "motivationalMessage": string,
   "personalityTraits": string[],
   "personalityProfile": {
-    "type": "Introvert" | "Extrovert" | "Ambivert",
+    "type": "Introvert"|"Extrovert"|"Ambivert",
     "leadershipPotential": string,
     "communicationStyle": string,
     "decisionMakingStyle": string,
@@ -55,7 +56,7 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
     "motivationType": string
   },
   "bloomsLevel": {
-    "dominantLevel": "Remember" | "Understand" | "Apply" | "Analyze" | "Evaluate" | "Create",
+    "dominantLevel": "Remember"|"Understand"|"Apply"|"Analyze"|"Evaluate"|"Create",
     "description": string,
     "scores": { "Remember": number, "Understand": number, "Apply": number, "Analyze": number, "Evaluate": number, "Create": number }
   },
@@ -64,28 +65,25 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
     "secondary": string,
     "scores": { "Linguistic": number, "Logical-Mathematical": number, "Spatial": number, "Musical": number, "Bodily-Kinesthetic": number, "Interpersonal": number, "Intrapersonal": number, "Naturalistic": number }
   },
+  "personalDevelopmentPlan": {
+    "communication": string,
+    "leadership": string,
+    "networking": string,
+    "wellbeing": string,
+    "timeManagement": string,
+    "emotionalResilience": string
+  },
   "careerPaths": [
     { "title": string, "description": string, "relevanceScore": number, "timeToReach": string }
   ],
-  "yearwiseRoadmap": {
-    "year1": { "focus": string, "goals": string[], "skills": string[], "samamTip": string },
-    "year2": { "focus": string, "goals": string[], "skills": string[], "samamTip": string },
-    "year3": { "focus": string, "goals": string[], "skills": string[], "samamTip": string },
-    "year4": { "focus": string, "goals": string[], "skills": string[], "samamTip": string }
-  },
+  "clubRecommendations": [
+    { "clubName": string, "reason": string, "domain": string }
+  ],
   "skillsToLearn": [
     { "skill": string, "priority": "High"|"Medium"|"Low", "timeframe": string }
   ],
   "topMNCs": [
     { "company": string, "role": string, "avgPackageINR": string, "avgPackageUSD": string }
-  ],
-  "clubRecommendations": [
-    { "clubName": string, "reason": string, "domain": string }
-  ],
-  "socialImpactOpportunities": string[],
-  "motivationalMessage": string,
-  "researchAreas": [
-    { "area": string, "description": string, "subfields": string[] }
   ],
   "projectIdeas": {
     "software": [
@@ -101,6 +99,16 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
   "entrepreneurPaths": [
     { "area": string, "description": string, "ideas": string[] }
   ],
+  "researchAreas": [
+    { "area": string, "description": string, "subfields": string[] }
+  ],
+  "yearwiseRoadmap": {
+    "year1": { "focus": string, "goals": string[], "skills": string[], "samamTip": string },
+    "year2": { "focus": string, "goals": string[], "skills": string[], "samamTip": string },
+    "year3": { "focus": string, "goals": string[], "skills": string[], "samamTip": string },
+    "year4": { "focus": string, "goals": string[], "skills": string[], "samamTip": string }
+  },
+  "socialImpactOpportunities": string[],
   "topUniversities": [
     { "name": string, "country": string, "program": string, "ranking": string, "highlights": string }
   ],
@@ -176,14 +184,20 @@ export async function POST(request: Request) {
     const auth = await requireAuth(['student']);
     if (auth.response) return auth.response;
 
+    const DEMO_ACCOUNTS = new Set(['2400000000']);
+    const isDemo = DEMO_ACCOUNTS.has(auth.user.username as string);
+
     // Metered per student, not per IP: a whole campus shares one public IP,
     // so IP keying would cap the entire university at 5 roadmaps an hour.
-    const rl = await checkRateLimit(request, 'career-roadmap', {
-        limit: 5,
-        windowMs: 60 * 60 * 1000,
-        key: auth.user.username as string,
-    });
-    if (rl.limited) return rl.response;
+    // Demo account bypasses the rate limit entirely.
+    if (!isDemo) {
+        const rl = await checkRateLimit(request, 'career-roadmap', {
+            limit: 5,
+            windowMs: 60 * 60 * 1000,
+            key: auth.user.username as string,
+        });
+        if (rl.limited) return rl.response;
+    }
 
     try {
         const body = await request.json().catch(() => ({}));
@@ -231,8 +245,8 @@ Generate a personalized career roadmap for this student that is specifically tai
         const result = await callGroqJSON({
             systemPrompt: SYSTEM_PROMPT,
             userPrompt,
-            temperature: 0.65,
-            maxTokens: 3000,
+            temperature: 0.6,
+            maxTokens: isDemo ? 32000 : 7000,
         });
 
         if (!result || !result.headline || !result.careerPaths) {

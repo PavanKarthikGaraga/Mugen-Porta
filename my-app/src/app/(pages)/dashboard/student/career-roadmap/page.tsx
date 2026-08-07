@@ -992,6 +992,31 @@ export default function CareerRoadmapPage() {
   if (step === "results" && roadmap) {
     const domColor = DOMAIN_COLORS[roadmap.primaryDomain] || BRAND;
 
+    // ── backward-compat: old cached roadmaps may use different field names ──
+    // Old format had engineeringProjectIdeas[] — convert to new projectIdeas shape
+    const projectIdeas: { software: any[]; hardware: any[]; management: any[] } =
+      roadmap.projectIdeas && (
+        (roadmap.projectIdeas.software?.length > 0) ||
+        (roadmap.projectIdeas.hardware?.length > 0) ||
+        (roadmap.projectIdeas.management?.length > 0)
+      )
+        ? roadmap.projectIdeas
+        : roadmap.engineeringProjectIdeas?.length > 0
+        ? { software: roadmap.engineeringProjectIdeas, hardware: [], management: [] }
+        : { software: [], hardware: [], management: [] };
+
+    // Old format had topCompanies: string[] — convert to topMNCs shape
+    const topMNCs: any[] =
+      roadmap.topMNCs?.length > 0
+        ? roadmap.topMNCs
+        : roadmap.topCompanies?.length > 0
+        ? roadmap.topCompanies.map((c: string) => ({
+            company: c, role: "Various Roles", avgPackageINR: "—", avgPackageUSD: "—",
+          }))
+        : [];
+
+    const hasPDP = roadmap.personalDevelopmentPlan && Object.values(roadmap.personalDevelopmentPlan).some(Boolean);
+
     return (
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-7">
 
@@ -1348,16 +1373,17 @@ export default function CareerRoadmapPage() {
         )}
 
         {/* Project & Portfolio Ideas — 3-category tabs */}
-        {roadmap.projectIdeas && (
-          <section>
-            <SectionHeader icon={FiCode} title="Project & Portfolio Ideas" />
-            {/* Tab buttons */}
-            <div className="flex gap-2 mb-4 flex-wrap">
-              {([
-                { key: "software", label: "Software", icon: FiCode },
-                { key: "hardware", label: "Hardware", icon: FiCpu },
-                { key: "management", label: "Management", icon: FiBarChart2 },
-              ] as const).map(({ key, label, icon: Icon }) => (
+        <section>
+          <SectionHeader icon={FiCode} title="Project & Portfolio Ideas" />
+          {/* Tab buttons */}
+          <div className="flex gap-2 mb-4 flex-wrap">
+            {([
+              { key: "software", label: "Software", icon: FiCode },
+              { key: "hardware", label: "Hardware", icon: FiCpu },
+              { key: "management", label: "Management", icon: FiBarChart2 },
+            ] as const).map(({ key, label, icon: Icon }) => {
+              const count = projectIdeas[key]?.length ?? 0;
+              return (
                 <button
                   key={key}
                   onClick={() => setActiveProjectTab(key)}
@@ -1369,12 +1395,19 @@ export default function CareerRoadmapPage() {
                   style={activeProjectTab === key ? { backgroundColor: BRAND } : {}}
                 >
                   <Icon size={12} /> {label}
+                  {count > 0 && (
+                    <span className={`text-[10px] font-bold ml-1 px-1 rounded ${activeProjectTab === key ? "bg-white/20" : "bg-gray-100 dark:bg-zinc-800"}`}>
+                      {count}
+                    </span>
+                  )}
                 </button>
-              ))}
-            </div>
-            {/* Idea cards for active tab */}
+              );
+            })}
+          </div>
+          {/* Idea cards for active tab */}
+          {(projectIdeas[activeProjectTab] || []).length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(roadmap.projectIdeas[activeProjectTab] || []).map((p: any) => (
+              {projectIdeas[activeProjectTab].map((p: any) => (
                 <div key={p.title} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 space-y-2.5">
                   <div className="flex items-start gap-2.5">
                     <p className="text-sm font-bold text-gray-900 dark:text-white leading-snug flex-1">{p.title}</p>
@@ -1400,8 +1433,14 @@ export default function CareerRoadmapPage() {
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          ) : (
+            <div className="flex flex-col items-center justify-center py-10 text-center border border-dashed border-gray-200 dark:border-zinc-700 rounded-xl bg-gray-50/50 dark:bg-zinc-900/30">
+              <FiCode size={20} className="text-gray-300 dark:text-zinc-600 mb-2" />
+              <p className="text-sm text-gray-400 dark:text-gray-500">No {activeProjectTab} projects in this roadmap.</p>
+              <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">Try another tab or retake the assessment for an updated roadmap.</p>
+            </div>
+          )}
+        </section>
 
         {/* Entrepreneur Pathways */}
         {roadmap.entrepreneurPaths?.length > 0 && (
@@ -1458,11 +1497,11 @@ export default function CareerRoadmapPage() {
         )}
 
         {/* Top MNCs that recruit you */}
-        {(roadmap.topMNCs?.length > 0) && (
+        {topMNCs.length > 0 && (
           <section>
             <SectionHeader icon={FiBriefcase} title="Top MNCs That Recruit You" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {roadmap.topMNCs.map((m: any) => (
+              {topMNCs.map((m: any) => (
                 <div key={m.company} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 space-y-2.5">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800">
@@ -1536,7 +1575,7 @@ export default function CareerRoadmapPage() {
         </div>
 
         {/* ── Personal Development Plan ───────────────────────────────────── */}
-        {roadmap.personalDevelopmentPlan && (
+        {hasPDP && (
           <section>
             <SectionHeader icon={FiAward} title="Personal Development Plan" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
