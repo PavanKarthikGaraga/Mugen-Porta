@@ -58,7 +58,9 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
   "skillsToLearn": [
     { "skill": string, "priority": "High"|"Medium"|"Low", "timeframe": string }
   ],
-  "topCompanies": string[],
+  "topMNCs": [
+    { "company": string, "role": string, "avgPackageINR": string, "avgPackageUSD": string }
+  ],
   "clubRecommendations": [
     { "clubName": string, "reason": string, "domain": string }
   ],
@@ -67,8 +69,19 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
   "researchAreas": [
     { "area": string, "description": string, "subfields": string[] }
   ],
-  "engineeringProjectIdeas": [
-    { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
+  "projectIdeas": {
+    "software": [
+      { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
+    ],
+    "hardware": [
+      { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
+    ],
+    "management": [
+      { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
+    ]
+  },
+  "entrepreneurPaths": [
+    { "area": string, "description": string, "ideas": string[] }
   ],
   "topUniversities": [
     { "name": string, "country": string, "program": string, "ranking": string, "highlights": string }
@@ -84,12 +97,13 @@ Rules:
 - careerPaths: exactly 3, ordered by relevanceScore descending (0-100), specific to their discipline and declared direction — NOT generic engineering paths unless the student is in engineering
 - yearwiseRoadmap: year1..year4 goals/skills arrays must have 3-4 items each; samamTip is one sentence about which SAC club type to join that year; adapt to PG students where year1/year2 map to their PG timeline
 - skillsToLearn: 5-7 skills with realistic timeframes, relevant to their actual field (e.g. legal research for law, clinical skills for medicine, design tools for design students)
-- topCompanies: 6-8 real organisations/companies/institutions that actively hire for these specific career paths — for law include firms, for medicine include hospitals, for design include studios
+- topMNCs: EXACTLY 6 real MNCs/companies/institutions that actively recruit for these career paths. For each entry: company = well-known company name; role = specific job title they hire for (e.g. "Software Engineer", "Product Manager", "Data Analyst"); avgPackageINR = realistic average CTC in India as a string (e.g. "₹12–18 LPA", "₹8–14 LPA"); avgPackageUSD = realistic average salary abroad (US/UK/Singapore/Australia) as a string (e.g. "$95K–130K/yr", "$70K–100K/yr"). Use real market data. For law include firms, for medicine include hospitals, for design include studios.
 - clubRecommendations: EXACTLY 3 clubs, chosen ONLY from the provided clubs list — use the exact club names given
 - socialImpactOpportunities: 3-4 concrete, actionable ways to create social impact using their specific strengths and field
 - motivationalMessage: 2-3 sentences, aspirational, specific to their interests, discipline, and goals
 - researchAreas: 3-4 active research or emerging areas relevant to the student's discipline and career direction; subfields should be 3-5 specific sub-topics
-- engineeringProjectIdeas: 3-4 practical hands-on projects or portfolio pieces this student can build during their studies — for non-engineering students this means writing portfolios, case studies, research papers, design projects, legal moot court cases, clinical case studies, business plans, art installations, etc. (NOT necessarily software projects); tools must be real and specific; impact is one sentence on real-world value
+- projectIdeas: EXACTLY 4 ideas in EACH of the 3 categories (software, hardware, management). Software = digital/app/web/AI projects. Hardware = physical/IoT/electronics/lab prototypes. Management = business plans, case studies, research reports, strategy documents, marketing campaigns. For non-engineering students adapt accordingly — a law student's "hardware" could be a moot court setup; a design student's "software" could be a digital portfolio platform. Make all tools real and specific; impact is one sentence on real-world value.
+- entrepreneurPaths: 4 distinct entrepreneurship areas this student could explore given their background and interests. Each has: area = startup/business domain (e.g. "EdTech Startup", "Healthcare SaaS", "Creative Agency"); description = 2 sentences on the opportunity; ideas = 3-4 concrete startup ideas or business concepts in bullet form (as strings in the array).
 - topUniversities: 5-7 globally or nationally reputed universities for Masters/PhD/professional programmes matching student interests; include both global (Harvard, LSE, MIT, NUS, Parsons, etc.) and Indian (IISc, NLSIU, AIIMS, NID, IIM, etc.) options as appropriate to the field; ranking like "#3 in Law (QS 2024)"
 - Do not invent club names. Do not use clubs not in the provided list.
 - IMPORTANT: All recommendations must respect the student's actual academic discipline. A law student gets legal career paths; a design student gets creative career paths; a commerce student gets finance/business paths. Never force engineering-centric advice on non-engineering students.`;
@@ -198,8 +212,13 @@ Generate a personalized career roadmap for this student that is specifically tai
                     timeframe: String(s.timeframe || '').slice(0, 40),
                 }))
                 : [],
-            topCompanies: Array.isArray(result.topCompanies)
-                ? result.topCompanies.slice(0, 8).map((c: any) => String(c).slice(0, 60))
+            topMNCs: Array.isArray(result.topMNCs)
+                ? result.topMNCs.slice(0, 6).map((c: any) => ({
+                    company: String(c.company || '').slice(0, 80),
+                    role: String(c.role || '').slice(0, 80),
+                    avgPackageINR: String(c.avgPackageINR || '').slice(0, 30),
+                    avgPackageUSD: String(c.avgPackageUSD || '').slice(0, 30),
+                }))
                 : [],
             clubRecommendations: Array.isArray(result.clubRecommendations)
                 ? result.clubRecommendations.slice(0, 3).map((c: any) => ({
@@ -219,13 +238,27 @@ Generate a personalized career roadmap for this student that is specifically tai
                     subfields: Array.isArray(r.subfields) ? r.subfields.slice(0, 5).map((s: any) => String(s).slice(0, 60)) : [],
                 }))
                 : [],
-            engineeringProjectIdeas: Array.isArray(result.engineeringProjectIdeas)
-                ? result.engineeringProjectIdeas.slice(0, 4).map((p: any) => ({
-                    title: String(p.title || '').slice(0, 120),
-                    description: String(p.description || '').slice(0, 300),
-                    difficulty: ['Beginner', 'Intermediate', 'Advanced'].includes(p.difficulty) ? p.difficulty : 'Intermediate',
-                    tools: Array.isArray(p.tools) ? p.tools.slice(0, 6).map((t: any) => String(t).slice(0, 40)) : [],
-                    impact: String(p.impact || '').slice(0, 200),
+            projectIdeas: (() => {
+                const sanitizeIdeas = (arr: any[]) =>
+                    (Array.isArray(arr) ? arr : []).slice(0, 4).map((p: any) => ({
+                        title: String(p.title || '').slice(0, 120),
+                        description: String(p.description || '').slice(0, 300),
+                        difficulty: ['Beginner', 'Intermediate', 'Advanced'].includes(p.difficulty) ? p.difficulty : 'Intermediate',
+                        tools: Array.isArray(p.tools) ? p.tools.slice(0, 6).map((t: any) => String(t).slice(0, 40)) : [],
+                        impact: String(p.impact || '').slice(0, 200),
+                    }));
+                const pi = result.projectIdeas || {};
+                return {
+                    software: sanitizeIdeas(pi.software),
+                    hardware: sanitizeIdeas(pi.hardware),
+                    management: sanitizeIdeas(pi.management),
+                };
+            })(),
+            entrepreneurPaths: Array.isArray(result.entrepreneurPaths)
+                ? result.entrepreneurPaths.slice(0, 4).map((e: any) => ({
+                    area: String(e.area || '').slice(0, 80),
+                    description: String(e.description || '').slice(0, 400),
+                    ideas: Array.isArray(e.ideas) ? e.ideas.slice(0, 4).map((i: any) => String(i).slice(0, 200)) : [],
                 }))
                 : [],
             topUniversities: Array.isArray(result.topUniversities)

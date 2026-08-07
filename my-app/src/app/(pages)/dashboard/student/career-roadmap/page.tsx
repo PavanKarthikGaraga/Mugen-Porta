@@ -5,7 +5,7 @@ import {
   FiTarget, FiZap, FiCheck, FiBriefcase, FiBook, FiSearch, FiHeart,
   FiGlobe, FiCode, FiCpu, FiBarChart2, FiFileText, FiEdit3, FiShield,
   FiAward, FiGrid, FiUser, FiActivity, FiLayers, FiStar,
-  FiSettings, FiMapPin, FiHome, FiList, FiFlag, FiFeather
+  FiSettings, FiMapPin, FiHome, FiList, FiFlag, FiFeather, FiVolume2, FiVolumeX
 } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -294,6 +294,9 @@ export default function CareerRoadmapPage() {
   const [studentInfo, setStudentInfo] = useState<any>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [checkingCache, setCheckingCache] = useState(true);
+  const [activeProjectTab, setActiveProjectTab] = useState<"software" | "hardware" | "management">("software");
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const otherRef = useRef<HTMLInputElement>(null);
 
   // Check feature flag on mount
@@ -318,6 +321,33 @@ export default function CareerRoadmapPage() {
       .catch(() => {})
       .finally(() => setCheckingCache(false));
   }, []);
+
+  // Voice Assistant logic
+  useEffect(() => {
+    if (!isVoiceEnabled || step !== "quiz") {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    const currentQuestion = QUESTIONS[currentQ];
+    if (currentQuestion) {
+      window.speechSynthesis.cancel();
+      const textToSpeak = `${currentQuestion.question}. ${currentQuestion.subtitle}`;
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      
+      window.speechSynthesis.speak(utterance);
+    }
+    
+    return () => {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    };
+  }, [currentQ, isVoiceEnabled, step]);
 
   const q = QUESTIONS[currentQ];
   const isMulti = q?.type === "multi";
@@ -566,18 +596,39 @@ export default function CareerRoadmapPage() {
         {/* Question card */}
         <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
           <div className="px-5 pt-5 pb-4 border-b border-gray-50 dark:border-zinc-800/60">
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                className="text-[10px] font-bold px-2 py-1 rounded-md text-white uppercase tracking-wider"
-                style={{ backgroundColor: BRAND }}
-              >
-                Q{currentQ + 1}
-              </span>
-              {isMulti && (
-                <span className="text-[10px] font-semibold px-2 py-1 rounded-md bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-700">
-                  Select up to {q.max} &nbsp;·&nbsp; {selectedCount} selected
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-[10px] font-bold px-2 py-1 rounded-md text-white uppercase tracking-wider"
+                  style={{ backgroundColor: BRAND }}
+                >
+                  Q{currentQ + 1}
                 </span>
-              )}
+                {isMulti && (
+                  <span className="text-[10px] font-semibold px-2 py-1 rounded-md bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-700">
+                    Select up to {q.max} &nbsp;·&nbsp; {selectedCount} selected
+                  </span>
+                )}
+              </div>
+              
+              <button
+                onClick={() => setIsVoiceEnabled(v => !v)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold border transition-colors ${
+                  isVoiceEnabled 
+                    ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800" 
+                    : "bg-gray-50 text-gray-500 border-gray-200 dark:bg-zinc-800 dark:text-gray-400 dark:border-zinc-700"
+                }`}
+              >
+                {isVoiceEnabled ? (
+                  <>
+                    <FiVolume2 size={12} className={isSpeaking ? "animate-pulse" : ""} /> Voice On
+                  </>
+                ) : (
+                  <>
+                    <FiVolumeX size={12} /> Voice Off
+                  </>
+                )}
+              </button>
             </div>
             <h2 className="text-[17px] font-bold text-gray-900 dark:text-white leading-snug">{q.question}</h2>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 leading-relaxed">{q.subtitle}</p>
@@ -752,6 +803,27 @@ export default function CareerRoadmapPage() {
           </section>
         )}
 
+        {/* SAC Club Suggestions — right after career paths */}
+        {roadmap.clubRecommendations?.length > 0 && (
+          <section>
+            <SectionHeader icon={FiUsers} title="SAC Clubs Recommended for You" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {roadmap.clubRecommendations.map((c: any) => {
+                const cc = DOMAIN_COLORS[c.domain] || "#6b7280";
+                return (
+                  <div key={c.clubName} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-md text-white flex-shrink-0" style={{ backgroundColor: cc }}>{c.domain}</span>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{c.clubName}</p>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{c.reason}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* 4-Year Roadmap */}
         {roadmap.yearwiseRoadmap && (
           <section>
@@ -868,12 +940,34 @@ export default function CareerRoadmapPage() {
           </section>
         )}
 
-        {/* Project & Portfolio Ideas */}
-        {roadmap.engineeringProjectIdeas?.length > 0 && (
+        {/* Project & Portfolio Ideas — 3-category tabs */}
+        {roadmap.projectIdeas && (
           <section>
             <SectionHeader icon={FiCode} title="Project & Portfolio Ideas" />
+            {/* Tab buttons */}
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {([
+                { key: "software", label: "Software", icon: FiCode },
+                { key: "hardware", label: "Hardware", icon: FiCpu },
+                { key: "management", label: "Management", icon: FiBarChart2 },
+              ] as const).map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveProjectTab(key)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold border transition-all ${
+                    activeProjectTab === key
+                      ? "text-white border-transparent shadow-sm"
+                      : "bg-white dark:bg-zinc-950 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-zinc-700 hover:border-gray-300"
+                  }`}
+                  style={activeProjectTab === key ? { backgroundColor: BRAND } : {}}
+                >
+                  <Icon size={12} /> {label}
+                </button>
+              ))}
+            </div>
+            {/* Idea cards for active tab */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {roadmap.engineeringProjectIdeas.map((p: any) => (
+              {(roadmap.projectIdeas[activeProjectTab] || []).map((p: any) => (
                 <div key={p.title} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 space-y-2.5">
                   <div className="flex items-start gap-2.5">
                     <p className="text-sm font-bold text-gray-900 dark:text-white leading-snug flex-1">{p.title}</p>
@@ -895,6 +989,36 @@ export default function CareerRoadmapPage() {
                     <div className="flex items-start gap-1.5 text-[11px] text-green-600 dark:text-green-400">
                       <FiZap size={10} className="mt-0.5 flex-shrink-0" />{p.impact}
                     </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Entrepreneur Pathways */}
+        {roadmap.entrepreneurPaths?.length > 0 && (
+          <section>
+            <SectionHeader icon={FiTrendingUp} title="If You Want to Become an Entrepreneur" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {roadmap.entrepreneurPaths.map((ep: any) => (
+                <div key={ep.area} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 space-y-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
+                      <FiZap size={13} style={{ color: BRAND }} />
+                    </div>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">{ep.area}</p>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{ep.description}</p>
+                  {ep.ideas?.length > 0 && (
+                    <ul className="space-y-1.5 pt-1">
+                      {ep.ideas.map((idea: string) => (
+                        <li key={idea} className="flex items-start gap-2 text-xs text-gray-700 dark:text-gray-300 leading-snug">
+                          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: BRAND }} />
+                          {idea}
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
               ))}
@@ -926,33 +1050,40 @@ export default function CareerRoadmapPage() {
           </section>
         )}
 
-        {/* Clubs + Skills + Employers */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {roadmap.clubRecommendations?.length > 0 && (
-            <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 space-y-4">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
-                  <FiUsers size={11} style={{ color: BRAND }} />
-                </div>
-                SAC Clubs for You
-              </h3>
-              <div className="space-y-3">
-                {roadmap.clubRecommendations.map((c: any) => {
-                  const cc = DOMAIN_COLORS[c.domain] || "#6b7280";
-                  return (
-                    <div key={c.clubName} className="rounded-xl p-3 space-y-1.5" style={{ backgroundColor: cc + "0b", border: `1px solid ${cc}22` }}>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: cc }}>{c.domain}</span>
-                        <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{c.clubName}</p>
-                      </div>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">{c.reason}</p>
+        {/* Top MNCs that recruit you */}
+        {(roadmap.topMNCs?.length > 0) && (
+          <section>
+            <SectionHeader icon={FiBriefcase} title="Top MNCs That Recruit You" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {roadmap.topMNCs.map((m: any) => (
+                <div key={m.company} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 space-y-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800">
+                      <FiBriefcase size={13} className="text-gray-500" />
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{m.company}</p>
+                      <p className="text-[11px] text-gray-400 truncate">{m.role}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-0.5">
+                    <div className="flex-1 rounded-lg bg-green-50 dark:bg-green-950 border border-green-100 dark:border-green-900 px-2.5 py-1.5 space-y-0.5">
+                      <p className="text-[9px] font-bold text-green-600 dark:text-green-400 uppercase tracking-wide">India (INR)</p>
+                      <p className="text-[12px] font-semibold text-green-700 dark:text-green-300">{m.avgPackageINR}</p>
+                    </div>
+                    <div className="flex-1 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-100 dark:border-blue-900 px-2.5 py-1.5 space-y-0.5">
+                      <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Abroad (USD)</p>
+                      <p className="text-[12px] font-semibold text-blue-700 dark:text-blue-300">{m.avgPackageUSD}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
+          </section>
+        )}
 
+        {/* Skills + Social Impact */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {roadmap.skillsToLearn?.length > 0 && (
             <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 space-y-4">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -977,43 +1108,24 @@ export default function CareerRoadmapPage() {
             </div>
           )}
 
-          <div className="space-y-4">
-            {roadmap.topCompanies?.length > 0 && (
-              <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 space-y-3">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
-                    <FiBriefcase size={11} style={{ color: BRAND }} />
-                  </div>
-                  Top Employers
-                </h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {roadmap.topCompanies.map((c: string) => (
-                    <span key={c} className="text-xs font-medium px-2.5 py-1 rounded-lg bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300">
-                      {c}
-                    </span>
-                  ))}
+          {roadmap.socialImpactOpportunities?.length > 0 && (
+            <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 space-y-3">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
+                  <FiHeart size={11} style={{ color: BRAND }} />
                 </div>
-              </div>
-            )}
-            {roadmap.socialImpactOpportunities?.length > 0 && (
-              <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 space-y-3">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
-                    <FiHeart size={11} style={{ color: BRAND }} />
-                  </div>
-                  Social Impact
-                </h3>
-                <ul className="space-y-2">
-                  {roadmap.socialImpactOpportunities.map((s: string) => (
-                    <li key={s} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300">
-                      <div className="w-1 h-1 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />
-                      {s}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+                Social Impact
+              </h3>
+              <ul className="space-y-2">
+                {roadmap.socialImpactOpportunities.map((s: string) => (
+                  <li key={s} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300">
+                    <div className="w-1 h-1 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-center pb-2">
