@@ -71,6 +71,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
         await pool.execute(query, queryParams);
 
+        // Close registration immediately when attendance is locked so no new
+        // students can enroll after the fact.
+        await pool.execute(
+            'UPDATE activity_catalogue SET registration_open = 0 WHERE code = ?',
+            [id]
+        );
+
         return NextResponse.json({ success: true, message: 'Attendance saved successfully' });
 
     } catch (error: any) {
