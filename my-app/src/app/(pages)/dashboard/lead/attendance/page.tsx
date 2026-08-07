@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   FiClock, FiCheckCircle, FiXCircle, FiChevronRight, FiRefreshCw,
-  FiUsers, FiActivity,
+  FiUsers, FiActivity, FiArrowRight, FiAlertCircle
 } from "react-icons/fi";
 
 const BRAND = "rgb(151,0,3)";
@@ -27,30 +27,63 @@ function Skeleton() {
 
 export default function LeadAttendancePage() {
   const [submissions, setSubmissions] = useState<any[]>([]);
+  const [unsubmitted, setUnsubmitted] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "pending" | "verified" | "rejected">("all");
+  const [filter, setFilter] = useState<"all" | "pending" | "verified" | "rejected" | "unsubmitted">("all");
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissionsAndActivities = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/dashboard/lead/attendance");
-      if (res.ok) {
-        const d = await res.json();
-        setSubmissions(d.submissions ?? []);
+      const [attRes, actRes] = await Promise.all([
+        fetch("/api/dashboard/lead/attendance"),
+        fetch("/api/dashboard/lead/samam/activities")
+      ]);
+      
+      let subs: any[] = [];
+      let acts: any[] = [];
+      
+      if (attRes.ok) {
+        const d = await attRes.json();
+        subs = d.submissions ?? [];
       }
+      if (actRes.ok) {
+        const d = await actRes.json();
+        acts = d.activities ?? [];
+      }
+
+      const submittedCodes = new Set(subs.map(s => s.activity_code));
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const unsubs = acts.filter(a => {
+        if (submittedCodes.has(a.code)) return false;
+        if (!a.activity_date) return false;
+        const actDate = new Date(a.activity_date);
+        actDate.setHours(0, 0, 0, 0);
+        return actDate < today;
+      });
+
+      setSubmissions(subs);
+      setUnsubmitted(unsubs);
+
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchSubmissions(); }, []);
+  useEffect(() => { fetchSubmissionsAndActivities(); }, []);
 
-  const filtered = filter === "all" ? submissions : submissions.filter(s => s.status === filter);
+  const filtered = filter === "all" ? submissions : 
+                   filter === "unsubmitted" ? [] : 
+                   submissions.filter(s => s.status === filter);
+                   
   const counts = {
     all: submissions.length,
     pending:  submissions.filter(s => s.status === "pending").length,
     verified: submissions.filter(s => s.status === "verified").length,
     rejected: submissions.filter(s => s.status === "rejected").length,
+    unsubmitted: unsubmitted.length,
   };
 
   if (loading && submissions.length === 0) return <Skeleton />;
@@ -74,7 +107,7 @@ export default function LeadAttendancePage() {
               <FiActivity size={13} /> Records
             </Link>
             <button
-              onClick={fetchSubmissions}
+              onClick={fetchSubmissionsAndActivities}
               disabled={loading}
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg text-white disabled:opacity-60"
               style={{ backgroundColor: BRAND }}
@@ -88,32 +121,67 @@ export default function LeadAttendancePage() {
 
       {/* Filter tabs */}
       <div className="flex gap-1.5 flex-wrap">
-        {(["all", "pending", "verified", "rejected"] as const).map((f) => (
+        {(["all", "pending", "verified", "rejected", "unsubmitted"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors capitalize ${
               filter === f ? "text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
             }`}
-            style={filter === f ? { backgroundColor: f === "all" ? BRAND : statusMeta[f]?.color } : {}}
+            style={filter === f ? { backgroundColor: f === "all" ? BRAND : f === "unsubmitted" ? "#4B5563" : statusMeta[f as keyof typeof statusMeta]?.color } : {}}
           >
-            {f === "all" ? "All" : statusMeta[f].label} ({counts[f]})
+            {f === "all" ? "All" : f === "unsubmitted" ? "Unsubmitted" : statusMeta[f as keyof typeof statusMeta].label} ({counts[f]})
           </button>
         ))}
       </div>
 
       {/* List */}
-      {submissions.length === 0 ? (
+      {(filter === "all" || filter === "unsubmitted") && unsubmitted.length > 0 && (
+        <div className="space-y-3 mb-6">
+          <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2 uppercase tracking-wide">
+            <FiAlertCircle className="text-amber-500" />
+            Requires Attendance
+          </h2>
+          {unsubmitted.map((act) => (
+            <div
+              key={act.id}
+              className="bg-white rounded-xl border border-amber-200 shadow-sm p-5 flex items-center justify-between gap-5 group"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-semibold text-gray-900 truncate">{act.title}</span>
+                  <span className="text-xs font-mono text-gray-400">({act.code})</span>
+                </div>
+                <div className="flex items-center gap-3 mt-1 flex-wrap">
+                  <span className="text-xs text-gray-500">Completed: {new Date(act.activity_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 uppercase">
+                    Action Required
+                  </span>
+                </div>
+              </div>
+              <Link
+                href={`/dashboard/lead/samam/activities/${act.code}/attendance`}
+                className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg text-white transition-opacity hover:opacity-90 flex-shrink-0"
+                style={{ backgroundColor: BRAND }}
+              >
+                Mark Attendance <FiArrowRight />
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {submissions.length === 0 && filter !== "unsubmitted" ? (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
           <FiUsers size={36} className="mx-auto mb-3 text-gray-300" />
           <p className="text-sm font-medium text-gray-500">No attendance submissions yet</p>
           <p className="text-xs text-gray-400 mt-1">Submit attendance from an activity to see it here</p>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : filtered.length === 0 && filter !== "unsubmitted" ? (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 text-center">
           <p className="text-sm text-gray-400">No {filter} submissions</p>
         </div>
-      ) : (
+      ) : filter !== "unsubmitted" && (
         <div className="space-y-3">
           {filtered.map((sub) => {
             const meta = statusMeta[sub.status as keyof typeof statusMeta];
@@ -153,7 +221,7 @@ export default function LeadAttendancePage() {
                     )}
                   </div>
                   {sub.status === "rejected" && sub.faculty_notes && (
-                    <p className="text-xs text-red-500 italic mt-1">"{sub.faculty_notes}"</p>
+                    <p className="text-xs text-red-500 italic mt-1">&quot;{sub.faculty_notes}&quot;</p>
                   )}
                 </div>
 

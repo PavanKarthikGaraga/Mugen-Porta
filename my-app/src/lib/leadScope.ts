@@ -1,11 +1,11 @@
 import pool from '@/lib/db';
 
 /**
- * Leads normally manage a single "parent" club (leads.clubId). For TEC-domain
- * leads only, an admin can additionally map them to "child" clubs — other
- * TEC clubs they also manage — stored as a JSON array in leads.childClubIds,
- * added alongside the original clubId column (kept, not replaced, so
- * everything that only ever knew about one club per lead keeps working).
+ * Leads normally manage a single "parent" club (leads.clubId). An admin can 
+ * additionally map them to "child" clubs — other clubs they also manage across 
+ * any domain — stored as a JSON array in leads.childClubIds, added alongside 
+ * the original clubId column (kept, not replaced, so everything that only ever 
+ * knew about one club per lead keeps working).
  *
  * Every place that used to do
  *   SELECT clubId FROM leads WHERE username = ?

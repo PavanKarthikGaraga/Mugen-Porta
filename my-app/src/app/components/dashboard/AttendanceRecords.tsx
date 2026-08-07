@@ -12,6 +12,7 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string; ic
   pending:  { label: "Pending",  color: "#D97706", bg: "#FFFBEB", icon: <FiClock       size={12} /> },
   verified: { label: "Verified", color: "#059669", bg: "#F0FDF4", icon: <FiCheckCircle size={12} /> },
   rejected: { label: "Rejected", color: "#DC2626", bg: "#FEF2F2", icon: <FiXCircle     size={12} /> },
+  unsubmitted: { label: "Unsubmitted", color: "#4B5563", bg: "#F3F4F6", icon: <FiClock size={12} /> },
 };
 
 interface AttendanceSession {
@@ -33,7 +34,12 @@ interface AttendanceSession {
 }
 
 async function exportXlsx(rec: AttendanceSession) {
-  const res = await fetch(`/api/attendance-records/${encodeURIComponent(rec.activity_code)}/students`);
+  const isUnsubmitted = rec.status === "unsubmitted";
+  const fetchUrl = isUnsubmitted 
+    ? `/api/dashboard/lead/samam/activities/${encodeURIComponent(rec.activity_code)}/students` 
+    : `/api/attendance-records/${encodeURIComponent(rec.activity_code)}/students`;
+    
+  const res = await fetch(fetchUrl);
   if (!res.ok) { toast.error("Failed to fetch student data for export"); return; }
   const d = await res.json();
   const students: any[] = d.students ?? [];
@@ -68,14 +74,18 @@ async function exportXlsx(rec: AttendanceSession) {
   hr.height = 20;
 
   students.forEach((s: any) => {
+    const isUnmarked = s.attendance_percentage === undefined || s.attendance_percentage === null;
     const absent = s.attendance_percentage === 0;
-    const row = ws.addRow([s.username, s.name, absent ? "A" : "P"]);
+    const statusText = isUnmarked ? "" : (absent ? "A" : "P");
+    const row = ws.addRow([s.username || s.student_id, s.name, statusText]);
     row.getCell(1).alignment = { horizontal: "center" };
     row.getCell(2).alignment = { horizontal: "left" };
     const sc = row.getCell(3);
     sc.alignment = { horizontal: "center" };
-    sc.font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: absent ? "FFDC2626" : "FF16A34A" } };
+    if (!isUnmarked) {
+      sc.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      sc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: absent ? "FFDC2626" : "FF16A34A" } };
+    }
     row.eachCell(c => { c.border = { top: { style: "thin", color: { argb: "FFE5E7EB" } }, bottom: { style: "thin", color: { argb: "FFE5E7EB" } }, left: { style: "thin", color: { argb: "FFE5E7EB" } }, right: { style: "thin", color: { argb: "FFE5E7EB" } } }; });
   });
 
@@ -117,16 +127,61 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/attendance-records");
-      if (res.ok) {
-        const d = await res.json();
-        setRecords(d.records ?? []);
+      if (role === "lead") {
+        const [attRes, actRes] = await Promise.all([
+          fetch("/api/attendance-records"),
+          fetch("/api/dashboard/lead/samam/activities")
+        ]);
+        
+        let recs: any[] = [];
+        let acts: any[] = [];
+        
+        if (attRes.ok) recs = (await attRes.json()).records ?? [];
+        if (actRes.ok) acts = (await actRes.json()).activities ?? [];
+
+        const submittedCodes = new Set(recs.map(r => r.activity_code));
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const unsubmittedActs = acts.filter(a => {
+          if (submittedCodes.has(a.code)) return false;
+          if (!a.activity_date) return false;
+          const actDate = new Date(a.activity_date);
+          actDate.setHours(0, 0, 0, 0);
+          return actDate < today;
+        }).map(a => ({
+          id: -Math.random(), // fake id for unsubmitted
+          activity_code: a.code,
+          activity_title: a.title,
+          club_id: a.club_id || "",
+          club_name: a.domain + " - " + (a.category || "General"),
+          lead_username: "",
+          submitted_at: "",
+          status: "unsubmitted",
+          scanned_copy_url: null,
+          verified_by: null,
+          verified_at: null,
+          faculty_notes: null,
+          present_count: 0,
+          absent_count: 0,
+          total_count: 0,
+        }));
+
+        setRecords([...unsubmittedActs, ...recs]);
+      } else {
+        const res = await fetch("/api/attendance-records");
+        if (res.ok) {
+          const d = await res.json();
+          setRecords(d.records ?? []);
+        }
       }
     } finally {
       setLoading(false);
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchRecords(); }, []);
 
   const filtered = records.filter(r => {
@@ -139,11 +194,12 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
     return matchSearch && matchStatus;
   });
 
-  const counts = {
+  const counts: Record<string, number> = {
     all:      records.length,
     pending:  records.filter(r => r.status === "pending").length,
     verified: records.filter(r => r.status === "verified").length,
     rejected: records.filter(r => r.status === "rejected").length,
+    unsubmitted: records.filter(r => r.status === "unsubmitted").length,
   };
 
   const handleExport = async (rec: AttendanceSession) => {
@@ -233,7 +289,7 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
         </div>
         <div className="flex items-center gap-1.5 flex-wrap">
           <FiFilter size={12} className="text-gray-400" />
-          {(["all", "pending", "verified", "rejected"] as const).map(f => (
+          {(["all", "pending", "verified", "rejected", ...(role === "lead" ? ["unsubmitted"] : [])] as const).map(f => (
             <button
               key={f}
               onClick={() => setStatusFilter(f)}
@@ -292,8 +348,12 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
                       </div>
                       <div className="flex items-center gap-3 mt-1.5 flex-wrap text-xs text-gray-500">
                         <span className="font-medium">{rec.club_name}</span>
-                        <span className="text-gray-300">•</span>
-                        <span>Submitted {new Date(rec.submitted_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                        {rec.submitted_at && (
+                          <>
+                            <span className="text-gray-300">•</span>
+                            <span>Submitted {new Date(rec.submitted_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                          </>
+                        )}
                         {rec.verified_at && (
                           <>
                             <span className="text-gray-300">•</span>
@@ -317,7 +377,7 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
                       )}
 
                       {rec.faculty_notes && (
-                        <p className="mt-2 text-xs text-gray-500 italic">"{rec.faculty_notes}"</p>
+                        <p className="mt-2 text-xs text-gray-500 italic">&quot;{rec.faculty_notes}&quot;</p>
                       )}
 
                       {/* Reject notes input */}

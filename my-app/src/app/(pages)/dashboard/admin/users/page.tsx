@@ -880,13 +880,13 @@ export default function UsersPage() {
                                 )}
                             </div>
 
-                            {editingUser && formData.role === 'lead' && clubs.find((c) => c.id === formData.clubId)?.domain === 'TEC' && (
+                            {editingUser && formData.role === 'lead' && (
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Child Clubs (TEC domain only)
+                                        Additional Clubs
                                     </label>
                                     <p className="text-xs text-gray-500 mb-2">
-                                        Map this lead to additional TEC clubs. They&apos;ll manage students and activities across their parent club plus every child club selected here.
+                                        Map this lead to additional clubs. They&apos;ll manage students and activities across their parent club plus every child club selected here.
                                     </p>
                                     <div className="flex space-x-2 mb-2">
                                         <select
@@ -896,7 +896,7 @@ export default function UsersPage() {
                                         >
                                             <option value="">Select Child Club to Add</option>
                                             {clubs
-                                                .filter((c) => c.domain === 'TEC' && c.id !== formData.clubId && !formData.childClubIds.includes(c.id))
+                                                .filter((c) => c.id !== formData.clubId && !formData.childClubIds.includes(c.id))
                                                 .map((club) => (
                                                     <option key={club.id} value={club.id}>{club.name}</option>
                                                 ))}

@@ -43,6 +43,7 @@ export default function ActivityManager({
 }: any) {
   const [selectedDomain, setSelectedDomain] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [exporting, setExporting] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -72,9 +73,14 @@ export default function ActivityManager({
     return filteredActivities.filter((a: any) => {
       if (selectedDomain && a.domain !== selectedDomain) return false;
       if (selectedCategory && (a.category || "General") !== selectedCategory) return false;
+      if (selectedStatus) {
+        const info = getActivityStatusInfo(a);
+        if (selectedStatus === "completed" && info.label !== "Completed") return false;
+        if (selectedStatus === "active" && info.label === "Completed") return false;
+      }
       return true;
     });
-  }, [filteredActivities, selectedDomain, selectedCategory]);
+  }, [filteredActivities, selectedDomain, selectedCategory, selectedStatus]);
 
   const groupedActivities = displayActivities.reduce((acc: any, curr: any) => {
     const domain = curr.domain || "Other";
@@ -228,6 +234,16 @@ export default function ActivityManager({
           >
             <option value="">All Categories</option>
             {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white w-32 truncate"
+          >
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
           </select>
         </div>
         <button onClick={fetchActivities}

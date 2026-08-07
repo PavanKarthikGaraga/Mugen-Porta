@@ -103,29 +103,20 @@ export async function POST(request, { params }) {
                 // students/data the lead can see and manage.
                 let childClubIdsJson: string | null = null;
                 if (Array.isArray(childClubIds) && childClubIds.length > 0) {
-                    const [parentRows]: any = await connection.execute(
-                        'SELECT domain FROM clubs WHERE id = ?',
-                        [clubId]
-                    );
-                    if (parentRows[0]?.domain !== 'TEC') {
-                        await connection.rollback();
-                        return NextResponse.json({ error: "Child clubs can only be assigned when the lead's parent club is in the TEC domain" }, { status: 400 });
-                    }
-
                     const uniqueChildIds = Array.from(new Set(
                         (childClubIds as any[]).filter((id) => typeof id === 'string' && id && id !== clubId)
                     ));
                     if (uniqueChildIds.length > 0) {
                         const placeholders = uniqueChildIds.map(() => '?').join(',');
                         const [childRows]: any = await connection.execute(
-                            `SELECT id FROM clubs WHERE id IN (${placeholders}) AND domain = 'TEC'`,
+                            `SELECT id FROM clubs WHERE id IN (${placeholders})`,
                             uniqueChildIds
                         );
                         const validIds = new Set(childRows.map((r: any) => r.id));
                         const invalid = uniqueChildIds.filter((id) => !validIds.has(id));
                         if (invalid.length > 0) {
                             await connection.rollback();
-                            return NextResponse.json({ error: `These clubs are not in the TEC domain: ${invalid.join(', ')}` }, { status: 400 });
+                            return NextResponse.json({ error: `These clubs are invalid or do not exist: ${invalid.join(', ')}` }, { status: 400 });
                         }
                         childClubIdsJson = JSON.stringify(uniqueChildIds);
                     }
