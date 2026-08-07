@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
     FiTool, FiChevronDown, FiChevronUp, FiLock, FiUnlock, FiSettings, FiUsers, FiAward, FiStar, FiKey, FiMap, FiCheckSquare,
-    FiActivity, FiFileText, FiBarChart2, FiBell,
+    FiActivity, FiFileText, FiBarChart2, FiBell, FiClipboard,
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
 import { toast } from "sonner";
@@ -72,8 +72,9 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Activity Awards',    href: '/dashboard/admin/samam/activity-awards', icon: FiAward },
         { name: 'Activity Mapper',   href: '/dashboard/admin/activity-mapper', icon: FiMap },
         { name: 'SAMAM Access',          href: '/dashboard/admin/samam-access',        icon: FiUnlock      },
-        { name: 'Activity Approvals',   href: '/dashboard/admin/activity-approvals',  icon: FiCheckSquare },
-        { name: 'Attendance Records',   href: '/dashboard/admin/attendance-records',  icon: FiActivity    },
+        { name: 'Activity Approvals',    href: '/dashboard/admin/activity-approvals',     icon: FiCheckSquare },
+        { name: 'Completed Activities', href: '/dashboard/admin/completed-activities',   icon: FiClipboard   },
+        { name: 'Attendance Records',   href: '/dashboard/admin/attendance-records',     icon: FiActivity    },
         { name: 'Passport Approvals',   href: '/dashboard/admin/passport-approvals',  icon: FiFileText    },
         { name: 'Controls',             href: '/dashboard/admin/controls',            icon: FiSettings    }
     ];
