@@ -33,6 +33,8 @@ export async function GET(request: Request) {
             recentBadgesResult,
             competencyResult,
             activeSamamStudentsResult,
+            activitiesCompletedResult,
+            topClubResult,
         ] = await Promise.all([
             // 1. Students per SAMAM level — only students with SAMAM
             // dashboard access actually unlocked, not every registered
@@ -107,18 +109,37 @@ export async function GET(request: Request) {
             pool.execute(`
                 SELECT COUNT(*) as count FROM students WHERE samam_access = 1
             `),
+
+            // 9. Total completed activity enrollments
+            pool.execute(`
+                SELECT COUNT(*) as total FROM activity_enrollments WHERE status = 'completed'
+            `),
+
+            // 10. Top club by total SAMAM points issued to its members
+            pool.execute(`
+                SELECT c.name AS club_name, COALESCE(SUM(t.credits), 0) AS total_credits
+                FROM clubs c
+                JOIN students s ON s.clubId = c.id
+                LEFT JOIN sdc_transactions t ON t.username = s.username
+                GROUP BY c.id, c.name
+                ORDER BY total_credits DESC
+                LIMIT 1
+            `),
         ]);
 
         const sdcStats = (sdcTotalResult[0] as any[])[0] || {};
         const badgeStats = (badgesResult[0] as any[])[0] || {};
         const compStats = (competencyResult[0] as any[])[0] || {};
         const activeSamamStats = (activeSamamStudentsResult[0] as any[])[0] || {};
+        const activitiesStats = (activitiesCompletedResult[0] as any[])[0] || {};
+        const topClubStats = (topClubResult[0] as any[])[0] || {};
 
         return NextResponse.json({
-            // Students whose SAMAM dashboard access is currently unlocked
-            // (samam_access = 1) -- i.e. actually active on the platform,
-            // not just registered in the students table.
             totalClubStudents: Number(activeSamamStats.count || 0),
+            activitiesCompleted: Number(activitiesStats.total || 0),
+            uniqueBadgesDistributed: Number(badgeStats.unique_badges || 0),
+            topClub: topClubStats.club_name || null,
+            topClubCredits: Number(topClubStats.total_credits || 0),
             levelBreakdown: levelBreakdownResult[0] as any[],
             sdcStats: {
                 totalCredits: Number(sdcStats.total_credits || 0),

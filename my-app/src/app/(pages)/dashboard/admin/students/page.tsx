@@ -30,28 +30,37 @@ export default function AdminStudents() {
     const [showViewModal, setShowViewModal] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState(null);
 
-    const fetchStudents = useCallback(async (page = 1) => {
+    // fetchStudents takes explicit search/filter params so callers can pass
+    // freshly-updated state without waiting for React to flush state updates.
+    // This avoids the stale-closure issue where changing a filter and then
+    // reading from the component's state inside the callback returned the
+    // OLD value, causing the fetch to silently use the previous filter.
+    const fetchStudents = useCallback(async (
+        page = 1,
+        overrideSearch?: string,
+        overrideFilters?: typeof filters,
+    ) => {
         setLoading(true);
+        const effectiveSearch  = overrideSearch  ?? searchTerm;
+        const effectiveFilters = overrideFilters ?? filters;
         try {
             const params = new URLSearchParams({
                 page: page.toString(),
-                limit: pagination.limit.toString(),
-                search: searchTerm,
-                domain: filters.domain,
-                year: filters.year,
-                branch: filters.branch,
-                residenceType: filters.residenceType,
-                clubId: filters.clubId,
-                campus: filters.campus,
-                careerChoice: filters.careerChoice
+                limit: "50",
+                search: effectiveSearch,
+                domain: effectiveFilters.domain,
+                year: effectiveFilters.year,
+                branch: effectiveFilters.branch,
+                residenceType: effectiveFilters.residenceType,
+                clubId: effectiveFilters.clubId,
+                campus: effectiveFilters.campus,
+                careerChoice: effectiveFilters.careerChoice,
             });
 
             const response = await fetch(`/api/dashboard/admin/students?${params}`);
             const data = await response.json();
 
-            if (await handleApiError(response)) {
-                return; // Error was handled
-            }
+            if (await handleApiError(response)) return;
 
             if (data.success) {
                 setStudents(data.data.students);
@@ -66,18 +75,27 @@ export default function AdminStudents() {
         } finally {
             setLoading(false);
         }
-    }, [searchTerm, filters, pagination.limit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Stable — reads from closure only as fallback, callers pass fresh values
 
     useEffect(() => {
         fetchStudents(1);
-    }, [fetchStudents]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    const handlePageChange = (newPage) => {
+    // Helper: update a single filter field and immediately fetch
+    const applyFilter = (field: string, value: string) => {
+        const next = { ...filters, [field]: value };
+        setFilters(next);
+        fetchStudents(1, searchTerm, next);
+    };
+
+    const handlePageChange = (newPage: number) => {
         fetchStudents(newPage);
     };
 
     const refreshData = async () => {
-        await fetchStudents(pagination.page);
+        fetchStudents(1);
     };
 
     const deleteStudent = async (studentId) => {
@@ -300,6 +318,7 @@ export default function AdminStudents() {
                                 placeholder="Search by name or username..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && fetchStudents(1, searchTerm, filters)}
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                             />
                         </div>
@@ -307,11 +326,8 @@ export default function AdminStudents() {
 
                     {/* Campus Filter */}
                     <div>
-                        <select
-                            value={filters.campus}
-                            onChange={(e) => setFilters({...filters, campus: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
+                        <select value={filters.campus} onChange={(e) => applyFilter("campus", e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <option value="">All Campuses</option>
                             <option value="KLU - Vaddeswaram">KLU - Vaddeswaram</option>
                             <option value="KLH - Bachupally">KLH - Bachupally</option>
@@ -322,11 +338,8 @@ export default function AdminStudents() {
 
                     {/* Domain Filter */}
                     <div>
-                        <select
-                            value={filters.domain}
-                            onChange={(e) => setFilters({...filters, domain: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
+                        <select value={filters.domain} onChange={(e) => applyFilter("domain", e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <option value="">All Domains</option>
                             <option value="TEC">Technology</option>
                             <option value="LCH">Liberal Arts</option>
@@ -338,11 +351,8 @@ export default function AdminStudents() {
 
                     {/* Year Filter */}
                     <div>
-                        <select
-                            value={filters.year}
-                            onChange={(e) => setFilters({...filters, year: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
+                        <select value={filters.year} onChange={(e) => applyFilter("year", e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <option value="">All Years</option>
                             <option value="1st">1st Year</option>
                             <option value="2nd">2nd Year</option>
@@ -353,11 +363,8 @@ export default function AdminStudents() {
 
                     {/* Branch Filter */}
                     <div>
-                        <select
-                            value={filters.branch}
-                            onChange={(e) => setFilters({...filters, branch: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
+                        <select value={filters.branch} onChange={(e) => applyFilter("branch", e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <option value="">All Branches</option>
                             {branchList.map((b) => (
                                 <option key={b} value={b}>{b}</option>
@@ -367,11 +374,8 @@ export default function AdminStudents() {
 
                     {/* Residence Type Filter */}
                     <div>
-                        <select
-                            value={filters.residenceType}
-                            onChange={(e) => setFilters({...filters, residenceType: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
+                        <select value={filters.residenceType} onChange={(e) => applyFilter("residenceType", e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <option value="">All Residence Types</option>
                             <option value="Hostel">Hostel</option>
                             <option value="Day Scholar">Day Scholar</option>
@@ -380,13 +384,10 @@ export default function AdminStudents() {
 
                     {/* Club Filter */}
                     <div>
-                        <select
-                            value={filters.clubId}
-                            onChange={(e) => setFilters({...filters, clubId: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
+                        <select value={filters.clubId} onChange={(e) => applyFilter("clubId", e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <option value="">All Clubs</option>
-                            {clubStats.map((club) => (
+                            {clubStats.map((club: any) => (
                                 <option key={club.clubId} value={club.clubId}>
                                     {club.clubName} ({club.memberCount})
                                 </option>
@@ -396,11 +397,8 @@ export default function AdminStudents() {
 
                     {/* Career Choice Filter */}
                     <div>
-                        <select
-                            value={filters.careerChoice}
-                            onChange={(e) => setFilters({...filters, careerChoice: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                        >
+                        <select value={filters.careerChoice} onChange={(e) => applyFilter("careerChoice", e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <option value="">All Careers</option>
                             <option value="Placement">Placement</option>
                             <option value="Higher Education">Higher Education</option>

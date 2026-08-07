@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { KPI, MiniBar, BRAND, BRAND_ACCENT, DOMAIN_COLORS, DOMAIN_ICONS } from "./SharedUI";
-import { FiUsers, FiStar, FiAward, FiBarChart2 } from "react-icons/fi";
+import { FiUsers, FiCheckCircle, FiAward, FiTrendingUp } from "react-icons/fi";
 
 // studentsHref: base path to the Students page for whichever role is
 // rendering this (e.g. "/dashboard/admin/samam/students"), or omitted for
@@ -18,10 +18,13 @@ export default function AnalyticsView({ analytics, analyticsLoading, studentsHre
     <div className="space-y-6">
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPI icon={<FiUsers size={18} />}    label="Active SAMAM Students" value={analyticsLoading ? "—" : totalClubStudents}   color="#111827" />
-        <KPI icon={<FiStar size={18} />}     label="Total Points Issued"      value={analyticsLoading ? "—" : analytics?.sdcStats?.totalCredits ?? 0}            color="#111827" />
-        <KPI icon={<FiAward size={18} />}    label="Badges Distributed"           value={analyticsLoading ? "—" : analytics?.badgeStats?.totalIssued ?? 0}           color="#111827" />
-        <KPI icon={<FiBarChart2 size={18} />}label="Unique Badges"   value={analyticsLoading ? "—" : analytics?.badgeStats?.uniqueBadges ?? 0}          color="#111827" />
+        <KPI icon={<FiUsers size={18} />}       label="Active SAMAM Students"    value={analyticsLoading ? "—" : totalClubStudents}                                color="#111827" />
+        <KPI icon={<FiCheckCircle size={18} />} label="Activities Completed"     value={analyticsLoading ? "—" : analytics?.activitiesCompleted ?? 0}             color="#111827" />
+        <KPI icon={<FiAward size={18} />}       label="Unique Badges Distributed" value={analyticsLoading ? "—" : analytics?.uniqueBadgesDistributed ?? 0}        color="#111827" />
+        <KPI icon={<FiTrendingUp size={18} />}  label="Top Club by Points"
+          value={analyticsLoading ? "—" : analytics?.topClub ? `${analytics.topClub}` : "—"}
+          sub={analyticsLoading || !analytics?.topClub ? undefined : `${(analytics.topClubCredits ?? 0).toLocaleString()} pts`}
+          color="#111827" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

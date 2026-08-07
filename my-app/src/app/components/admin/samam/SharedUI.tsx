@@ -26,7 +26,7 @@ export function MiniBar({ value, max, color }: { value: number; max: number; col
   );
 }
 
-export function KPI({ icon, label, value, color }: { icon: any; label: string; value: any; color: string }) {
+export function KPI({ icon, label, value, color, sub }: { icon: any; label: string; value: any; color: string; sub?: string }) {
   return (
     <div className="bg-white border border-gray-200 rounded-md p-5 flex flex-col gap-3 relative hover:border-gray-300 transition-colors">
       <div className="flex items-center justify-between">
@@ -36,7 +36,8 @@ export function KPI({ icon, label, value, color }: { icon: any; label: string; v
         </div>
       </div>
       <div>
-        <p className="text-2xl font-semibold text-gray-900 tracking-tight">{value}</p>
+        <p className="text-2xl font-semibold text-gray-900 tracking-tight truncate" title={String(value)}>{value}</p>
+        {sub && <p className="text-[12px] text-gray-400 mt-0.5">{sub}</p>}
       </div>
     </div>
   );
