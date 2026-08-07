@@ -83,19 +83,23 @@ export default function AdminStudents() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Helper: update a single filter field and immediately fetch
+    // Helper: update a single filter field and immediately fetch.
+    // Changing domain clears the club pick so stale cross-domain clubs can't persist.
     const applyFilter = (field: string, value: string) => {
-        const next = { ...filters, [field]: value };
+        let next = { ...filters, [field]: value };
+        if (field === 'domain') next = { ...next, clubId: '' };
         setFilters(next);
         fetchStudents(1, searchTerm, next);
     };
 
+    // Always forward the current search/filters so the stale useCallback
+    // closure never silently drops active filter state on page navigation.
     const handlePageChange = (newPage: number) => {
-        fetchStudents(newPage);
+        fetchStudents(newPage, searchTerm, filters);
     };
 
     const refreshData = async () => {
-        fetchStudents(1);
+        fetchStudents(1, searchTerm, filters);
     };
 
     const deleteStudent = async (studentId) => {
@@ -382,12 +386,15 @@ export default function AdminStudents() {
                         </select>
                     </div>
 
-                    {/* Club Filter */}
+                    {/* Club Filter — narrowed to selected domain when one is active */}
                     <div>
                         <select value={filters.clubId} onChange={(e) => applyFilter("clubId", e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <option value="">All Clubs</option>
-                            {clubStats.map((club: any) => (
+                            {(filters.domain
+                                ? clubStats.filter((c: any) => c.clubDomain === filters.domain)
+                                : clubStats
+                            ).map((club: any) => (
                                 <option key={club.clubId} value={club.clubId}>
                                     {club.clubName} ({club.memberCount})
                                 </option>

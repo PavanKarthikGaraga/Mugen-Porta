@@ -284,20 +284,22 @@ export async function GET(request) {
         const [statsResult] = await connection.execute(statsQuery, queryParams);
         const stats = statsResult[0];
 
-        // Get club stats (with filters applied)
+        // Club stats: always all clubs with their domain — do NOT apply the
+        // student whereClause here; using student conditions on a LEFT JOIN
+        // would mis-classify clubs from other domains as matching the filter.
         const clubStatsQuery = `
             SELECT
                 c.name as clubName,
                 c.id as clubId,
+                c.domain as clubDomain,
                 COUNT(s.username) as memberCount
             FROM clubs c
             LEFT JOIN students s ON c.id = s.clubId
-            ${whereClause.replace('s.', 's.')}
-            GROUP BY c.id, c.name
+            GROUP BY c.id, c.name, c.domain
             ORDER BY memberCount DESC
         `;
 
-        const [clubStatsResult] = await connection.execute(clubStatsQuery, queryParams);
+        const [clubStatsResult] = await connection.execute(clubStatsQuery);
 
         // Distinct branch list (unfiltered — always show all branches so the dropdown is stable)
         const [branchListResult] = await connection.execute(
