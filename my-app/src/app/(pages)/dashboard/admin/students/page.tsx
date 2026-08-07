@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { FiSearch, FiRefreshCw, FiDownload, FiEye, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 import { toast } from "sonner";
@@ -82,6 +82,19 @@ export default function AdminStudents() {
         fetchStudents(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Debounced auto-search: fetch 400 ms after the user stops typing.
+    // Skips the initial mount (the effect above handles that).
+    const isFirstSearch = useRef(true);
+    useEffect(() => {
+        if (isFirstSearch.current) { isFirstSearch.current = false; return; }
+        const timer = setTimeout(() => {
+            fetchStudents(1, searchTerm, filters);
+        }, 400);
+        return () => clearTimeout(timer);
+    // filters intentionally omitted — filter changes go through applyFilter synchronously
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchTerm]);
 
     // Helper: update a single filter field and immediately fetch.
     // Changing domain clears the club pick so stale cross-domain clubs can't persist.
@@ -322,7 +335,6 @@ export default function AdminStudents() {
                                 placeholder="Search by name or username..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && fetchStudents(1, searchTerm, filters)}
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                             />
                         </div>
