@@ -2,9 +2,78 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { FiSave, FiArrowLeft, FiPlus, FiTrash2, FiUpload, FiLink, FiFileText } from "react-icons/fi";
+import { FiSave, FiArrowLeft, FiPlus, FiTrash2, FiUpload, FiLink, FiFileText, FiRefreshCw } from "react-icons/fi";
 import Link from "next/link";
 import { SDG_MAP } from "@/app/Data/activities-mock";
+
+const DOMAIN_CODE_PREFIX: Record<string, string> = {
+  TEC: "TECH", ESO: "ESO", LCH: "LCH", HWB: "HWB", IIE: "IIE",
+};
+
+const DOMAIN_SUBCATEGORIES: Record<string, { label: string; abbr: string }[]> = {
+  TEC: [
+    { label: "AI & Machine Learning", abbr: "AI" },
+    { label: "Software Development", abbr: "SWD" },
+    { label: "Cybersecurity & Digital Trust", abbr: "CYB" },
+    { label: "Data Science & Analytics", abbr: "DSA" },
+    { label: "Cloud Computing & DevOps", abbr: "CLD" },
+    { label: "IoT & Smart Systems", abbr: "IOT" },
+    { label: "Robotics & Automation", abbr: "ROB" },
+    { label: "Blockchain & Web3", abbr: "BC" },
+    { label: "Biotechnology & Bioinformatics", abbr: "BIO" },
+    { label: "AgriTech & Precision Farming", abbr: "AGR" },
+    { label: "Digital Health & MedTech", abbr: "DHL" },
+    { label: "Drones & UAV Technology", abbr: "DRN" },
+    { label: "EdTech & Learning Innovation", abbr: "EDU" },
+    { label: "FinTech & Digital Finance", abbr: "FIN" },
+    { label: "Smart Manufacturing & Industry 4.0", abbr: "MFG" },
+    { label: "Quantum Computing", abbr: "QC" },
+    { label: "Renewable Energy Technology", abbr: "REN" },
+    { label: "Space Technology", abbr: "SPC" },
+    { label: "Smart Campus & Urban Tech", abbr: "SCU" },
+  ],
+  ESO: [
+    { label: "Student Volunteering & Relief", abbr: "SVR" },
+    { label: "Community Engagement & Service", abbr: "CES" },
+    { label: "Sustainable Development & Environment", abbr: "SDE" },
+    { label: "Health & Humanitarian Needs", abbr: "HHN" },
+    { label: "Education & Digital Inclusion", abbr: "EDI" },
+    { label: "Agriculture & Rural Innovation", abbr: "ARI" },
+    { label: "Women & Youth Empowerment", abbr: "WYE" },
+    { label: "Disaster Preparedness & Safety", abbr: "DPS" },
+    { label: "Climate Change & Green Governance", abbr: "CGG" },
+    { label: "Social Innovation & Impact", abbr: "SII" },
+  ],
+  IIE: [
+    { label: "Entrepreneurship", abbr: "ENT" },
+    { label: "Innovation Challenge", abbr: "INN" },
+    { label: "Startup Development", abbr: "STA" },
+    { label: "Incubation Program", abbr: "INC" },
+    { label: "Design Thinking", abbr: "DES" },
+    { label: "Business Plan Lab", abbr: "BPL" },
+    { label: "Intellectual Property & Rights", abbr: "IPR" },
+  ],
+  LCH: [
+    { label: "Dance Club", abbr: "DC" },
+    { label: "Music Club", abbr: "MC" },
+    { label: "Theatre Arts", abbr: "TA" },
+    { label: "Photography Club", abbr: "PC" },
+    { label: "Literary Club", abbr: "LC" },
+    { label: "Film Club", abbr: "FC" },
+    { label: "Heritage Club", abbr: "HC" },
+    { label: "Arts & Crafts", abbr: "AC" },
+    { label: "Fashion & Lifestyle", abbr: "FL" },
+    { label: "E-Sports & Gaming", abbr: "ESC" },
+    { label: "Adventure & Trekking", abbr: "ADV" },
+  ],
+  HWB: [
+    { label: "Marathon & Athletics Club", abbr: "MAC" },
+    { label: "Yoga & Mindfulness", abbr: "YC" },
+    { label: "Sports & Lifestyle", abbr: "SL" },
+    { label: "Nutrition & Wellness", abbr: "NUT" },
+    { label: "Mental Health & Counselling", abbr: "MH" },
+  ],
+};
 
 interface ActivityEditorProps {
   activityId?: string;
@@ -37,6 +106,8 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
   const isNew = !activityId && !initialData;
   const apiPrefix = role === "lead" ? "/api/dashboard/lead/samam/activities" : "/api/activities";
   const [assignedCategories, setAssignedCategories] = useState<string[]>([]);
+  const [subCategory, setSubCategory] = useState<string>("");
+  const [generatingCode, setGeneratingCode] = useState(false);
 
   const [formData, setFormData] = useState({
     code: initialData?.code || "",
@@ -129,6 +200,32 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     if (Array.isArray(val)) return val;
     try { return JSON.parse(val); } catch { return null; }
   }
+
+  const generateCode = async (domain: string, abbr: string) => {
+    const prefix = `${DOMAIN_CODE_PREFIX[domain] ?? domain}-${abbr}`;
+    setGeneratingCode(true);
+    try {
+      const r = await fetch(`/api/activities/next-code?prefix=${encodeURIComponent(prefix)}`);
+      const d = await r.json();
+      if (d.code) setFormData(prev => ({ ...prev, code: d.code }));
+    } catch { /* silently skip — user can edit manually */ }
+    finally { setGeneratingCode(false); }
+  };
+
+  const handleDomainChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const domain = e.target.value;
+    setFormData(prev => ({ ...prev, domain, ...(isNew ? { code: "", category: "" } : {}) }));
+    if (isNew) setSubCategory("");
+  };
+
+  const handleSubCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const abbr = e.target.value;
+    setSubCategory(abbr);
+    if (!abbr) return;
+    const match = DOMAIN_SUBCATEGORIES[formData.domain]?.find(s => s.abbr === abbr);
+    if (match) setFormData(prev => ({ ...prev, category: match.label }));
+    generateCode(formData.domain, abbr);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -293,10 +390,69 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h2 className="text-lg font-bold border-b pb-2">Basic Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Step 1: Domain */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Domain <span className="text-red-500">*</span>
+            </label>
+            <select value={formData.domain} onChange={handleDomainChange} className="w-full border rounded-md px-3 py-2">
+              <option value="TEC">TEC — Technical</option>
+              <option value="LCH">LCH — Liberal Arts & Cultural</option>
+              <option value="ESO">ESO — Extension & Society</option>
+              <option value="IIE">IIE — Innovation & Entrepreneurship</option>
+              <option value="HWB">HWB — Health & Wellbeing</option>
+            </select>
+          </div>
+
+          {/* Step 2: Sub-category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Sub-category <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={subCategory}
+              onChange={handleSubCategoryChange}
+              className="w-full border rounded-md px-3 py-2"
+            >
+              <option value="">Select sub-category…</option>
+              {(DOMAIN_SUBCATEGORIES[formData.domain] ?? []).map(s => (
+                <option key={s.abbr} value={s.abbr}>{s.abbr} — {s.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Step 3: Activity Code (auto-generated, editable) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Activity Code</label>
-            <input type="text" name="code" value={formData.code} onChange={handleChange} className="w-full p-2 border rounded" placeholder="e.g. TECH-AI-001" />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                name="code"
+                value={formData.code}
+                onChange={handleChange}
+                className="flex-1 p-2 border rounded"
+                placeholder={subCategory ? `${DOMAIN_CODE_PREFIX[formData.domain]}-${subCategory}-001` : "Select domain & sub-category first"}
+                readOnly={generatingCode}
+              />
+              {subCategory && (
+                <button
+                  type="button"
+                  onClick={() => generateCode(formData.domain, subCategory)}
+                  disabled={generatingCode}
+                  title="Re-generate next available code"
+                  className="px-3 py-2 border rounded bg-gray-50 hover:bg-gray-100 text-gray-600 disabled:opacity-50"
+                >
+                  <FiRefreshCw size={14} className={generatingCode ? "animate-spin" : ""} />
+                </button>
+              )}
+            </div>
+            {subCategory && (
+              <p className="text-xs text-gray-400 mt-1">
+                Auto-generated from {DOMAIN_CODE_PREFIX[formData.domain]}-{subCategory}. You can edit it.
+              </p>
+            )}
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full p-2 border rounded" />
@@ -304,27 +460,6 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-2 border rounded" rows={3} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Domain</label>
-            <select name="domain" value={formData.domain} onChange={handleChange} className="w-full border rounded-md px-3 py-2">
-              <option value="TEC">TEC (Technical)</option>
-              <option value="LCH">LCH (Liberal Arts)</option>
-              <option value="ESO">ESO (Extension & Society)</option>
-              <option value="IIE">IIE (Innovation)</option>
-              <option value="HWB">HWB (Health & Wellbeing)</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            {role === "lead" ? (
-              <select name="category" value={formData.category} onChange={handleChange} className="w-full border rounded-md px-3 py-2">
-                <option value="" disabled>Select category…</option>
-                {assignedCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
-            ) : (
-              <input type="text" name="category" value={formData.category} onChange={handleChange} className="w-full border rounded-md px-3 py-2" placeholder="e.g. Workshop" />
-            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>

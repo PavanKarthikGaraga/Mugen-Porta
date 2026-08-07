@@ -65,6 +65,6 @@ export async function GET(request: Request) {
         return NextResponse.json({ students, total: Number(total), pages: Math.ceil(Number(total) / limit), page, domains });
     } catch (error: any) {
         console.error('Council students error:', error);
-        return NextResponse.json({ error: 'Failed to fetch students' }, { status: 500 });
+        return NextResponse.json({ error: error?.message || 'Failed to fetch students' }, { status: 500 });
     }
 }

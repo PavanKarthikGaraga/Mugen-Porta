@@ -17,10 +17,31 @@ import pool from '@/lib/db';
  */
 
 export async function getCouncilDomains(username: string): Promise<string[]> {
-    const [rows]: any = await pool.execute(
-        'SELECT assignedDomains, assignedDomain FROM council WHERE username = ?',
-        [username]
-    );
+    let rows: any[];
+    try {
+        const [r]: any = await pool.execute(
+            'SELECT assignedDomains, assignedDomain FROM council WHERE username = ?',
+            [username]
+        );
+        rows = r;
+    } catch (e: any) {
+        if (e.code === 'ER_BAD_FIELD_ERROR') {
+            // assignedDomains column not yet added — fall back to single-domain column
+            try {
+                await pool.query(`ALTER TABLE council ADD COLUMN assignedDomains JSON NULL`);
+            } catch (me: any) {
+                if (me.code !== 'ER_DUP_FIELDNAME') console.warn('council assignedDomains migration:', me.message);
+            }
+            const [r]: any = await pool.execute(
+                'SELECT assignedDomain FROM council WHERE username = ?',
+                [username]
+            );
+            rows = r;
+        } else {
+            throw e;
+        }
+    }
+
     if (!rows.length) return [];
     const row = rows[0];
 
