@@ -96,6 +96,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Database Query', href: '/dashboard/admin/dev/db-query', icon: FiDatabase },
         { name: 'Lead Activities', href: '/dashboard/admin/dev/lead-activities', icon: FiAward },
         { name: 'Reset Password', href: '/dashboard/admin/dev/reset-password', icon: FiKey },
+        { name: 'Career Roadmap Access', href: '/dashboard/admin/dev/career-roadmap', icon: FiMap },
     ];
 
     const handleLogout = async () => {
