@@ -285,6 +285,7 @@ function OptionCard({ opt, selected, onClick, disabled }: {
 }
 
 export default function CareerRoadmapPage() {
+  const [featureEnabled, setFeatureEnabled] = useState<boolean | null>(null);
   const [step, setStep] = useState<Step>("intro");
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
@@ -294,6 +295,14 @@ export default function CareerRoadmapPage() {
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [checkingCache, setCheckingCache] = useState(true);
   const otherRef = useRef<HTMLInputElement>(null);
+
+  // Check feature flag on mount
+  useEffect(() => {
+    fetch("/api/features/career-roadmap")
+      .then(r => r.json())
+      .then(d => setFeatureEnabled(d.enabled !== false))
+      .catch(() => setFeatureEnabled(true));
+  }, []);
 
   // Check for cached roadmap on mount
   useEffect(() => {
@@ -407,11 +416,21 @@ export default function CareerRoadmapPage() {
   };
 
   // ─── Cache check ───────────────────────────────────────────────────────────
-  if (checkingCache) {
+  if (featureEnabled === null || checkingCache) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <div className="w-10 h-10 rounded-full border-4 border-gray-100 border-t-red-700 animate-spin" />
         <p className="text-sm text-gray-400">Loading your roadmap…</p>
+      </div>
+    );
+  }
+
+  if (!featureEnabled) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
+        <div className="text-5xl mb-2">🚧</div>
+        <h2 className="text-[18px] font-semibold text-gray-800">This page is currently under development</h2>
+        <p className="text-[14px] text-gray-500">Please check back later!</p>
       </div>
     );
   }

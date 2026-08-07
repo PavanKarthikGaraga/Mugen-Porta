@@ -11,10 +11,13 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const domain = searchParams.get('domain');
 
+    const DEMO_ACCOUNTS = new Set(['2400000000']);
+
     // Resolve the calling student's club so we can filter by mappings
     let studentClubId: number | null = null;
     let hasMappings = false;
     let isStudent = false;
+    let isDemoAccount = false;
     try {
       const cookieStore = await cookies();
       const token = cookieStore.get('tck')?.value;
@@ -22,16 +25,20 @@ export async function GET(request: Request) {
         const decoded = await verifyToken(token);
         if (decoded && decoded.role === 'student') {
           isStudent = true;
-          const [clubRows]: any = await pool.query(
-            `SELECT clubId FROM students WHERE username = ?`, [decoded.username]
-          );
-          const clubId = clubRows[0]?.clubId;
-          if (clubId) {
-            studentClubId = clubId;
-            const [mapCount]: any = await pool.query(
-              `SELECT COUNT(*) as cnt FROM club_activity_mappings WHERE club_id = ?`, [clubId]
+          if (DEMO_ACCOUNTS.has(decoded.username as string)) {
+            isDemoAccount = true;
+          } else {
+            const [clubRows]: any = await pool.query(
+              `SELECT clubId FROM students WHERE username = ?`, [decoded.username]
             );
-            hasMappings = (mapCount[0]?.cnt || 0) > 0;
+            const clubId = clubRows[0]?.clubId;
+            if (clubId) {
+              studentClubId = clubId;
+              const [mapCount]: any = await pool.query(
+                `SELECT COUNT(*) as cnt FROM club_activity_mappings WHERE club_id = ?`, [clubId]
+              );
+              hasMappings = (mapCount[0]?.cnt || 0) > 0;
+            }
           }
         }
       }
@@ -53,8 +60,9 @@ export async function GET(request: Request) {
       params.push(domain);
     }
 
-    // If student's club has mappings, restrict to only mapped activities
-    if (studentClubId && hasMappings) {
+    // Demo account sees all activities across all domains — no club/mapper filter
+    // Regular students: if club has mappings, restrict to only mapped activities
+    if (!isDemoAccount && studentClubId && hasMappings) {
       conditions.push(`EXISTS (
         SELECT 1 FROM club_activity_mappings cam
         WHERE cam.club_id = ? AND cam.activity_code = ac.code
