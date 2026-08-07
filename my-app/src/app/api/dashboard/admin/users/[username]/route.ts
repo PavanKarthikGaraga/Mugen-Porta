@@ -25,7 +25,7 @@ export async function POST(request, { params }) {
     }
 
     try {
-        const { username } = params;
+        const { username } = await params;
         const body = await request.json();
         const { name, email, phoneNumber, year, branch, clubId, assignedClubs, assignedDomains, childClubIds, password } = body;
 
