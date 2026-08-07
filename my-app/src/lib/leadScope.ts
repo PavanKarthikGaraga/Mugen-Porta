@@ -32,7 +32,7 @@ export async function getLeadClubIds(username: string): Promise<string[]> {
     const row = rows[0];
 
     const ids = new Set<string>();
-    if (row.clubId) ids.add(row.clubId);
+    if (row.clubId != null) ids.add(String(row.clubId));
 
     if (row.childClubIds) {
         try {
@@ -41,7 +41,7 @@ export async function getLeadClubIds(username: string): Promise<string[]> {
                 : row.childClubIds;
             if (Array.isArray(parsed)) {
                 for (const id of parsed) {
-                    if (typeof id === 'string' && id) ids.add(id);
+                    if (id != null && id !== '') ids.add(String(id));
                 }
             }
         } catch { /* malformed JSON — fall back to just the parent club */ }

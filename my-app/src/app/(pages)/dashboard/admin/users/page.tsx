@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiUser, FiUsers, FiFilter, FiCopy, FiEye, FiEyeOff } from "react-icons/fi";
 import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ const DOMAIN_OPTIONS = [
     { value: 'IIE', label: 'IIE – Innovation & Entrepreneurship' },
     { value: 'HWB', label: 'HWB – Health & Wellbeing' },
     { value: 'ESO', label: 'ESO – Environment & Social' },
+    { value: 'DEPT. CLUBS', label: 'Dept. Clubs' },
 ];
 const DOMAIN_LABEL = Object.fromEntries(DOMAIN_OPTIONS.map(d => [d.value, d.label]));
 
@@ -41,6 +42,7 @@ export default function UsersPage() {
     const [editingUser, setEditingUser] = useState(null);
     const [filters, setFilters] = useState({
         role: 'all',
+        domain: 'all',
         search: ''
     });
     const [formData, setFormData] = useState({
@@ -89,12 +91,34 @@ export default function UsersPage() {
         }
     }, [formData.role, editingUser, formData.isPromotingStudent]);
 
+    // clubId → domain lookup built from the clubs list
+    const clubDomainMap = useMemo(
+        () => Object.fromEntries(clubs.map((c: any) => [String(c.id), c.domain])),
+        [clubs]
+    );
+
     // Filter users based on filters
     useEffect(() => {
         let filtered = users;
 
         if (filters.role !== 'all') {
             filtered = filtered.filter(user => user.role === filters.role);
+        }
+
+        if (filters.domain !== 'all') {
+            const d = filters.domain;
+            filtered = filtered.filter(user => {
+                if (user.role === 'lead') return clubDomainMap[String(user.clubId)] === d;
+                if (user.role === 'council') {
+                    const domains = parseArrayField(user.assignedDomains);
+                    const list = domains.length > 0 ? domains : (user.assignedDomain ? [user.assignedDomain] : []);
+                    return list.includes(d);
+                }
+                if (user.role === 'faculty') {
+                    return parseArrayField(user.assignedClubs).some((cid: any) => clubDomainMap[String(cid)] === d);
+                }
+                return false; // admin has no domain
+            });
         }
 
         if (filters.search) {
@@ -107,7 +131,7 @@ export default function UsersPage() {
         }
 
         setFilteredUsers(filtered);
-    }, [users, filters]);
+    }, [users, filters, clubDomainMap]);
 
     const fetchUsers = async () => {
         try {
@@ -462,7 +486,7 @@ export default function UsersPage() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <Label className="block text-sm font-medium mb-2">Role</Label>
                         <Select
@@ -483,6 +507,24 @@ export default function UsersPage() {
                     </div>
 
                     <div>
+                        <Label className="block text-sm font-medium mb-2">Domain</Label>
+                        <Select
+                            value={filters.domain}
+                            onValueChange={(value) => setFilters({ ...filters, domain: value })}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="All Domains" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Domains</SelectItem>
+                                {DOMAIN_OPTIONS.map(d => (
+                                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
                         <Label className="block text-sm font-medium mb-2">Search</Label>
                         <Input
                             type="text"
@@ -494,7 +536,7 @@ export default function UsersPage() {
 
                     <div className="flex items-end">
                         <Button
-                            onClick={() => setFilters({ role: 'all', search: '' })}
+                            onClick={() => setFilters({ role: 'all', domain: 'all', search: '' })}
                             variant="outline"
                         >
                             Clear Filters
