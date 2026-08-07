@@ -238,7 +238,7 @@ Generate a personalized career roadmap for this student that is specifically tai
             systemPrompt: SYSTEM_PROMPT,
             userPrompt,
             temperature: 0.6,
-            maxTokens: isDemo ? 12000 : 7000,
+            maxTokens: 7000,
         });
 
         if (!result || !result.headline || !result.careerPaths) {
@@ -408,7 +408,9 @@ Generate a personalized career roadmap for this student that is specifically tai
         console.error('Career roadmap error:', error);
         const errMsg: string = error?.message || String(error);
         if (error instanceof GroqConfigError || errMsg.includes('All AI providers failed') || errMsg.includes('No OpenRouter keys')) {
-            return NextResponse.json({ error: 'AI service is unavailable. Please contact admin.' }, { status: 503 });
+            // For demo account surface the full provider error chain so the issue can be diagnosed
+            const displayMsg = isDemo ? `AI unavailable — ${errMsg}` : 'AI service is unavailable. Please contact admin.';
+            return NextResponse.json({ error: displayMsg }, { status: 503 });
         }
         // Expose full error to demo account so issues can be diagnosed
         const displayMsg = isDemo ? errMsg : safeMessage(error);
