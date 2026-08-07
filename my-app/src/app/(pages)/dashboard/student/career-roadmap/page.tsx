@@ -556,6 +556,17 @@ export default function CareerRoadmapPage() {
       const textToSpeak = `${currentQuestion.question}. ${currentQuestion.subtitle}`;
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
       
+      // Try to find a good Indian English voice (prefer female/Veena if available)
+      const voices = window.speechSynthesis.getVoices();
+      const indianVoice = 
+        voices.find(v => v.lang.includes('en-IN') && (v.name.includes('Female') || v.name.includes('Veena'))) || 
+        voices.find(v => v.lang.includes('en-IN')) || 
+        voices.find(v => v.name.includes('Google') && v.lang.includes('en-GB'));
+        
+      if (indianVoice) {
+        utterance.voice = indianVoice;
+      }
+      
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = () => setIsSpeaking(false);
@@ -715,7 +726,7 @@ export default function CareerRoadmapPage() {
                 Discover Your Career Roadmap
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                Answer 24 questions covering your personality, learning style, and career vision — tailored for UG, PG, and PhD students across every discipline. Our AI generates a deep personalised roadmap including your Gardner intelligence profile, Bloom's taxonomy level, personality analysis, and a complete personal development plan.
+                Answer 24 questions covering your personality, learning style, and career vision — tailored for UG, PG, and PhD students across every discipline. Our AI generates a deep personalised roadmap including your Gardner intelligence profile, Bloom&apos;s taxonomy level, personality analysis, and a complete personal development plan.
               </p>
             </div>
 
@@ -1171,7 +1182,7 @@ export default function CareerRoadmapPage() {
                     <FiGrid size={14} style={{ color: BRAND }} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-gray-900 dark:text-white">Gardner's Multiple Intelligence</h2>
+                    <h2 className="text-sm font-bold text-gray-900 dark:text-white">Gardner&apos;s Multiple Intelligence</h2>
                     {roadmap.gardnerIntelligence.primary && (
                       <p className="text-[11px] text-gray-400 mt-0.5">
                         Primary: <span className="font-semibold" style={{ color: BRAND }}>{roadmap.gardnerIntelligence.primary}</span>
@@ -1214,7 +1225,7 @@ export default function CareerRoadmapPage() {
                     <FiLayers size={14} style={{ color: BRAND }} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-gray-900 dark:text-white">Bloom's Taxonomy Level</h2>
+                    <h2 className="text-sm font-bold text-gray-900 dark:text-white">Bloom&apos;s Taxonomy Level</h2>
                     {roadmap.bloomsLevel.dominantLevel && (
                       <p className="text-[11px] mt-0.5">
                         Dominant: <span className="font-bold" style={{ color: BRAND }}>{roadmap.bloomsLevel.dominantLevel}</span>
