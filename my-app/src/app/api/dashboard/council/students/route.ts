@@ -25,25 +25,26 @@ export async function GET(request: Request) {
         if (domainFilter && !domains.includes(domainFilter)) {
             return NextResponse.json({ error: 'Domain not assigned to you' }, { status: 403 });
         }
-        // Students list can be filtered domain-wise then club-wise: pick a
-        // domain first to narrow which clubs are offered, or leave it
-        // unset to see every club across all assigned domains.
+        // Scope students by selectedDomain (same field the admin page filters on),
+        // not by clubId, so students who haven't been assigned to a club yet still appear.
         const scopedDomains = domainFilter ? [domainFilter] : domains;
-
         const domainPh = scopedDomains.map(() => '?').join(',');
-        const [clubRows]: any = await pool.execute(`SELECT id FROM clubs WHERE domain IN (${domainPh})`, scopedDomains);
-        const allClubIds = (clubRows as any[]).map((c: any) => c.id as string);
-        if (!allClubIds.length) return NextResponse.json({ students: [], total: 0, pages: 0, page });
 
-        if (clubId && !allClubIds.includes(clubId)) {
-            return NextResponse.json({ error: 'Club not in your domain' }, { status: 403 });
+        const conditions: string[] = [`s.selectedDomain IN (${domainPh})`];
+        const params: any[] = [...scopedDomains];
+
+        // Optional club filter — validate the club belongs to one of the council's domains.
+        if (clubId) {
+            const [clubRows]: any = await pool.execute(
+                `SELECT id FROM clubs WHERE id = ? AND domain IN (${domainPh})`,
+                [clubId, ...scopedDomains]
+            );
+            if (!(clubRows as any[]).length) {
+                return NextResponse.json({ error: 'Club not in your domain' }, { status: 403 });
+            }
+            conditions.push('s.clubId = ?');
+            params.push(clubId);
         }
-
-        const clubsToQuery = clubId ? [clubId] : allClubIds;
-        const ph = clubsToQuery.map(() => '?').join(',');
-
-        const conditions: string[] = [`s.clubId IN (${ph})`];
-        const params: any[] = [...clubsToQuery];
 
         if (search) { conditions.push('(s.name LIKE ? OR s.username LIKE ?)'); params.push(`%${search}%`, `%${search}%`); }
         if (year) { conditions.push('s.year = ?'); params.push(year); }

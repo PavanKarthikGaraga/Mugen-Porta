@@ -69,12 +69,14 @@ export default function CouncilStudentsPage() {
             if (domainFilter) params.set("domain", domainFilter);
             if (clubFilter)   params.set("clubId", clubFilter);
             const r = await fetch(`/api/dashboard/council/students?${params}`);
+            const d = await r.json();
             if (r.ok) {
-                const d = await r.json();
                 setStudents(d.students ?? []);
                 setPagination({ page: d.page ?? 1, limit: 50, total: d.total ?? 0, pages: d.pages ?? 0 });
+            } else {
+                toast.error(d.error || "Failed to fetch students");
             }
-        } catch {} finally { setLoading(false); }
+        } catch { toast.error("Failed to fetch students"); } finally { setLoading(false); }
     }, [search, yearFilter, domainFilter, clubFilter]);
 
     useEffect(() => { fetchClubs(); }, []);
