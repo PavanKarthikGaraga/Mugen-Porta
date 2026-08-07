@@ -36,16 +36,34 @@ export async function GET(request: Request) {
     }
 }
 
-const SYSTEM_PROMPT = `You are the SAMAM Career Advisor at KL University's Student Activity Center (SAC).
-A student from any UG or PG discipline has answered a career interest questionnaire. Using their answers and academic background, generate a comprehensive, highly personalised career roadmap appropriate for their specific field — not just engineering.
+const SYSTEM_PROMPT = `You are the SAMAM Career Intelligence System at KL University's Student Activity Center (SAC).
+A student has completed a comprehensive 24-question career assessment covering personality, learning style, Gardner's Multiple Intelligence, Bloom's Taxonomy, and career vision. Analyse ALL inputs deeply and generate an accurate, highly personalised career roadmap with psychological profiling.
 
-Return ONLY a single valid JSON object — no markdown fences, no extra text — matching exactly this shape:
+Return ONLY a single valid JSON object — no markdown fences, no extra text — matching EXACTLY this shape:
 {
   "headline": string,
   "overview": string,
   "primaryDomain": string,
   "careerDirection": string,
   "personalityTraits": string[],
+  "personalityProfile": {
+    "type": "Introvert" | "Extrovert" | "Ambivert",
+    "leadershipPotential": string,
+    "communicationStyle": string,
+    "decisionMakingStyle": string,
+    "stressManagementPattern": string,
+    "motivationType": string
+  },
+  "bloomsLevel": {
+    "dominantLevel": "Remember" | "Understand" | "Apply" | "Analyze" | "Evaluate" | "Create",
+    "description": string,
+    "scores": { "Remember": number, "Understand": number, "Apply": number, "Analyze": number, "Evaluate": number, "Create": number }
+  },
+  "gardnerIntelligence": {
+    "primary": string,
+    "secondary": string,
+    "scores": { "Linguistic": number, "Logical-Mathematical": number, "Spatial": number, "Musical": number, "Bodily-Kinesthetic": number, "Interpersonal": number, "Intrapersonal": number, "Naturalistic": number }
+  },
   "careerPaths": [
     { "title": string, "description": string, "relevanceScore": number, "timeToReach": string }
   ],
@@ -85,28 +103,74 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
   ],
   "topUniversities": [
     { "name": string, "country": string, "program": string, "ranking": string, "highlights": string }
-  ]
+  ],
+  "personalDevelopmentPlan": {
+    "communication": string,
+    "leadership": string,
+    "networking": string,
+    "wellbeing": string,
+    "timeManagement": string,
+    "emotionalResilience": string
+  }
 }
 
-Rules:
-- headline: concise professional role identity suited to their field (e.g. "Product Designer & UX Researcher", "Corporate Lawyer", "Data Scientist", "Public Health Specialist", "Research Scholar in Biochemistry")
-- overview: 2-3 sentences tailored to this student's specific answers, academic discipline, and declared career direction
-- primaryDomain: exactly one of TEC / LCH / ESO / HWB / IIE based on their interests and discipline
-- careerDirection: 2-4 word summary of their primary post-graduation goal (e.g. "Industry Placement", "Research & PhD", "Creative Practice", "Professional Practice")
-- personalityTraits: 4-6 short professional traits inferred from their answers (e.g. "Analytical Thinker", "Creative Problem Solver", "Empathetic Communicator")
-- careerPaths: exactly 3, ordered by relevanceScore descending (0-100), specific to their discipline and declared direction — NOT generic engineering paths unless the student is in engineering
-- yearwiseRoadmap: year1..year4 goals/skills arrays must have 3-4 items each; samamTip is one sentence about which SAC club type to join that year; adapt to PG students where year1/year2 map to their PG timeline
-- skillsToLearn: 5-7 skills with realistic timeframes, relevant to their actual field (e.g. legal research for law, clinical skills for medicine, design tools for design students)
-- topMNCs: EXACTLY 6 real MNCs/companies/institutions that actively recruit for these career paths. For each entry: company = well-known company name; role = specific job title they hire for (e.g. "Software Engineer", "Product Manager", "Data Analyst"); avgPackageINR = realistic average CTC in India as a string (e.g. "₹12–18 LPA", "₹8–14 LPA"); avgPackageUSD = realistic average salary abroad (US/UK/Singapore/Australia) as a string (e.g. "$95K–130K/yr", "$70K–100K/yr"). Use real market data. For law include firms, for medicine include hospitals, for design include studios.
-- clubRecommendations: EXACTLY 3 clubs, chosen ONLY from the provided clubs list — use the exact club names given
-- socialImpactOpportunities: 3-4 concrete, actionable ways to create social impact using their specific strengths and field
-- motivationalMessage: 2-3 sentences, aspirational, specific to their interests, discipline, and goals
-- researchAreas: 3-4 active research or emerging areas relevant to the student's discipline and career direction; subfields should be 3-5 specific sub-topics
-- projectIdeas: EXACTLY 4 ideas in EACH of the 3 categories (software, hardware, management). Software = digital/app/web/AI projects. Hardware = physical/IoT/electronics/lab prototypes. Management = business plans, case studies, research reports, strategy documents, marketing campaigns. For non-engineering students adapt accordingly — a law student's "hardware" could be a moot court setup; a design student's "software" could be a digital portfolio platform. Make all tools real and specific; impact is one sentence on real-world value.
-- entrepreneurPaths: 4 distinct entrepreneurship areas this student could explore given their background and interests. Each has: area = startup/business domain (e.g. "EdTech Startup", "Healthcare SaaS", "Creative Agency"); description = 2 sentences on the opportunity; ideas = 3-4 concrete startup ideas or business concepts in bullet form (as strings in the array).
-- topUniversities: 5-7 globally or nationally reputed universities for Masters/PhD/professional programmes matching student interests; include both global (Harvard, LSE, MIT, NUS, Parsons, etc.) and Indian (IISc, NLSIU, AIIMS, NID, IIM, etc.) options as appropriate to the field; ranking like "#3 in Law (QS 2024)"
-- Do not invent club names. Do not use clubs not in the provided list.
-- IMPORTANT: All recommendations must respect the student's actual academic discipline. A law student gets legal career paths; a design student gets creative career paths; a commerce student gets finance/business paths. Never force engineering-centric advice on non-engineering students.`;
+ANALYSIS RULES — read carefully and apply every rule:
+
+PERSONALITY PROFILE (derive from Q6 happiness, Q7 stress response, Q8 personality type, Q20 team role, Q11 career motivation):
+- type: Use Q8 answer directly (Introvert/Extrovert/Ambivert)
+- leadershipPotential: "High" if team leader role + competitive activities + leadership motivation; "Medium" if planner/organizer; "Low" if technical/supporter preference
+- communicationStyle: infer from Q8 type + Q5 free time + Q19 campus activities (e.g. "Collaborative & Expressive", "Reserved but Precise", "Assertive & Persuasive")
+- decisionMakingStyle: infer from Q7 stress + Q15 problem approach (e.g. "Analytical & Methodical", "Intuitive & Fast", "Consultative")
+- stressManagementPattern: infer directly from Q7 answer (e.g. "Social Processor — talks through stress with others", "Reflective Introvert — withdraws and self-processes")
+- motivationType: infer from Q6 + Q11 (e.g. "Impact-Driven", "Achievement-Oriented", "Financially Motivated", "Passion-Led")
+
+BLOOM'S TAXONOMY (derive from Q13 learning style, Q14 learning preference, Q15 problem approach, Q16 self-statement):
+- dominantLevel: the Bloom's level that most accurately matches all 4 learning-style answers combined
+- description: 2-3 sentences on what this level means for their learning and career approach
+- scores: assign % scores (0-100) to all 6 levels based on the pattern of their answers. Higher earlier levels (Remember, Understand) score high if they prefer memorizing/understanding. Higher levels (Analyze, Evaluate, Create) score high if they prefer design/experiment. Scores should add up to approximately 300-400 total across all 6 (each level is independent, not a slice of 100%)
+
+GARDNER'S INTELLIGENCE (derive STRICTLY from Q4 activities enjoyed, Q5 free time, Q17 exciting activities):
+Gardner scoring guide — map each activity to an intelligence:
+- Linguistic: Writing stories, Learning languages, Reading books, Writing content, Making videos
+- Logical-Mathematical: Solving puzzles, Mathematics, Coding, Solving problems, Research
+- Spatial: Drawing, Photography, Designing things, Graphic design
+- Musical: Playing instrument, Singing, Listening to music, Music
+- Bodily-Kinesthetic: Dancing, Sports, Building hardware, Building machines, Cooking
+- Interpersonal: Teaching, Team leadership, Public speaking, Helping people, Organizing events, Meeting friends, Speaking
+- Intrapersonal: Meditation, Self-reflection/Journaling, Stay alone/Reflect, Write thoughts
+- Naturalistic: Gardening, Wildlife, Gardening/Nature, Appreciating nature
+Score each 0-100 based on how many activities map to it (count matches, normalize to 0-100). primary = highest score. secondary = second highest.
+
+CAREER ALIGNMENT:
+- careerPaths: exactly 3, ordered by relevanceScore descending. Derive from Q10 (5-year goal), Q21 (post-grad plan), Q12 (career values), Q23 (org attraction). Must be field-specific — NOT generic engineering unless student is in engineering.
+- relevanceScore: calculate based on how many of their answers point to this path (use 0-100)
+
+BLOOM'S + GARDNER CROSS-ANALYSIS for careerPaths and projectIdeas:
+- If dominant Bloom's = Create/Evaluate + dominant Gardner = Logical/Spatial → strong tech/engineering career signal
+- If dominant Bloom's = Apply/Analyze + dominant Gardner = Interpersonal/Linguistic → strong management/law/communication signal
+- If dominant Gardner = Musical/Bodily-Kinesthetic → creative/performing arts signal
+- Use this cross-analysis to make project ideas more accurate
+
+STANDARD RULES:
+- headline: concise role identity (e.g. "Full-Stack Developer & AI Enthusiast", "Corporate Lawyer", "UX Designer", "Clinical Researcher")
+- overview: 3-4 sentences referencing their specific answers — mention their personality type, Gardner primary intelligence, and career direction. Very specific, not generic.
+- primaryDomain: exactly one of TEC / LCH / ESO / HWB / IIE
+- careerDirection: 2-4 word summary (e.g. "Industry Placement", "Research & PhD", "Creative Practice")
+- personalityTraits: 4-6 professional traits derived from the full 24-question analysis
+- yearwiseRoadmap: 3-4 goals and skills per year; samamTip references specific SAC club types; adapt for PG students
+- skillsToLearn: 5-7 skills, highly specific to their field and Gardner/Bloom's profile
+- topMNCs: EXACTLY 6 real companies; role = specific job title; INR package = "₹X–Y LPA"; USD = "$XK–YK/yr". Use real market data. Field-appropriate (hospitals for medicine, law firms for law, etc.)
+- clubRecommendations: EXACTLY 3 from provided clubs list only — exact names. Reason must link to their Gardner/personality profile.
+- socialImpactOpportunities: 3-4 actionable ways using their specific strengths
+- motivationalMessage: 2-3 sentences, cite their specific personality type and primary intelligence
+- researchAreas: 3-4 areas, field-specific; subfields 3-5 each
+- projectIdeas: EXACTLY 4 per category. Software = digital/app/AI/web. Hardware = physical/IoT/lab/electronics. Management = business plan/case study/campaign/strategy. Adapt for non-engineering (law student hardware = moot court setup; design student software = portfolio platform). Real tools only.
+- entrepreneurPaths: 4 areas; description 2 sentences; ideas = 3-4 concrete business concepts
+- topUniversities: 5-7 universities; mix Indian (IISc, NID, IIM, NLSIU, AIIMS) and global (MIT, Stanford, Harvard, LSE, NUS); field-appropriate
+- personalDevelopmentPlan: 6 areas each with 3-4 actionable, specific recommendations. Must account for their stress management pattern, personality type, and Gardner intelligence. Communication = specific to their intro/extrovert type. Leadership = based on their current team role. Networking = actionable for their field and location. Wellbeing = matched to their stress coping Q7. TimeManagement = matched to their learning style. EmotionalResilience = based on their confidence score and motivation type.
+- Do NOT invent club names. Only use clubs from the provided list.
+- CRITICAL: Respect every student's actual academic discipline at all times.`;
+
 
 export async function POST(request: Request) {
     const auth = await requireAuth(['student']);
@@ -176,14 +240,52 @@ Generate a personalized career roadmap for this student that is specifically tai
         }
 
         // Sanitize
+        const sanitizeStr = (v: any, max = 300) => String(v || '').slice(0, max);
         const roadmap = {
-            headline: String(result.headline || '').slice(0, 100),
-            overview: String(result.overview || '').slice(0, 600),
-            primaryDomain: String(result.primaryDomain || 'TEC'),
-            careerDirection: String(result.careerDirection || '').slice(0, 60),
+            headline: sanitizeStr(result.headline, 100),
+            overview: sanitizeStr(result.overview, 800),
+            primaryDomain: sanitizeStr(result.primaryDomain || 'TEC', 5),
+            careerDirection: sanitizeStr(result.careerDirection, 60),
             personalityTraits: Array.isArray(result.personalityTraits)
-                ? result.personalityTraits.slice(0, 6).map((t: any) => String(t).slice(0, 60))
+                ? result.personalityTraits.slice(0, 6).map((t: any) => sanitizeStr(t, 60))
                 : [],
+            personalityProfile: (() => {
+                const pp = result.personalityProfile || {};
+                return {
+                    type: ['Introvert', 'Extrovert', 'Ambivert'].includes(pp.type) ? pp.type : 'Ambivert',
+                    leadershipPotential: sanitizeStr(pp.leadershipPotential, 100),
+                    communicationStyle:  sanitizeStr(pp.communicationStyle, 150),
+                    decisionMakingStyle: sanitizeStr(pp.decisionMakingStyle, 150),
+                    stressManagementPattern: sanitizeStr(pp.stressManagementPattern, 200),
+                    motivationType: sanitizeStr(pp.motivationType, 100),
+                };
+            })(),
+            bloomsLevel: (() => {
+                const bl = result.bloomsLevel || {};
+                const BLOOM_LEVELS = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
+                const scores: Record<string, number> = {};
+                for (const lvl of BLOOM_LEVELS) {
+                    scores[lvl] = Math.min(100, Math.max(0, Number(bl.scores?.[lvl]) || 0));
+                }
+                return {
+                    dominantLevel: BLOOM_LEVELS.includes(bl.dominantLevel) ? bl.dominantLevel : 'Apply',
+                    description: sanitizeStr(bl.description, 300),
+                    scores,
+                };
+            })(),
+            gardnerIntelligence: (() => {
+                const gi = result.gardnerIntelligence || {};
+                const GARDNER_TYPES = ['Linguistic', 'Logical-Mathematical', 'Spatial', 'Musical', 'Bodily-Kinesthetic', 'Interpersonal', 'Intrapersonal', 'Naturalistic'];
+                const scores: Record<string, number> = {};
+                for (const t of GARDNER_TYPES) {
+                    scores[t] = Math.min(100, Math.max(0, Number(gi.scores?.[t]) || 0));
+                }
+                return {
+                    primary: sanitizeStr(gi.primary, 50),
+                    secondary: sanitizeStr(gi.secondary, 50),
+                    scores,
+                };
+            })(),
             careerPaths: Array.isArray(result.careerPaths)
                 ? result.careerPaths.slice(0, 3).map((p: any) => ({
                     title: String(p.title || '').slice(0, 80),
@@ -263,13 +365,24 @@ Generate a personalized career roadmap for this student that is specifically tai
                 : [],
             topUniversities: Array.isArray(result.topUniversities)
                 ? result.topUniversities.slice(0, 7).map((u: any) => ({
-                    name: String(u.name || '').slice(0, 100),
-                    country: String(u.country || '').slice(0, 50),
-                    program: String(u.program || '').slice(0, 100),
-                    ranking: String(u.ranking || '').slice(0, 50),
-                    highlights: String(u.highlights || '').slice(0, 200),
+                    name: sanitizeStr(u.name, 100),
+                    country: sanitizeStr(u.country, 50),
+                    program: sanitizeStr(u.program, 100),
+                    ranking: sanitizeStr(u.ranking, 50),
+                    highlights: sanitizeStr(u.highlights, 200),
                 }))
                 : [],
+            personalDevelopmentPlan: (() => {
+                const pdp = result.personalDevelopmentPlan || {};
+                return {
+                    communication:       sanitizeStr(pdp.communication, 400),
+                    leadership:          sanitizeStr(pdp.leadership, 400),
+                    networking:          sanitizeStr(pdp.networking, 400),
+                    wellbeing:           sanitizeStr(pdp.wellbeing, 400),
+                    timeManagement:      sanitizeStr(pdp.timeManagement, 400),
+                    emotionalResilience: sanitizeStr(pdp.emotionalResilience, 400),
+                };
+            })(),
         };
 
         // Save to cache (upsert — overwrites on retake)

@@ -42,199 +42,419 @@ const DIFFICULTY_STYLE: Record<string, string> = {
 interface Option { label: string; sub?: string; icon: string; }
 interface Question {
   id: string; question: string; subtitle: string;
-  type: "single" | "multi"; max?: number;
-  options: Option[]; hasOther?: boolean;
+  type: "single" | "multi" | "text" | "scale"; max?: number;
+  options?: Option[]; hasOther?: boolean;
+  section?: string; placeholder?: string;
 }
 
 const QUESTIONS: Question[] = [
+  // ── SECTION 1: Student Profile ──────────────────────────────────────────────
   {
-    id: "academicStage",
+    id: "academicStage", section: "Section 1 · Student Profile",
     question: "What stage of your academic journey are you currently at?",
-    subtitle: "This helps calibrate your roadmap to where you are right now — not just where you want to go",
+    subtitle: "This helps calibrate your roadmap to where you are right now",
     type: "single",
     options: [
-      { label: "UG — Early Years (1st or 2nd Year)", sub: "Still exploring, building foundations and discovering interests", icon: "book" },
-      { label: "UG — Final Years (3rd or 4th Year)", sub: "Preparing for placements, higher studies or entrepreneurship", icon: "layers" },
-      { label: "Postgraduate — 1st Year (PG / MBA / MS / LLM)", sub: "Deepening expertise, expanding professional networks", icon: "trending" },
-      { label: "Postgraduate — Final Year (completing project or thesis)", sub: "Finishing up and transitioning into career or doctoral work", icon: "award" },
-      { label: "Pursuing PhD / Research Programme", sub: "Full-time research, publications, and academic advancement", icon: "search" },
-      { label: "Completed degree — planning next steps", sub: "Evaluating options for career, further study or a new direction", icon: "flag" },
+      { label: "UG – 1st Year", icon: "book" },
+      { label: "UG – 2nd Year", icon: "book" },
+      { label: "UG – 3rd Year", icon: "layers" },
+      { label: "UG – 4th Year", icon: "layers" },
+      { label: "PG – 1st Year", icon: "award" },
+      { label: "PG – Final Year", icon: "award" },
+      { label: "PhD / Research Scholar", icon: "search" },
     ],
   },
   {
     id: "academicField",
-    question: "Which broad academic field best describes your area of study?",
-    subtitle: "Choose the discipline that reflects your primary degree or specialisation",
+    question: "Which academic field are you studying?",
+    subtitle: "Choose the discipline that best reflects your degree programme",
     type: "single", hasOther: true,
     options: [
-      { label: "Engineering & Technology", sub: "CS, ECE, Mechanical, Civil, EEE, Chemical, IT and related branches", icon: "cpu" },
-      { label: "Sciences", sub: "Physics, Chemistry, Mathematics, Biology, Biotechnology, Statistics", icon: "layers" },
-      { label: "Arts, Humanities & Social Sciences", sub: "Literature, History, Philosophy, Psychology, Sociology, Political Science", icon: "feather" },
-      { label: "Commerce, Economics & Finance", sub: "B.Com, Economics, Accounting, Banking, Finance, Actuarial Science", icon: "trending" },
-      { label: "Management & Business Administration", sub: "BBA, MBA, Operations, Marketing, HR, Strategy", icon: "briefcase" },
-      { label: "Law & Legal Studies", sub: "LLB, LLM, Corporate Law, Criminal Law, Constitutional Law", icon: "shield" },
-      { label: "Medicine, Pharmacy & Health Sciences", sub: "MBBS, BDS, Nursing, Pharmacy, Public Health, Allied Health", icon: "heart" },
-      { label: "Design, Architecture & Fine Arts", sub: "UI/UX, Fashion, Interior, Graphic Design, Fine Arts, Architecture", icon: "edit" },
-      { label: "Agriculture, Environment & Life Sciences", sub: "Agri, Horticulture, Environmental Science, Food Technology", icon: "activity" },
-      { label: "Education & Teacher Training", sub: "B.Ed, M.Ed, Early Childhood Education, Educational Technology", icon: "users" },
+      { label: "Engineering & Technology", icon: "cpu" },
+      { label: "Sciences", icon: "layers" },
+      { label: "Management", icon: "briefcase" },
+      { label: "Commerce", icon: "trending" },
+      { label: "Arts & Humanities", icon: "feather" },
+      { label: "Law", icon: "shield" },
+      { label: "Pharmacy", icon: "heart" },
+      { label: "Medicine", icon: "heart" },
+      { label: "Agriculture", icon: "activity" },
+      { label: "Design", icon: "edit" },
+      { label: "Architecture", icon: "home" },
+      { label: "Education", icon: "users" },
     ],
   },
   {
-    id: "careerDirection",
-    question: "What is your primary ambition after graduation?",
-    subtitle: "Select up to 2 — many students have dual goals, and that's completely valid",
-    type: "multi", max: 2, hasOther: true,
+    id: "branchSpecialization",
+    question: "Which branch / specialization are you in?",
+    subtitle: "E.g. Computer Science, Mechanical Engineering, MBA Finance, LLB, MBBS, B.Des — be specific",
+    type: "text", placeholder: "Type your branch or specialization…",
+  },
+
+  // ── SECTION 2: Personality & Interests ──────────────────────────────────────
+  {
+    id: "activitiesEnjoy", section: "Section 2 · Personality & Interests",
+    question: "Which activities do you genuinely enjoy?",
+    subtitle: "Select all that apply — the more honest you are, the better your roadmap",
+    type: "multi", max: 8, hasOther: true,
     options: [
-      { label: "Industry / Corporate Career", sub: "Top companies, MNCs, or sector-specific professional roles", icon: "briefcase" },
-      { label: "Higher Education (Masters or PG)", sub: "MS, MTech, MBA, LLM, MD, MFA — in India or abroad", icon: "globe" },
-      { label: "Research & PhD / Academia", sub: "Scientific labs, universities, frontier academic research", icon: "search" },
-      { label: "Entrepreneurship & Startups", sub: "Build your own product, service, or venture from scratch", icon: "trending" },
-      { label: "Government, Civil Services & Public Sector", sub: "UPSC, PSUs, defence, judiciary, policy-making institutions", icon: "shield" },
-      { label: "Social Impact, NGOs & Development Work", sub: "Grassroots change, international development, community work", icon: "heart" },
-      { label: "Creative or Freelance Profession", sub: "Writer, designer, artist, filmmaker, consultant, independent creator", icon: "feather" },
-      { label: "Professional Practice", sub: "Doctor, lawyer, CA, architect or licensed independent practitioner", icon: "award" },
+      { label: "Solving problems", icon: "layers" },
+      { label: "Designing things", icon: "edit" },
+      { label: "Drawing", icon: "feather" },
+      { label: "Coding", icon: "code" },
+      { label: "Speaking / Presenting", icon: "users" },
+      { label: "Teaching others", icon: "users" },
+      { label: "Organizing events", icon: "list" },
+      { label: "Music", icon: "star" },
+      { label: "Dance", icon: "activity" },
+      { label: "Photography", icon: "grid" },
+      { label: "Sports", icon: "activity" },
+      { label: "Reading books", icon: "book" },
+      { label: "Travelling", icon: "globe" },
+      { label: "Gaming", icon: "grid" },
+      { label: "Helping people", icon: "heart" },
+      { label: "Writing", icon: "feather" },
+      { label: "Research", icon: "search" },
+      { label: "Building hardware", icon: "cpu" },
+      { label: "Starting businesses", icon: "trending" },
+      { label: "Making videos / content", icon: "flag" },
+      { label: "Cooking", icon: "heart" },
+      { label: "Gardening / Nature", icon: "activity" },
     ],
   },
   {
-    id: "workEnvironment",
-    question: "What type of work environment makes you perform at your best?",
-    subtitle: "Select up to 2 environments where you genuinely thrive",
-    type: "multi", max: 2, hasOther: true,
-    options: [
-      { label: "Research Lab, Hospital or University", sub: "Deep focus, intellectual rigour, structured academic or clinical culture", icon: "search" },
-      { label: "Fast-Paced Tech or Creative Startup", sub: "Rapid iteration, high ownership, lean and agile teams", icon: "trending" },
-      { label: "Large Corporate Organisation or MNC", sub: "Structured growth, global scale, defined career tracks", icon: "briefcase" },
-      { label: "Field Work, Courtroom or Community", sub: "On-ground, client-facing, real-world professional settings", icon: "heart" },
-      { label: "Remote or Independent / Freelance Work", sub: "Consulting, solo practice, location-independent flexibility", icon: "globe" },
-      { label: "Government or Public Institution", sub: "Stability, public mandate, structured regulated environment", icon: "shield" },
-      { label: "Creative Studio or Design Agency", sub: "Collaborative creative culture, portfolio-driven, client projects", icon: "edit" },
-    ],
-  },
-  {
-    id: "coreSkills",
-    question: "Which skills are you actively investing time in right now?",
-    subtitle: "Select up to 3 areas where you are genuinely building depth and expertise",
+    id: "freeTime",
+    question: "During your free time, what do you usually do?",
+    subtitle: "Select up to 3 — your leisure habits reveal your dominant intelligences",
     type: "multi", max: 3, hasOther: true,
     options: [
-      { label: "Programming & Software Development", sub: "Web, mobile, backend systems, cloud, DevOps, algorithms", icon: "code" },
-      { label: "Data Analysis, AI & Research Methods", sub: "Statistics, ML, Python, R, data-driven decision making", icon: "chart" },
-      { label: "Creative & Content Writing", sub: "Journalism, copywriting, scriptwriting, blogging, academic writing", icon: "feather" },
-      { label: "Design, UI/UX & Visual Communication", sub: "Figma, Adobe suite, graphic design, user research, branding", icon: "edit" },
-      { label: "Business, Finance & Entrepreneurship", sub: "Financial modelling, go-to-market strategy, pitching, accounting", icon: "trending" },
-      { label: "Legal Research & Advocacy", sub: "Case analysis, drafting, moot courts, policy research", icon: "shield" },
-      { label: "Clinical, Medical & Healthcare Skills", sub: "Patient care, diagnostics, pharmacology, public health practice", icon: "heart" },
-      { label: "Research, Lab & Scientific Skills", sub: "Experiments, literature reviews, technical papers, lab protocols", icon: "search" },
-      { label: "Leadership, Communication & Management", sub: "Team coordination, stakeholder management, project planning", icon: "users" },
-      { label: "Teaching, Facilitation & Mentoring", sub: "Curriculum design, coaching, tutoring, training delivery", icon: "star" },
-      { label: "Marketing, Branding & Social Media", sub: "Digital campaigns, SEO, content strategy, community building", icon: "globe" },
-      { label: "Hardware, Electronics & Engineering", sub: "Circuit design, CAD, embedded systems, manufacturing, IoT", icon: "cpu" },
+      { label: "Watch YouTube / OTT", icon: "flag" },
+      { label: "Read Books", icon: "book" },
+      { label: "Meet Friends", icon: "users" },
+      { label: "Play Sports", icon: "activity" },
+      { label: "Listen to Music", icon: "star" },
+      { label: "Learn New Skills", icon: "zap" },
+      { label: "Create Content", icon: "edit" },
+      { label: "Coding", icon: "code" },
+      { label: "Sleep / Rest", icon: "home" },
+      { label: "Travel", icon: "globe" },
+      { label: "Social Media", icon: "grid" },
+      { label: "Volunteer / Social Work", icon: "heart" },
     ],
   },
   {
-    id: "academicStrength",
-    question: "Where do you consistently perform strongest academically?",
-    subtitle: "Select up to 2 — your combination of strengths shapes your unique career edge",
-    type: "multi", max: 2, hasOther: true,
+    id: "happiness",
+    question: "What makes you feel happiest?",
+    subtitle: "Choose the one that resonates most deeply — this is your core emotional motivator",
+    type: "single", hasOther: true,
     options: [
-      { label: "Quantitative Analysis & Problem Solving", sub: "Maths, logic, algorithms, numerical reasoning, modelling", icon: "layers" },
-      { label: "Writing, Expression & Storytelling", sub: "Essays, reports, creative writing, persuasive communication", icon: "feather" },
-      { label: "Hands-On Projects & Applied Work", sub: "Learning by doing, building, experimenting from real results", icon: "settings" },
-      { label: "Theory, Concepts & Foundational Depth", sub: "Deep grasp of underlying principles, frameworks and abstractions", icon: "book" },
-      { label: "Research, Investigation & Critical Analysis", sub: "Literature review, hypothesis testing, structured inquiry", icon: "search" },
-      { label: "Creative & Design Thinking", sub: "Visual communication, aesthetics, ideation, user-centred design", icon: "edit" },
-      { label: "Presenting, Persuading & Public Speaking", sub: "Articulating ideas confidently to technical and general audiences", icon: "users" },
+      { label: "Solving difficult problems", icon: "layers" },
+      { label: "Helping people", icon: "heart" },
+      { label: "Winning competitions", icon: "award" },
+      { label: "Creating something new", icon: "zap" },
+      { label: "Appreciating nature", icon: "activity" },
+      { label: "Performing on stage", icon: "star" },
+      { label: "Spending time with family", icon: "home" },
+      { label: "Learning something new", icon: "book" },
+      { label: "Earning money", icon: "trending" },
+      { label: "Leading a team", icon: "users" },
     ],
   },
   {
-    id: "problemSolving",
-    question: "When you face a difficult challenge — any kind — you instinctively…",
-    subtitle: "Select up to 2 that feel most natural. This could be academic, creative, social, emotional, or professional challenges",
-    type: "multi", max: 2, hasOther: true,
+    id: "stressResponse",
+    question: "When you feel stressed, what do you usually do?",
+    subtitle: "This reveals your emotional intelligence and coping style",
+    type: "single", hasOther: true,
     options: [
-      { label: "Research and gather information first", sub: "Understand the context fully before committing to any course of action", icon: "search" },
-      { label: "Try something quickly and learn from results", sub: "Rapid experimentation, iteration, and adjusting based on real feedback", icon: "zap" },
-      { label: "Break it down into a structured plan", sub: "Map out the steps clearly and execute with consistency", icon: "list" },
-      { label: "Talk to people and gather perspectives", sub: "Others' insights, experiences and views lead to better outcomes", icon: "users" },
-      { label: "Focus on the real-world impact first", sub: "Start from who is affected and what actually matters to them", icon: "heart" },
-      { label: "Step back and reframe the whole problem", sub: "Challenge the assumptions, look for fresh angles, think laterally", icon: "layers" },
-      { label: "Trust your instincts and act decisively", sub: "Intuition built from experience — commit and course-correct if needed", icon: "target" },
-      { label: "Seek inspiration from unrelated fields", sub: "Cross-disciplinary thinking — solutions often come from unexpected places", icon: "feather" },
+      { label: "Talk with friends", icon: "users" },
+      { label: "Talk with family", icon: "home" },
+      { label: "Stay alone / Reflect", icon: "user" },
+      { label: "Listen to music", icon: "star" },
+      { label: "Exercise / Sports", icon: "activity" },
+      { label: "Pray / Meditate", icon: "heart" },
+      { label: "Sleep", icon: "home" },
+      { label: "Watch movies / shows", icon: "flag" },
+      { label: "Play games", icon: "grid" },
+      { label: "Write my thoughts", icon: "feather" },
+      { label: "Work harder / Stay busy", icon: "zap" },
     ],
   },
   {
-    id: "campusInvolvement",
-    question: "What best describes your engagement beyond the classroom?",
-    subtitle: "Select up to 3 — your extracurricular identity shapes your career trajectory",
-    type: "multi", max: 3, hasOther: true,
+    id: "personalityType",
+    question: "Which describes you best?",
+    subtitle: "Introvert, Extrovert, or Ambivert — this shapes your ideal work environment",
+    type: "single",
     options: [
-      { label: "Competitive Coding, Hackathons & Tech Events", sub: "Algorithmic contests, open-source contributions, build events", icon: "code" },
-      { label: "Research Internships & Academic Projects", sub: "Lab work, faculty collaborations, published or presented work", icon: "search" },
-      { label: "Debate, MUNs & Public Speaking", sub: "Policy discussions, competitive speaking, argumentation, MUN", icon: "shield" },
-      { label: "Cultural Clubs, Arts & Creative Expression", sub: "Music, dance, drama, filmmaking, writing, media production", icon: "star" },
-      { label: "Volunteering, NSS & Social Initiatives", sub: "Community outreach, NGO work, development and welfare programmes", icon: "heart" },
-      { label: "Sports, Athletics & Physical Fitness", sub: "Competitive or recreational sports, coaching, fitness training", icon: "activity" },
-      { label: "Startup, Business & Entrepreneurship Clubs", sub: "Business planning, investor pitches, incubation and ideation", icon: "trending" },
-      { label: "Student Governance & Leadership Roles", sub: "Student council, club leadership, event management, mentorship", icon: "users" },
+      { label: "I enjoy meeting many people — I recharge socially", sub: "Extrovert", icon: "users" },
+      { label: "I enjoy spending time alone — I recharge in solitude", sub: "Introvert", icon: "user" },
+      { label: "I enjoy both equally depending on context", sub: "Ambivert", icon: "grid" },
+    ],
+  },
+
+  // ── SECTION 3: Dreams & Career Vision ───────────────────────────────────────
+  {
+    id: "childhoodDream", section: "Section 3 · Dreams & Career Vision",
+    question: "What was your childhood dream or aspiration?",
+    subtitle: "Even if it has changed — childhood dreams often reveal your deepest values and strengths",
+    type: "text", placeholder: "e.g. Astronaut, Teacher, Doctor, Game developer, Singer…",
+  },
+  {
+    id: "fiveYearCareer",
+    question: "What would you like to become in the next five years?",
+    subtitle: "Pick the role that feels most aligned with where you're heading right now",
+    type: "single", hasOther: true,
+    options: [
+      { label: "Software Engineer", icon: "code" },
+      { label: "AI / ML Engineer", icon: "cpu" },
+      { label: "Scientist / Researcher", icon: "search" },
+      { label: "Entrepreneur / Founder", icon: "trending" },
+      { label: "IAS / IPS / Civil Servant", icon: "shield" },
+      { label: "Doctor / Healthcare Professional", icon: "heart" },
+      { label: "Professor / Educator", icon: "users" },
+      { label: "Research Scholar", icon: "book" },
+      { label: "Artist / Creative Professional", icon: "star" },
+      { label: "Business Leader", icon: "briefcase" },
+      { label: "Lawyer", icon: "shield" },
+      { label: "Chartered Accountant", icon: "chart" },
+      { label: "Social Entrepreneur", icon: "heart" },
     ],
   },
   {
     id: "careerMotivation",
-    question: "What do you value most in a career?",
-    subtitle: "Select your top 2 motivators — knowing what drives you is the foundation of a fulfilling path",
-    type: "multi", max: 2, hasOther: true,
-    options: [
-      { label: "Financial Growth & Long-Term Stability", sub: "Compensation, wealth creation, economic security for family", icon: "trending" },
-      { label: "Intellectual Challenge & Continuous Learning", sub: "Hard problems, deep expertise, always growing", icon: "book" },
-      { label: "Innovation, Creation & Building New Things", sub: "Products, solutions, systems or art created from scratch", icon: "zap" },
-      { label: "Recognition, Prestige & Career Status", sub: "Brand-name employers, professional reputation, respect in field", icon: "award" },
-      { label: "Meaningful Social or Community Impact", sub: "Work that directly improves lives, communities or society", icon: "heart" },
-      { label: "Creative Freedom & Artistic Expression", sub: "Space to create, design, perform or write on your own terms", icon: "feather" },
-      { label: "Work-Life Balance & Personal Wellbeing", sub: "Sustainable pace, time for family and self, holistic fulfilment", icon: "user" },
-    ],
-  },
-  {
-    id: "collaborationStyle",
-    question: "How do you prefer working with others?",
-    subtitle: "Select up to 2 — most people thrive in a combination of working styles",
-    type: "multi", max: 2, hasOther: true,
-    options: [
-      { label: "Independently with full ownership", sub: "Deep focus, self-directed outcomes, minimal oversight", icon: "user" },
-      { label: "In collaborative cross-functional teams", sub: "Diverse expertise, shared goals, open and flat team culture", icon: "users" },
-      { label: "Leading and guiding a small team", sub: "Mentoring, setting direction, driving results through others", icon: "target" },
-      { label: "In a structured, process-driven environment", sub: "Clear roles, defined responsibilities, predictable workflows", icon: "list" },
-      { label: "Adaptable across all working styles", sub: "Flexible, context-aware, switches between modes fluidly", icon: "grid" },
-      { label: "With clients, patients or external stakeholders", sub: "Consulting, counselling, advising, client-relationship management", icon: "globe" },
-    ],
-  },
-  {
-    id: "locationPreference",
-    question: "Where do you see your career taking root in the next 3–5 years?",
-    subtitle: "Geography is a real career constraint — being honest here leads to a more actionable roadmap",
-    type: "single",
-    options: [
-      { label: "My home city or state", sub: "Strong family ties or community roots, preferring local opportunities", icon: "home" },
-      { label: "A major Indian metro", sub: "Mumbai, Delhi, Bengaluru, Hyderabad, Chennai, Pune or Kolkata", icon: "pin" },
-      { label: "Studying or working abroad", sub: "International exposure — US, UK, Europe, Canada, Australia or Asia", icon: "globe" },
-      { label: "Fully remote or location-independent", sub: "Work from anywhere — freelance, digital nomad, remote roles", icon: "grid" },
-      { label: "A rural or underserved region", sub: "Community impact, government postings, ground-level development work", icon: "heart" },
-      { label: "Open — wherever the best opportunity is", sub: "No strong preference, highly mobile and adaptable to context", icon: "flag" },
-    ],
-  },
-  {
-    id: "fiveYearVision",
-    question: "In five years, what would you like to be recognised as?",
-    subtitle: "Visualise your ideal professional identity — be aspirational and specific",
+    question: "Why do you want this career?",
+    subtitle: "The reason behind your goal matters as much as the goal itself",
     type: "single", hasOther: true,
     options: [
-      { label: "A specialist at a leading organisation in my field", sub: "Senior professional building things that matter at scale", icon: "briefcase" },
-      { label: "A published researcher or PhD scholar", sub: "Advancing the frontier of knowledge in your discipline", icon: "search" },
-      { label: "A founder of an impactful venture or practice", sub: "Startup, social enterprise, law firm, clinic or creative studio", icon: "trending" },
-      { label: "A creative professional with an established portfolio", sub: "Writer, designer, artist, filmmaker or performer — known for your work", icon: "feather" },
-      { label: "A licensed professional in independent practice", sub: "Doctor, lawyer, CA, architect or consultant with your own clients", icon: "award" },
-      { label: "An expert with significant international exposure", sub: "Working or studying at a top global institution or organisation", icon: "globe" },
-      { label: "A leader shaping policy or driving social change", sub: "Government institution, NGO, civil services or public advocacy", icon: "shield" },
-      { label: "A mentor, teacher or domain expert guiding others", sub: "Professor, trainer, coach or senior consultant developing the next generation", icon: "users" },
+      { label: "Passion — I genuinely love this field", icon: "heart" },
+      { label: "Good salary / Financial security", icon: "trending" },
+      { label: "Family expectation / Family dream", icon: "home" },
+      { label: "Social respect and recognition", icon: "award" },
+      { label: "Job security / Stability", icon: "shield" },
+      { label: "Opportunity to help society", icon: "users" },
+      { label: "Innovation and creating new things", icon: "zap" },
+      { label: "Personal interest and curiosity", icon: "search" },
     ],
+  },
+  {
+    id: "careerValues",
+    question: "What matters most in your future career?",
+    subtitle: "Choose your top TWO priorities — these define the kind of career that will truly fulfil you",
+    type: "multi", max: 2,
+    options: [
+      { label: "High Salary", icon: "trending" },
+      { label: "Job Security", icon: "shield" },
+      { label: "Creativity", icon: "edit" },
+      { label: "Innovation", icon: "zap" },
+      { label: "Leadership", icon: "users" },
+      { label: "Social Impact", icon: "heart" },
+      { label: "Research", icon: "search" },
+      { label: "Freedom / Autonomy", icon: "globe" },
+      { label: "Recognition", icon: "award" },
+      { label: "Work-Life Balance", icon: "home" },
+    ],
+  },
+
+  // ── SECTION 4: Learning Style ────────────────────────────────────────────────
+  {
+    id: "learningStyle", section: "Section 4 · Learning Style",
+    question: "How do you learn best?",
+    subtitle: "Choose what genuinely works for you, not what you think you should say",
+    type: "single",
+    options: [
+      { label: "Reading textbooks / articles", icon: "book" },
+      { label: "Watching videos / tutorials", icon: "flag" },
+      { label: "Doing hands-on projects", icon: "settings" },
+      { label: "Listening to lectures", icon: "users" },
+      { label: "Group discussion & debate", icon: "grid" },
+      { label: "Teaching / explaining to others", icon: "star" },
+      { label: "Trial and error / experimenting", icon: "zap" },
+    ],
+  },
+  {
+    id: "bloomsLevel",
+    question: "When learning something new, you prefer to…",
+    subtitle: "This maps your cognitive preference to Bloom's Taxonomy — a key indicator of your learning depth",
+    type: "single",
+    options: [
+      { label: "Remember facts and definitions", sub: "Recall · Memorize · Recognize", icon: "list" },
+      { label: "Understand the core concept", sub: "Explain · Summarize · Interpret", icon: "book" },
+      { label: "Apply the idea to a real situation", sub: "Use · Demonstrate · Solve", icon: "settings" },
+      { label: "Analyze and break problems apart", sub: "Compare · Examine · Differentiate", icon: "layers" },
+      { label: "Evaluate different solutions critically", sub: "Judge · Justify · Critique", icon: "search" },
+      { label: "Create something entirely new", sub: "Design · Invent · Build", icon: "zap" },
+    ],
+  },
+  {
+    id: "problemApproach",
+    question: "When solving problems you usually…",
+    subtitle: "Pick the approach that feels most natural to you",
+    type: "single",
+    options: [
+      { label: "Follow existing instructions step by step", icon: "list" },
+      { label: "Use known methods I've seen before", icon: "book" },
+      { label: "Compare different methods and pick the best", icon: "layers" },
+      { label: "Design my own solution from scratch", icon: "edit" },
+      { label: "Experiment with entirely new ideas", icon: "zap" },
+    ],
+  },
+  {
+    id: "selfStatement",
+    question: "Which statement suits you best?",
+    subtitle: "Be honest — there are no wrong answers here",
+    type: "single",
+    options: [
+      { label: "I enjoy memorizing information efficiently", icon: "list" },
+      { label: "I enjoy understanding concepts deeply", icon: "book" },
+      { label: "I enjoy applying knowledge practically", icon: "settings" },
+      { label: "I enjoy solving real-world problems", icon: "target" },
+      { label: "I enjoy creating original new ideas", icon: "zap" },
+    ],
+  },
+
+  // ── SECTION 5: Multiple Intelligence ────────────────────────────────────────
+  {
+    id: "gardnerActivities", section: "Section 5 · Multiple Intelligence",
+    question: "Which activities sound most exciting to you?",
+    subtitle: "Choose exactly 5 — these responses reveal your Howard Gardner intelligence profile",
+    type: "multi", max: 5,
+    options: [
+      { label: "Writing stories / poetry", icon: "feather" },
+      { label: "Learning new languages", icon: "globe" },
+      { label: "Solving logical puzzles", icon: "layers" },
+      { label: "Mathematics / Calculus", icon: "chart" },
+      { label: "Coding / Programming", icon: "code" },
+      { label: "Playing a musical instrument", icon: "star" },
+      { label: "Singing / Vocal performance", icon: "star" },
+      { label: "Dancing / Choreography", icon: "activity" },
+      { label: "Drawing / Illustration", icon: "edit" },
+      { label: "Photography / Filmmaking", icon: "grid" },
+      { label: "Building machines / Electronics", icon: "cpu" },
+      { label: "Gardening / Botany", icon: "activity" },
+      { label: "Wildlife / Animals / Ecology", icon: "activity" },
+      { label: "Team leadership / Coordination", icon: "users" },
+      { label: "Teaching / Coaching", icon: "users" },
+      { label: "Public speaking / Debate", icon: "users" },
+      { label: "Meditation / Mindfulness", icon: "heart" },
+      { label: "Self-reflection / Journaling", icon: "feather" },
+      { label: "Sports / Athletics", icon: "activity" },
+      { label: "Acting / Theatre / Drama", icon: "flag" },
+    ],
+  },
+
+  // ── SECTION 6: Skills & Campus Life ─────────────────────────────────────────
+  {
+    id: "skillsImproving", section: "Section 6 · Skills & Campus Life",
+    question: "Which skills are you currently improving?",
+    subtitle: "Select up to 5 — be honest about where you're actually putting in time",
+    type: "multi", max: 5, hasOther: true,
+    options: [
+      { label: "Programming / Coding", icon: "code" },
+      { label: "Artificial Intelligence / ML", icon: "cpu" },
+      { label: "Data Science / Analytics", icon: "chart" },
+      { label: "Electronics / Robotics", icon: "cpu" },
+      { label: "Public Speaking", icon: "users" },
+      { label: "Leadership", icon: "target" },
+      { label: "Marketing / Branding", icon: "globe" },
+      { label: "Finance / Accounting", icon: "trending" },
+      { label: "Research / Academic Writing", icon: "search" },
+      { label: "Graphic Design / UI-UX", icon: "edit" },
+      { label: "Video Editing / Content Creation", icon: "flag" },
+      { label: "Entrepreneurship / Business", icon: "trending" },
+      { label: "Creative Writing", icon: "feather" },
+      { label: "Teaching / Tutoring", icon: "book" },
+      { label: "Photography", icon: "grid" },
+      { label: "Languages", icon: "globe" },
+    ],
+  },
+  {
+    id: "campusActivities",
+    question: "Which campus activities excite you most?",
+    subtitle: "Select up to 3 that you genuinely enjoy or would love to participate in",
+    type: "multi", max: 3,
+    options: [
+      { label: "Hackathons / Tech Competitions", icon: "code" },
+      { label: "Research / Academic Projects", icon: "search" },
+      { label: "Clubs / Extracurriculars", icon: "star" },
+      { label: "NSS / Social Service", icon: "heart" },
+      { label: "Sports / Athletics", icon: "activity" },
+      { label: "Cultural Events / Fests", icon: "flag" },
+      { label: "Innovation Challenges", icon: "zap" },
+      { label: "Startup / Business Competitions", icon: "trending" },
+      { label: "Conferences / Seminars", icon: "users" },
+    ],
+  },
+  {
+    id: "teamRole",
+    question: "Which role do you naturally take in a team?",
+    subtitle: "Think of any group project, club, or event you have been part of",
+    type: "single",
+    options: [
+      { label: "Leader — I set direction and motivate the team", icon: "target" },
+      { label: "Planner — I organize tasks and timelines", icon: "list" },
+      { label: "Creative Thinker — I generate ideas", icon: "zap" },
+      { label: "Researcher — I gather data and insights", icon: "search" },
+      { label: "Presenter — I communicate ideas to others", icon: "users" },
+      { label: "Technical Expert — I do the core technical work", icon: "cpu" },
+      { label: "Supporter — I help whoever needs it most", icon: "heart" },
+      { label: "Organizer — I handle logistics and details", icon: "settings" },
+    ],
+  },
+
+  // ── SECTION 7: Career Readiness ──────────────────────────────────────────────
+  {
+    id: "postGradPlan", section: "Section 7 · Career Readiness",
+    question: "After graduation, what is your first preference?",
+    subtitle: "Be realistic about what you're most likely to pursue immediately after finishing your degree",
+    type: "single",
+    options: [
+      { label: "Job / Corporate placement", icon: "briefcase" },
+      { label: "Higher Studies (PG / MS / MBA)", icon: "book" },
+      { label: "Start my own business / Startup", icon: "trending" },
+      { label: "Government job / Civil services", icon: "shield" },
+      { label: "Research / PhD", icon: "search" },
+      { label: "Family business", icon: "home" },
+      { label: "Still undecided", icon: "layers" },
+    ],
+  },
+  {
+    id: "workLocation",
+    question: "Where would you like to work?",
+    subtitle: "Select all that apply — location shapes your salary, lifestyle, and opportunities",
+    type: "multi", max: 3,
+    options: [
+      { label: "India — major metro city", icon: "pin" },
+      { label: "Abroad / International", icon: "globe" },
+      { label: "Remote / Work from anywhere", icon: "grid" },
+      { label: "Startup ecosystem", icon: "trending" },
+      { label: "MNC / Large corporation", icon: "briefcase" },
+      { label: "Government / Public sector", icon: "shield" },
+      { label: "NGO / Social sector", icon: "heart" },
+    ],
+  },
+  {
+    id: "orgAttraction",
+    question: "What type of organization attracts you most?",
+    subtitle: "Select up to 3 — think about where you would be most fulfilled and effective",
+    type: "multi", max: 3,
+    options: [
+      { label: "Google / Meta / Apple (Big Tech)", icon: "code" },
+      { label: "Microsoft / Amazon / TCS / Infosys", icon: "briefcase" },
+      { label: "ISRO / DRDO / BARC (Research & Defence)", icon: "search" },
+      { label: "McKinsey / BCG / Deloitte (Consulting)", icon: "chart" },
+      { label: "Hospitals / Healthcare systems", icon: "heart" },
+      { label: "Universities / Academic institutions", icon: "users" },
+      { label: "Startups / Early-stage ventures", icon: "trending" },
+      { label: "NGOs / Non-profits / Social enterprises", icon: "globe" },
+      { label: "Government / IAS / PSU", icon: "shield" },
+      { label: "Law firms / Courts", icon: "shield" },
+      { label: "Creative studios / Media houses", icon: "edit" },
+    ],
+  },
+  {
+    id: "careerConfidence",
+    question: "How confident are you about your career direction?",
+    subtitle: "Rate from 1 (very unsure) to 5 (extremely confident) — honesty gives you a better roadmap",
+    type: "scale",
   },
 ];
 
@@ -351,11 +571,17 @@ export default function CareerRoadmapPage() {
 
   const q = QUESTIONS[currentQ];
   const isMulti = q?.type === "multi";
+  const isText = q?.type === "text";
+  const isScale = q?.type === "scale";
   const current = answers[q?.id] ?? (isMulti ? [] : "");
   const isOtherSelected = isMulti
     ? Array.isArray(current) && (current as string[]).includes("Other")
     : current === "Other";
-  const isAnswered = isMulti
+  const isAnswered = isText
+    ? !!((answers[q?.id] as string) || "").trim()
+    : isScale
+    ? !!answers[q?.id]
+    : isMulti
     ? Array.isArray(current) && (current as string[]).length > 0 && (!isOtherSelected || !!otherValues[q?.id])
     : !!current && (!isOtherSelected || !!otherValues[q?.id]);
   const atMax = isMulti && Array.isArray(current) && (current as string[]).length >= (q?.max ?? 4);
@@ -386,12 +612,18 @@ export default function CareerRoadmapPage() {
     isMulti ? Array.isArray(current) && (current as string[]).includes(label) : current === label;
 
   const getFormattedAnswers = () => {
+    const SCALE_LABELS: Record<string, string> = {
+      "1": "Not confident at all", "2": "Slightly confident",
+      "3": "Moderately confident", "4": "Quite confident", "5": "Very confident",
+    };
     const formatted: Record<string, string> = {};
     for (const qq of QUESTIONS) {
       const ans = answers[qq.id];
       const other = otherValues[qq.id] || "";
       if (!ans || (Array.isArray(ans) && ans.length === 0)) continue;
-      if (Array.isArray(ans)) {
+      if (qq.type === "scale") {
+        formatted[qq.id] = `${ans}/5 — ${SCALE_LABELS[ans as string] || ans}`;
+      } else if (Array.isArray(ans)) {
         formatted[qq.id] = ans.map(a => a === "Other" && other ? `Other: ${other}` : a).join(", ");
       } else {
         formatted[qq.id] = (ans as string) === "Other" && other ? `Other: ${other}` : (ans as string);
@@ -483,15 +715,15 @@ export default function CareerRoadmapPage() {
                 Discover Your Career Roadmap
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                Answer 12 questions about your goals, strengths, and interests — tailored for all UG and PG students across every discipline. Our AI generates a personalised career roadmap with milestones, skill priorities, and university recommendations specific to your profile.
+                Answer 24 questions covering your personality, learning style, and career vision — tailored for UG, PG, and PhD students across every discipline. Our AI generates a deep personalised roadmap including your Gardner intelligence profile, Bloom's taxonomy level, personality analysis, and a complete personal development plan.
               </p>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               {[
-                { icon: FiTarget, label: "12 Questions", sub: "~5 minutes" },
+                { icon: FiTarget, label: "24 Questions", sub: "~10 minutes" },
                 { icon: FiLayers, label: "AI Analysis", sub: "Groq-powered" },
-                { icon: FiMapPin, label: "Full Roadmap", sub: "4 years" },
+                { icon: FiMapPin, label: "Full Roadmap", sub: "7 sections" },
               ].map(({ icon: Icon, label, sub }) => (
                 <div key={label} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 p-3 text-center space-y-1.5">
                   <div className="w-8 h-8 rounded-lg mx-auto flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
@@ -519,13 +751,15 @@ export default function CareerRoadmapPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-y-3 gap-x-4">
               {([
                 [FiTrendingUp, "Top career paths ranked by fit"],
-                [FiLayers,     "Year-wise academic roadmap"],
-                [FiSearch,     "Research areas to explore"],
-                [FiCode,       "Project & portfolio ideas"],
+                [FiUser,       "Personality profile analysis"],
+                [FiGrid,       "Gardner intelligence report"],
+                [FiLayers,     "Bloom's taxonomy level"],
+                [FiMapPin,     "Year-wise career roadmap"],
+                [FiCode,       "Project ideas — 3 categories"],
                 [FiGlobe,      "Top universities for Masters / PhD"],
+                [FiBriefcase,  "Top MNCs with salary data"],
                 [FiUsers,      "SAC club recommendations"],
-                [FiZap,        "Skills to build with priority"],
-                [FiBriefcase,  "Top employers in your domain"],
+                [FiAward,      "Personal development plan"],
               ] as [React.ComponentType<any>, string][]).map(([Icon, text]) => (
                 <div key={text} className="flex items-center gap-2.5">
                   <div className="w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
@@ -559,7 +793,7 @@ export default function CareerRoadmapPage() {
           </p>
         </div>
         <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
-          {["Analysing responses", "Mapping career paths", "Finding clubs", "Building roadmap"].map((s, i) => (
+          {["Analysing personality", "Mapping Gardner intelligence", "Scoring Bloom's level", "Building career roadmap", "Preparing development plan"].map((s, i) => (
             <div key={s} className="flex items-center gap-1.5 text-xs text-gray-400">
               <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: BRAND, animationDelay: `${i * 0.3}s` }} />
               {s}
@@ -597,7 +831,12 @@ export default function CareerRoadmapPage() {
         <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
           <div className="px-5 pt-5 pb-4 border-b border-gray-50 dark:border-zinc-800/60">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {q.section && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                    {q.section}
+                  </span>
+                )}
                 <span
                   className="text-[10px] font-bold px-2 py-1 rounded-md text-white uppercase tracking-wider"
                   style={{ backgroundColor: BRAND }}
@@ -606,27 +845,23 @@ export default function CareerRoadmapPage() {
                 </span>
                 {isMulti && (
                   <span className="text-[10px] font-semibold px-2 py-1 rounded-md bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-700">
-                    Select up to {q.max} &nbsp;·&nbsp; {selectedCount} selected
+                    Choose {q.max ? `up to ${q.max}` : "any"} &nbsp;·&nbsp; {selectedCount} selected
                   </span>
                 )}
               </div>
-              
               <button
                 onClick={() => setIsVoiceEnabled(v => !v)}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold border transition-colors ${
-                  isVoiceEnabled 
-                    ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800" 
+                  isVoiceEnabled
+                    ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800"
                     : "bg-gray-50 text-gray-500 border-gray-200 dark:bg-zinc-800 dark:text-gray-400 dark:border-zinc-700"
                 }`}
+                title="VYN - Visionary Youth Navigator"
               >
                 {isVoiceEnabled ? (
-                  <>
-                    <FiVolume2 size={12} className={isSpeaking ? "animate-pulse" : ""} /> Voice On
-                  </>
+                  <><FiVolume2 size={12} className={isSpeaking ? "animate-pulse" : ""} /> VYN On</>
                 ) : (
-                  <>
-                    <FiVolumeX size={12} /> Voice Off
-                  </>
+                  <><FiVolumeX size={12} /> VYN Off</>
                 )}
               </button>
             </div>
@@ -634,26 +869,71 @@ export default function CareerRoadmapPage() {
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 leading-relaxed">{q.subtitle}</p>
           </div>
 
-          <div className="p-4 space-y-2.5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {q.options.map(opt => (
-                <OptionCard
-                  key={opt.label}
-                  opt={opt}
-                  selected={isSelected(opt.label)}
-                  onClick={() => selectOption(opt.label)}
-                  disabled={!!(isMulti && atMax && !isSelected(opt.label))}
-                />
-              ))}
-              {q.hasOther && (
-                <OptionCard
-                  opt={{ label: "Other", sub: "Specify your own answer in the field below", icon: "edit" }}
-                  selected={isOtherSelected}
-                  onClick={() => selectOption("Other")}
-                  disabled={!!(isMulti && atMax && !isOtherSelected)}
-                />
-              )}
-            </div>
+          <div className="p-4 space-y-3">
+            {/* Text input */}
+            {isText && (
+              <textarea
+                value={(answers[q.id] as string) || ""}
+                onChange={e => setAnswers(a => ({ ...a, [q.id]: e.target.value }))}
+                placeholder={q.placeholder || "Type your answer here…"}
+                rows={4}
+                className="w-full px-4 py-3 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-700/20 focus:border-red-700/40 transition-all resize-none"
+              />
+            )}
+
+            {/* Scale 1–5 */}
+            {isScale && (
+              <div className="space-y-4 py-2">
+                <div className="flex gap-2 justify-center flex-wrap">
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button
+                      key={n}
+                      onClick={() => setAnswers(a => ({ ...a, [q.id]: String(n) }))}
+                      className={`w-16 h-16 rounded-2xl border-2 text-xl font-extrabold transition-all ${
+                        answers[q.id] === String(n)
+                          ? "text-white border-transparent shadow-lg scale-110"
+                          : "bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-300 hover:border-gray-400 hover:scale-105"
+                      }`}
+                      style={answers[q.id] === String(n) ? { backgroundColor: BRAND } : {}}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-between text-[10px] text-gray-400 font-medium px-2">
+                  <span>1 — Very unsure</span>
+                  <span>5 — Extremely confident</span>
+                </div>
+                {answers[q.id] && (
+                  <p className="text-center text-sm font-semibold" style={{ color: BRAND }}>
+                    {["", "Very unsure", "Slightly unsure", "Moderately confident", "Quite confident", "Extremely confident"][Number(answers[q.id]) || 0]}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Options grid (single / multi) */}
+            {(q.type === "single" || q.type === "multi") && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {(q.options || []).map(opt => (
+                  <OptionCard
+                    key={opt.label}
+                    opt={opt}
+                    selected={isSelected(opt.label)}
+                    onClick={() => selectOption(opt.label)}
+                    disabled={!!(isMulti && atMax && !isSelected(opt.label))}
+                  />
+                ))}
+                {q.hasOther && (
+                  <OptionCard
+                    opt={{ label: "Other", sub: "Specify your own answer below", icon: "edit" }}
+                    selected={isOtherSelected}
+                    onClick={() => selectOption("Other")}
+                    disabled={!!(isMulti && atMax && !isOtherSelected)}
+                  />
+                )}
+              </div>
+            )}
 
             {isOtherSelected && (
               <div className="pt-1">
@@ -762,7 +1042,7 @@ export default function CareerRoadmapPage() {
           {roadmap.motivationalMessage && (
             <div className="px-6 md:px-8 py-3.5 border-t" style={{ borderColor: domColor + "18", backgroundColor: domColor + "05" }}>
               <p className="text-sm text-gray-500 dark:text-gray-400 italic leading-relaxed">
-                "{roadmap.motivationalMessage}"
+                &quot;{roadmap.motivationalMessage}&quot;
               </p>
             </div>
           )}
@@ -822,6 +1102,133 @@ export default function CareerRoadmapPage() {
               })}
             </div>
           </section>
+        )}
+
+        {/* ── Personality Profile ─────────────────────────────────────────── */}
+        {roadmap.personalityProfile && (
+          <section>
+            <SectionHeader icon={FiUser} title="Personality Profile" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {([
+                { key: "type",                 label: "Personality Type",        icon: FiUser },
+                { key: "leadershipPotential",  label: "Leadership Potential",    icon: FiTarget },
+                { key: "communicationStyle",   label: "Communication Style",     icon: FiUsers },
+                { key: "decisionMakingStyle",  label: "Decision-Making Style",   icon: FiLayers },
+                { key: "stressManagementPattern", label: "Stress Management",    icon: FiHeart },
+                { key: "motivationType",       label: "Motivation Type",         icon: FiZap },
+              ] as { key: string; label: string; icon: React.ComponentType<any> }[]).map(({ key, label, icon: Icon }) => {
+                const val = roadmap.personalityProfile[key];
+                if (!val) return null;
+                return (
+                  <div key={key} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
+                        <Icon size={12} style={{ color: BRAND }} />
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{label}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white leading-snug">{val}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* ── Gardner + Bloom side by side ────────────────────────────────── */}
+        {(roadmap.gardnerIntelligence || roadmap.bloomsLevel) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Gardner's Multiple Intelligence */}
+            {roadmap.gardnerIntelligence && (
+              <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 space-y-4">
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "rgba(151,0,3,0.09)" }}>
+                    <FiGrid size={14} style={{ color: BRAND }} />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-gray-900 dark:text-white">Gardner's Multiple Intelligence</h2>
+                    {roadmap.gardnerIntelligence.primary && (
+                      <p className="text-[11px] text-gray-400 mt-0.5">
+                        Primary: <span className="font-semibold" style={{ color: BRAND }}>{roadmap.gardnerIntelligence.primary}</span>
+                        {roadmap.gardnerIntelligence.secondary && <> · Secondary: <span className="font-semibold text-blue-600 dark:text-blue-400">{roadmap.gardnerIntelligence.secondary}</span></>}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {Object.entries(roadmap.gardnerIntelligence.scores || {}).map(([intel, score]) => {
+                    const pct = Math.min(100, Math.max(0, Number(score)));
+                    const isPrimary = intel === roadmap.gardnerIntelligence.primary;
+                    const isSecondary = intel === roadmap.gardnerIntelligence.secondary;
+                    return (
+                      <div key={intel}>
+                        <div className="flex justify-between text-[11px] mb-1">
+                          <span className={`font-semibold ${isPrimary ? "text-red-700 dark:text-red-400" : isSecondary ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-400"}`}>
+                            {intel} {isPrimary ? "★" : isSecondary ? "◆" : ""}
+                          </span>
+                          <span className="font-bold text-gray-700 dark:text-gray-300">{pct}%</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700" style={{
+                            width: `${pct}%`,
+                            backgroundColor: isPrimary ? BRAND : isSecondary ? "#2563eb" : "#9ca3af",
+                          }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Bloom's Taxonomy Level */}
+            {roadmap.bloomsLevel && (
+              <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 space-y-4">
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "rgba(151,0,3,0.09)" }}>
+                    <FiLayers size={14} style={{ color: BRAND }} />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-gray-900 dark:text-white">Bloom's Taxonomy Level</h2>
+                    {roadmap.bloomsLevel.dominantLevel && (
+                      <p className="text-[11px] mt-0.5">
+                        Dominant: <span className="font-bold" style={{ color: BRAND }}>{roadmap.bloomsLevel.dominantLevel}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {roadmap.bloomsLevel.description && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed border-l-2 pl-3" style={{ borderColor: BRAND + "60" }}>
+                    {roadmap.bloomsLevel.description}
+                  </p>
+                )}
+                <div className="space-y-2.5">
+                  {(["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"] as const).map((level, i) => {
+                    const score = roadmap.bloomsLevel.scores?.[level] ?? 0;
+                    const isDominant = level === roadmap.bloomsLevel.dominantLevel;
+                    const BLOOM_COLORS = ["#6b7280", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", BRAND];
+                    return (
+                      <div key={level}>
+                        <div className="flex justify-between text-[11px] mb-1">
+                          <span className={`font-semibold ${isDominant ? "font-bold" : "text-gray-500 dark:text-gray-400"}`}
+                            style={isDominant ? { color: BLOOM_COLORS[i] } : {}}>
+                            {level} {isDominant ? "★" : ""}
+                          </span>
+                          <span className="font-bold text-gray-700 dark:text-gray-300">{score}%</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700" style={{
+                            width: `${score}%`,
+                            backgroundColor: BLOOM_COLORS[i],
+                          }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* 4-Year Roadmap */}
@@ -1127,6 +1534,37 @@ export default function CareerRoadmapPage() {
             </div>
           )}
         </div>
+
+        {/* ── Personal Development Plan ───────────────────────────────────── */}
+        {roadmap.personalDevelopmentPlan && (
+          <section>
+            <SectionHeader icon={FiAward} title="Personal Development Plan" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {([
+                { key: "communication",       label: "Communication",        icon: FiUsers,      color: "#2563eb" },
+                { key: "leadership",          label: "Leadership",           icon: FiTarget,     color: BRAND },
+                { key: "networking",          label: "Networking",           icon: FiGlobe,      color: "#7c3aed" },
+                { key: "wellbeing",           label: "Well-being",           icon: FiHeart,      color: "#16a34a" },
+                { key: "timeManagement",      label: "Time Management",      icon: FiList,       color: "#ea580c" },
+                { key: "emotionalResilience", label: "Emotional Resilience", icon: FiShield,     color: "#0891b2" },
+              ] as { key: string; label: string; icon: React.ComponentType<any>; color: string }[]).map(({ key, label, icon: Icon, color }) => {
+                const val = roadmap.personalDevelopmentPlan[key];
+                if (!val) return null;
+                return (
+                  <div key={key} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color + "18" }}>
+                        <Icon size={13} style={{ color }} />
+                      </div>
+                      <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color }}>{label}</p>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">{val}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         <div className="flex justify-center pb-2">
           <button onClick={reset} className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
