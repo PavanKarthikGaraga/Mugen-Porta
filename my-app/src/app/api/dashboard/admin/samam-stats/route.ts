@@ -110,16 +110,12 @@ export async function GET(request: Request) {
                 SELECT COUNT(*) as count FROM students WHERE samam_access = 1
             `),
 
-            // 9. Activities completed where attendance has been recorded
+            // 9. Activities completed = distinct activities where attendance was locked
+            // (attendance_marked = TRUE means the lead has locked the attendance sheet)
             pool.execute(`
-                SELECT COUNT(*) as total
-                FROM activity_enrollments ae
-                WHERE ae.status = 'completed'
-                AND EXISTS (
-                    SELECT 1 FROM attendance_submissions ats
-                    WHERE ats.activity_code = ae.activity_code
-                    AND ats.status IN ('pending', 'verified')
-                )
+                SELECT COUNT(DISTINCT activity_code) as total
+                FROM activity_enrollments
+                WHERE attendance_marked = TRUE
             `),
 
             // 10. Top club by total SAMAM points issued to its members

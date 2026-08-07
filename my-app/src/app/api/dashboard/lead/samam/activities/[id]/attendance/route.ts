@@ -154,7 +154,59 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             [id]
         );
 
-        return NextResponse.json({ success: true, message: 'Attendance saved successfully' });
+        // Auto-submit for faculty verification — no manual button click needed.
+        try {
+            await pool.execute(`
+                CREATE TABLE IF NOT EXISTS attendance_submissions (
+                    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+                    activity_code VARCHAR(50)  NOT NULL,
+                    club_id       VARCHAR(20)  NOT NULL,
+                    club_name     VARCHAR(100) NOT NULL DEFAULT '',
+                    activity_title VARCHAR(200) NOT NULL DEFAULT '',
+                    lead_username VARCHAR(10)  NOT NULL,
+                    submitted_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+                    updated_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    status        ENUM('pending','verified','rejected') DEFAULT 'pending',
+                    scanned_copy_url VARCHAR(500) DEFAULT NULL,
+                    verified_by   VARCHAR(10)  DEFAULT NULL,
+                    verified_at   TIMESTAMP    DEFAULT NULL,
+                    faculty_notes TEXT         DEFAULT NULL,
+                    UNIQUE KEY uq_activity (activity_code)
+                )
+            `);
+
+            const [actInfo]: any = await pool.execute(
+                'SELECT title FROM activity_catalogue WHERE code = ?', [id]
+            );
+            const actTitle = (actInfo as any[])[0]?.title ?? id;
+
+            // Resolve which of the lead's clubs owns this activity
+            const ph2 = lead.clubIds.map(() => '?').join(',');
+            const [mapRows]: any = await pool.execute(
+                `SELECT club_id FROM club_activity_mappings WHERE activity_code = ? AND club_id IN (${ph2}) LIMIT 1`,
+                [id, ...lead.clubIds]
+            );
+            const clubId = (mapRows as any[])[0]?.club_id || lead.clubIds[0];
+            const [clubRows]: any = await pool.execute('SELECT name FROM clubs WHERE id = ?', [clubId]);
+            const clubName = (clubRows as any[])[0]?.name ?? '';
+
+            await pool.execute(`
+                INSERT INTO attendance_submissions
+                    (activity_code, club_id, club_name, activity_title, lead_username, status)
+                VALUES (?, ?, ?, ?, ?, 'pending')
+                ON DUPLICATE KEY UPDATE
+                    status = 'pending',
+                    submitted_at = CURRENT_TIMESTAMP,
+                    faculty_notes = NULL,
+                    verified_by   = NULL,
+                    verified_at   = NULL,
+                    scanned_copy_url = NULL
+            `, [id, clubId, clubName, actTitle, lead.decoded.username]);
+        } catch (submitErr) {
+            console.error('Auto-submit for verification failed (non-fatal):', submitErr);
+        }
+
+        return NextResponse.json({ success: true, message: 'Attendance saved and sent for verification' });
 
     } catch (error: any) {
         console.error('Save attendance error:', error);
