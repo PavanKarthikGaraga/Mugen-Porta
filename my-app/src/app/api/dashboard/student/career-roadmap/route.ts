@@ -111,15 +111,7 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
   "socialImpactOpportunities": string[],
   "topUniversities": [
     { "name": string, "country": string, "program": string, "ranking": string, "highlights": string }
-  ],
-  "personalDevelopmentPlan": {
-    "communication": string,
-    "leadership": string,
-    "networking": string,
-    "wellbeing": string,
-    "timeManagement": string,
-    "emotionalResilience": string
-  }
+  ]
 }
 
 ANALYSIS RULES — read carefully and apply every rule:
@@ -246,7 +238,7 @@ Generate a personalized career roadmap for this student that is specifically tai
             systemPrompt: SYSTEM_PROMPT,
             userPrompt,
             temperature: 0.6,
-            maxTokens: isDemo ? 32000 : 7000,
+            maxTokens: isDemo ? 12000 : 7000,
         });
 
         if (!result || !result.headline || !result.careerPaths) {
