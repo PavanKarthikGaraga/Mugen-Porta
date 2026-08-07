@@ -4,6 +4,7 @@ import {
   FiCheckSquare, FiSquare, FiAward, FiStar, FiFileText,
   FiLoader, FiCheckCircle, FiXCircle, FiClock, FiSearch,
 } from "react-icons/fi";
+import { BadgeIcon } from "@/lib/badgeIcons";
 import { toast } from "sonner";
 
 const BRAND = "rgb(151,0,3)";
@@ -488,7 +489,7 @@ export default function ActivityAwardsManager() {
                               : "border-gray-200 bg-gray-50 hover:border-gray-300"
                           }`}
                         >
-                          <span className="text-2xl flex-shrink-0">{mappedBadge.icon || "🏆"}</span>
+                          <span className="flex-shrink-0"><BadgeIcon icon={mappedBadge.icon} domain={mappedBadge.domain} size={24} /></span>
                           <span className="flex-1 min-w-0">
                             <span className="block text-sm font-bold text-gray-900 truncate">{mappedBadge.name}</span>
                             <span className="block text-[11px] text-gray-500">{mappedBadge.domain} · {mappedBadge.rarity}</span>
@@ -552,7 +553,7 @@ export default function ActivityAwardsManager() {
                                 String(selectedBadge) === String(b.id) ? "bg-red-50" : "hover:bg-gray-50"
                               }`}
                             >
-                              <span className="text-lg flex-shrink-0">{b.icon || "🏆"}</span>
+                              <span className="flex-shrink-0"><BadgeIcon icon={b.icon} domain={b.domain} size={20} /></span>
                               <span className="flex-1 min-w-0">
                                 <span className="block text-sm font-medium text-gray-900 truncate">{b.name}</span>
                                 <span className="block text-[11px] text-gray-500">{b.domain} · {b.rarity}</span>
