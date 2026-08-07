@@ -132,6 +132,7 @@ export default function LeadStudents() {
                 { header: 'Phone', key: 'phone', width: 14 },
                 { header: 'Year', key: 'year', width: 8 },
                 { header: 'Branch', key: 'branch', width: 14 },
+                { header: 'Club', key: 'club', width: 22 },
                 { header: 'Domain', key: 'domain', width: 10 },
                 { header: 'Residence Type', key: 'residenceType', width: 16 },
                 { header: 'Hostel/Bus Route', key: 'residenceDetail', width: 20 },
@@ -145,7 +146,7 @@ export default function LeadStudents() {
             });
             headerRow.height = 22;
             sheet.views = [{ state: "frozen", ySplit: 1 }];
-            sheet.autoFilter = { from: "A1", to: "J1" };
+            sheet.autoFilter = { from: "A1", to: "K1" };
 
             allStudents.forEach((student, index) => {
                 const row = sheet.addRow({
@@ -156,6 +157,7 @@ export default function LeadStudents() {
                     phone: student.phoneNumber || 'N/A',
                     year: student.year,
                     branch: student.branch || 'N/A',
+                    club: student.clubName || 'N/A',
                     domain: student.selectedDomain,
                     residenceType: student.residenceType || 'N/A',
                     residenceDetail: student.residenceType === 'Hostel' ? (student.hostelName || 'N/A') : (student.busRoute || 'N/A'),
@@ -334,6 +336,9 @@ export default function LeadStudents() {
                                             Branch
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Club
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Category
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -358,6 +363,9 @@ export default function LeadStudents() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 {student.branch}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {student.clubName || '—'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
