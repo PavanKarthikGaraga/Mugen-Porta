@@ -431,14 +431,18 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                 <Section title="Activity Syllabus & Topics">
                   <ul className="space-y-3">
                     {activity.timeline.map((t: any, i: number) => {
-                      const topicText = typeof t === 'string' ? t : (t.topic || t.event);
+                      const topicText = typeof t === 'string' ? t : (t.topic || t.event || t.activity || t.title);
+                      const timeText = typeof t === 'object' ? (t.time || t.date) : null;
                       if (!topicText) return null;
                       return (
                         <li key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                           <div className="mt-0.5 w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-white border font-bold text-xs" style={{ borderColor: BRAND, color: BRAND }}>
                             {i + 1}
                           </div>
-                          <p className="text-sm text-gray-700 leading-relaxed font-medium">{topicText}</p>
+                          <div className="flex-1 min-w-0 pt-0.5">
+                            {timeText && <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">{timeText}</p>}
+                            <p className="text-sm text-gray-700 leading-relaxed font-medium">{topicText}</p>
+                          </div>
                         </li>
                       );
                     })}
