@@ -61,6 +61,8 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     competencies: (initialData?.competencies || []) as string[],
     ga: (initialData?.ga || []) as string[],
     sdgs: (initialData?.sdgs || []) as number[],
+    level: initialData?.level || "explorer",
+    timeline: (initialData?.timeline || []) as any[],
   });
 
   useEffect(() => {
@@ -84,6 +86,8 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
               start_time: toTimeInput(data.start_time),
               end_time: toTimeInput(data.end_time),
               venue: data.venue || "",
+              level: data.level || prev.level,
+              timeline: parseJson(data.timeline) || prev.timeline,
               registration_open: data.registration_open === undefined || data.registration_open === null
                 ? prev.registration_open : Number(data.registration_open),
             }));
@@ -97,6 +101,8 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
               start_time: toTimeInput(d.start_time),
               end_time: toTimeInput(d.end_time),
               venue: d.venue || "",
+              level: d.level || prev.level,
+              timeline: parseJson(d.timeline) || prev.timeline,
               registration_open: d.registration_open === undefined || d.registration_open === null
                 ? prev.registration_open : Number(d.registration_open),
             }));
@@ -148,6 +154,24 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
       ...prev,
       sdgs: prev.sdgs.includes(num) ? prev.sdgs.filter(n => n !== num) : [...prev.sdgs, num].sort((a, b) => a - b),
     }));
+  };
+
+  // Timeline
+  const addTimelineStep = () => {
+    setFormData(prev => ({
+      ...prev,
+      timeline: [...prev.timeline, { time: "", activity: "" }]
+    }));
+  };
+  const updateTimelineStep = (index: number, key: string, value: string) => {
+    const arr = [...formData.timeline];
+    arr[index] = { ...arr[index], [key]: value };
+    setFormData(prev => ({ ...prev, timeline: arr }));
+  };
+  const removeTimelineStep = (index: number) => {
+    const arr = [...formData.timeline];
+    arr.splice(index, 1);
+    setFormData(prev => ({ ...prev, timeline: arr }));
   };
 
   // Tasks
@@ -303,6 +327,14 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             )}
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
+            <select name="level" value={formData.level} onChange={handleChange} className="w-full border rounded-md px-3 py-2">
+              <option value="explorer">Explorer</option>
+              <option value="expert">Expert</option>
+              <option value="champion">Champion</option>
+            </select>
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">SAMAM Points</label>
             <input type="number" name="sdc_credits" value={formData.sdc_credits} onChange={handleChange} className="w-full p-2 border rounded" />
           </div>
@@ -355,6 +387,39 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
           </label>
         </div>
+      </div>
+
+      {/* Timeline */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <div className="flex justify-between items-center border-b pb-2">
+          <h2 className="text-lg font-bold">Timeline</h2>
+          <button onClick={addTimelineStep} className="text-sm bg-gray-100 px-3 py-1.5 rounded flex items-center gap-1 hover:bg-gray-200"><FiPlus /> Add Step</button>
+        </div>
+        {formData.timeline.length === 0 ? (
+          <p className="text-gray-400 text-sm py-2">No timeline added yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {formData.timeline.map((step, idx) => (
+              <div key={idx} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border">
+                <input
+                  type="text"
+                  placeholder="Time (e.g. 5:45 PM)"
+                  value={step.time || ""}
+                  onChange={e => updateTimelineStep(idx, "time", e.target.value)}
+                  className="w-32 flex-shrink-0 p-2 border rounded text-sm"
+                />
+                <input
+                  type="text"
+                  placeholder="Activity description"
+                  value={step.activity || step.topic || step.title || ""}
+                  onChange={e => updateTimelineStep(idx, "activity", e.target.value)}
+                  className="flex-1 p-2 border rounded text-sm"
+                />
+                <button onClick={() => removeTimelineStep(idx)} className="p-2 text-red-500 hover:bg-red-50 rounded flex-shrink-0"><FiTrash2 size={14} /></button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Tasks */}

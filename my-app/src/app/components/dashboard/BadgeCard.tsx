@@ -1,8 +1,9 @@
 "use client";
+import { BadgeIcon } from "@/lib/badgeIcons";
 
 /**
  * BadgeCard — single earned badge tile with rarity glow.
- * Props: badge { id, name, icon, earnedOn, rarity }
+ * Props: badge { id, name, icon, domain, earnedOn, rarity }
  */
 
 const rarityConfig = {
@@ -13,7 +14,7 @@ const rarityConfig = {
 };
 
 export default function BadgeCard({ badge }) {
-  const { name, icon, earnedOn, rarity } = badge;
+  const { name, icon, domain, earnedOn, rarity } = badge;
   const config = rarityConfig[rarity] || rarityConfig.Common;
 
   return (
@@ -21,7 +22,9 @@ export default function BadgeCard({ badge }) {
       className="flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center"
       style={{ borderColor: config.border, boxShadow: `0 0 12px ${config.glow}` }}
     >
-      <div className="text-3xl leading-none">{icon}</div>
+      <div className="text-3xl leading-none flex items-center justify-center h-8" style={{ color: config.border }}>
+        <BadgeIcon icon={icon} domain={domain} size={28} />
+      </div>
       <p className="text-xs font-semibold text-gray-800 leading-tight">{name}</p>
       <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${config.label}`}>{rarity}</span>
       <p className="text-[10px] text-gray-400">{earnedOn}</p>
