@@ -235,7 +235,7 @@ export default function CouncilStudentsPage() {
                         <table className="w-full text-xs">
                             <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    {["ID","Name","Year","Branch","Club","Phone","Joined","Actions"].map(h => (
+                                    {["ID","Name","Year","Branch","Club","Phone","Actions"].map(h => (
                                         <th key={h} className="px-4 py-3 text-left font-semibold text-gray-600">{h}</th>
                                     ))}
                                 </tr>
@@ -249,7 +249,6 @@ export default function CouncilStudentsPage() {
                                         <td className="px-4 py-3 text-gray-600">{s.branch}</td>
                                         <td className="px-4 py-3 text-gray-600">{s.clubName}</td>
                                         <td className="px-4 py-3 text-gray-600">{s.phoneNumber || '—'}</td>
-                                        <td className="px-4 py-3 text-gray-500">{s.created_at ? new Date(s.created_at).toLocaleDateString("en-IN") : '—'}</td>
                                         <td className="px-4 py-3">
                                             <button
                                                 onClick={() => setSelectedStudent(s)}
@@ -309,7 +308,6 @@ export default function CouncilStudentsPage() {
                                         <div className="flex justify-between"><dt className="text-gray-500">Year</dt><dd className="font-medium text-gray-900">{selectedStudent.year} Year</dd></div>
                                         <div className="flex justify-between"><dt className="text-gray-500">Branch</dt><dd className="font-medium text-gray-900">{selectedStudent.branch || 'N/A'}</dd></div>
                                         <div className="flex justify-between"><dt className="text-gray-500">Club</dt><dd className="font-medium text-gray-900">{selectedStudent.clubName || 'N/A'}</dd></div>
-                                        <div className="flex justify-between"><dt className="text-gray-500">Joined</dt><dd className="font-medium text-gray-900">{selectedStudent.created_at ? new Date(selectedStudent.created_at).toLocaleDateString("en-IN") : 'N/A'}</dd></div>
                                     </dl>
                                 </div>
                                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
