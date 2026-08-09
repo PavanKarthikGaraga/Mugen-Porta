@@ -1,8 +1,17 @@
 "use client"
 import { useState, useEffect, useCallback, useRef } from "react";
-import { FiSearch, FiRefreshCw, FiDownload, FiEye, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiSearch, FiRefreshCw, FiDownload, FiEye, FiTrash2, FiChevronLeft, FiChevronRight, FiEdit2 } from "react-icons/fi";
 import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 import { toast } from "sonner";
+
+const DOMAIN_OPTIONS = [
+    { value: 'TEC', label: 'TEC — Technology' },
+    { value: 'ESO', label: 'ESO — Environment & Social' },
+    { value: 'LCH', label: 'LCH — Liberal Arts' },
+    { value: 'IIE', label: 'IIE — Innovation & Entrepreneurship' },
+    { value: 'HWB', label: 'HWB — Health & Wellbeing' },
+    { value: 'DEPT', label: 'DEPT — Department' },
+];
 
 export default function AdminStudents() {
     const [students, setStudents] = useState([]);
@@ -29,6 +38,14 @@ export default function AdminStudents() {
     const [studentToDelete, setStudentToDelete] = useState(null);
     const [showViewModal, setShowViewModal] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState(null);
+
+    // Edit domain/club modal
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [studentToEdit, setStudentToEdit] = useState<any>(null);
+    const [editDomain, setEditDomain] = useState('');
+    const [editClubId, setEditClubId] = useState('');
+    const [editClubSearch, setEditClubSearch] = useState('');
+    const [savingEdit, setSavingEdit] = useState(false);
 
     // fetchStudents takes explicit search/filter params so callers can pass
     // freshly-updated state without waiting for React to flush state updates.
@@ -151,6 +168,38 @@ export default function AdminStudents() {
     const confirmDelete = () => {
         if (studentToDelete) {
             deleteStudent(studentToDelete.id);
+        }
+    };
+
+    const handleEditClick = (student: any) => {
+        setStudentToEdit(student);
+        setEditDomain(student.selectedDomain || '');
+        setEditClubId(student.clubId || '');
+        setEditClubSearch('');
+        setShowEditModal(true);
+    };
+
+    const saveStudentDomainClub = async () => {
+        if (!studentToEdit || !editDomain) return;
+        setSavingEdit(true);
+        try {
+            const res = await fetch(`/api/dashboard/admin/students/${studentToEdit.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ selectedDomain: editDomain, clubId: editClubId || null }),
+            });
+            if (await handleApiError(res)) return;
+            const data = await res.json();
+            if (data.success) {
+                toast.success('Domain and club updated');
+                setShowEditModal(false);
+                setStudentToEdit(null);
+                fetchStudents(pagination.page, searchTerm, filters);
+            }
+        } catch {
+            toast.error('Failed to update');
+        } finally {
+            setSavingEdit(false);
         }
     };
 
@@ -471,14 +520,21 @@ export default function AdminStudents() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <div className="flex space-x-2">
-                                            <button 
+                                            <button
                                                 className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
                                                 title="View Details"
                                                 onClick={() => handleViewClick(student)}
                                             >
                                                 <FiEye className="h-4 w-4" />
                                             </button>
-                                            <button 
+                                            <button
+                                                className="p-1 text-green-600 hover:text-green-800 transition-colors"
+                                                title="Edit Domain & Club"
+                                                onClick={() => handleEditClick(student)}
+                                            >
+                                                <FiEdit2 className="h-4 w-4" />
+                                            </button>
+                                            <button
                                                 className="p-1 text-red-600 hover:text-red-800 transition-colors"
                                                 title="Delete Student"
                                                 onClick={() => handleDeleteClick(student)}
@@ -637,6 +693,108 @@ export default function AdminStudents() {
                     </div>
                 </div>
             )}
+
+            {/* Edit Domain & Club Modal */}
+            {showEditModal && studentToEdit && (() => {
+                const domainClubs = (clubStats as any[]).filter((c: any) =>
+                    c.clubDomain === editDomain
+                );
+                const filtered = editClubSearch.trim()
+                    ? domainClubs.filter((c: any) =>
+                        c.clubName.toLowerCase().includes(editClubSearch.toLowerCase())
+                    )
+                    : domainClubs;
+                return (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">Edit Domain & Club</h3>
+                                    <p className="text-sm text-gray-500 mt-0.5">{studentToEdit.name} · {studentToEdit.username}</p>
+                                </div>
+                                <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600">
+                                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-5">
+                                {/* Domain */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Domain</label>
+                                    <select
+                                        value={editDomain}
+                                        onChange={(e) => { setEditDomain(e.target.value); setEditClubId(''); setEditClubSearch(''); }}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
+                                    >
+                                        <option value="">— Select Domain —</option>
+                                        {DOMAIN_OPTIONS.map(d => (
+                                            <option key={d.value} value={d.value}>{d.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Club search + list */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Club</label>
+                                    <input
+                                        type="text"
+                                        placeholder={editDomain ? "Search clubs…" : "Select a domain first"}
+                                        value={editClubSearch}
+                                        disabled={!editDomain}
+                                        onChange={(e) => setEditClubSearch(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm disabled:bg-gray-50 disabled:text-gray-400"
+                                    />
+                                    {editDomain && (
+                                        <div className="mt-1 border border-gray-200 rounded-lg max-h-48 overflow-y-auto divide-y divide-gray-100">
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditClubId('')}
+                                                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${editClubId === '' ? 'bg-red-50 text-red-700 font-medium' : 'text-gray-500'}`}
+                                            >
+                                                — No Club / Unassigned —
+                                            </button>
+                                            {filtered.length === 0 ? (
+                                                <p className="px-3 py-3 text-sm text-gray-400 text-center">No clubs found</p>
+                                            ) : filtered.map((c: any) => (
+                                                <button
+                                                    key={c.clubId}
+                                                    type="button"
+                                                    onClick={() => { setEditClubId(c.clubId); setEditClubSearch(c.clubName); }}
+                                                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${editClubId === c.clubId ? 'bg-red-50 text-red-700 font-medium' : 'text-gray-900'}`}
+                                                >
+                                                    <span>{c.clubName}</span>
+                                                    <span className="text-gray-400 ml-2 text-xs">{c.memberCount} members</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {editClubId && (
+                                        <p className="mt-1 text-xs text-green-600 font-medium">
+                                            Selected: {(clubStats as any[]).find((c: any) => c.clubId === editClubId)?.clubName || editClubId}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="px-6 pb-6 flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setShowEditModal(false)}
+                                    className="px-4 py-2 text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={saveStudentDomainClub}
+                                    disabled={savingEdit || !editDomain}
+                                    className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {savingEdit ? 'Saving…' : 'Save Changes'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && studentToDelete && (

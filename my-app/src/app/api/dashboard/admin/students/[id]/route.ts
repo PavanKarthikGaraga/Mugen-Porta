@@ -157,6 +157,37 @@ export async function PUT(request, { params }) {
     }
 }
 
+export async function PATCH(request, { params }) {
+    const authResult = await verifyAdminToken(request);
+    if (!authResult.success) return authResult.response;
+
+    const { id } = await params;
+    const VALID_DOMAINS = ['TEC', 'ESO', 'LCH', 'IIE', 'HWB', 'DEPT'];
+
+    try {
+        const { selectedDomain, clubId } = await request.json();
+
+        if (!selectedDomain || !VALID_DOMAINS.includes(selectedDomain)) {
+            return NextResponse.json({ error: 'Invalid domain' }, { status: 400 });
+        }
+
+        const [existing]: any = await pool.execute('SELECT id FROM students WHERE id = ?', [id]);
+        if (!(existing as any[]).length) {
+            return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+        }
+
+        await pool.execute(
+            'UPDATE students SET selectedDomain = ?, clubId = ? WHERE id = ?',
+            [selectedDomain, clubId || null, id]
+        );
+
+        return NextResponse.json({ success: true, message: 'Domain and club updated' });
+    } catch (error) {
+        console.error('Error updating student domain/club:', error);
+        return NextResponse.json({ error: 'Failed to update student' }, { status: 500 });
+    }
+}
+
 export async function DELETE(request, { params }) {
     // Verify admin token
     const authResult = await verifyAdminToken(request);
