@@ -127,6 +127,23 @@ export async function ensureActivityReportsTable() {
     _activityReportsDone = true;
 }
 
+let _assignmentSubmissionStatusDone = false;
+
+/**
+ * activity_assignment_submissions (per-task file uploads on the student
+ * Tasks tab) originally had no review workflow at all -- a lead/admin had no
+ * way to approve or reject a task submission. These columns add that,
+ * mirroring the status/reason shape already used by internal_submissions.
+ */
+export async function ensureAssignmentSubmissionStatusColumns() {
+    if (_assignmentSubmissionStatusDone) return;
+    await addColumnIfMissing('activity_assignment_submissions', 'status', "VARCHAR(20) NOT NULL DEFAULT 'pending'");
+    await addColumnIfMissing('activity_assignment_submissions', 'reason', 'TEXT DEFAULT NULL');
+    await addColumnIfMissing('activity_assignment_submissions', 'reviewed_by', 'VARCHAR(10) DEFAULT NULL');
+    await addColumnIfMissing('activity_assignment_submissions', 'reviewed_at', 'TIMESTAMP NULL DEFAULT NULL');
+    _assignmentSubmissionStatusDone = true;
+}
+
 /**
  * The set of columns that actually exist on a table, read from
  * INFORMATION_SCHEMA.

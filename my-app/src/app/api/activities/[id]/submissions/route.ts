@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
+import { ensureAssignmentSubmissionStatusColumns } from '@/lib/dbMigrate';
 
 // Files are uploaded via /api/upload (server local storage) before calling this
 // route — this route only persists a URL, never raw file bytes.
@@ -37,6 +38,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     try {
         const { id } = await params;
+        await ensureAssignmentSubmissionStatusColumns();
 
         const [actRows]: any = await pool.execute(
             `SELECT code FROM activity_catalogue WHERE code = ? OR id = ? LIMIT 1`,
@@ -48,7 +50,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         const activityCode = actRows[0].code;
 
         const [rows]: any = await pool.execute(
-            `SELECT assignment_id, file_url, file_name, submitted_at
+            `SELECT assignment_id, file_url, file_name, submitted_at, status, reason
              FROM activity_assignment_submissions
              WHERE activity_code = ? AND username = ?`,
             [activityCode, auth.user.username]
@@ -60,6 +62,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
                 fileUrl: row.file_url,
                 fileName: row.file_name,
                 submittedAt: row.submitted_at,
+                status: row.status || 'pending',
+                reason: row.reason,
             };
         }
 
@@ -113,11 +117,30 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         }
 
         await ensureTable();
+        await ensureAssignmentSubmissionStatusColumns();
+
+        // Once approved, a submission is final. Once a first submission is
+        // in for review (pending), it can't be silently overwritten either —
+        // only a rejected submission can be replaced, matching the resubmit
+        // rule enforced on the Tasks tab UI.
+        const [existingRows]: any = await pool.execute(
+            `SELECT status FROM activity_assignment_submissions WHERE activity_code = ? AND assignment_id = ? AND username = ?`,
+            [activityCode, assignmentId, auth.user.username]
+        );
+        if (existingRows.length && existingRows[0].status !== 'rejected') {
+            const status = existingRows[0].status;
+            return NextResponse.json({
+                success: false,
+                error: status === 'approved'
+                    ? 'This submission has already been approved and cannot be changed'
+                    : 'This submission is pending review and cannot be changed',
+            }, { status: 400 });
+        }
 
         await pool.execute(
-            `INSERT INTO activity_assignment_submissions (activity_code, assignment_id, username, file_url, file_name, submitted_at)
-             VALUES (?, ?, ?, ?, ?, NOW())
-             ON DUPLICATE KEY UPDATE file_url = VALUES(file_url), file_name = VALUES(file_name), updated_at = NOW()`,
+            `INSERT INTO activity_assignment_submissions (activity_code, assignment_id, username, file_url, file_name, submitted_at, status, reason)
+             VALUES (?, ?, ?, ?, ?, NOW(), 'pending', NULL)
+             ON DUPLICATE KEY UPDATE file_url = VALUES(file_url), file_name = VALUES(file_name), updated_at = NOW(), status = 'pending', reason = NULL`,
             [activityCode, assignmentId, auth.user.username, fileUrl, safeFileName]
         );
 

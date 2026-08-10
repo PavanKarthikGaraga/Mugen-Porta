@@ -7,7 +7,7 @@ import {
   FiBookOpen, FiFileText, FiMessageSquare, FiEdit3,
   FiCalendar, FiAward, FiTarget, FiGlobe, FiTrendingUp,
   FiDownload, FiExternalLink, FiZap, FiFlag, FiVideo, FiLink,
-  FiAlertTriangle, FiBriefcase, FiHeart, FiClock, FiLock, FiInbox, FiMapPin
+  FiAlertTriangle, FiBriefcase, FiHeart, FiClock, FiLock, FiInbox, FiMapPin, FiXCircle
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { DOMAINS, SDG_MAP } from "@/app/Data/activities-mock";
@@ -257,7 +257,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
       toast.success("Assignment submitted successfully!");
       setSubmissions((prev) => ({
         ...prev,
-        [String(id)]: { fileUrl: uploadData.url, fileName: selectedFile.name, submittedAt: new Date().toISOString() },
+        [String(id)]: { fileUrl: uploadData.url, fileName: selectedFile.name, submittedAt: new Date().toISOString(), status: "pending", reason: null },
       }));
       setSelectedTask(null);
       setSelectedFile(null);
@@ -547,6 +547,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                 activity.assignments.map((a: any) => {
                   const submission = submissions[String(a.id)];
                   const isSubmitted = !!submission;
+                  const submissionStatus = submission?.status || null; // 'pending' | 'approved' | 'rejected'
                   const { start, end } = getTaskWindow(a);
                   const now = new Date();
                   const notYetOpen = start && now < start;
@@ -557,7 +558,8 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                     <div
                       key={a.id}
                       className={`p-4 border rounded-xl ${
-                        isSubmitted ? "border-emerald-200 bg-emerald-50/30"
+                        submissionStatus === "rejected" ? "border-red-200 bg-red-50/30"
+                        : isSubmitted ? "border-emerald-200 bg-emerald-50/30"
                         : notYetOpen ? "border-amber-200 bg-amber-50/20"
                         : closed ? "border-gray-200 bg-gray-50/50 opacity-70"
                         : "border-gray-200"
@@ -606,9 +608,19 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                           )}
                           {isSubmitted ? (
                             <div className="flex flex-col items-end gap-1">
-                              <span className="flex items-center gap-1 text-xs font-medium text-emerald-700">
-                                <FiCheckCircle size={13} /> Submitted
-                              </span>
+                              {submissionStatus === "approved" ? (
+                                <span className="flex items-center gap-1 text-xs font-medium text-emerald-700">
+                                  <FiCheckCircle size={13} /> Approved
+                                </span>
+                              ) : submissionStatus === "rejected" ? (
+                                <span className="flex items-center gap-1 text-xs font-medium text-red-700">
+                                  <FiXCircle size={13} /> Rejected
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1 text-xs font-medium text-amber-700">
+                                  <FiClock size={13} /> Pending Review
+                                </span>
+                              )}
                               <a
                                 href={submission.fileUrl}
                                 target="_blank"
@@ -617,7 +629,10 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                               >
                                 {submission.fileName || "View file"}
                               </a>
-                              {isOpen && (
+                              {submissionStatus === "rejected" && submission.reason && (
+                                <p className="text-[11px] text-red-600 max-w-[160px] text-right">{submission.reason}</p>
+                              )}
+                              {submissionStatus === "rejected" && isOpen && (
                                 <button onClick={() => setSelectedTask(a)} className="text-[11px] text-gray-500 hover:text-gray-800 underline">
                                   Resubmit
                                 </button>

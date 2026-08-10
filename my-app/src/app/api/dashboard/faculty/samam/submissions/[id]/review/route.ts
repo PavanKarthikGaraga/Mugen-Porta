@@ -1,10 +1,19 @@
 import pool from "@/lib/db";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/jwt";
-import { safeMessage } from '@/lib/apiSecurity';
-import { getLeadClubIds } from '@/lib/leadScope';
+import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { ensureNotificationsTable } from '@/lib/dbMigrate';
+
+async function getFacultyClubs(username: string): Promise<string[]> {
+  const [rows]: any = await pool.execute(
+    'SELECT assignedClubs FROM faculty WHERE username = ?',
+    [username]
+  );
+  if (!rows.length) return [];
+  const raw = rows[0].assignedClubs;
+  if (!raw) return [];
+  const parsed = Array.isArray(raw) ? raw : JSON.parse(raw);
+  return parsed.filter(Boolean).map(String);
+}
 
 function taskTitle(assignments: any, assignmentId: string): string {
   let list: any[] = [];
@@ -15,13 +24,10 @@ function taskTitle(assignments: any, assignmentId: string): string {
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("tck")?.value;
-    if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    const decoded = await verifyToken(token);
-    if (!decoded || decoded.role !== "lead") return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  const auth = await requireAuth(['faculty']);
+  if (auth.response) return auth.response;
 
+  try {
     const { id } = await params;
     const { status, reason } = await req.json();
 
@@ -32,7 +38,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ message: "A reason is required to reject a submission" }, { status: 400 });
     }
 
-    const clubIds = await getLeadClubIds(decoded.username as string);
+    const clubIds = await getFacultyClubs(auth.user.username as string);
     if (clubIds.length === 0) return NextResponse.json({ message: 'No club assigned' }, { status: 403 });
     const clubPlaceholders = clubIds.map(() => '?').join(',');
 
@@ -51,15 +57,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     await pool.execute(
       `UPDATE activity_assignment_submissions SET status = ?, reason = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id = ?`,
-      [status, reason || null, decoded.username, id]
+      [status, reason || null, auth.user.username, id]
     );
 
     await ensureNotificationsTable();
     const task = taskTitle(sub.assignments, sub.assignment_id);
     const title = status === 'approved' ? "Task Approved" : "Task Rejected";
     const message = status === 'approved'
-      ? `Your submission for "${task}" in ${sub.activity_title} has been approved by your club lead.`
-      : `Your submission for "${task}" in ${sub.activity_title} was rejected by your club lead. Reason: ${reason}. You can resubmit.`;
+      ? `Your submission for "${task}" in ${sub.activity_title} has been approved by faculty.`
+      : `Your submission for "${task}" in ${sub.activity_title} was rejected by faculty. Reason: ${reason}. You can resubmit.`;
     await pool.execute(
       `INSERT INTO notifications (username, type, title, message) VALUES (?, ?, ?, ?)`,
       [sub.username, status === 'approved' ? 'success' : 'alert', title, message]
@@ -67,7 +73,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     return NextResponse.json({ success: true, message: `Submission ${status === 'approved' ? 'approved' : 'rejected'} successfully` });
   } catch (error: any) {
-    console.error("Submission review error:", error);
+    console.error("Faculty submission review error:", error);
     return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
   }
 }
