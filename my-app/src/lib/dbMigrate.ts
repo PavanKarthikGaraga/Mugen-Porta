@@ -127,6 +127,34 @@ export async function ensureActivityReportsTable() {
     _activityReportsDone = true;
 }
 
+let _roadmapCacheDone = false;
+
+/**
+ * career_roadmap_cache stores each student's generated roadmap plus how many
+ * times they've generated one. Students get exactly 1 generation by default;
+ * generation_count tracks usage and extra_allowed is how many additional
+ * generations an admin has granted via the CR Access page (see
+ * /dashboard/admin/dev/cr-access) -- allowed total = 1 + extra_allowed.
+ */
+export async function ensureCareerRoadmapCacheTable() {
+    if (_roadmapCacheDone) return;
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS career_roadmap_cache (
+            id               INT AUTO_INCREMENT PRIMARY KEY,
+            username         VARCHAR(100) NOT NULL UNIQUE,
+            roadmap_result   LONGTEXT     NOT NULL,
+            generation_count INT          NOT NULL DEFAULT 0,
+            extra_allowed    INT          NOT NULL DEFAULT 0,
+            generated_at     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+    // Installs that predate the usage-limit feature already have this table
+    // without these columns.
+    await addColumnIfMissing('career_roadmap_cache', 'generation_count', 'INT NOT NULL DEFAULT 0');
+    await addColumnIfMissing('career_roadmap_cache', 'extra_allowed', 'INT NOT NULL DEFAULT 0');
+    _roadmapCacheDone = true;
+}
+
 let _assignmentSubmissionStatusDone = false;
 
 /**

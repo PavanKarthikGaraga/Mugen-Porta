@@ -2,42 +2,47 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { callGroqJSON, GroqConfigError } from '@/lib/groq';
-import { checkRateLimit } from '@/lib/rateLimit';
+import { ensureCareerRoadmapCacheTable } from '@/lib/dbMigrate';
 
 export const dynamic = 'force-dynamic';
 
-async function ensureRoadmapCacheTable() {
-    await pool.execute(`
-        CREATE TABLE IF NOT EXISTS career_roadmap_cache (
-            id           INT AUTO_INCREMENT PRIMARY KEY,
-            username     VARCHAR(100) NOT NULL UNIQUE,
-            roadmap_result LONGTEXT   NOT NULL,
-            generated_at TIMESTAMP   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )
-    `);
-}
+const DEMO_ACCOUNTS = new Set(['2400000000']);
 
 export async function GET(request: Request) {
     const auth = await requireAuth(['student']);
     if (auth.response) return auth.response;
+    const username = auth.user.username as string;
+    const isDemo = DEMO_ACCOUNTS.has(username);
 
     try {
-        await ensureRoadmapCacheTable();
+        await ensureCareerRoadmapCacheTable();
         const [rows]: any = await pool.execute(
-            'SELECT roadmap_result, generated_at FROM career_roadmap_cache WHERE username = ?',
-            [auth.user.username as string]
+            'SELECT roadmap_result, generated_at, generation_count, extra_allowed FROM career_roadmap_cache WHERE username = ?',
+            [username]
         );
-        if ((rows as any[]).length === 0) return NextResponse.json({ cached: false });
+        if ((rows as any[]).length === 0) {
+            return NextResponse.json({ cached: false, remaining: isDemo ? null : 1 });
+        }
 
-        const { roadmap_result, generated_at } = (rows as any[])[0];
-        return NextResponse.json({ cached: true, roadmap: JSON.parse(roadmap_result), generatedAt: generated_at });
+        const { roadmap_result, generated_at, generation_count, extra_allowed } = (rows as any[])[0];
+        const remaining = isDemo ? null : Math.max(0, 1 + Number(extra_allowed || 0) - Number(generation_count || 0));
+
+        let roadmap = null;
+        try { roadmap = JSON.parse(roadmap_result); } catch { /* not generated yet, only a granted-access placeholder row */ }
+
+        return NextResponse.json({
+            cached: !!roadmap,
+            roadmap,
+            generatedAt: generated_at,
+            remaining,
+        });
     } catch {
         return NextResponse.json({ cached: false });
     }
 }
 
 const SYSTEM_PROMPT = `You are the SAMAM Career Intelligence System at KL University's Student Activity Center (SAC).
-A student has completed a comprehensive 24-question career assessment covering personality, learning style, Gardner's Multiple Intelligence, Bloom's Taxonomy, and career vision. Analyse ALL inputs deeply and generate an accurate, highly personalised career roadmap with psychological profiling.
+A student has completed a comprehensive 24-question career assessment covering personality, learning style, Gardner's Multiple Intelligence, Bloom's Taxonomy, Myers-Briggs (MBTI) type, CliftonStrengths themes, and career vision. Analyse ALL inputs deeply and generate an accurate, highly personalised career roadmap with psychological profiling.
 
 Return ONLY a single valid JSON object — no markdown fences, no extra text — with ALL fields populated. Do NOT leave any array empty or any string blank. Schema:
 {
@@ -54,6 +59,23 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
     "decisionMakingStyle": string,
     "stressManagementPattern": string,
     "motivationType": string
+  },
+  "mbti": {
+    "type": string,
+    "dichotomies": {
+      "EI": { "leaning": "E"|"I", "score": number },
+      "SN": { "leaning": "S"|"N", "score": number },
+      "TF": { "leaning": "T"|"F", "score": number },
+      "JP": { "leaning": "J"|"P", "score": number }
+    },
+    "description": string,
+    "workStyleStrengths": string[],
+    "growthAreas": string[]
+  },
+  "cliftonStrengths": {
+    "topThemes": [
+      { "theme": string, "domain": "Executing"|"Influencing"|"Relationship Building"|"Strategic Thinking", "description": string }
+    ]
   },
   "bloomsLevel": {
     "dominantLevel": "Remember"|"Understand"|"Apply"|"Analyze"|"Evaluate"|"Create",
@@ -102,12 +124,9 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
   "researchAreas": [
     { "area": string, "description": string, "subfields": string[] }
   ],
-  "yearwiseRoadmap": {
-    "year1": { "focus": string, "goals": string[], "skills": string[], "samamTip": string },
-    "year2": { "focus": string, "goals": string[], "skills": string[], "samamTip": string },
-    "year3": { "focus": string, "goals": string[], "skills": string[], "samamTip": string },
-    "year4": { "focus": string, "goals": string[], "skills": string[], "samamTip": string }
-  },
+  "goalRoadmap": [
+    { "stage": string, "timeframe": string, "focus": string, "topics": string[], "skills": string[], "goals": string[], "samamTip": string }
+  ],
   "socialImpactOpportunities": string[],
   "topUniversities": [
     { "name": string, "country": string, "program": string, "ranking": string, "highlights": string }
@@ -123,6 +142,23 @@ PERSONALITY PROFILE (derive from Q6 happiness, Q7 stress response, Q8 personalit
 - decisionMakingStyle: infer from Q7 stress + Q15 problem approach (e.g. "Analytical & Methodical", "Intuitive & Fast", "Consultative")
 - stressManagementPattern: infer directly from Q7 answer (e.g. "Social Processor — talks through stress with others", "Reflective Introvert — withdraws and self-processes")
 - motivationType: infer from Q6 + Q11 (e.g. "Impact-Driven", "Achievement-Oriented", "Financially Motivated", "Passion-Led")
+
+MYERS-BRIGGS (MBTI) TYPE (derive from Q8 personality type, Q6 happiness, Q7 stress response, Q13/Q14 learning style, Q15 problem approach, Q16 self-statement, Q20 team role):
+- EI: "E" if Q8 = Extrovert (or Ambivert leaning social) + team-leader/social activities; "I" if Q8 = Introvert or reflective/solo activities preferred. score (50-100) = strength of the leaning, not a slice of 100
+- SN: "S" (Sensing) if learning preference is practical, hands-on, detail-oriented, concrete examples; "N" (Intuition) if conceptual, big-picture, pattern-seeking, experimental
+- TF: "T" (Thinking) if Q7/Q15 show logical, analytical, objective decisions; "F" (Feeling) if Q7/Q12/Q16 show values-driven, people-centered, empathetic decisions
+- JP: "J" (Judging) if Q15/Q20 show planner/organizer/structured preference; "P" (Perceiving) if Q15/Q20 show spontaneous/flexible/adaptable preference
+- type: the 4 leaning letters combined into the real MBTI code (e.g. "INFJ", "ESTP")
+- description: 3-4 sentences on what this type means for how they work, learn, and lead — reference their specific answers, not generic MBTI copy
+- workStyleStrengths: 3-4 strengths typical of this type, tailored to their academic field
+- growthAreas: 2-3 areas this type commonly needs to develop, framed constructively (never negative/judgemental)
+
+CLIFTONSTRENGTHS (GALLUP) — pick EXACTLY 5 themes from this official list of 34 (do NOT invent theme names outside it), ordered strongest match first:
+- Strategic Thinking domain: Analytical, Context, Futuristic, Ideation, Input, Intellection, Learner, Strategic
+- Relationship Building domain: Adaptability, Connectedness, Developer, Empathy, Harmony, Includer, Individualization, Positivity, Relator
+- Influencing domain: Activator, Command, Communication, Competition, Maximizer, Self-Assurance, Significance, Woo
+- Executing domain: Achiever, Arranger, Belief, Consistency, Deliberative, Discipline, Focus, Responsibility, Restorative
+Map themes to signals across ALL answers (activities enjoyed, team role, problem approach, self-statement, skills improving, campus activities, career motivation) — pick the 5 that best fit their combined profile, not a generic default set. Each theme's "domain" must be its real domain from the list above. description = 2-3 sentences personalised to how this theme shows up in their answers and how it helps their specific career direction.
 
 BLOOM'S TAXONOMY (derive from Q13 learning style, Q14 learning preference, Q15 problem approach, Q16 self-statement):
 - dominantLevel: the Bloom's level that most accurately matches all 4 learning-style answers combined
@@ -153,11 +189,11 @@ BLOOM'S + GARDNER CROSS-ANALYSIS for careerPaths and projectIdeas:
 
 STANDARD RULES:
 - headline: concise role identity (e.g. "Full-Stack Developer & AI Enthusiast", "Corporate Lawyer", "UX Designer", "Clinical Researcher")
-- overview: 3-4 sentences referencing their specific answers — mention their personality type, Gardner primary intelligence, and career direction. Very specific, not generic.
+- overview: 3-4 sentences referencing their specific answers — mention their personality type, MBTI type, Gardner primary intelligence, and career direction. Very specific, not generic.
 - primaryDomain: exactly one of TEC / LCH / ESO / HWB / IIE
 - careerDirection: 2-4 word summary (e.g. "Industry Placement", "Research & PhD", "Creative Practice")
 - personalityTraits: 4-6 professional traits derived from the full 24-question analysis
-- yearwiseRoadmap: 3-4 goals and skills per year; samamTip references specific SAC club types; adapt for PG students
+- goalRoadmap: 3-5 STAGES (not fixed years) that plot a path from where they are now to their stated goal (Q10 fiveYearCareer, Q21 postGradPlan). Name each stage for what happens in it (e.g. "Foundation", "Core Skill Building", "Specialization & Projects", "Placement Prep" for a job-bound student; "Coursework & Fundamentals", "Research Focus Area", "Publications", "Thesis & Defense" for a research/PhD-bound student) — do NOT default to generic "Year 1..4" labels. timeframe = a realistic relative duration from their current stage (e.g. "Months 1-6", "Semester 3-4", "Final Year") sized to how much time they actually have left (Q1/Q2 academic stage), not assumed to be 4 years. Each stage: topics = 3-5 subject areas to study, skills = 3-5 concrete skills to build, goals = 3-4 measurable milestones, samamTip = 1 relevant SAC club/activity type
 - skillsToLearn: 5-7 skills, highly specific to their field and Gardner/Bloom's profile
 - topMNCs: EXACTLY 6 real companies; role = specific job title; INR package = "₹X–Y LPA"; USD = "$XK–YK/yr". Use real market data. Field-appropriate (hospitals for medicine, law firms for law, etc.)
 - clubRecommendations: EXACTLY 3 from provided clubs list only — exact names. Reason must link to their Gardner/personality profile.
@@ -176,20 +212,8 @@ export async function POST(request: Request) {
     const auth = await requireAuth(['student']);
     if (auth.response) return auth.response;
 
-    const DEMO_ACCOUNTS = new Set(['2400000000']);
-    const isDemo = DEMO_ACCOUNTS.has(auth.user.username as string);
-
-    // Metered per student, not per IP: a whole campus shares one public IP,
-    // so IP keying would cap the entire university at 5 roadmaps an hour.
-    // Demo account bypasses the rate limit entirely.
-    if (!isDemo) {
-        const rl = await checkRateLimit(request, 'career-roadmap', {
-            limit: 5,
-            windowMs: 60 * 60 * 1000,
-            key: auth.user.username as string,
-        });
-        if (rl.limited) return rl.response;
-    }
+    const username = auth.user.username as string;
+    const isDemo = DEMO_ACCOUNTS.has(username);
 
     try {
         const body = await request.json().catch(() => ({}));
@@ -199,10 +223,29 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Please complete the questionnaire before generating your roadmap.' }, { status: 400 });
         }
 
+        await ensureCareerRoadmapCacheTable();
+
+        // Students get exactly 1 generation; an admin can grant more via the
+        // CR Access page (extra_allowed). The demo account is unmetered.
+        if (!isDemo) {
+            const [usageRows]: any = await pool.execute(
+                'SELECT generation_count, extra_allowed FROM career_roadmap_cache WHERE username = ?',
+                [username]
+            );
+            const usage = (usageRows as any[])[0];
+            const generationCount = Number(usage?.generation_count || 0);
+            const extraAllowed = Number(usage?.extra_allowed || 0);
+            if (generationCount >= 1 + extraAllowed) {
+                return NextResponse.json({
+                    error: 'You have already generated your career roadmap. Ask an admin to grant re-analyze access for another try.',
+                }, { status: 403 });
+            }
+        }
+
         // Fetch student info
         const [studentRows]: any = await pool.execute(
             `SELECT name, branch, student_year, program FROM students WHERE username = ? LIMIT 1`,
-            [auth.user.username]
+            [username]
         ).catch(() => [[]]);
         const student = (studentRows as any[])[0] || {};
 
@@ -238,7 +281,6 @@ Generate a personalized career roadmap for this student that is specifically tai
             systemPrompt: SYSTEM_PROMPT,
             userPrompt,
             temperature: 0.6,
-            maxTokens: 7000,
         });
 
         if (!result || !result.headline || !result.careerPaths) {
@@ -265,6 +307,50 @@ Generate a personalized career roadmap for this student that is specifically tai
                     stressManagementPattern: sanitizeStr(pp.stressManagementPattern, 200),
                     motivationType: sanitizeStr(pp.motivationType, 100),
                 };
+            })(),
+            mbti: (() => {
+                const m = result.mbti || {};
+                const LEAN: Record<string, [string, string]> = { EI: ['E', 'I'], SN: ['S', 'N'], TF: ['T', 'F'], JP: ['J', 'P'] };
+                const dichotomies: Record<string, { leaning: string; score: number }> = {};
+                for (const key of ['EI', 'SN', 'TF', 'JP']) {
+                    const [a, b] = LEAN[key];
+                    const dd = m.dichotomies?.[key] || {};
+                    dichotomies[key] = {
+                        leaning: [a, b].includes(dd.leaning) ? dd.leaning : a,
+                        score: Math.min(100, Math.max(50, Number(dd.score) || 50)),
+                    };
+                }
+                const derivedType = dichotomies.EI.leaning + dichotomies.SN.leaning + dichotomies.TF.leaning + dichotomies.JP.leaning;
+                return {
+                    type: /^[EI][SN][TF][JP]$/.test(m.type) ? m.type : derivedType,
+                    dichotomies,
+                    description: sanitizeStr(m.description, 400),
+                    workStyleStrengths: Array.isArray(m.workStyleStrengths)
+                        ? m.workStyleStrengths.slice(0, 4).map((s: any) => sanitizeStr(s, 100))
+                        : [],
+                    growthAreas: Array.isArray(m.growthAreas)
+                        ? m.growthAreas.slice(0, 3).map((s: any) => sanitizeStr(s, 150))
+                        : [],
+                };
+            })(),
+            cliftonStrengths: (() => {
+                const VALID_THEMES = new Set([
+                    'Achiever', 'Activator', 'Adaptability', 'Analytical', 'Arranger', 'Belief', 'Command', 'Communication',
+                    'Competition', 'Connectedness', 'Consistency', 'Context', 'Deliberative', 'Developer', 'Discipline',
+                    'Empathy', 'Focus', 'Futuristic', 'Harmony', 'Ideation', 'Includer', 'Individualization', 'Input',
+                    'Intellection', 'Learner', 'Maximizer', 'Positivity', 'Relator', 'Responsibility', 'Restorative',
+                    'Self-Assurance', 'Significance', 'Strategic', 'Woo',
+                ]);
+                const VALID_DOMAINS = ['Executing', 'Influencing', 'Relationship Building', 'Strategic Thinking'];
+                const cs = result.cliftonStrengths || {};
+                const topThemes = Array.isArray(cs.topThemes)
+                    ? cs.topThemes.slice(0, 5).map((t: any) => ({
+                        theme: VALID_THEMES.has(t.theme) ? t.theme : 'Learner',
+                        domain: VALID_DOMAINS.includes(t.domain) ? t.domain : 'Strategic Thinking',
+                        description: sanitizeStr(t.description, 250),
+                    }))
+                    : [];
+                return { topThemes };
             })(),
             bloomsLevel: (() => {
                 const bl = result.bloomsLevel || {};
@@ -300,19 +386,17 @@ Generate a personalized career roadmap for this student that is specifically tai
                     timeToReach: String(p.timeToReach || '3-4 years').slice(0, 30),
                 }))
                 : [],
-            yearwiseRoadmap: (() => {
-                const rm: any = {};
-                for (const yr of ['year1', 'year2', 'year3', 'year4']) {
-                    const y = result.yearwiseRoadmap?.[yr] || {};
-                    rm[yr] = {
-                        focus: String(y.focus || '').slice(0, 60),
-                        goals: Array.isArray(y.goals) ? y.goals.slice(0, 4).map((g: any) => String(g).slice(0, 150)) : [],
-                        skills: Array.isArray(y.skills) ? y.skills.slice(0, 4).map((s: any) => String(s).slice(0, 80)) : [],
-                        samamTip: String(y.samamTip || '').slice(0, 200),
-                    };
-                }
-                return rm;
-            })(),
+            goalRoadmap: Array.isArray(result.goalRoadmap)
+                ? result.goalRoadmap.slice(0, 6).map((s: any) => ({
+                    stage: String(s.stage || '').slice(0, 60),
+                    timeframe: String(s.timeframe || '').slice(0, 40),
+                    focus: String(s.focus || '').slice(0, 80),
+                    topics: Array.isArray(s.topics) ? s.topics.slice(0, 5).map((t: any) => String(t).slice(0, 80)) : [],
+                    skills: Array.isArray(s.skills) ? s.skills.slice(0, 5).map((sk: any) => String(sk).slice(0, 80)) : [],
+                    goals: Array.isArray(s.goals) ? s.goals.slice(0, 4).map((g: any) => String(g).slice(0, 150)) : [],
+                    samamTip: String(s.samamTip || '').slice(0, 200),
+                }))
+                : [],
             skillsToLearn: Array.isArray(result.skillsToLearn)
                 ? result.skillsToLearn.slice(0, 7).map((s: any) => ({
                     skill: String(s.skill || '').slice(0, 80),
@@ -391,19 +475,27 @@ Generate a personalized career roadmap for this student that is specifically tai
             })(),
         };
 
-        // Save to cache (upsert — overwrites on retake)
+        // Save to cache (upsert — overwrites on retake) and count this generation
+        // against the student's allowance (skipped for the unmetered demo account).
         try {
-            await ensureRoadmapCacheTable();
             await pool.execute(`
-                INSERT INTO career_roadmap_cache (username, roadmap_result)
-                VALUES (?, ?)
-                ON DUPLICATE KEY UPDATE roadmap_result = VALUES(roadmap_result), generated_at = CURRENT_TIMESTAMP
-            `, [auth.user.username as string, JSON.stringify(roadmap)]);
+                INSERT INTO career_roadmap_cache (username, roadmap_result, generation_count)
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE roadmap_result = VALUES(roadmap_result), generated_at = CURRENT_TIMESTAMP,
+                    generation_count = generation_count + ?
+            `, [username, JSON.stringify(roadmap), isDemo ? 0 : 1, isDemo ? 0 : 1]);
         } catch (cacheErr) {
             console.error('Roadmap cache save error:', cacheErr);
         }
 
-        return NextResponse.json({ success: true, roadmap, student: { name: student.name, branch: student.branch, year: student.student_year } });
+        const [postUsageRows]: any = isDemo ? [[]] : await pool.execute(
+            'SELECT generation_count, extra_allowed FROM career_roadmap_cache WHERE username = ?',
+            [username]
+        ).catch(() => [[]]);
+        const postUsage = (postUsageRows as any[])[0];
+        const remaining = isDemo ? null : Math.max(0, 1 + Number(postUsage?.extra_allowed || 0) - Number(postUsage?.generation_count || 0));
+
+        return NextResponse.json({ success: true, roadmap, student: { name: student.name, branch: student.branch, year: student.student_year }, remaining });
     } catch (error: any) {
         console.error('Career roadmap error:', error);
         const errMsg: string = error?.message || String(error);

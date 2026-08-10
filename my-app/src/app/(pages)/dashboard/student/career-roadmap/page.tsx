@@ -5,7 +5,7 @@ import {
   FiTarget, FiZap, FiCheck, FiBriefcase, FiBook, FiSearch, FiHeart,
   FiGlobe, FiCode, FiCpu, FiBarChart2, FiFileText, FiEdit3, FiShield,
   FiAward, FiGrid, FiUser, FiActivity, FiLayers, FiStar,
-  FiSettings, FiMapPin, FiHome, FiList, FiFlag, FiFeather, FiVolume2, FiVolumeX
+  FiSettings, FiMapPin, FiHome, FiList, FiFlag, FiFeather, FiVolume2, FiVolumeX, FiCompass
 } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -27,7 +27,14 @@ const DOMAIN_LABELS: Record<string, string> = {
   TEC: "Technical", LCH: "Liberal Arts, Culture and Heritage", ESO: "Social Outreach",
   HWB: "Health & Wellbeing", IIE: "Innovation & Entrepreneurship",
 };
-const YEAR_COLORS = [BRAND, "#2563eb", "#7c3aed", "#16a34a"];
+const STAGE_COLORS = [BRAND, "#2563eb", "#7c3aed", "#16a34a", "#ea580c", "#0891b2"];
+// Official Gallup CliftonStrengths domain colors
+const CS_DOMAIN_COLORS: Record<string, string> = {
+  "Executing": "#7c3aed", "Influencing": "#ea580c", "Relationship Building": "#0284c7", "Strategic Thinking": "#059669",
+};
+const MBTI_DICHOTOMY_LABELS: Record<string, [string, string]> = {
+  EI: ["Extraversion", "Introversion"], SN: ["Sensing", "Intuition"], TF: ["Thinking", "Feeling"], JP: ["Judging", "Perceiving"],
+};
 const PRIORITY_STYLE: Record<string, string> = {
   High: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800",
   Medium: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800",
@@ -514,6 +521,9 @@ export default function CareerRoadmapPage() {
   const [studentInfo, setStudentInfo] = useState<any>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [checkingCache, setCheckingCache] = useState(true);
+  // null = unmetered (demo account); otherwise generations left before an
+  // admin needs to grant re-analyze access via the CR Access page.
+  const [remaining, setRemaining] = useState<number | null>(null);
   const [activeProjectTab, setActiveProjectTab] = useState<"software" | "hardware" | "management">("software");
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -532,6 +542,7 @@ export default function CareerRoadmapPage() {
     fetch("/api/dashboard/student/career-roadmap")
       .then(r => r.json())
       .then(d => {
+        if (typeof d.remaining !== "undefined") setRemaining(d.remaining);
         if (d.cached && d.roadmap) {
           setRoadmap(d.roadmap);
           setGeneratedAt(d.generatedAt);
@@ -669,6 +680,7 @@ export default function CareerRoadmapPage() {
       }
       setRoadmap(data.roadmap);
       setStudentInfo(data.student);
+      if (typeof data.remaining !== "undefined") setRemaining(data.remaining);
       setStep("results");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
@@ -1028,6 +1040,20 @@ export default function CareerRoadmapPage() {
 
     const hasPDP = roadmap.personalDevelopmentPlan && Object.values(roadmap.personalDevelopmentPlan).some(Boolean);
 
+    // Old format had yearwiseRoadmap = {year1..year4} — convert to the new stage-wise goalRoadmap[]
+    const goalRoadmap: any[] =
+      roadmap.goalRoadmap?.length > 0
+        ? roadmap.goalRoadmap
+        : roadmap.yearwiseRoadmap
+        ? (["year1", "year2", "year3", "year4"] as const)
+            .map((yr, i) => {
+              const y = roadmap.yearwiseRoadmap[yr];
+              if (!y) return null;
+              return { stage: `Year ${i + 1}`, timeframe: `Year ${i + 1}`, focus: y.focus, topics: [], skills: y.skills || [], goals: y.goals || [], samamTip: y.samamTip };
+            })
+            .filter(Boolean)
+        : [];
+
     return (
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-7">
 
@@ -1069,9 +1095,15 @@ export default function CareerRoadmapPage() {
                     Generated {new Date(generatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                 )}
-                <button onClick={reset} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 text-gray-500 hover:bg-white dark:hover:bg-zinc-900 transition-all">
-                  <FiRefreshCw size={11} /> Retake
-                </button>
+                {remaining === null || remaining > 0 ? (
+                  <button onClick={reset} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 text-gray-500 hover:bg-white dark:hover:bg-zinc-900 transition-all">
+                    <FiRefreshCw size={11} /> Retake
+                  </button>
+                ) : (
+                  <span className="text-[10px] text-gray-400 dark:text-gray-600 max-w-[160px] text-right">
+                    You&apos;ve used your roadmap generation. Ask an admin for re-analyze access.
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -1164,6 +1196,98 @@ export default function CareerRoadmapPage() {
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{label}</p>
                     </div>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white leading-snug">{val}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* MBTI Type */}
+        {roadmap.mbti && (
+          <section>
+            <SectionHeader icon={FiCompass} title="Myers-Briggs (MBTI) Type" />
+            <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 space-y-5">
+              <div className="flex items-center gap-4 flex-wrap">
+                <span className="text-2xl font-extrabold px-4 py-2 rounded-xl text-white tracking-wide" style={{ backgroundColor: BRAND }}>
+                  {roadmap.mbti.type}
+                </span>
+                {roadmap.mbti.description && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed flex-1 min-w-[200px]">{roadmap.mbti.description}</p>
+                )}
+              </div>
+
+              {roadmap.mbti.dichotomies && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {(["EI", "SN", "TF", "JP"] as const).map((key) => {
+                    const d = roadmap.mbti.dichotomies?.[key];
+                    if (!d) return null;
+                    const [leftLabel, rightLabel] = MBTI_DICHOTOMY_LABELS[key];
+                    const leftLetter = key[0], rightLetter = key[1];
+                    const leftPct = d.leaning === leftLetter ? d.score : 100 - d.score;
+                    return (
+                      <div key={key}>
+                        <div className="flex justify-between text-[11px] mb-1">
+                          <span className={`font-semibold ${d.leaning === leftLetter ? "text-gray-900 dark:text-white" : "text-gray-400"}`}>{leftLetter} · {leftLabel}</span>
+                          <span className={`font-semibold ${d.leaning === rightLetter ? "text-gray-900 dark:text-white" : "text-gray-400"}`}>{rightLabel} · {rightLetter}</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden flex">
+                          <div className="h-full transition-all duration-700" style={{ width: `${leftPct}%`, backgroundColor: BRAND }} />
+                          <div className="h-full flex-1 transition-all duration-700" style={{ backgroundColor: "#d1d5db" }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {(roadmap.mbti.workStyleStrengths?.length > 0 || roadmap.mbti.growthAreas?.length > 0) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-t border-gray-100 dark:border-zinc-800">
+                  {roadmap.mbti.workStyleStrengths?.length > 0 && (
+                    <div className="pt-3">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Work Style Strengths</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {roadmap.mbti.workStyleStrengths.map((s: string) => (
+                          <span key={s} className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {roadmap.mbti.growthAreas?.length > 0 && (
+                    <div className="pt-3">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Growth Areas</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {roadmap.mbti.growthAreas.map((s: string) => (
+                          <span key={s} className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* CliftonStrengths Top 5 */}
+        {roadmap.cliftonStrengths?.topThemes?.length > 0 && (
+          <section>
+            <SectionHeader icon={FiStar} title="CliftonStrengths — Your Top 5 Themes" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {roadmap.cliftonStrengths.topThemes.map((t: any, i: number) => {
+                const color = CS_DOMAIN_COLORS[t.domain] || BRAND;
+                return (
+                  <div key={t.theme} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm p-4 flex gap-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-white text-xs" style={{ backgroundColor: color }}>
+                      {i + 1}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">{t.theme}</p>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: color + "18", color }}>{t.domain}</span>
+                      </div>
+                      {t.description && <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mt-1">{t.description}</p>}
+                    </div>
                   </div>
                 );
               })}
@@ -1267,69 +1391,83 @@ export default function CareerRoadmapPage() {
           </div>
         )}
 
-        {/* 4-Year Roadmap */}
-        {roadmap.yearwiseRoadmap && (
+        {/* Stage-wise Goal Roadmap */}
+        {goalRoadmap.length > 0 && (
           <section>
-            <SectionHeader icon={FiMapPin} title="Your 4-Year Career Roadmap" />
+            <SectionHeader icon={FiMapPin} title="Your Roadmap to Achieve Your Desired Goal" />
             <div className="relative">
               {/* Connecting gradient line — desktop only */}
               <div
                 className="hidden lg:block absolute z-0 h-0.5"
                 style={{
                   top: "24px",
-                  left: "12.5%",
-                  right: "12.5%",
-                  background: `linear-gradient(to right, ${BRAND}, #2563eb, #7c3aed, #16a34a)`,
+                  left: `${50 / goalRoadmap.length}%`,
+                  right: `${50 / goalRoadmap.length}%`,
+                  background: `linear-gradient(to right, ${goalRoadmap.map((_, i) => STAGE_COLORS[i % STAGE_COLORS.length]).join(", ")})`,
                 }}
               />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {(["year1", "year2", "year3", "year4"] as const).map((yr, i) => {
-                  const y = roadmap.yearwiseRoadmap[yr];
-                  if (!y) return null;
-                  const yc = YEAR_COLORS[i];
+              <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${
+                { 1: "lg:grid-cols-1", 2: "lg:grid-cols-2", 3: "lg:grid-cols-3" }[goalRoadmap.length] || "lg:grid-cols-4"
+              }`}>
+                {goalRoadmap.map((stage: any, i: number) => {
+                  const sc = STAGE_COLORS[i % STAGE_COLORS.length];
                   return (
-                    <div key={yr} className="relative z-10">
+                    <div key={stage.stage || i} className="relative z-10">
                       {/* Desktop circle on timeline */}
                       <div className="hidden lg:flex justify-center mb-3">
                         <div
                           className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xs font-extrabold shadow-lg ring-4 ring-white dark:ring-zinc-900"
-                          style={{ backgroundColor: yc }}
+                          style={{ backgroundColor: sc }}
                         >
-                          Y{i + 1}
-                        </div>
-                      </div>
-                      {/* Mobile year divider */}
-                      <div className="flex lg:hidden items-center gap-2 mb-2">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: yc }}>
                           {i + 1}
                         </div>
-                        <div className="flex-1 h-px" style={{ backgroundColor: yc + "40" }} />
+                      </div>
+                      {/* Mobile stage divider */}
+                      <div className="flex lg:hidden items-center gap-2 mb-2">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: sc }}>
+                          {i + 1}
+                        </div>
+                        <div className="flex-1 h-px" style={{ backgroundColor: sc + "40" }} />
                       </div>
                       {/* Card */}
                       <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
-                        <div className="px-4 py-3" style={{ backgroundColor: yc + "0e", borderBottom: `2px solid ${yc}28` }}>
-                          <p className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color: yc }}>Year {i + 1}</p>
-                          <p className="text-sm font-bold text-gray-900 dark:text-white leading-snug">{y.focus}</p>
+                        <div className="px-4 py-3" style={{ backgroundColor: sc + "0e", borderBottom: `2px solid ${sc}28` }}>
+                          <p className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color: sc }}>
+                            {stage.stage}{stage.timeframe ? ` · ${stage.timeframe}` : ""}
+                          </p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white leading-snug">{stage.focus}</p>
                         </div>
                         <div className="p-4 space-y-3">
-                          {y.goals?.length > 0 && (
+                          {stage.topics?.length > 0 && (
+                            <div>
+                              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Topics</p>
+                              <div className="flex flex-wrap gap-1">
+                                {stage.topics.map((t: string) => (
+                                  <span key={t} className="text-[10px] font-medium px-1.5 py-0.5 rounded-md" style={{ backgroundColor: sc + "12", color: sc }}>
+                                    {t}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {stage.goals?.length > 0 && (
                             <div>
                               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Goals</p>
                               <ul className="space-y-1.5">
-                                {y.goals.map((g: string) => (
+                                {stage.goals.map((g: string) => (
                                   <li key={g} className="flex items-start gap-1.5 text-xs text-gray-600 dark:text-gray-300 leading-snug">
-                                    <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: yc }} />
+                                    <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: sc }} />
                                     {g}
                                   </li>
                                 ))}
                               </ul>
                             </div>
                           )}
-                          {y.skills?.length > 0 && (
+                          {stage.skills?.length > 0 && (
                             <div>
                               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Key Skills</p>
                               <div className="flex flex-wrap gap-1">
-                                {y.skills.map((s: string) => (
+                                {stage.skills.map((s: string) => (
                                   <span key={s} className="text-[10px] font-medium px-1.5 py-0.5 rounded-md border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-900">
                                     {s}
                                   </span>
@@ -1337,9 +1475,9 @@ export default function CareerRoadmapPage() {
                               </div>
                             </div>
                           )}
-                          {y.samamTip && (
+                          {stage.samamTip && (
                             <div className="border-l-2 border-blue-300 dark:border-blue-700 pl-2.5">
-                              <p className="text-[10px] text-blue-600 dark:text-blue-400 italic leading-relaxed">{y.samamTip}</p>
+                              <p className="text-[10px] text-blue-600 dark:text-blue-400 italic leading-relaxed">{stage.samamTip}</p>
                             </div>
                           )}
                         </div>
@@ -1617,9 +1755,15 @@ export default function CareerRoadmapPage() {
         )}
 
         <div className="flex justify-center pb-2">
-          <button onClick={reset} className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-            <FiRefreshCw size={11} /> Retake the assessment
-          </button>
+          {remaining === null || remaining > 0 ? (
+            <button onClick={reset} className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+              <FiRefreshCw size={11} /> Retake the assessment
+            </button>
+          ) : (
+            <p className="text-xs text-gray-400 dark:text-gray-600">
+              You&apos;ve used your roadmap generation. Ask an admin for re-analyze access.
+            </p>
+          )}
         </div>
       </div>
     );

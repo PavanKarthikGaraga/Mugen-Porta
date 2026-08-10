@@ -149,7 +149,7 @@ async function tryGroq({
     systemPrompt,
     userPrompt,
     temperature = 0.5,
-    maxTokens = 1800,
+    maxTokens,
 }: CallGroqOptions): Promise<{ success: true; data: any } | { success: false; lastError: Error }> {
     const keys = shuffle(getGroqKeys())
     if (keys.length === 0) {
@@ -174,7 +174,10 @@ async function tryGroq({
                             { role: 'user', content: userPrompt },
                         ],
                         temperature,
-                        max_tokens: maxTokens,
+                        // Omitted entirely when not passed, rather than defaulted,
+                        // so the provider uses the model's own max output — no
+                        // artificial cap unless a caller explicitly asks for one.
+                        ...(maxTokens ? { max_tokens: maxTokens } : {}),
                         response_format: { type: 'json_object' },
                     }),
                 })
@@ -218,7 +221,7 @@ async function tryOpenRouter({
     systemPrompt,
     userPrompt,
     temperature = 0.5,
-    maxTokens = 1800,
+    maxTokens,
 }: CallGroqOptions): Promise<{ success: true; data: any } | { success: false; lastError: Error }> {
     const keys = shuffle(getOpenRouterKeys())
     if (keys.length === 0) {
@@ -253,7 +256,7 @@ async function tryOpenRouter({
                             { role: 'user', content: userPrompt },
                         ],
                         temperature,
-                        max_tokens: maxTokens,
+                        ...(maxTokens ? { max_tokens: maxTokens } : {}),
                     }),
                 })
 
