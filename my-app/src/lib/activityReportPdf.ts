@@ -156,12 +156,26 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
     y += 18;
   }
 
+  // Text pasted in from Word/Docs regularly carries non-breaking spaces,
+  // doubled-up spaces, and CRLF line endings. jsPDF's splitTextToSize wraps
+  // on raw character width and doesn't collapse any of that, so those stray
+  // runs of whitespace were surviving straight into the word-wrap -- most
+  // visible on the last line or two of a paragraph, where a run of leftover
+  // spaces has nothing after it to break up the gap.
+  function normalizeWhitespace(s: string): string {
+    return s.replace(/\r\n?/g, "\n").replace(/[ \t\u00A0]+/g, " ");
+  }
+
   function paragraph(text: string, size = 10.5) {
     if (!text?.trim()) return;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(size);
     doc.setTextColor(40, 40, 40);
-    const lines: string[] = doc.splitTextToSize(text.trim(), CONTENT_W);
+    // A single flowing paragraph -- collapse any hard line breaks the
+    // textarea captured back into spaces so wrapping is driven entirely by
+    // CONTENT_W, not leftover manual line breaks from the source text.
+    const clean = normalizeWhitespace(text).replace(/\n+/g, " ").trim();
+    const lines: string[] = doc.splitTextToSize(clean, CONTENT_W);
     const lineHeight = size * 1.35;
     for (const line of lines) {
       ensureSpace(lineHeight);
@@ -173,7 +187,7 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
 
   function bulletList(text: string, size = 10.5) {
     if (!text?.trim()) return;
-    const items = text.split("\n").map((s) => s.trim()).filter(Boolean);
+    const items = normalizeWhitespace(text).split("\n").map((s) => s.trim()).filter(Boolean);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(size);
     doc.setTextColor(40, 40, 40);

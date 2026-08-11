@@ -36,6 +36,14 @@ function UploadSlot({
   uploading: boolean; aspect?: string; hint?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
+
+  const handleFiles = (files: FileList | null) => {
+    const file = files?.[0];
+    if (file && file.type.startsWith("image/")) onUpload(file);
+  };
+
   return (
     <div>
       <p className="text-xs font-semibold text-gray-700 mb-1.5">{label}</p>
@@ -46,8 +54,7 @@ function UploadSlot({
         accept="image/*"
         className="hidden"
         onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) onUpload(file);
+          handleFiles(e.target.files);
           e.target.value = "";
         }}
       />
@@ -68,10 +75,33 @@ function UploadSlot({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="w-full sm:w-64 h-40 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-gray-300 hover:text-gray-500 transition-colors disabled:opacity-50"
+          onDragEnter={(e) => {
+            e.preventDefault();
+            dragCounter.current++;
+            setIsDragging(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            dragCounter.current--;
+            if (dragCounter.current <= 0) setIsDragging(false);
+          }}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            dragCounter.current = 0;
+            setIsDragging(false);
+            handleFiles(e.dataTransfer.files);
+          }}
+          className={`w-full sm:w-64 h-40 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 transition-colors disabled:opacity-50 ${
+            isDragging
+              ? "border-gray-400 bg-gray-50 text-gray-600"
+              : "border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-500"
+          }`}
         >
           <FiUpload size={20} />
-          <span className="text-xs font-medium">{uploading ? "Uploading…" : "Click to upload"}</span>
+          <span className="text-xs font-medium">
+            {uploading ? "Uploading…" : isDragging ? "Drop to upload" : "Click or drag & drop to upload"}
+          </span>
         </button>
       )}
     </div>
@@ -318,7 +348,13 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
   if (!activity) return <div className="p-12 text-center text-gray-500">Activity not found.</div>;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5 pb-24">
+    <div
+      className="max-w-4xl mx-auto space-y-5 pb-24"
+      // Without this, dropping a file just outside one of the upload boxes
+      // makes the browser navigate to it directly, losing the whole draft.
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => e.preventDefault()}
+    >
       <div className="flex items-center gap-4">
         <Link href="/dashboard/lead/samam/activity-reports" className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
           <FiArrowLeft />
