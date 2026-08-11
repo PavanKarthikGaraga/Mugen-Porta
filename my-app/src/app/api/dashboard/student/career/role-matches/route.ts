@@ -4,6 +4,7 @@ import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { getStudentCareerContext } from '@/lib/careerContext';
 import { callGroqJSON, GroqConfigError } from '@/lib/groq';
+import { logAiUsage } from '@/lib/dbMigrate';
 
 export const dynamic = 'force-dynamic';
 
@@ -129,7 +130,8 @@ export async function POST(request: Request) {
         const context = await getStudentCareerContext(username);
         const userPrompt = `Here is the student's profile:\n\n${context.contextText}\n\nBased strictly on this evidence, identify my best-fit career roles across various domains and how strong a match each one is.`;
 
-        const result = await callGroqJSON({ systemPrompt: SYSTEM_PROMPT, userPrompt, temperature: 0.5, maxTokens: 2000 });
+        const { result, usage, provider, model } = await callGroqJSON({ systemPrompt: SYSTEM_PROMPT, userPrompt, temperature: 0.5, maxTokens: 2000 });
+        logAiUsage({ username, feature: 'role_matches', provider, model, usage });
 
         const roles = Array.isArray(result?.roles)
             ? result.roles

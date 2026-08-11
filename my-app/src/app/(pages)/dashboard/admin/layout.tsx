@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
     FiTool, FiChevronDown, FiChevronUp, FiLock, FiUnlock, FiSettings, FiUsers, FiAward, FiStar, FiKey, FiMap, FiCheckSquare,
-    FiActivity, FiFileText, FiBarChart2, FiBell, FiClipboard, FiUserCheck,
+    FiActivity, FiFileText, FiBarChart2, FiBell, FiClipboard, FiUserCheck, FiCpu,
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
 import { toast } from "sonner";
@@ -99,6 +99,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Reset Password', href: '/dashboard/admin/dev/reset-password', icon: FiKey },
         { name: 'Career Roadmap Access', href: '/dashboard/admin/dev/career-roadmap', icon: FiMap },
         { name: 'CR Access',           href: '/dashboard/admin/dev/cr-access',       icon: FiUserCheck },
+        { name: 'AI Logs',             href: '/dashboard/admin/dev/ai-logs',         icon: FiCpu },
     ];
 
     const handleLogout = async () => {

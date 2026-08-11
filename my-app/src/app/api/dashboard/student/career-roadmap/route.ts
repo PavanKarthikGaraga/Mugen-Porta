@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { callGroqJSON, GroqConfigError } from '@/lib/groq';
-import { ensureCareerRoadmapCacheTable } from '@/lib/dbMigrate';
+import { ensureCareerRoadmapCacheTable, logAiUsage } from '@/lib/dbMigrate';
 
 export const dynamic = 'force-dynamic';
 
@@ -277,7 +277,7 @@ ${clubsList || 'No clubs data available'}
 
 Generate a personalized career roadmap for this student that is specifically tailored to their academic field and career direction — not a generic engineering roadmap.`;
 
-        const result = await callGroqJSON({
+        const { result, usage, provider, model } = await callGroqJSON({
             systemPrompt: SYSTEM_PROMPT,
             userPrompt,
             temperature: 0.6,
@@ -293,6 +293,7 @@ Generate a personalized career roadmap for this student that is specifically tai
             // goal roadmap) generate first and are protected either way.
             maxTokens: 6000,
         });
+        logAiUsage({ username, feature: 'career_roadmap', provider, model, usage });
 
         if (!result || !result.headline || !result.careerPaths) {
             throw new Error('AI returned an incomplete roadmap — please try again');

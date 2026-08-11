@@ -210,3 +210,61 @@ export async function getTableColumns(table: string): Promise<Set<string>> {
 export function bustTableColumnCache(table: string) {
     _columnCache.delete(table);
 }
+
+let _aiUsageLogDone = false;
+
+/**
+ * One row per successful AI call, so token spend is attributable per
+ * student and per feature (see the AI Logs admin page at
+ * /dashboard/admin/dev/ai-logs). "feature" values: 'career_roadmap',
+ * 'role_matches', 'role_fit' -- the first two Career Dashboard panels plus
+ * the separate Career Roadmap questionnaire, the only 3 callGroqJSON call
+ * sites in the app.
+ */
+export async function ensureAiUsageLogTable() {
+    if (_aiUsageLogDone) return;
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS ai_usage_log (
+            id                BIGINT AUTO_INCREMENT PRIMARY KEY,
+            username          VARCHAR(10)  NOT NULL,
+            feature           VARCHAR(30)  NOT NULL,
+            provider          VARCHAR(20)  NOT NULL,
+            model             VARCHAR(80)  DEFAULT NULL,
+            prompt_tokens     INT          NOT NULL DEFAULT 0,
+            completion_tokens INT          NOT NULL DEFAULT 0,
+            total_tokens      INT          NOT NULL DEFAULT 0,
+            created_at        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_username (username),
+            INDEX idx_feature (feature)
+        )
+    `);
+    _aiUsageLogDone = true;
+}
+
+/** Non-fatal: a logging failure should never break the student-facing AI call it's logging. */
+export async function logAiUsage(entry: {
+    username: string;
+    feature: 'career_roadmap' | 'role_matches' | 'role_fit';
+    provider: string;
+    model: string | null;
+    usage: { promptTokens: number; completionTokens: number; totalTokens: number } | null;
+}) {
+    try {
+        await ensureAiUsageLogTable();
+        await pool.execute(
+            `INSERT INTO ai_usage_log (username, feature, provider, model, prompt_tokens, completion_tokens, total_tokens)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                entry.username,
+                entry.feature,
+                entry.provider,
+                entry.model,
+                entry.usage?.promptTokens || 0,
+                entry.usage?.completionTokens || 0,
+                entry.usage?.totalTokens || 0,
+            ]
+        );
+    } catch (err) {
+        console.error('AI usage log insert failed (non-fatal):', err);
+    }
+}

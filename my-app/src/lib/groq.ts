@@ -175,12 +175,35 @@ interface CallGroqOptions {
     maxTokens?: number
 }
 
+export interface AiUsage {
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+}
+
+export interface AiCallResult {
+    result: any
+    usage: AiUsage | null
+    provider: 'groq' | 'openrouter'
+    model: string
+}
+
+function extractUsage(data: any): AiUsage | null {
+    const u = data?.usage
+    if (!u) return null
+    return {
+        promptTokens: Number(u.prompt_tokens) || 0,
+        completionTokens: Number(u.completion_tokens) || 0,
+        totalTokens: Number(u.total_tokens) || 0,
+    }
+}
+
 // ─── Groq attempt ────────────────────────────────────────────────────────────
 
 async function tryGroq(
     { systemPrompt, userPrompt, temperature = 0.5, maxTokens }: CallGroqOptions,
     deadline: number,
-): Promise<{ success: true; data: any } | { success: false; lastError: Error; timedOut?: boolean }> {
+): Promise<{ success: true; data: any; usage: AiUsage | null; model: string } | { success: false; lastError: Error; timedOut?: boolean }> {
     const keys = shuffle(getGroqKeys())
     if (keys.length === 0) {
         return { success: false, lastError: new GroqConfigError() }
@@ -238,7 +261,7 @@ async function tryGroq(
                     continue
                 }
 
-                return { success: true, data: parsed }
+                return { success: true, data: parsed, usage: extractUsage(data), model }
             } catch (err: any) {
                 lastError = err instanceof Error ? err : new Error(String(err))
                 continue
@@ -254,7 +277,7 @@ async function tryGroq(
 async function tryOpenRouter(
     { systemPrompt, userPrompt, temperature = 0.5, maxTokens }: CallGroqOptions,
     deadline: number,
-): Promise<{ success: true; data: any } | { success: false; lastError: Error }> {
+): Promise<{ success: true; data: any; usage: AiUsage | null; model: string } | { success: false; lastError: Error }> {
     const keys = shuffle(getOpenRouterKeys())
     if (keys.length === 0) {
         return {
@@ -317,7 +340,7 @@ async function tryOpenRouter(
                     continue
                 }
 
-                return { success: true, data: parsed }
+                return { success: true, data: parsed, usage: extractUsage(data), model }
             } catch (err: any) {
                 lastError = err instanceof Error ? err : new Error(String(err))
                 continue
@@ -336,11 +359,16 @@ async function tryOpenRouter(
  *   2. If all Groq attempts fail, fall back to OpenRouter free-tier models.
  *   3. Only if every (provider, model, key) combination fails does this throw.
  *
- * Returns the parsed JSON object from the model's reply.
+ * Returns { result, usage, provider, model } -- result is the parsed JSON
+ * object from the model's reply, usage is the token counts (null if the
+ * provider didn't report them), and provider/model identify which one
+ * actually served the request. Callers that need to log token usage per
+ * student use these fields; callers that just want the content can
+ * destructure { result }.
  * Throws GroqConfigError if no Groq keys are configured and OpenRouter is
  * also unavailable, or a regular Error describing the last failure.
  */
-export async function callGroqJSON(options: CallGroqOptions): Promise<any> {
+export async function callGroqJSON(options: CallGroqOptions): Promise<AiCallResult> {
     // Each provider gets its own dedicated deadline -- see the comment above
     // GROQ_BUDGET_MS/OPENROUTER_BUDGET_MS for why this isn't one shared
     // deadline. OpenRouter's clock only starts once the Groq phase actually
@@ -351,7 +379,7 @@ export async function callGroqJSON(options: CallGroqOptions): Promise<any> {
     // ── Phase 1: Groq ──────────────────────────────────────────────────────
     const groqResult = await tryGroq(options, groqDeadline)
     if (groqResult.success) {
-        return groqResult.data
+        return { result: groqResult.data, usage: groqResult.usage, provider: 'groq', model: groqResult.model }
     }
 
     // Narrow the failure branch explicitly so TypeScript sees lastError.
@@ -364,7 +392,7 @@ export async function callGroqJSON(options: CallGroqOptions): Promise<any> {
     const orDeadline = Date.now() + OPENROUTER_BUDGET_MS
     const orResult = await tryOpenRouter(options, orDeadline)
     if (orResult.success) {
-        return orResult.data
+        return { result: orResult.data, usage: orResult.usage, provider: 'openrouter', model: orResult.model }
     }
 
     // Both providers exhausted — surface the more informative of the two errors.
