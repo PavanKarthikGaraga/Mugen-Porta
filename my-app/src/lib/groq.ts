@@ -109,27 +109,26 @@ function getOpenRouterKeys(): string[] {
 }
 
 // A per-attempt timeout alone doesn't bound the whole chain -- with up to 36
-// Groq attempts + 30 OpenRouter attempts, even a handful of individually-slow
+// Groq attempts + 25 OpenRouter attempts, even a handful of individually-slow
 // (but not hung) attempts can add up past a reverse proxy's gateway timeout.
 // The proxy then returns its own HTML error page, which breaks
 // response.json() client-side and surfaces as an opaque "Network error" with
-// no indication this was actually an AI-provider slowdown. So there are two
-// bounds now: no single attempt can run past ATTEMPT_TIMEOUT_MS, and the
-// whole callGroqJSON operation (every attempt across both providers) can't
-// run past TOTAL_BUDGET_MS -- once the deadline passes, remaining key/model
-// combinations are skipped and the call fails fast instead of grinding on.
+// no indication this was actually an AI-provider slowdown.
 //
-// Confirmed via a real 504 in production even at a 45s budget -- the
-// server's actual reverse-proxy timeout is tighter than nginx's 60s default,
-// and this route also runs several DB queries (usage check, student/clubs
-// lookup, cache save) *around* this call that eat into the same request
-// window, not just this call's own budget. Kept deliberately tight so the
-// whole HTTP request -- DB queries + this call + response construction --
-// has a real chance of finishing before whatever the actual gateway timeout
-// is. The structural fix is raising that proxy timeout server-side; this is
-// just how short a client-side budget can safely go without doing that.
-const ATTEMPT_TIMEOUT_MS = 12_000
-const TOTAL_BUDGET_MS = 25_000
+// nginx's proxy_read_timeout is now explicitly set to 90s server-side (it
+// had no explicit value before, and a real 504 in production showed
+// whatever the effective default was, was tighter than that). With that
+// headroom confirmed, each provider now gets its OWN dedicated time budget
+// rather than sharing one deadline -- a single shared deadline let a slow
+// Groq phase consume the entire budget and left OpenRouter's fallback with
+// zero time to even attempt one call (confirmed in production: OpenRouter
+// failed with its untouched "All OpenRouter free models failed" message,
+// meaning it never actually tried). GROQ_BUDGET_MS + OPENROUTER_BUDGET_MS is
+// the worst-case total, comfortably under the 90s proxy timeout with margin
+// left for this route's own DB queries and response construction.
+const ATTEMPT_TIMEOUT_MS = 15_000
+const GROQ_BUDGET_MS = 40_000
+const OPENROUTER_BUDGET_MS = 20_000
 
 async function fetchWithTimeout(url: string, options: RequestInit, maxWaitMs: number): Promise<Response> {
     const controller = new AbortController()
@@ -342,15 +341,15 @@ async function tryOpenRouter(
  * also unavailable, or a regular Error describing the last failure.
  */
 export async function callGroqJSON(options: CallGroqOptions): Promise<any> {
-    // One deadline shared across both providers -- whatever combination of
-    // key/model attempts happens, the whole call resolves (success or clean
-    // failure) within TOTAL_BUDGET_MS, well under a typical reverse proxy's
-    // gateway timeout, instead of potentially grinding through all ~66
-    // possible attempts.
-    const deadline = Date.now() + TOTAL_BUDGET_MS
+    // Each provider gets its own dedicated deadline -- see the comment above
+    // GROQ_BUDGET_MS/OPENROUTER_BUDGET_MS for why this isn't one shared
+    // deadline. OpenRouter's clock only starts once the Groq phase actually
+    // returns, so it always gets its full budget regardless of how long Groq
+    // took.
+    const groqDeadline = Date.now() + GROQ_BUDGET_MS
 
     // ── Phase 1: Groq ──────────────────────────────────────────────────────
-    const groqResult = await tryGroq(options, deadline)
+    const groqResult = await tryGroq(options, groqDeadline)
     if (groqResult.success) {
         return groqResult.data
     }
@@ -358,11 +357,12 @@ export async function callGroqJSON(options: CallGroqOptions): Promise<any> {
     // Narrow the failure branch explicitly so TypeScript sees lastError.
     const groqFailure = groqResult as { success: false; lastError: Error; timedOut?: boolean }
     const groqError = groqFailure.timedOut
-        ? new Error(`timed out after ${TOTAL_BUDGET_MS / 1000}s budget (last error before that: ${groqFailure.lastError.message})`)
+        ? new Error(`timed out after ${GROQ_BUDGET_MS / 1000}s budget (last error before that: ${groqFailure.lastError.message})`)
         : groqFailure.lastError
 
     // ── Phase 2: OpenRouter free-tier fallback ────────────────────────────
-    const orResult = await tryOpenRouter(options, deadline)
+    const orDeadline = Date.now() + OPENROUTER_BUDGET_MS
+    const orResult = await tryOpenRouter(options, orDeadline)
     if (orResult.success) {
         return orResult.data
     }
