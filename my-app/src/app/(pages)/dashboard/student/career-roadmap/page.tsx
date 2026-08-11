@@ -98,55 +98,35 @@ const QUESTIONS: Question[] = [
     type: "text", placeholder: "Type your branch or specialization…",
   },
 
-  // ── SECTION 2: Personality & Interests ──────────────────────────────────────
+  // ── SECTION 2: Personality, Interests & Intelligence ────────────────────────
+  // Merges what used to be 3 separate questions (activitiesEnjoy, freeTime,
+  // gardnerActivities) into one curated, deduplicated list -- covers every
+  // Gardner intelligence category directly instead of asking the same "what
+  // do you like doing" question three times with overlapping options.
   {
-    id: "activitiesEnjoy", section: "Section 2 · Personality & Interests",
-    question: "Which activities do you genuinely enjoy?",
-    subtitle: "Select all that apply — the more honest you are, the better your roadmap",
-    type: "multi", max: 8, hasOther: true,
+    id: "interestsActivities", section: "Section 2 · Personality, Interests & Intelligence",
+    question: "Which activities do you genuinely enjoy or gravitate toward?",
+    subtitle: "Select up to 6 — this reveals your dominant intelligences and core interests",
+    type: "multi", max: 6, hasOther: true,
     options: [
-      { label: "Solving problems", icon: "layers" },
-      { label: "Designing things", icon: "edit" },
-      { label: "Drawing", icon: "feather" },
-      { label: "Coding", icon: "code" },
-      { label: "Speaking / Presenting", icon: "users" },
-      { label: "Teaching others", icon: "users" },
-      { label: "Organizing events", icon: "list" },
-      { label: "Music", icon: "star" },
-      { label: "Dance", icon: "activity" },
-      { label: "Photography", icon: "grid" },
-      { label: "Sports", icon: "activity" },
-      { label: "Reading books", icon: "book" },
-      { label: "Travelling", icon: "globe" },
-      { label: "Gaming", icon: "grid" },
-      { label: "Helping people", icon: "heart" },
-      { label: "Writing", icon: "feather" },
+      { label: "Solving puzzles / problems", icon: "layers" },
+      { label: "Mathematics / Coding", icon: "code" },
       { label: "Research", icon: "search" },
-      { label: "Building hardware", icon: "cpu" },
+      { label: "Writing / Reading books", icon: "feather" },
+      { label: "Learning new languages", icon: "globe" },
+      { label: "Drawing / Design", icon: "edit" },
+      { label: "Photography / Filmmaking", icon: "grid" },
+      { label: "Music / Singing", icon: "star" },
+      { label: "Dance / Sports", icon: "activity" },
+      { label: "Building hardware / Electronics", icon: "cpu" },
+      { label: "Leadership / Organizing events", icon: "users" },
+      { label: "Teaching / Public speaking", icon: "users" },
+      { label: "Helping people", icon: "heart" },
+      { label: "Meditation / Self-reflection", icon: "heart" },
+      { label: "Gardening / Nature / Wildlife", icon: "activity" },
+      { label: "Gaming / Watching content", icon: "flag" },
+      { label: "Travelling", icon: "globe" },
       { label: "Starting businesses", icon: "trending" },
-      { label: "Making videos / content", icon: "flag" },
-      { label: "Cooking", icon: "heart" },
-      { label: "Gardening / Nature", icon: "activity" },
-    ],
-  },
-  {
-    id: "freeTime",
-    question: "During your free time, what do you usually do?",
-    subtitle: "Select up to 3 — your leisure habits reveal your dominant intelligences",
-    type: "multi", max: 3, hasOther: true,
-    options: [
-      { label: "Watch YouTube / OTT", icon: "flag" },
-      { label: "Read Books", icon: "book" },
-      { label: "Meet Friends", icon: "users" },
-      { label: "Play Sports", icon: "activity" },
-      { label: "Listen to Music", icon: "star" },
-      { label: "Learn New Skills", icon: "zap" },
-      { label: "Create Content", icon: "edit" },
-      { label: "Coding", icon: "code" },
-      { label: "Sleep / Rest", icon: "home" },
-      { label: "Travel", icon: "globe" },
-      { label: "Social Media", icon: "grid" },
-      { label: "Volunteer / Social Work", icon: "heart" },
     ],
   },
   {
@@ -291,69 +271,13 @@ const QUESTIONS: Question[] = [
       { label: "Create something entirely new", sub: "Design · Invent · Build", icon: "zap" },
     ],
   },
-  {
-    id: "problemApproach",
-    question: "When solving problems you usually…",
-    subtitle: "Pick the approach that feels most natural to you",
-    type: "single",
-    options: [
-      { label: "Follow existing instructions step by step", icon: "list" },
-      { label: "Use known methods I've seen before", icon: "book" },
-      { label: "Compare different methods and pick the best", icon: "layers" },
-      { label: "Design my own solution from scratch", icon: "edit" },
-      { label: "Experiment with entirely new ideas", icon: "zap" },
-    ],
-  },
-  {
-    id: "selfStatement",
-    question: "Which statement suits you best?",
-    subtitle: "Be honest — there are no wrong answers here",
-    type: "single",
-    options: [
-      { label: "I enjoy memorizing information efficiently", icon: "list" },
-      { label: "I enjoy understanding concepts deeply", icon: "book" },
-      { label: "I enjoy applying knowledge practically", icon: "settings" },
-      { label: "I enjoy solving real-world problems", icon: "target" },
-      { label: "I enjoy creating original new ideas", icon: "zap" },
-    ],
-  },
 
-  // ── SECTION 5: Multiple Intelligence ────────────────────────────────────────
+  // ── SECTION 5: Skills & Campus Life ─────────────────────────────────────────
   {
-    id: "gardnerActivities", section: "Section 5 · Multiple Intelligence",
-    question: "Which activities sound most exciting to you?",
-    subtitle: "Choose exactly 5 — these responses reveal your Howard Gardner intelligence profile",
-    type: "multi", max: 5,
-    options: [
-      { label: "Writing stories / poetry", icon: "feather" },
-      { label: "Learning new languages", icon: "globe" },
-      { label: "Solving logical puzzles", icon: "layers" },
-      { label: "Mathematics / Calculus", icon: "chart" },
-      { label: "Coding / Programming", icon: "code" },
-      { label: "Playing a musical instrument", icon: "star" },
-      { label: "Singing / Vocal performance", icon: "star" },
-      { label: "Dancing / Choreography", icon: "activity" },
-      { label: "Drawing / Illustration", icon: "edit" },
-      { label: "Photography / Filmmaking", icon: "grid" },
-      { label: "Building machines / Electronics", icon: "cpu" },
-      { label: "Gardening / Botany", icon: "activity" },
-      { label: "Wildlife / Animals / Ecology", icon: "activity" },
-      { label: "Team leadership / Coordination", icon: "users" },
-      { label: "Teaching / Coaching", icon: "users" },
-      { label: "Public speaking / Debate", icon: "users" },
-      { label: "Meditation / Mindfulness", icon: "heart" },
-      { label: "Self-reflection / Journaling", icon: "feather" },
-      { label: "Sports / Athletics", icon: "activity" },
-      { label: "Acting / Theatre / Drama", icon: "flag" },
-    ],
-  },
-
-  // ── SECTION 6: Skills & Campus Life ─────────────────────────────────────────
-  {
-    id: "skillsImproving", section: "Section 6 · Skills & Campus Life",
+    id: "skillsImproving", section: "Section 5 · Skills & Campus Life",
     question: "Which skills are you currently improving?",
-    subtitle: "Select up to 5 — be honest about where you're actually putting in time",
-    type: "multi", max: 5, hasOther: true,
+    subtitle: "Select up to 4 — be honest about where you're actually putting in time",
+    type: "multi", max: 4, hasOther: true,
     options: [
       { label: "Programming / Coding", icon: "code" },
       { label: "Artificial Intelligence / ML", icon: "cpu" },
@@ -409,7 +333,7 @@ const QUESTIONS: Question[] = [
 
   // ── SECTION 7: Career Readiness ──────────────────────────────────────────────
   {
-    id: "postGradPlan", section: "Section 7 · Career Readiness",
+    id: "postGradPlan", section: "Section 6 · Career Readiness",
     question: "After graduation, what is your first preference?",
     subtitle: "Be realistic about what you're most likely to pursue immediately after finishing your degree",
     type: "single",
@@ -683,7 +607,12 @@ export default function CareerRoadmapPage() {
       if (typeof data.remaining !== "undefined") setRemaining(data.remaining);
       setStep("results");
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch {
+    } catch (err) {
+      // A non-JSON response (e.g. a gateway timeout's HTML error page after
+      // the AI provider retry chain ran long) lands here too, not just a
+      // real network failure -- log the real cause instead of only ever
+      // showing the generic message.
+      console.error("Career roadmap generation failed:", err);
       toast.error("Network error — please check your connection and try again.");
       setStep("quiz");
     }
@@ -738,7 +667,7 @@ export default function CareerRoadmapPage() {
                 Discover Your Career Roadmap
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                Answer 24 questions covering your personality, learning style, and career vision — tailored for UG, PG, and PhD students across every discipline. Our AI generates a deep personalised roadmap including your Gardner intelligence profile, Bloom&apos;s taxonomy level, personality analysis, and a complete personal development plan.
+                Answer 20 questions covering your personality, learning style, and career vision — tailored for UG, PG, and PhD students across every discipline. Our AI generates a deep personalised roadmap including your Gardner intelligence profile, Bloom&apos;s taxonomy level, personality analysis, and a complete personal development plan.
               </p>
             </div>
 

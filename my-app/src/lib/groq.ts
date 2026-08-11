@@ -108,6 +108,25 @@ function getOpenRouterKeys(): string[] {
     return keys
 }
 
+// Attempts had no timeout at all -- a single stalled key/model connection
+// could hang the whole 36-attempt Groq chain (or the 25-attempt OpenRouter
+// one after it) indefinitely, which is long enough to blow past a reverse
+// proxy's gateway timeout. The proxy then returns its own HTML error page,
+// which breaks response.json() client-side and surfaces as an opaque
+// "Network error" with no indication this was actually an AI-provider
+// slowdown. Bounding each attempt keeps the whole chain's worst case sane.
+const ATTEMPT_TIMEOUT_MS = 25_000
+
+async function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), ATTEMPT_TIMEOUT_MS)
+    try {
+        return await fetch(url, { ...options, signal: controller.signal })
+    } finally {
+        clearTimeout(timer)
+    }
+}
+
 function shuffle<T>(arr: T[]): T[] {
     const a = [...arr]
     for (let i = a.length - 1; i > 0; i--) {
@@ -161,7 +180,7 @@ async function tryGroq({
     for (const model of GROQ_MODELS) {
         for (const key of keys) {
             try {
-                const res = await fetch(GROQ_ENDPOINT, {
+                const res = await fetchWithTimeout(GROQ_ENDPOINT, {
                     method: 'POST',
                     headers: {
                         Authorization: `Bearer ${key}`,
@@ -241,7 +260,7 @@ async function tryOpenRouter({
     for (const model of OPENROUTER_FREE_MODELS) {
         for (const key of keys) {
             try {
-                const res = await fetch(OPENROUTER_ENDPOINT, {
+                const res = await fetchWithTimeout(OPENROUTER_ENDPOINT, {
                     method: 'POST',
                     headers: {
                         Authorization: `Bearer ${key}`,
