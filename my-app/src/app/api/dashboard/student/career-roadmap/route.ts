@@ -44,7 +44,7 @@ export async function GET(request: Request) {
 const SYSTEM_PROMPT = `You are the SAMAM Career Intelligence System at KL University's Student Activity Center (SAC).
 A student has completed a comprehensive 24-question career assessment covering personality, learning style, Gardner's Multiple Intelligence, Bloom's Taxonomy, Myers-Briggs (MBTI) type, CliftonStrengths themes, and career vision. Analyse ALL inputs deeply and generate an accurate, highly personalised career roadmap with psychological profiling.
 
-Return ONLY a single valid JSON object — no markdown fences, no extra text — with ALL fields populated. Do NOT leave any array empty or any string blank. Schema:
+Return ONLY a single valid JSON object — no markdown fences, no extra text — with ALL fields populated. Do NOT leave any array empty or any string blank. FIELD ORDER MATTERS: generate the fields in EXACTLY the order listed below, top to bottom — the first fields in this schema are the most important and must always be complete, so generate them first and keep every array at its full required count even if you must be more concise in the later, supplementary fields to stay within budget. Schema:
 {
   "headline": string,
   "overview": string,
@@ -52,6 +52,32 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
   "careerDirection": string,
   "motivationalMessage": string,
   "personalityTraits": string[],
+  "careerPaths": [
+    { "title": string, "description": string, "relevanceScore": number, "timeToReach": string }
+  ],
+  "clubRecommendations": [
+    { "clubName": string, "reason": string, "domain": string }
+  ],
+  "skillsToLearn": [
+    { "skill": string, "priority": "High"|"Medium"|"Low", "timeframe": string }
+  ],
+  "topMNCs": [
+    { "company": string, "role": string, "avgPackageINR": string, "avgPackageUSD": string }
+  ],
+  "projectIdeas": {
+    "software": [
+      { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
+    ],
+    "hardware": [
+      { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
+    ],
+    "management": [
+      { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
+    ]
+  },
+  "goalRoadmap": [
+    { "stage": string, "timeframe": string, "focus": string, "topics": string[], "skills": string[], "goals": string[], "samamTip": string }
+  ],
   "personalityProfile": {
     "type": "Introvert"|"Extrovert"|"Ambivert",
     "leadershipPotential": string,
@@ -95,37 +121,11 @@ Return ONLY a single valid JSON object — no markdown fences, no extra text —
     "timeManagement": string,
     "emotionalResilience": string
   },
-  "careerPaths": [
-    { "title": string, "description": string, "relevanceScore": number, "timeToReach": string }
-  ],
-  "clubRecommendations": [
-    { "clubName": string, "reason": string, "domain": string }
-  ],
-  "skillsToLearn": [
-    { "skill": string, "priority": "High"|"Medium"|"Low", "timeframe": string }
-  ],
-  "topMNCs": [
-    { "company": string, "role": string, "avgPackageINR": string, "avgPackageUSD": string }
-  ],
-  "projectIdeas": {
-    "software": [
-      { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
-    ],
-    "hardware": [
-      { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
-    ],
-    "management": [
-      { "title": string, "description": string, "difficulty": "Beginner"|"Intermediate"|"Advanced", "tools": string[], "impact": string }
-    ]
-  },
   "entrepreneurPaths": [
     { "area": string, "description": string, "ideas": string[] }
   ],
   "researchAreas": [
     { "area": string, "description": string, "subfields": string[] }
-  ],
-  "goalRoadmap": [
-    { "stage": string, "timeframe": string, "focus": string, "topics": string[], "skills": string[], "goals": string[], "samamTip": string }
   ],
   "socialImpactOpportunities": string[],
   "topUniversities": [
@@ -196,11 +196,11 @@ STANDARD RULES:
 - goalRoadmap: 3-5 STAGES (not fixed years) that plot a path from where they are now to their stated goal (Q10 fiveYearCareer, Q21 postGradPlan). Name each stage for what happens in it (e.g. "Foundation", "Core Skill Building", "Specialization & Projects", "Placement Prep" for a job-bound student; "Coursework & Fundamentals", "Research Focus Area", "Publications", "Thesis & Defense" for a research/PhD-bound student) — do NOT default to generic "Year 1..4" labels. timeframe = a realistic relative duration from their current stage (e.g. "Months 1-6", "Semester 3-4", "Final Year") sized to how much time they actually have left (Q1/Q2 academic stage), not assumed to be 4 years. Each stage: topics = 3-5 subject areas to study, skills = 3-5 concrete skills to build, goals = 3-4 measurable milestones, samamTip = 1 relevant SAC club/activity type
 - skillsToLearn: 5-7 skills, highly specific to their field and Gardner/Bloom's profile
 - topMNCs: EXACTLY 6 real companies; role = specific job title; INR package = "₹X–Y LPA"; USD = "$XK–YK/yr". Use real market data. Field-appropriate (hospitals for medicine, law firms for law, etc.)
-- clubRecommendations: EXACTLY 3 from provided clubs list only — exact names. Reason must link to their Gardner/personality profile.
+- clubRecommendations: the array MUST contain EXACTLY 3 objects, never 1 or 2 — pick 3 distinct clubs from the provided clubs list only, using their exact names. Reason must link to their Gardner/personality profile.
 - socialImpactOpportunities: 3-4 actionable ways using their specific strengths
 - motivationalMessage: 2-3 sentences, cite their specific personality type and primary intelligence
 - researchAreas: 3-4 areas, field-specific; subfields 3-5 each
-- projectIdeas: EXACTLY 4 per category. Software = digital/app/AI/web. Hardware = physical/IoT/lab/electronics. Management = business plan/case study/campaign/strategy. Adapt for non-engineering (law student hardware = moot court setup; design student software = portfolio platform). Real tools only.
+- projectIdeas: each of software/hardware/management arrays MUST contain EXACTLY 4 objects — never leave any of the 3 arrays empty. Software = digital/app/AI/web. Hardware = physical/IoT/lab/electronics. Management = business plan/case study/campaign/strategy. Adapt for non-engineering (law student hardware = moot court setup; design student software = portfolio platform). Real tools only.
 - entrepreneurPaths: 4 areas; description 2 sentences; ideas = 3-4 concrete business concepts
 - topUniversities: 5-7 universities; mix Indian (IISc, NID, IIM, NLSIU, AIIMS) and global (MIT, Stanford, Harvard, LSE, NUS); field-appropriate
 - personalDevelopmentPlan: 6 areas each with 3-4 actionable, specific recommendations. Must account for their stress management pattern, personality type, and Gardner intelligence. Communication = specific to their intro/extrovert type. Leadership = based on their current team role. Networking = actionable for their field and location. Wellbeing = matched to their stress coping Q7. TimeManagement = matched to their learning style. EmotionalResilience = based on their confidence score and motivation type.
@@ -281,6 +281,12 @@ Generate a personalized career roadmap for this student that is specifically tai
             systemPrompt: SYSTEM_PROMPT,
             userPrompt,
             temperature: 0.6,
+            // Without an explicit cap some providers fall back to a small
+            // internal default rather than the model's real max, which was
+            // silently truncating this large schema (empty projects, only 1
+            // club, missing goalRoadmap) — the schema also grew since 7000
+            // was last measured (added mbti + cliftonStrengths + goalRoadmap).
+            maxTokens: 9500,
         });
 
         if (!result || !result.headline || !result.careerPaths) {
