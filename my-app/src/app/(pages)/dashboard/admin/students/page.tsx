@@ -701,7 +701,8 @@ export default function AdminStudents() {
                 );
                 const filtered = editClubSearch.trim()
                     ? domainClubs.filter((c: any) =>
-                        c.clubName.toLowerCase().includes(editClubSearch.toLowerCase())
+                        c.clubName.toLowerCase().includes(editClubSearch.toLowerCase()) ||
+                        String(c.clubId).toLowerCase().includes(editClubSearch.toLowerCase())
                     )
                     : domainClubs;
                 return (
@@ -763,6 +764,7 @@ export default function AdminStudents() {
                                                     className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${editClubId === c.clubId ? 'bg-red-50 text-red-700 font-medium' : 'text-gray-900'}`}
                                                 >
                                                     <span>{c.clubName}</span>
+                                                    <span className="text-gray-400 ml-1.5 text-xs font-mono">({c.clubId})</span>
                                                     <span className="text-gray-400 ml-2 text-xs">{c.memberCount} members</span>
                                                 </button>
                                             ))}
@@ -771,6 +773,7 @@ export default function AdminStudents() {
                                     {editClubId && (
                                         <p className="mt-1 text-xs text-green-600 font-medium">
                                             Selected: {(clubStats as any[]).find((c: any) => c.clubId === editClubId)?.clubName || editClubId}
+                                            <span className="text-green-500 font-mono ml-1">({editClubId})</span>
                                         </p>
                                     )}
                                 </div>
