@@ -284,9 +284,14 @@ Generate a personalized career roadmap for this student that is specifically tai
             // Without an explicit cap some providers fall back to a small
             // internal default rather than the model's real max, which was
             // silently truncating this large schema (empty projects, only 1
-            // club, missing goalRoadmap) — the schema also grew since 7000
-            // was last measured (added mbti + cliftonStrengths + goalRoadmap).
-            maxTokens: 9500,
+            // club, missing goalRoadmap). Lowered from 9500 alongside
+            // groq.ts's tighter per-attempt/total timeouts (12s/25s) after
+            // hitting a real 504 in production — a smaller completion
+            // generates faster, making it more likely to actually finish
+            // within the shortened window. The schema is already ordered so
+            // the career-guidance fields (paths, clubs, skills, projects,
+            // goal roadmap) generate first and are protected either way.
+            maxTokens: 6000,
         });
 
         if (!result || !result.headline || !result.careerPaths) {

@@ -118,13 +118,18 @@ function getOpenRouterKeys(): string[] {
 // whole callGroqJSON operation (every attempt across both providers) can't
 // run past TOTAL_BUDGET_MS -- once the deadline passes, remaining key/model
 // combinations are skipped and the call fails fast instead of grinding on.
-// A successful generation isn't streamed -- fetch() doesn't resolve until
-// the model has produced the FULL completion, so for a large schema (up to
-// ~9500 tokens for career-roadmap) a genuinely working attempt can
-// legitimately take 15-20+ seconds. ATTEMPT_TIMEOUT_MS has to stay generous
-// enough not to abort a real, working generation partway through.
-const ATTEMPT_TIMEOUT_MS = 20_000
-const TOTAL_BUDGET_MS = 45_000
+//
+// Confirmed via a real 504 in production even at a 45s budget -- the
+// server's actual reverse-proxy timeout is tighter than nginx's 60s default,
+// and this route also runs several DB queries (usage check, student/clubs
+// lookup, cache save) *around* this call that eat into the same request
+// window, not just this call's own budget. Kept deliberately tight so the
+// whole HTTP request -- DB queries + this call + response construction --
+// has a real chance of finishing before whatever the actual gateway timeout
+// is. The structural fix is raising that proxy timeout server-side; this is
+// just how short a client-side budget can safely go without doing that.
+const ATTEMPT_TIMEOUT_MS = 12_000
+const TOTAL_BUDGET_MS = 25_000
 
 async function fetchWithTimeout(url: string, options: RequestInit, maxWaitMs: number): Promise<Response> {
     const controller = new AbortController()
