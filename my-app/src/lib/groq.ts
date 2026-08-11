@@ -108,18 +108,27 @@ function getOpenRouterKeys(): string[] {
     return keys
 }
 
-// Attempts had no timeout at all -- a single stalled key/model connection
-// could hang the whole 36-attempt Groq chain (or the 25-attempt OpenRouter
-// one after it) indefinitely, which is long enough to blow past a reverse
-// proxy's gateway timeout. The proxy then returns its own HTML error page,
-// which breaks response.json() client-side and surfaces as an opaque
-// "Network error" with no indication this was actually an AI-provider
-// slowdown. Bounding each attempt keeps the whole chain's worst case sane.
-const ATTEMPT_TIMEOUT_MS = 25_000
+// A per-attempt timeout alone doesn't bound the whole chain -- with up to 36
+// Groq attempts + 30 OpenRouter attempts, even a handful of individually-slow
+// (but not hung) attempts can add up past a reverse proxy's gateway timeout.
+// The proxy then returns its own HTML error page, which breaks
+// response.json() client-side and surfaces as an opaque "Network error" with
+// no indication this was actually an AI-provider slowdown. So there are two
+// bounds now: no single attempt can run past ATTEMPT_TIMEOUT_MS, and the
+// whole callGroqJSON operation (every attempt across both providers) can't
+// run past TOTAL_BUDGET_MS -- once the deadline passes, remaining key/model
+// combinations are skipped and the call fails fast instead of grinding on.
+// A successful generation isn't streamed -- fetch() doesn't resolve until
+// the model has produced the FULL completion, so for a large schema (up to
+// ~9500 tokens for career-roadmap) a genuinely working attempt can
+// legitimately take 15-20+ seconds. ATTEMPT_TIMEOUT_MS has to stay generous
+// enough not to abort a real, working generation partway through.
+const ATTEMPT_TIMEOUT_MS = 20_000
+const TOTAL_BUDGET_MS = 45_000
 
-async function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+async function fetchWithTimeout(url: string, options: RequestInit, maxWaitMs: number): Promise<Response> {
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), ATTEMPT_TIMEOUT_MS)
+    const timer = setTimeout(() => controller.abort(), Math.max(1000, maxWaitMs))
     try {
         return await fetch(url, { ...options, signal: controller.signal })
     } finally {
@@ -164,12 +173,10 @@ interface CallGroqOptions {
 
 // ─── Groq attempt ────────────────────────────────────────────────────────────
 
-async function tryGroq({
-    systemPrompt,
-    userPrompt,
-    temperature = 0.5,
-    maxTokens,
-}: CallGroqOptions): Promise<{ success: true; data: any } | { success: false; lastError: Error }> {
+async function tryGroq(
+    { systemPrompt, userPrompt, temperature = 0.5, maxTokens }: CallGroqOptions,
+    deadline: number,
+): Promise<{ success: true; data: any } | { success: false; lastError: Error; timedOut?: boolean }> {
     const keys = shuffle(getGroqKeys())
     if (keys.length === 0) {
         return { success: false, lastError: new GroqConfigError() }
@@ -179,6 +186,10 @@ async function tryGroq({
 
     for (const model of GROQ_MODELS) {
         for (const key of keys) {
+            const remaining = deadline - Date.now()
+            if (remaining <= 0) {
+                return { success: false, lastError, timedOut: true }
+            }
             try {
                 const res = await fetchWithTimeout(GROQ_ENDPOINT, {
                     method: 'POST',
@@ -199,7 +210,7 @@ async function tryGroq({
                         ...(maxTokens ? { max_tokens: maxTokens } : {}),
                         response_format: { type: 'json_object' },
                     }),
-                })
+                }, Math.min(ATTEMPT_TIMEOUT_MS, remaining))
 
                 if (!res.ok) {
                     // 401/403 = bad or revoked key, 429 = this key is rate-limited,
@@ -236,12 +247,10 @@ async function tryGroq({
 
 // ─── OpenRouter fallback (free models only) ───────────────────────────────────
 
-async function tryOpenRouter({
-    systemPrompt,
-    userPrompt,
-    temperature = 0.5,
-    maxTokens,
-}: CallGroqOptions): Promise<{ success: true; data: any } | { success: false; lastError: Error }> {
+async function tryOpenRouter(
+    { systemPrompt, userPrompt, temperature = 0.5, maxTokens }: CallGroqOptions,
+    deadline: number,
+): Promise<{ success: true; data: any } | { success: false; lastError: Error }> {
     const keys = shuffle(getOpenRouterKeys())
     if (keys.length === 0) {
         return {
@@ -259,6 +268,10 @@ async function tryOpenRouter({
     // Try every model × every key (keys shuffled for load distribution)
     for (const model of OPENROUTER_FREE_MODELS) {
         for (const key of keys) {
+            const remaining = deadline - Date.now()
+            if (remaining <= 0) {
+                return { success: false, lastError }
+            }
             try {
                 const res = await fetchWithTimeout(OPENROUTER_ENDPOINT, {
                     method: 'POST',
@@ -277,7 +290,7 @@ async function tryOpenRouter({
                         temperature,
                         ...(maxTokens ? { max_tokens: maxTokens } : {}),
                     }),
-                })
+                }, Math.min(ATTEMPT_TIMEOUT_MS, remaining))
 
                 if (!res.ok) {
                     const bodyText = await res.text().catch(() => '')
@@ -324,17 +337,27 @@ async function tryOpenRouter({
  * also unavailable, or a regular Error describing the last failure.
  */
 export async function callGroqJSON(options: CallGroqOptions): Promise<any> {
+    // One deadline shared across both providers -- whatever combination of
+    // key/model attempts happens, the whole call resolves (success or clean
+    // failure) within TOTAL_BUDGET_MS, well under a typical reverse proxy's
+    // gateway timeout, instead of potentially grinding through all ~66
+    // possible attempts.
+    const deadline = Date.now() + TOTAL_BUDGET_MS
+
     // ── Phase 1: Groq ──────────────────────────────────────────────────────
-    const groqResult = await tryGroq(options)
+    const groqResult = await tryGroq(options, deadline)
     if (groqResult.success) {
         return groqResult.data
     }
 
     // Narrow the failure branch explicitly so TypeScript sees lastError.
-    const groqError = (groqResult as { success: false; lastError: Error }).lastError
+    const groqFailure = groqResult as { success: false; lastError: Error; timedOut?: boolean }
+    const groqError = groqFailure.timedOut
+        ? new Error(`timed out after ${TOTAL_BUDGET_MS / 1000}s budget (last error before that: ${groqFailure.lastError.message})`)
+        : groqFailure.lastError
 
     // ── Phase 2: OpenRouter free-tier fallback ────────────────────────────
-    const orResult = await tryOpenRouter(options)
+    const orResult = await tryOpenRouter(options, deadline)
     if (orResult.success) {
         return orResult.data
     }

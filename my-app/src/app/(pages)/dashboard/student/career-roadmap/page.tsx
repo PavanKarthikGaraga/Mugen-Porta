@@ -673,9 +673,9 @@ export default function CareerRoadmapPage() {
 
             <div className="grid grid-cols-3 gap-3">
               {[
-                { icon: FiTarget, label: "24 Questions", sub: "~10 minutes" },
+                { icon: FiTarget, label: "20 Questions", sub: "~7 minutes" },
                 { icon: FiLayers, label: "AI Analysis", sub: "Groq-powered" },
-                { icon: FiMapPin, label: "Full Roadmap", sub: "7 sections" },
+                { icon: FiMapPin, label: "Full Roadmap", sub: "14 sections" },
               ].map(({ icon: Icon, label, sub }) => (
                 <div key={label} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 p-3 text-center space-y-1.5">
                   <div className="w-8 h-8 rounded-lg mx-auto flex items-center justify-center" style={{ backgroundColor: "rgba(151,0,3,0.08)" }}>
