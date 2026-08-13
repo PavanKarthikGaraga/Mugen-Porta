@@ -10,7 +10,11 @@ const DOMAIN_OPTIONS = [
     { value: 'LCH', label: 'LCH — Liberal Arts' },
     { value: 'IIE', label: 'IIE — Innovation & Entrepreneurship' },
     { value: 'HWB', label: 'HWB — Health & Wellbeing' },
-    { value: 'DEPT', label: 'DEPT — Department' },
+    // Real domain value on clubs.domain is 'DEPT. CLUBS' (matches
+    // ClubSelection.tsx and every other place that filters department
+    // clubs) -- this used to be the bare 'DEPT', which never matched any
+    // real club and made this option silently return an empty list.
+    { value: 'DEPT. CLUBS', label: 'DEPT. CLUBS — Department' },
 ];
 
 export default function AdminStudents() {
@@ -411,6 +415,7 @@ export default function AdminStudents() {
                             <option value="ESO">Environment & Social</option>
                             <option value="IIE">Innovation & Entrepreneurship</option>
                             <option value="HWB">Health & Wellbeing</option>
+                            <option value="DEPT. CLUBS">Department Clubs</option>
                         </select>
                     </div>
 

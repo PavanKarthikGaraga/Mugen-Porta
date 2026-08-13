@@ -239,25 +239,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                 >
                                     <option value="">Choose a club...</option>
                                     {(() => {
-                                        let clubsToDisplay = [];
-                                        
-                                        if (isKLHCampus) {
-                                            clubsToDisplay = availableClubs.filter(club => klhClubIds.includes(club.id));
-                                        } else if (isVaddeswaramCampus && clubType === 'DEPARTMENT') {
-                                            // Show only Department Clubs
-                                            clubsToDisplay = availableClubs.filter(club => club.domain === 'DEPT. CLUBS' || club.id.startsWith('DEP'));
-                                        } else {
-                                            // Show regular SAC Clubs for the selected domain
-                                            clubsToDisplay = availableClubs.filter(club => 
-                                                club.domain === selectedDomain && 
-                                                !klhClubIds.includes(club.id) && 
-                                                !club.id.startsWith('KLH') &&
-                                                club.domain !== 'DEPT. CLUBS' &&
-                                                !club.id.startsWith('DEP')
-                                            );
-                                        }
-                                            
-                                        return clubsToDisplay.map((club) => {
+                                        const renderOption = (club) => {
                                             const isFull = club.isFull;
                                             return (
                                                 <option
@@ -269,7 +251,46 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                                     {club.name} ({club.memberCount}/{club.memberLimit} members){isFull && ' - FULL'}
                                                 </option>
                                             );
-                                        });
+                                        };
+
+                                        if (isKLHCampus) {
+                                            return availableClubs.filter(club => klhClubIds.includes(club.id)).map(renderOption);
+                                        }
+
+                                        if (isVaddeswaramCampus && clubType === 'DEPARTMENT') {
+                                            // Department Clubs split into two groups: general
+                                            // societies/associations (e.g. WDC, NSS) vs. the
+                                            // per-branch student bodies, which are always named
+                                            // "Name (BRANCH)" e.g. "Focus (CSE)", "Pulse (ECE)" --
+                                            // that trailing parenthetical is what tells the two apart.
+                                            const deptClubs = availableClubs.filter(club => club.domain === 'DEPT. CLUBS' || club.id.startsWith('DEP'));
+                                            const isStudentBody = (club) => /\([A-Za-z .&/]+\)\s*$/.test(club.name);
+                                            const studentBodies = deptClubs.filter(isStudentBody);
+                                            const societies = deptClubs.filter(club => !isStudentBody(club));
+                                            return (
+                                                <>
+                                                    {societies.length > 0 && (
+                                                        <optgroup label="Societies/ Associations">
+                                                            {societies.map(renderOption)}
+                                                        </optgroup>
+                                                    )}
+                                                    {studentBodies.length > 0 && (
+                                                        <optgroup label="Dept Student Bodies">
+                                                            {studentBodies.map(renderOption)}
+                                                        </optgroup>
+                                                    )}
+                                                </>
+                                            );
+                                        }
+
+                                        // Regular SAC Clubs for the selected domain
+                                        return availableClubs.filter(club =>
+                                            club.domain === selectedDomain &&
+                                            !klhClubIds.includes(club.id) &&
+                                            !club.id.startsWith('KLH') &&
+                                            club.domain !== 'DEPT. CLUBS' &&
+                                            !club.id.startsWith('DEP')
+                                        ).map(renderOption);
                                     })()}
                                 </select>
                                 <p className="mt-2 text-sm text-gray-600">
