@@ -363,7 +363,15 @@ export async function DELETE(request) {
             } else if (role === 'faculty') {
                 await connection.execute('DELETE FROM faculty WHERE username = ?', [username]);
             } else if (role === 'council') {
-                await ensureCouncilTable();
+                // No ensureCouncilTable() here -- it runs ALTER TABLE users
+                // on a *different* pooled connection than this transaction's
+                // `connection`, which already holds a lock on `users` from
+                // the SELECT above. That ALTER blocks waiting for this
+                // transaction to end, while this code blocks awaiting the
+                // ALTER -- an unbreakable circular wait that also queues up
+                // every other query touching `users` (including login)
+                // behind it. The table is guaranteed to already exist here
+                // anyway, since we're deleting an existing council row.
                 await connection.execute('DELETE FROM council WHERE username = ?', [username]);
             } else if (role === 'student') {
                 await connection.execute('DELETE FROM students WHERE username = ?', [username]);
