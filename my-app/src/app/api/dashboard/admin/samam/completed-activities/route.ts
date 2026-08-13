@@ -15,14 +15,21 @@ async function checkAdmin() {
 }
 
 // GET /api/dashboard/admin/samam/completed-activities
-//   - no `activity` param: every activity with attendance locked
-//     (activity_enrollments.attendance_marked = TRUE for at least one
-//     student), domain-grouped, with enrolled/attended counts and whether
-//     an activity_reports row exists for it.
-//   - `?activity=<code>`: the attended-student list for that activity, plus
-//     the full activity_reports row (if generated) so the client can
-//     re-render the same PDF via generateActivityReportPdf without the lead
-//     needing to regenerate it.
+//   - no `activity` param: every activity that's actually locked AND
+//     verified -- activity_enrollments.attendance_marked=TRUE only means the
+//     lead locked it; verification (admin/faculty/council approval via
+//     /api/attendance-records/[code]/review) is what sets
+//     activity_enrollments.status='completed', which is the real "done"
+//     signal this list should gate on. Also totals points awarded per
+//     activity: sdc_transactions has no direct activity FK, but the bulk
+//     points-award route always writes category = 'Activity: <code>', so
+//     that's used as the (best-effort) link -- it won't catch points a
+//     student got some other way (e.g. a raw admin award unrelated to any
+//     specific activity).
+//   - `?activity=<code>`: the full enrollment list for that activity (status
+//     + attendance), plus the activity_reports row (if generated) so the
+//     client can re-render the same PDF via generateActivityReportPdf
+//     without the lead needing to regenerate it.
 export async function GET(request: Request) {
     try {
         if (!await checkAdmin()) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -46,7 +53,9 @@ export async function GET(request: Request) {
             if (!actRows.length) return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
 
             const [students]: any = await pool.execute(
-                `SELECT ae.username, s.name, s.branch, s.year, ae.attendance_percentage
+                `SELECT ae.username, s.name, s.branch, s.year, ae.attendance_percentage, ae.status,
+                        (SELECT COALESCE(SUM(st.credits), 0) FROM sdc_transactions st
+                         WHERE st.username = ae.username AND st.category = CONCAT('Activity: ', ae.activity_code)) as pointsAwarded
                  FROM activity_enrollments ae
                  JOIN students s ON s.username = ae.username
                  WHERE ae.activity_code = ?
@@ -75,13 +84,14 @@ export async function GET(request: Request) {
         const [rows] = await pool.execute(`
             SELECT ac.code, ac.title, ac.domain, ac.category, ac.activity_date, ac.venue,
                    (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ac.code) as enrolledCount,
-                   (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ac.code AND ae.attendance_percentage > 0) as attendedCount,
+                   (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ac.code AND ae.status = 'completed') as completedCount,
+                   (SELECT COALESCE(SUM(st.credits), 0) FROM sdc_transactions st WHERE st.category = CONCAT('Activity: ', ac.code)) as totalPointsAllotted,
                    ar.status as report_status, ar.generated_at
             FROM activity_catalogue ac
             LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
             WHERE EXISTS (
                 SELECT 1 FROM activity_enrollments ae2
-                WHERE ae2.activity_code = ac.code AND ae2.attendance_marked = TRUE
+                WHERE ae2.activity_code = ac.code AND ae2.status = 'completed'
             )
             ORDER BY ac.domain ASC, ac.activity_date DESC, ac.created_at DESC
         `);

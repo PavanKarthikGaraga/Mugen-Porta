@@ -15,7 +15,8 @@ type ActivityRow = {
   activity_date: string | null;
   venue: string;
   enrolledCount: number;
-  attendedCount: number;
+  completedCount: number;
+  totalPointsAllotted: number;
   report_status: string | null;
   generated_at: string | null;
 };
@@ -128,7 +129,8 @@ export default function CompletedActivitiesManager() {
               <div className="flex flex-wrap gap-4 mt-2 text-[12px] text-gray-500">
                 <span className="flex items-center gap-1"><FiCalendar size={12} /> {formatDate(detail.activity.activity_date)}</span>
                 <span className="flex items-center gap-1"><FiMapPin size={12} /> {detail.activity.venue || "—"}</span>
-                <span className="flex items-center gap-1"><FiUsers size={12} /> {detail.students.length} enrolled</span>
+                <span className="flex items-center gap-1"><FiUsers size={12} /> {detail.students.length} enrolled · {detail.students.filter((s: any) => s.status === "completed").length} verified completed</span>
+                <span className="font-medium text-gray-700">{detail.students.reduce((sum: number, s: any) => sum + Number(s.pointsAwarded || 0), 0)} points allotted</span>
               </div>
 
               <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
@@ -162,7 +164,7 @@ export default function CompletedActivitiesManager() {
 
             <div className="bg-white rounded-md border border-gray-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100">
-                <h4 className="text-[13px] font-semibold text-gray-900">Students Attended</h4>
+                <h4 className="text-[13px] font-semibold text-gray-900">Students Participated</h4>
               </div>
               {detail.students.length === 0 ? (
                 <div className="p-8 text-center text-gray-500 text-[13px]">No enrollment records for this activity.</div>
@@ -174,7 +176,9 @@ export default function CompletedActivitiesManager() {
                         <th className="px-5 py-3 font-semibold text-gray-600">Student</th>
                         <th className="px-5 py-3 font-semibold text-gray-600">Branch</th>
                         <th className="px-5 py-3 font-semibold text-gray-600">Year</th>
-                        <th className="px-5 py-3 font-semibold text-gray-600 text-right">Attendance</th>
+                        <th className="px-5 py-3 font-semibold text-gray-600">Attendance</th>
+                        <th className="px-5 py-3 font-semibold text-gray-600">Verification</th>
+                        <th className="px-5 py-3 font-semibold text-gray-600 text-right">Points</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -186,7 +190,7 @@ export default function CompletedActivitiesManager() {
                           </td>
                           <td className="px-5 py-3 text-gray-600">{s.branch}</td>
                           <td className="px-5 py-3 text-gray-600">{s.year}</td>
-                          <td className="px-5 py-3 text-right">
+                          <td className="px-5 py-3">
                             <span className={`text-[11px] font-semibold px-2 py-1 rounded-full border ${
                               Number(s.attendance_percentage) > 0
                                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -195,6 +199,16 @@ export default function CompletedActivitiesManager() {
                               {Number(s.attendance_percentage) > 0 ? "Present" : "Absent"}
                             </span>
                           </td>
+                          <td className="px-5 py-3">
+                            <span className={`text-[11px] font-semibold px-2 py-1 rounded-full border ${
+                              s.status === "completed"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-amber-50 text-amber-700 border-amber-200"
+                            }`}>
+                              {s.status === "completed" ? "Verified" : "Pending verification"}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-right font-medium text-gray-900">{Number(s.pointsAwarded || 0)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -216,7 +230,7 @@ export default function CompletedActivitiesManager() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-[13px] text-gray-500">Activities where attendance has been locked, grouped by domain.</p>
+        <p className="text-[13px] text-gray-500">Activities where attendance has been locked and verified, grouped by domain.</p>
         <button
           onClick={fetchActivities}
           className="h-9 px-4 text-[13px] font-medium border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 flex items-center gap-2"
@@ -229,7 +243,7 @@ export default function CompletedActivitiesManager() {
         <div className="p-5 text-center text-gray-500 text-[13px]">Loading...</div>
       ) : activities.length === 0 ? (
         <div className="p-10 text-center text-gray-500 text-[13px] bg-white rounded-md border border-gray-200">
-          No activities have completed attendance yet.
+          No activities yet — an activity shows here once a lead locks attendance and an admin/faculty/council reviewer verifies it.
         </div>
       ) : (
         Object.entries(grouped).map(([domain, list]) => {
@@ -247,7 +261,8 @@ export default function CompletedActivitiesManager() {
                     <tr>
                       <th className="px-5 py-3 font-semibold text-gray-600">Activity</th>
                       <th className="px-5 py-3 font-semibold text-gray-600">Date</th>
-                      <th className="px-5 py-3 font-semibold text-gray-600 text-right">Attended</th>
+                      <th className="px-5 py-3 font-semibold text-gray-600 text-right">Completed</th>
+                      <th className="px-5 py-3 font-semibold text-gray-600 text-right">Points Allotted</th>
                       <th className="px-5 py-3 font-semibold text-gray-600">Report</th>
                       <th className="px-5 py-3"></th>
                     </tr>
@@ -260,7 +275,8 @@ export default function CompletedActivitiesManager() {
                           <p className="text-[11px] text-gray-500">{a.code}</p>
                         </td>
                         <td className="px-5 py-3 text-gray-500 text-[12px]">{formatDate(a.activity_date)}</td>
-                        <td className="px-5 py-3 text-right text-gray-600">{a.attendedCount}/{a.enrolledCount}</td>
+                        <td className="px-5 py-3 text-right text-gray-600">{a.completedCount}/{a.enrolledCount}</td>
+                        <td className="px-5 py-3 text-right font-medium text-gray-900">{a.totalPointsAllotted}</td>
                         <td className="px-5 py-3">
                           {a.report_status ? (
                             <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
