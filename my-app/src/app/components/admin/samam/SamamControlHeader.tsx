@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiBarChart2, FiUsers, FiActivity, FiFileText, FiBell, FiSettings } from "react-icons/fi";
+import { FiBarChart2, FiUsers, FiActivity, FiFileText, FiBell, FiSettings, FiCheckCircle } from "react-icons/fi";
 
 const ALL_TABS = [
   { key: "overview",      label: "Overview",      icon: <FiBarChart2 size={15} /> },
   { key: "students",      label: "Students",      icon: <FiUsers size={15} />     },
   { key: "activities",    label: "Activities",    icon: <FiActivity size={15} />  },
   { key: "submissions",   label: "Submissions",   icon: <FiFileText size={15} />  },
+  { key: "completed",     label: "Completed",     icon: <FiCheckCircle size={15} /> },
   { key: "notifications", label: "Notifications", icon: <FiBell size={15} />      },
   { key: "settings",      label: "Settings",      icon: <FiSettings size={15} />  },
 ];

@@ -88,6 +88,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Students',      href: '/dashboard/admin/samam/students',      icon: FiUsers     },
         { name: 'Activities',    href: '/dashboard/admin/samam/activities',    icon: FiActivity  },
         { name: 'Submissions',   href: '/dashboard/admin/samam/submissions',   icon: FiFileText  },
+        { name: 'Completed',     href: '/dashboard/admin/samam/completed',     icon: FiCheckSquare },
         { name: 'Notifications', href: '/dashboard/admin/samam/notifications', icon: FiBell      },
         { name: 'Settings',      href: '/dashboard/admin/samam/settings',      icon: FiSettings  },
     ];

@@ -41,23 +41,39 @@ export async function GET(request: Request) {
 
         const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
+        // sdc_transactions and student_badges were both LEFT JOINed directly
+        // to students -- with N transactions and M badges for the same
+        // student, that's a fan-out to N*M rows, and SUM(t.credits) then
+        // added each transaction's credits once per badge row instead of
+        // once total. A student with 2 badges saw exactly double their real
+        // points (confirmed: student's own dashboard, which aggregates
+        // sdc_transactions alone with no such join, showed the correct
+        // total). Pre-aggregating each table in its own subquery before
+        // joining keeps every join 1:1 per username, so nothing multiplies.
         const [students] = await pool.execute(`
             SELECT
                 s.username, s.name, s.branch, s.year, s.email,
                 COALESCE(sp.level, 'Explorer') as level,
                 COALESCE(sp.level_progress, 0) as level_progress,
-                COALESCE(SUM(t.credits), 0) as total_points,
-                COUNT(DISTINCT sb.id) as badge_count,
+                COALESCE(t.total_points, 0) as total_points,
+                COALESCE(sb.badge_count, 0) as badge_count,
                 NULLIF(GREATEST(
-                    COALESCE(MAX(t.granted_at), '1000-01-01'), 
-                    COALESCE(MAX(sp.updated_at), '1000-01-01')
+                    COALESCE(t.last_transaction, '1000-01-01'),
+                    COALESCE(sp.updated_at, '1000-01-01')
                 ), '1000-01-01') as last_activity
             FROM students s
             LEFT JOIN student_profiles sp ON s.username = sp.username
-            LEFT JOIN sdc_transactions t ON s.username = t.username
-            LEFT JOIN student_badges sb ON s.username = sb.username
+            LEFT JOIN (
+                SELECT username, SUM(credits) as total_points, MAX(granted_at) as last_transaction
+                FROM sdc_transactions
+                GROUP BY username
+            ) t ON s.username = t.username
+            LEFT JOIN (
+                SELECT username, COUNT(*) as badge_count
+                FROM student_badges
+                GROUP BY username
+            ) sb ON s.username = sb.username
             ${where}
-            GROUP BY s.username, s.name, s.branch, s.year, s.email, sp.level, sp.level_progress
             ORDER BY total_points DESC
             LIMIT ${limit} OFFSET ${offset}
         `, params) as any[];

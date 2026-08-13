@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import ActivityManager from "@/app/components/admin/samam/ActivityManager";
 import SamamControlHeader from "@/app/components/admin/samam/SamamControlHeader";
 
-const TABS = ["overview", "students", "activities", "submissions", "notifications", "settings"];
+const TABS = ["overview", "students", "activities", "submissions", "completed", "notifications", "settings"];
 
 export default function AdminSamamActivitiesPage() {
   const [activities, setActivities] = useState<any[]>([]);

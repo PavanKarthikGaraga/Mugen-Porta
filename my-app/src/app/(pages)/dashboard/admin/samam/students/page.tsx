@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import StudentManager from "@/app/components/admin/samam/StudentManager";
 import SamamControlHeader from "@/app/components/admin/samam/SamamControlHeader";
 
-const TABS = ["overview", "students", "activities", "submissions", "notifications", "settings"];
+const TABS = ["overview", "students", "activities", "submissions", "completed", "notifications", "settings"];
 
 function AdminSamamStudentsInner() {
   const searchParams = useSearchParams();

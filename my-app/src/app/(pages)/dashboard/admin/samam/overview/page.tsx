@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import AnalyticsView from "@/app/components/admin/samam/AnalyticsView";
 import SamamControlHeader from "@/app/components/admin/samam/SamamControlHeader";
 
-const TABS = ["overview", "students", "activities", "submissions", "notifications", "settings"];
+const TABS = ["overview", "students", "activities", "submissions", "completed", "notifications", "settings"];
 
 export default function AdminSamamOverviewPage() {
   const [analytics, setAnalytics] = useState<any>(null);

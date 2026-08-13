@@ -2,7 +2,7 @@
 import SettingsManager from "@/app/components/admin/samam/SettingsManager";
 import SamamControlHeader from "@/app/components/admin/samam/SamamControlHeader";
 
-const TABS = ["overview", "students", "activities", "submissions", "notifications", "settings"];
+const TABS = ["overview", "students", "activities", "submissions", "completed", "notifications", "settings"];
 
 export default function AdminSamamSettingsPage() {
   return (
