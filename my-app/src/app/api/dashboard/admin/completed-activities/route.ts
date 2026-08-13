@@ -20,7 +20,7 @@ export async function GET() {
                 ac.venue,
                 COUNT(ae.username)                                              AS total_enrolled,
                 SUM(CASE WHEN ae.attendance_percentage > 0 THEN 1 ELSE 0 END)  AS students_present,
-                MAX(ae.updated_at)                                              AS locked_at
+                MAX(ae.enrolled_at)                                             AS locked_at
             FROM activity_catalogue ac
             JOIN activity_enrollments ae
                 ON ae.activity_code = ac.code AND ae.attendance_marked = TRUE
