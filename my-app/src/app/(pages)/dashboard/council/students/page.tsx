@@ -19,6 +19,10 @@ interface Student {
     clubId: string;
     clubName: string;
     created_at: string;
+    campus?: string;
+    careerChoice?: string;
+    state?: string;
+    district?: string;
 }
 
 interface Club { id: string; name: string; domain: string }
@@ -49,6 +53,11 @@ export default function CouncilStudentsPage() {
     const [yearFilter, setYearFilter]   = useState("");
     const [domainFilter, setDomainFilter] = useState("");
     const [clubFilter, setClubFilter]   = useState("");
+    const [campusFilter, setCampusFilter] = useState("");
+    const [branchFilter, setBranchFilter] = useState("");
+    const [residenceFilter, setResidenceFilter] = useState("");
+    const [careerFilter, setCareerFilter] = useState("");
+    const [branchList, setBranchList] = useState<string[]>([]);
     const [pagination, setPagination]   = useState({ page: 1, limit: 50, total: 0, pages: 0 });
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [downloading, setDownloading] = useState(false);
@@ -68,16 +77,21 @@ export default function CouncilStudentsPage() {
             if (yearFilter)   params.set("year",   yearFilter);
             if (domainFilter) params.set("domain", domainFilter);
             if (clubFilter)   params.set("clubId", clubFilter);
+            if (campusFilter) params.set("campus", campusFilter);
+            if (branchFilter) params.set("branch", branchFilter);
+            if (residenceFilter) params.set("residenceType", residenceFilter);
+            if (careerFilter) params.set("careerChoice", careerFilter);
             const r = await fetch(`/api/dashboard/council/students?${params}`);
             const d = await r.json();
             if (r.ok) {
                 setStudents(d.students ?? []);
                 setPagination({ page: d.page ?? 1, limit: 50, total: d.total ?? 0, pages: d.pages ?? 0 });
+                if (d.branchList?.length) setBranchList(d.branchList);
             } else {
                 toast.error(d.error || "Failed to fetch students");
             }
         } catch { toast.error("Failed to fetch students"); } finally { setLoading(false); }
-    }, [search, yearFilter, domainFilter, clubFilter]);
+    }, [search, yearFilter, domainFilter, clubFilter, campusFilter, branchFilter, residenceFilter, careerFilter]);
 
     useEffect(() => { fetchClubs(); }, []);
     useEffect(() => { fetchStudents(1); }, [fetchStudents]);
@@ -99,6 +113,10 @@ export default function CouncilStudentsPage() {
             if (yearFilter)   params.set("year",   yearFilter);
             if (domainFilter) params.set("domain", domainFilter);
             if (clubFilter)   params.set("clubId", clubFilter);
+            if (campusFilter) params.set("campus", campusFilter);
+            if (branchFilter) params.set("branch", branchFilter);
+            if (residenceFilter) params.set("residenceType", residenceFilter);
+            if (careerFilter) params.set("careerChoice", careerFilter);
             const r = await fetch(`/api/dashboard/council/students?${params}`);
             if (!r.ok) throw new Error("Failed to fetch students");
             const d = await r.json();
@@ -114,11 +132,15 @@ export default function CouncilStudentsPage() {
                 { header: "Name", key: "name", width: 26 },
                 { header: "Email", key: "email", width: 30 },
                 { header: "Phone", key: "phone", width: 14 },
+                { header: "Campus", key: "campus", width: 20 },
                 { header: "Year", key: "year", width: 8 },
                 { header: "Branch", key: "branch", width: 14 },
                 { header: "Club", key: "club", width: 24 },
                 { header: "Residence Type", key: "residenceType", width: 16 },
                 { header: "Hostel/Bus Route", key: "residenceDetail", width: 20 },
+                { header: "State", key: "state", width: 16 },
+                { header: "District", key: "district", width: 16 },
+                { header: "Career Choice", key: "careerChoice", width: 20 },
             ];
 
             const headerRow = ws.getRow(1);
@@ -138,11 +160,15 @@ export default function CouncilStudentsPage() {
                     name: s.name,
                     email: s.email || "N/A",
                     phone: s.phoneNumber || "N/A",
+                    campus: s.campus || "N/A",
                     year: s.year,
                     branch: s.branch || "N/A",
                     club: s.clubName || "N/A",
                     residenceType: s.residenceType || "N/A",
                     residenceDetail: s.residenceType === "Hostel" ? (s.hostelName || "N/A") : (s.busRoute || "N/A"),
+                    state: s.state || "N/A",
+                    district: s.district || "N/A",
+                    careerChoice: s.careerChoice || "N/A",
                 });
                 if (i % 2 === 1) {
                     row.eachCell(cell => { cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF9FAFB" } }; });
@@ -198,13 +224,18 @@ export default function CouncilStudentsPage() {
                         className="text-xs flex-1 bg-transparent outline-none text-gray-700 placeholder:text-gray-400"
                     />
                 </div>
+                
                 <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                     <FiFilter size={12} className="text-gray-400" />
-                    <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700">
-                        <option value="">All Years</option>
-                        {["1st","2nd","3rd","4th"].map(y => <option key={y} value={y}>{y} Year</option>)}
+                    <select value={campusFilter} onChange={e => setCampusFilter(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700">
+                        <option value="">All Campuses</option>
+                        <option value="KLU - Vaddeswaram">KLU - Vaddeswaram</option>
+                        <option value="KLH - Bachupally">KLH - Bachupally</option>
+                        <option value="KLH - Aziz Nagar">KLH - Aziz Nagar</option>
+                        <option value="KLH - GBS">KLH - GBS</option>
                     </select>
                 </div>
+
                 {assignedDomains.length > 1 && (
                     <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                         <FiFilter size={12} className="text-gray-400" />
@@ -214,11 +245,53 @@ export default function CouncilStudentsPage() {
                         </select>
                     </div>
                 )}
+                
                 <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                     <FiUsers size={12} className="text-gray-400" />
                     <select value={clubFilter} onChange={e => setClubFilter(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700">
                         <option value="">All Clubs</option>
                         {clubsInDomain.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                </div>
+
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                    <FiFilter size={12} className="text-gray-400" />
+                    <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700">
+                        <option value="">All Years</option>
+                        {["1st","2nd","3rd","4th"].map(y => <option key={y} value={y}>{y} Year</option>)}
+                    </select>
+                </div>
+
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                    <FiFilter size={12} className="text-gray-400" />
+                    <select value={branchFilter} onChange={e => setBranchFilter(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700 max-w-24 truncate">
+                        <option value="">All Branches</option>
+                        {branchList.map((b) => (
+                            <option key={b} value={b}>{b}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                    <FiFilter size={12} className="text-gray-400" />
+                    <select value={residenceFilter} onChange={e => setResidenceFilter(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700">
+                        <option value="">All Residence Types</option>
+                        <option value="Hostel">Hostel</option>
+                        <option value="Day Scholar">Day Scholar</option>
+                    </select>
+                </div>
+
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                    <FiFilter size={12} className="text-gray-400" />
+                    <select value={careerFilter} onChange={e => setCareerFilter(e.target.value)} className="text-xs bg-transparent outline-none text-gray-700 max-w-24 truncate">
+                        <option value="">All Careers</option>
+                        <option value="Placement">Placement</option>
+                        <option value="Higher Education">Higher Education</option>
+                        <option value="Entrepreneurship">Entrepreneurship</option>
+                        <option value="Research & Development (R&D)">Research & Development (R&D)</option>
+                        <option value="Civil Services">Civil Services</option>
+                        <option value="Social Service / NGOs">Social Service / NGOs</option>
+                        <option value="Overseas Career">Overseas Career</option>
                     </select>
                 </div>
             </div>
@@ -311,8 +384,9 @@ export default function CouncilStudentsPage() {
                                     </dl>
                                 </div>
                                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
-                                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Residence</h4>
+                                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Residence & Location</h4>
                                     <dl className="grid grid-cols-2 gap-2 text-sm">
+                                        <div className="flex justify-between"><dt className="text-gray-500">Campus</dt><dd className="font-medium text-gray-900">{selectedStudent.campus || 'N/A'}</dd></div>
                                         <div className="flex justify-between"><dt className="text-gray-500">Residence Type</dt><dd className="font-medium text-gray-900">{selectedStudent.residenceType || 'N/A'}</dd></div>
                                         <div className="flex justify-between">
                                             <dt className="text-gray-500">{selectedStudent.residenceType === 'Hostel' ? 'Hostel Name' : 'Bus Route'}</dt>
@@ -320,7 +394,12 @@ export default function CouncilStudentsPage() {
                                                 {selectedStudent.residenceType === 'Hostel' ? (selectedStudent.hostelName || 'N/A') : (selectedStudent.busRoute || 'N/A')}
                                             </dd>
                                         </div>
+                                        <div className="flex justify-between"><dt className="text-gray-500">State / District</dt><dd className="font-medium text-gray-900">{selectedStudent.state || 'N/A'} / {selectedStudent.district || 'N/A'}</dd></div>
                                     </dl>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
+                                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Career Choice</h4>
+                                    <p className="text-sm font-medium text-gray-900">{selectedStudent.careerChoice || 'N/A'}</p>
                                 </div>
                             </div>
                         </div>

@@ -10,25 +10,46 @@ async function checkAdmin() {
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
     const decoded = await verifyToken(token);
-    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'faculty')) return null;
+    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'faculty' && decoded.role !== 'council')) return null;
     return decoded;
 }
 
 export async function GET(request: Request) {
     try {
-        if (!await checkAdmin()) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const user = await checkAdmin();
+        if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         // The SELECT below reads the schedule/registration columns.
         await ensureActivitySchema();
 
         const { searchParams } = new URL(request.url);
-        const domain = searchParams.get('domain') || '';
+        const domainParam = searchParams.get('domain') || '';
         const search = searchParams.get('search') || '';
 
         const conditions: string[] = [];
         const params: any[] = [];
 
-        if (domain) { conditions.push('domain = ?'); params.push(domain); }
+        if (user.role === 'council') {
+            const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0 
+                ? user.assignedDomains 
+                : (user.assignedDomain ? [user.assignedDomain] : []);
+            
+            if (councilDomains.length === 0) {
+                return NextResponse.json({ activities: [] });
+            }
+
+            if (domainParam && councilDomains.includes(domainParam)) {
+                conditions.push('domain = ?');
+                params.push(domainParam);
+            } else {
+                conditions.push(`domain IN (${councilDomains.map(() => '?').join(',')})`);
+                params.push(...councilDomains);
+            }
+        } else if (domainParam) {
+            conditions.push('domain = ?');
+            params.push(domainParam);
+        }
+
         if (search) { conditions.push('title LIKE ?'); params.push(`%${search}%`); }
 
         const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -57,8 +78,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        const admin = await checkAdmin();
-        if (!admin) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const user = await checkAdmin();
+        if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const body = await request.json();
         const {
@@ -70,6 +91,15 @@ export async function POST(request: Request) {
 
         if (!title || !domain || !points || !code) {
             return NextResponse.json({ message: 'Code, title, domain and points are required' }, { status: 400 });
+        }
+
+        if (user.role === 'council') {
+            const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0 
+                ? user.assignedDomains 
+                : (user.assignedDomain ? [user.assignedDomain] : []);
+            if (!councilDomains.includes(domain)) {
+                return NextResponse.json({ message: 'Unauthorized domain' }, { status: 403 });
+            }
         }
 
         await ensureActivitySchema();
@@ -94,7 +124,7 @@ export async function POST(request: Request) {
             safeJson(resources), safeJson(assignments), safeJson(timeline),
             blankToNull(activity_date), blankToNull(start_time), blankToNull(end_time),
             venue || null, registration_open === undefined ? 1 : Number(registration_open),
-            admin.username || 'admin'
+            user.username || 'admin'
         ]);
 
         const insertId = (result as any).insertId;

@@ -14,12 +14,30 @@ async function checkAdminOrFaculty() {
     return decoded;
 }
 
+async function isAuthorizedForActivity(user: any, activityCode: string): Promise<boolean> {
+    if (user.role !== 'council') return true;
+    const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0 
+        ? user.assignedDomains : (user.assignedDomain ? [user.assignedDomain] : []);
+    
+    if (councilDomains.length === 0) return false;
+    
+    const [rows] = await pool.execute('SELECT domain FROM activity_catalogue WHERE code = ?', [activityCode]);
+    if ((rows as any[]).length === 0) return true; // Let 404 handle it
+    
+    return councilDomains.includes((rows as any[])[0].domain);
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = await checkAdminOrFaculty();
         if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const { id } = await params;
+        
+        if (!await isAuthorizedForActivity(user, id)) {
+            return NextResponse.json({ message: 'Unauthorized domain' }, { status: 403 });
+        }
+
         const body = await request.json();
         const { action, note } = body;
 

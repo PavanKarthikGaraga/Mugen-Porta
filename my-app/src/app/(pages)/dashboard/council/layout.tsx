@@ -40,6 +40,7 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
     const navigation = [
         { name: 'Overview',           href: '/dashboard/council',                  icon: FiHome        },
         { name: 'Students',           href: '/dashboard/council/students',          icon: FiUsers       },
+        { name: 'SAMAM Dashboard',    href: '/dashboard/council/samam',             icon: FiAward       },
         { name: 'SAMAM Access',       href: '/dashboard/council/samam-access',      icon: FiUnlock      },
         { name: 'Activity Awards',    href: '/dashboard/council/activity-awards',   icon: FiStar        },
         { name: 'Attendance',         href: '/dashboard/council/attendance',        icon: FiCheckSquare },

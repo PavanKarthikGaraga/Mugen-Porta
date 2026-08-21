@@ -57,6 +57,10 @@ export async function GET(request: Request) {
         const year         = searchParams.get('year')     || '';
         const domainFilter = searchParams.get('domain')   || '';
         const clubId       = searchParams.get('clubId')   || '';
+        const branch       = searchParams.get('branch')   || '';
+        const campus       = searchParams.get('campus')   || '';
+        const residenceType = searchParams.get('residenceType') || '';
+        const careerChoice = searchParams.get('careerChoice') || '';
         const page         = Math.max(1, parseInt(searchParams.get('page')  || '1'));
         const limit        = exportAll ? 100000 : Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
         const offset       = exportAll ? 0 : (page - 1) * limit;
@@ -86,6 +90,11 @@ export async function GET(request: Request) {
         if (clubId) { conditions.push('s.clubId = ?');                              params.push(clubId); }
         if (search)  { conditions.push('(s.name LIKE ? OR s.username LIKE ?)');     params.push(`%${search}%`, `%${search}%`); }
         if (year)    { conditions.push('s.year = ?');                                params.push(year); }
+        if (branch)  { conditions.push('s.branch = ?');                              params.push(branch); }
+        // For campus, we wrap in try/catch if column missing, but let's assume it exists if admin page uses it
+        if (campus)  { conditions.push('s.campus = ?');                              params.push(campus); }
+        if (residenceType) { conditions.push('s.residenceType = ?');                 params.push(residenceType); }
+        if (careerChoice) { conditions.push('s.careerChoice = ?');                   params.push(careerChoice); }
 
         // Scope by domain.  Try selectedDomain (populated at registration) and
         // fall back to club membership if the column doesn't exist in this DB.
@@ -109,7 +118,8 @@ export async function GET(request: Request) {
             const [students]: any = await pool.execute(
                 `SELECT s.username, s.name, s.email, s.gender, s.year, s.branch,
                         s.phoneNumber, s.residenceType, s.hostelName, s.busRoute,
-                        s.clubId, c.name AS clubName, c.domain AS clubDomain
+                        s.clubId, c.name AS clubName, c.domain AS clubDomain,
+                        s.campus, s.careerChoice, s.state, s.district
                  FROM students s
                  LEFT JOIN clubs c ON s.clubId = c.id
                  WHERE ${where}
@@ -132,12 +142,20 @@ export async function GET(request: Request) {
             }
         }
 
+        // Get branch list
+        let branchList: string[] = [];
+        try {
+            const [branchRows]: any = await pool.execute('SELECT DISTINCT branch FROM students WHERE branch IS NOT NULL AND branch != "" ORDER BY branch ASC');
+            branchList = (branchRows as any[]).map(r => r.branch);
+        } catch {}
+
         return NextResponse.json({
             students: result.students,
             total:    result.total,
             pages:    Math.ceil(result.total / limit),
             page,
             domains,
+            branchList
         });
 
     } catch (error: any) {

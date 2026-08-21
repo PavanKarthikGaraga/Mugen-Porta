@@ -9,15 +9,33 @@ async function checkAdmin() {
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
     const decoded = await verifyToken(token);
-    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'faculty')) return null;
+    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'faculty' && decoded.role !== 'council')) return null;
     return decoded;
+}
+
+async function isAuthorizedForActivity(user: any, activityCode: string): Promise<boolean> {
+    if (user.role !== 'council') return true;
+    const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0 
+        ? user.assignedDomains : (user.assignedDomain ? [user.assignedDomain] : []);
+    
+    if (councilDomains.length === 0) return false;
+    
+    const [rows] = await pool.execute('SELECT domain FROM activity_catalogue WHERE code = ?', [activityCode]);
+    if ((rows as any[]).length === 0) return true; // Let 404 handle it
+    
+    return councilDomains.includes((rows as any[])[0].domain);
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        if (!await checkAdmin()) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const user = await checkAdmin();
+        if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         const { id } = await params;
         
+        if (!await isAuthorizedForActivity(user, id)) {
+            return NextResponse.json({ message: 'Unauthorized domain' }, { status: 403 });
+        }
+
         const [rows] = await pool.execute(`
             SELECT * FROM activity_catalogue WHERE code = ?
         `, [id]);
@@ -43,15 +61,29 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        if (!await checkAdmin()) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const user = await checkAdmin();
+        if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const { id } = await params;
+        
+        if (!await isAuthorizedForActivity(user, id)) {
+            return NextResponse.json({ message: 'Unauthorized domain' }, { status: 403 });
+        }
+
         const body = await request.json();
         const {
             code, title, description, domain, category, points, max_participants, status,
             difficulty, activity_pack, faculty_name, sdgs, hours,
             purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline
         } = body;
+        
+        if (user.role === 'council') {
+            const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0 
+                ? user.assignedDomains : (user.assignedDomain ? [user.assignedDomain] : []);
+            if (!councilDomains.includes(domain)) {
+                return NextResponse.json({ message: 'Unauthorized domain modification' }, { status: 403 });
+            }
+        }
 
         const safeJson = (val: any) => val != null ? JSON.stringify(val) : null;
 
@@ -88,9 +120,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        if (!await checkAdmin()) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const user = await checkAdmin();
+        if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
         const { id } = await params;
+        
+        if (!await isAuthorizedForActivity(user, id)) {
+            return NextResponse.json({ message: 'Unauthorized domain' }, { status: 403 });
+        }
 
         const [result] = await pool.execute('DELETE FROM activity_catalogue WHERE code = ?', [id]);
 

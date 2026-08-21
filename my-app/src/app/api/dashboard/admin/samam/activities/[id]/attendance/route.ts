@@ -9,15 +9,33 @@ async function checkAdmin() {
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
     const decoded = await verifyToken(token);
-    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'faculty')) return null;
+    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'faculty' && decoded.role !== 'council')) return null;
     return decoded;
+}
+
+async function isAuthorizedForActivity(user: any, activityCode: string): Promise<boolean> {
+    if (user.role !== 'council') return true;
+    const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0 
+        ? user.assignedDomains : (user.assignedDomain ? [user.assignedDomain] : []);
+    
+    if (councilDomains.length === 0) return false;
+    
+    const [rows] = await pool.execute('SELECT domain FROM activity_catalogue WHERE code = ?', [activityCode]);
+    if ((rows as any[]).length === 0) return true; // Let 404 handle it
+    
+    return councilDomains.includes((rows as any[])[0].domain);
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        if (!await checkAdmin()) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const user = await checkAdmin();
+        if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         const { id } = await params; // id is the activity code
         
+        if (!await isAuthorizedForActivity(user, id)) {
+            return NextResponse.json({ message: 'Unauthorized domain' }, { status: 403 });
+        }
+
         const [rows] = await pool.execute(`
             SELECT ae.id, ae.username, s.name, ae.attendance_percentage, ae.attendance_marked
             FROM activity_enrollments ae
@@ -39,6 +57,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         const user = await checkAdmin();
         if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         const { id } = await params;
+        
+        if (!await isAuthorizedForActivity(user, id)) {
+            return NextResponse.json({ message: 'Unauthorized domain' }, { status: 403 });
+        }
+
         const { absentees } = await request.json(); // Array of usernames
 
         // Once attendance has been marked/locked for this activity, only an
