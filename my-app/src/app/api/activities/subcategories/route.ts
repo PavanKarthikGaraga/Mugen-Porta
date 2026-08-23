@@ -22,13 +22,21 @@ export async function GET(request: Request) {
     const domain = searchParams.get('domain');
     if (!domain) return NextResponse.json({ error: 'domain required' }, { status: 400 });
 
+    // Splitting on the last hyphen assumed every series numbers like
+    // "TECH-ZOC-02" (pure digits after the final hyphen). That broke for
+    // series like "ADV-A01".."ADV-A20", where the letter is glued directly
+    // to the number with no hyphen -- it read "ADV" as the prefix and lost
+    // the "A", so new activities got "ADV-001" instead of continuing at
+    // "ADV-A21". Deriving the prefix from wherever the trailing digit run
+    // actually starts (REGEXP_SUBSTR) handles both conventions correctly,
+    // whatever separator (or none) precedes the number.
     const [rows]: any = await pool.execute(
         `SELECT
             category,
-            SUBSTRING(code, 1, CHAR_LENGTH(code) - CHAR_LENGTH(SUBSTRING_INDEX(code, '-', -1)) - 1) AS code_prefix,
+            SUBSTRING(code, 1, CHAR_LENGTH(code) - CHAR_LENGTH(REGEXP_SUBSTR(code, '[0-9]+$'))) AS code_prefix,
             COUNT(*) AS activity_count
          FROM activity_catalogue
-         WHERE domain = ? AND category IS NOT NULL AND category != '' AND code LIKE '%-%'
+         WHERE domain = ? AND category IS NOT NULL AND category != '' AND code REGEXP '[0-9]+$'
          GROUP BY category, code_prefix
          ORDER BY activity_count DESC, category ASC`,
         [domain]

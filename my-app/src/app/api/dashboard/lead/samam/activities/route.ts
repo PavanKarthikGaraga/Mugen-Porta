@@ -114,7 +114,7 @@ export async function GET(request: Request) {
                    (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = activity_catalogue.code) as enrolledCount
             FROM activity_catalogue
             ${where}
-            ORDER BY created_at DESC
+            ORDER BY domain ASC, category ASC, code ASC
         `, params);
 
         return NextResponse.json({ activities: rows, assigned_categories });

@@ -1,12 +1,14 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/apiSecurity';
+import { ensureActivityReportsTable } from '@/lib/dbMigrate';
 
 export async function GET() {
     const auth = await requireAuth(['admin']);
     if (auth.response) return auth.response;
 
     try {
+        await ensureActivityReportsTable();
         // An activity is "completed" when the lead has locked attendance —
         // i.e. at least one enrollment row has attendance_marked = TRUE.
         // We join only those rows so the aggregates cover exactly the locked set.
@@ -20,11 +22,14 @@ export async function GET() {
                 ac.venue,
                 COUNT(ae.username)                                              AS total_enrolled,
                 SUM(CASE WHEN ae.attendance_percentage > 0 THEN 1 ELSE 0 END)  AS students_present,
-                MAX(ae.enrolled_at)                                             AS locked_at
+                MAX(ae.enrolled_at)                                             AS locked_at,
+                ar.status                                                       AS report_status,
+                ar.generated_at                                                 AS report_generated_at
             FROM activity_catalogue ac
             JOIN activity_enrollments ae
                 ON ae.activity_code = ac.code AND ae.attendance_marked = TRUE
-            GROUP BY ac.code, ac.title, ac.domain, ac.category, ac.activity_date, ac.venue
+            LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
+            GROUP BY ac.code, ac.title, ac.domain, ac.category, ac.activity_date, ac.venue, ar.status, ar.generated_at
             ORDER BY ac.domain ASC,
                      COALESCE(ac.activity_date, '9999-12-31') DESC,
                      ac.code ASC
@@ -47,6 +52,8 @@ export async function GET() {
                 total_enrolled:  Number(row.total_enrolled),
                 students_present: Number(row.students_present),
                 locked_at:       row.locked_at,
+                report_status:   row.report_status,
+                report_generated_at: row.report_generated_at,
             });
         }
 

@@ -76,7 +76,7 @@ export async function GET(request: Request) {
              (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count
       FROM activity_catalogue ac
       ${where}
-      ORDER BY ac.id ASC
+      ORDER BY ac.domain ASC, ac.category ASC, ac.code ASC
     `;
 
     const [rows]: any = await pool.query(query, params);

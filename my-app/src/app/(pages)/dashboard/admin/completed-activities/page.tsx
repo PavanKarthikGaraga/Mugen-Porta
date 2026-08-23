@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { FiCheckCircle, FiUsers, FiCalendar, FiMapPin, FiFilter, FiRefreshCw } from "react-icons/fi";
+import { FiCheckCircle, FiXCircle, FiUsers, FiCalendar, FiMapPin, FiFilter, FiRefreshCw, FiDownload } from "react-icons/fi";
+import { toast } from "sonner";
+import { generateActivityReportPdf } from "@/lib/activityReportPdf";
 
 const DOMAIN_COLORS: Record<string, string> = {
   TEC: "#0284c7", LCH: "#7c3aed", ESO: "#ea580c", IIE: "#059669", HWB: "#e11d48",
@@ -33,6 +35,7 @@ export default function CompletedActivitiesPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDomain, setSelectedDomain] = useState<string>("ALL");
   const [search, setSearch] = useState("");
+  const [downloadingCode, setDownloadingCode] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -41,6 +44,55 @@ export default function CompletedActivitiesPage() {
       if (r.ok) setData(await r.json());
     } finally { setLoading(false); }
   }, []);
+
+  // Reuses the detail endpoint already built for the SAMAM Control
+  // "Completed" tab -- it returns the full activity_reports row (gallery,
+  // attendance sheets, all the text fields) plus the club name, everything
+  // generateActivityReportPdf needs to re-render the same PDF client-side.
+  const downloadReport = async (code: string) => {
+    setDownloadingCode(code);
+    try {
+      const res = await fetch(`/api/dashboard/admin/samam/completed-activities?activity=${encodeURIComponent(code)}`);
+      const data = await res.json();
+      if (!res.ok || !data.report) {
+        toast.error(data.message || "Report data not found");
+        return;
+      }
+      const r = data.report;
+      const activity = data.activity;
+      await generateActivityReportPdf({
+        clubName: activity?.club_name || "",
+        activityTitle: activity?.title || "",
+        activityDate: formatDate(activity?.activity_date),
+        facultyName: r.faculty_name || "",
+        posterUrl: r.poster_url || "",
+        permissionLetterUrl: r.permission_letter_url || "",
+        eventParticulars: {
+          activityName: activity?.title || "",
+          organizingClub: activity?.club_name || "",
+          academicYear: r.academic_year || "",
+          facultyIncharge: [r.faculty_name, r.faculty_id].filter(Boolean).join(" - "),
+          studentLead: [r.student_lead_name, r.student_lead_id].filter(Boolean).join(" - "),
+          timeSlot: r.time_slot || "",
+          venue: r.venue || "",
+          studentsParticipated: r.students_participated ? String(r.students_participated) : "",
+        },
+        overview: r.overview || "",
+        objectives: r.objectives || "",
+        proceedings: r.proceedings || "",
+        keyHighlights: r.key_highlights || "",
+        learningOutcomes: r.learning_outcomes || "",
+        conclusion: r.conclusion || "",
+        gallery: r.gallery || [],
+        attendanceSheets: r.attendance_sheets || [],
+      });
+      toast.success("Report downloaded");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to generate report PDF");
+    } finally {
+      setDownloadingCode(null);
+    }
+  };
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -222,6 +274,8 @@ export default function CompletedActivitiesPage() {
                         <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">
                           <span className="flex items-center gap-1"><FiUsers size={11} /> Present / Enrolled</span>
                         </th>
+                        <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">Report</th>
+                        <th className="px-4 py-2.5"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -243,6 +297,30 @@ export default function CompletedActivitiesPage() {
                           </td>
                           <td className="px-4 py-3">
                             <AttendancePill present={a.students_present} total={a.total_enrolled} />
+                          </td>
+                          <td className="px-4 py-3">
+                            {a.report_status ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <FiCheckCircle size={11} /> Generated
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
+                                <FiXCircle size={11} /> Not generated
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {a.report_status && (
+                              <button
+                                onClick={() => downloadReport(a.code)}
+                                disabled={downloadingCode === a.code}
+                                className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg text-white disabled:opacity-50 whitespace-nowrap"
+                                style={{ backgroundColor: color }}
+                              >
+                                {downloadingCode === a.code ? <FiRefreshCw size={11} className="animate-spin" /> : <FiDownload size={11} />}
+                                View / Download
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}

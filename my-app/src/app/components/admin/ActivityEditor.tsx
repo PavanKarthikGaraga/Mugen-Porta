@@ -465,7 +465,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
                 value={formData.code}
                 onChange={handleChange}
                 className="flex-1 p-2 border rounded"
-                placeholder={subCategory ? `${subCategory}-001` : "Select domain & sub-category first"}
+                placeholder={subCategory ? `e.g. ${subCategory}01` : "Select domain & sub-category first"}
                 readOnly={generatingCode}
               />
               {subCategory && (
