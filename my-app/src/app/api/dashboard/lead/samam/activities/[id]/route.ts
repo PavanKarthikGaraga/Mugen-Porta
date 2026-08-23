@@ -5,6 +5,7 @@ import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 import { ensureActivitySchema, getTableColumns, bustTableColumnCache } from '@/lib/dbMigrate';
 import { getLeadClubIds } from '@/lib/leadScope';
+import { cascadeActivityCodeChange } from '@/lib/activityCode';
 
 // The ActivityEditor form always submits `difficulty` even when the user
 // never touches it. This and the other columns below were only ever added
@@ -213,17 +214,47 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         // Always require re-approval when a lead edits an activity
         fields.push(`approval_status = 'pending_approval'`);
 
-        values.push(id);
-        const [result] = await pool.execute(
-            `UPDATE activity_catalogue SET ${fields.join(', ')} WHERE code = ?`,
-            values
-        );
+        const newCode = typeof body.code === 'string' ? body.code.trim() : undefined;
+        const codeChanged = newCode && newCode !== id;
 
-        if ((result as any).affectedRows === 0) {
-            return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
+        if (codeChanged) {
+            const [dupRows]: any = await pool.execute('SELECT 1 FROM activity_catalogue WHERE code = ?', [newCode]);
+            if (dupRows.length > 0) {
+                return NextResponse.json({ message: `Activity code "${newCode}" is already in use` }, { status: 409 });
+            }
         }
 
-        return NextResponse.json({ success: true, message: 'Activity updated' });
+        values.push(id);
+        const updateQuery = `UPDATE activity_catalogue SET ${fields.join(', ')} WHERE code = ?`;
+
+        if (!codeChanged) {
+            const [result] = await pool.execute(updateQuery, values);
+            if ((result as any).affectedRows === 0) {
+                return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
+            }
+            return NextResponse.json({ success: true, message: 'Activity updated' });
+        }
+
+        // Code is changing -- run the update plus every downstream rename in
+        // one transaction (see cascadeActivityCodeChange) so a failure
+        // partway through can't leave some tables on the old code.
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+            const [result]: any = await connection.query(updateQuery, values);
+            if (result.affectedRows === 0) {
+                await connection.rollback();
+                return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
+            }
+            await cascadeActivityCodeChange(connection, id, newCode as string);
+            await connection.commit();
+            return NextResponse.json({ success: true, message: 'Activity updated' });
+        } catch (err) {
+            await connection.rollback();
+            throw err;
+        } finally {
+            connection.release();
+        }
 
     } catch (error: any) {
         console.error('Update activity error:', error);

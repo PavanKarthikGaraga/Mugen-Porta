@@ -2,17 +2,20 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { ensureActivitySchema, getTableColumns, bustTableColumnCache } from '@/lib/dbMigrate';
+import { cascadeActivityCodeChange } from '@/lib/activityCode';
 
 // Columns callers are allowed to modify via PUT. Anything not in this list
-// (e.g. `id`, `code`, `badge_id`, `created_at`) is silently ignored, so a
-// caller can never use this endpoint to repoint a badge or forge an id via
-// mass assignment, even though the endpoint is admin-gated.
+// (e.g. `id`, `badge_id`, `created_at`) is silently ignored, so a caller can
+// never use this endpoint to repoint a badge or forge an id via mass
+// assignment, even though the endpoint is admin-gated.
 // Journey level is a student-progression concept only (computed from SAMAM
 // points earned, see student_profiles.level) -- it is never mapped to or
 // stored against individual activities, so 'level'/'journey_level' is
 // deliberately not in this list.
+// 'code' IS editable -- see the cascade rename below, which also re-points
+// every other table that references it as a plain string.
 const EDITABLE_ACTIVITY_FIELDS = new Set([
-    'title', 'description', 'domain', 'category', 'purpose', 'difficulty',
+    'code', 'title', 'description', 'domain', 'category', 'purpose', 'difficulty',
     'sdc_credits', 'max_seats', 'maxEnrollment', 'outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments',
     'competencies', 'career', 'sdgs', 'ga', 'facultyFeedback', 'reflection',
     'national_mission', 'pack', 'status', 'activity_pack', 'faculty_name', 'hours', 'graduate_attributes',
@@ -176,12 +179,40 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ success: false, error: 'No fields to update' }, { status: 400 });
     }
 
+    const newCode = typeof data.code === 'string' ? data.code.trim() : undefined;
+    const codeChanged = newCode && newCode !== id;
+
+    if (codeChanged) {
+      const [dupRows]: any = await pool.query('SELECT 1 FROM activity_catalogue WHERE code = ?', [newCode]);
+      if (dupRows.length > 0) {
+        return NextResponse.json({ success: false, error: `Activity code "${newCode}" is already in use` }, { status: 409 });
+      }
+    }
+
     const query = `UPDATE activity_catalogue SET ${fields.join(', ')} WHERE code = ?`;
     values.push(id);
 
-    const [result]: any = await pool.query(query, values);
+    if (!codeChanged) {
+      const [result]: any = await pool.query(query, values);
+      return NextResponse.json({ success: true, affectedRows: result.affectedRows });
+    }
 
-    return NextResponse.json({ success: true, affectedRows: result.affectedRows });
+    // Code is changing -- run the update plus every downstream rename in one
+    // transaction so a failure partway through can't leave some tables
+    // pointing at the old code and others at the new one.
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      const [result]: any = await connection.query(query, values);
+      await cascadeActivityCodeChange(connection, id, newCode as string);
+      await connection.commit();
+      return NextResponse.json({ success: true, affectedRows: result.affectedRows });
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
   } catch (error: any) {
     console.error("PUT Activity Error:", error);
     // Admin/faculty-gated editing endpoint: return the real database error.

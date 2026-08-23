@@ -2,78 +2,20 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { FiSave, FiArrowLeft, FiPlus, FiTrash2, FiUpload, FiLink, FiFileText, FiRefreshCw } from "react-icons/fi";
+import { FiSave, FiArrowLeft, FiPlus, FiTrash2, FiUpload, FiLink, FiFileText, FiRefreshCw, FiEye, FiX, FiCalendar, FiMapPin, FiClock, FiTarget, FiGlobe } from "react-icons/fi";
 import Link from "next/link";
-import { SDG_MAP } from "@/app/Data/activities-mock";
+import { SDG_MAP, DOMAINS } from "@/app/Data/activities-mock";
 
+// Domain prefix used only as a fallback when creating the very first
+// activity for a brand-new sub-category (one with no existing activities to
+// derive a prefix from). Every domain that already has activities gets its
+// real sub-categories + code prefixes from /api/activities/subcategories
+// instead -- see fetchSubcategories below.
 const DOMAIN_CODE_PREFIX: Record<string, string> = {
   TEC: "TECH", ESO: "ESO", LCH: "LCH", HWB: "HWB", IIE: "IIE",
 };
 
-const DOMAIN_SUBCATEGORIES: Record<string, { label: string; abbr: string }[]> = {
-  TEC: [
-    { label: "AI & Machine Learning", abbr: "AI" },
-    { label: "Software Development", abbr: "SWD" },
-    { label: "Cybersecurity & Digital Trust", abbr: "CYB" },
-    { label: "Data Science & Analytics", abbr: "DSA" },
-    { label: "Cloud Computing & DevOps", abbr: "CLD" },
-    { label: "IoT & Smart Systems", abbr: "IOT" },
-    { label: "Robotics & Automation", abbr: "ROB" },
-    { label: "Blockchain & Web3", abbr: "BC" },
-    { label: "Biotechnology & Bioinformatics", abbr: "BIO" },
-    { label: "AgriTech & Precision Farming", abbr: "AGR" },
-    { label: "Digital Health & MedTech", abbr: "DHL" },
-    { label: "Drones & UAV Technology", abbr: "DRN" },
-    { label: "EdTech & Learning Innovation", abbr: "EDU" },
-    { label: "FinTech & Digital Finance", abbr: "FIN" },
-    { label: "Smart Manufacturing & Industry 4.0", abbr: "MFG" },
-    { label: "Quantum Computing", abbr: "QC" },
-    { label: "Renewable Energy Technology", abbr: "REN" },
-    { label: "Space Technology", abbr: "SPC" },
-    { label: "Smart Campus & Urban Tech", abbr: "SCU" },
-  ],
-  ESO: [
-    { label: "Student Volunteering & Relief", abbr: "SVR" },
-    { label: "Community Engagement & Service", abbr: "CES" },
-    { label: "Sustainable Development & Environment", abbr: "SDE" },
-    { label: "Health & Humanitarian Needs", abbr: "HHN" },
-    { label: "Education & Digital Inclusion", abbr: "EDI" },
-    { label: "Agriculture & Rural Innovation", abbr: "ARI" },
-    { label: "Women & Youth Empowerment", abbr: "WYE" },
-    { label: "Disaster Preparedness & Safety", abbr: "DPS" },
-    { label: "Climate Change & Green Governance", abbr: "CGG" },
-    { label: "Social Innovation & Impact", abbr: "SII" },
-  ],
-  IIE: [
-    { label: "Entrepreneurship", abbr: "ENT" },
-    { label: "Innovation Challenge", abbr: "INN" },
-    { label: "Startup Development", abbr: "STA" },
-    { label: "Incubation Program", abbr: "INC" },
-    { label: "Design Thinking", abbr: "DES" },
-    { label: "Business Plan Lab", abbr: "BPL" },
-    { label: "Intellectual Property & Rights", abbr: "IPR" },
-  ],
-  LCH: [
-    { label: "Dance Club", abbr: "DC" },
-    { label: "Music Club", abbr: "MC" },
-    { label: "Theatre Arts", abbr: "TA" },
-    { label: "Photography Club", abbr: "PC" },
-    { label: "Literary Club", abbr: "LC" },
-    { label: "Film Club", abbr: "FC" },
-    { label: "Heritage Club", abbr: "HC" },
-    { label: "Arts & Crafts", abbr: "AC" },
-    { label: "Fashion & Lifestyle", abbr: "FL" },
-    { label: "E-Sports & Gaming", abbr: "ESC" },
-    { label: "Adventure & Trekking", abbr: "ADV" },
-  ],
-  HWB: [
-    { label: "Marathon & Athletics Club", abbr: "MAC" },
-    { label: "Yoga & Mindfulness", abbr: "YC" },
-    { label: "Sports & Lifestyle", abbr: "SL" },
-    { label: "Nutrition & Wellness", abbr: "NUT" },
-    { label: "Mental Health & Counselling", abbr: "MH" },
-  ],
-};
+interface DynamicSubcategory { category: string; code_prefix: string; activity_count: number; }
 
 interface ActivityEditorProps {
   activityId?: string;
@@ -108,6 +50,12 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
   const [assignedCategories, setAssignedCategories] = useState<string[]>([]);
   const [subCategory, setSubCategory] = useState<string>("");
   const [generatingCode, setGeneratingCode] = useState(false);
+  const [dynamicSubcategories, setDynamicSubcategories] = useState<DynamicSubcategory[]>([]);
+  const [loadingSubcategories, setLoadingSubcategories] = useState(false);
+  const [addingNewSubcategory, setAddingNewSubcategory] = useState(false);
+  const [newSubcategoryLabel, setNewSubcategoryLabel] = useState("");
+  const [newSubcategoryAbbr, setNewSubcategoryAbbr] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
 
   const [formData, setFormData] = useState({
     code: initialData?.code || "",
@@ -195,14 +143,30 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     }
   }, [role]);
 
+  // Sub-category options are the real (category, code prefix) pairs already
+  // in use for this domain -- not a hardcoded list -- so a new activity
+  // always attaches to the club series it actually belongs to. Re-fetched
+  // whenever the domain changes.
+  useEffect(() => {
+    if (!formData.domain) return;
+    setLoadingSubcategories(true);
+    fetch(`/api/activities/subcategories?domain=${encodeURIComponent(formData.domain)}`)
+      .then(r => r.json())
+      .then(d => setDynamicSubcategories(d.subcategories || []))
+      .catch(() => setDynamicSubcategories([]))
+      .finally(() => setLoadingSubcategories(false));
+  }, [formData.domain]);
+
   function parseJson(val: any) {
     if (!val) return null;
     if (Array.isArray(val)) return val;
     try { return JSON.parse(val); } catch { return null; }
   }
 
-  const generateCode = async (domain: string, abbr: string) => {
-    const prefix = `${DOMAIN_CODE_PREFIX[domain] ?? domain}-${abbr}`;
+  // Now takes the code prefix directly (e.g. "TECH-CYB", derived from real
+  // existing activities) rather than synthesizing one from a hardcoded
+  // domain+abbreviation pair.
+  const generateCode = async (prefix: string) => {
     setGeneratingCode(true);
     try {
       const r = await fetch(`/api/activities/next-code?prefix=${encodeURIComponent(prefix)}`);
@@ -215,16 +179,46 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
   const handleDomainChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const domain = e.target.value;
     setFormData(prev => ({ ...prev, domain, ...(isNew ? { code: "", category: "" } : {}) }));
-    if (isNew) setSubCategory("");
+    if (isNew) {
+      setSubCategory("");
+      setAddingNewSubcategory(false);
+      setNewSubcategoryLabel("");
+      setNewSubcategoryAbbr("");
+    }
   };
 
+  // Select value is the code_prefix (e.g. "TECH-CYB") since that's what
+  // uniquely identifies an existing club/series and is what generateCode
+  // needs directly.
   const handleSubCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const abbr = e.target.value;
-    setSubCategory(abbr);
-    if (!abbr) return;
-    const match = DOMAIN_SUBCATEGORIES[formData.domain]?.find(s => s.abbr === abbr);
-    if (match) setFormData(prev => ({ ...prev, category: match.label }));
-    generateCode(formData.domain, abbr);
+    const value = e.target.value;
+    if (value === "__new__") {
+      setAddingNewSubcategory(true);
+      setSubCategory("");
+      return;
+    }
+    setAddingNewSubcategory(false);
+    setSubCategory(value);
+    if (!value) return;
+    const match = dynamicSubcategories.find(s => s.code_prefix === value);
+    if (match) setFormData(prev => ({ ...prev, category: match.category }));
+    generateCode(value);
+  };
+
+  // For a genuinely new club/series with no existing activities to derive a
+  // prefix from -- admin supplies both the category name and a short code.
+  const handleNewSubcategoryConfirm = () => {
+    if (!newSubcategoryLabel.trim() || !newSubcategoryAbbr.trim()) {
+      toast.error("Enter both a name and a short code for the new sub-category");
+      return;
+    }
+    const abbr = newSubcategoryAbbr.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (!abbr) { toast.error("Short code must contain letters or numbers"); return; }
+    const prefix = `${DOMAIN_CODE_PREFIX[formData.domain] ?? formData.domain}-${abbr}`;
+    setFormData(prev => ({ ...prev, category: newSubcategoryLabel.trim() }));
+    setSubCategory(prefix);
+    setAddingNewSubcategory(false);
+    generateCode(prefix);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -381,9 +375,14 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{isNew ? "Create New Activity" : `Edit ${formData.code}`}</h1>
         </div>
-        <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 flex items-center gap-2 font-medium disabled:opacity-60">
-          {saving ? "Saving..." : <><FiSave /> Save Activity</>}
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setShowPreview(true)} className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 font-medium">
+            <FiEye /> Preview
+          </button>
+          <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 flex items-center gap-2 font-medium disabled:opacity-60">
+            {saving ? "Saving..." : <><FiSave /> Save Activity</>}
+          </button>
+        </div>
       </div>
 
       {/* Basic details */}
@@ -404,24 +403,59 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             </select>
           </div>
 
-          {/* Step 2: Sub-category */}
+          {/* Step 2: Sub-category — real (category, code prefix) pairs already
+              in use for this domain, not a hardcoded list, so a new activity
+              always attaches to the club series it actually belongs to. */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Sub-category <span className="text-red-500">*</span>
             </label>
-            <select
-              value={subCategory}
-              onChange={handleSubCategoryChange}
-              className="w-full border rounded-md px-3 py-2"
-            >
-              <option value="">Select sub-category…</option>
-              {(DOMAIN_SUBCATEGORIES[formData.domain] ?? []).map(s => (
-                <option key={s.abbr} value={s.abbr}>{s.abbr} — {s.label}</option>
-              ))}
-            </select>
+            {addingNewSubcategory ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="New sub-category name"
+                  value={newSubcategoryLabel}
+                  onChange={e => setNewSubcategoryLabel(e.target.value)}
+                  className="flex-1 p-2 border rounded text-sm"
+                />
+                <input
+                  type="text"
+                  placeholder="Code e.g. CYB"
+                  value={newSubcategoryAbbr}
+                  onChange={e => setNewSubcategoryAbbr(e.target.value)}
+                  className="w-28 p-2 border rounded text-sm"
+                />
+                <button type="button" onClick={handleNewSubcategoryConfirm} className="px-3 py-2 border rounded bg-gray-900 text-white text-sm hover:bg-gray-800">
+                  Use
+                </button>
+                <button type="button" onClick={() => setAddingNewSubcategory(false)} className="px-3 py-2 border rounded text-sm text-gray-500 hover:bg-gray-50">
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <select
+                value={subCategory}
+                onChange={handleSubCategoryChange}
+                className="w-full border rounded-md px-3 py-2"
+                disabled={loadingSubcategories}
+              >
+                <option value="">{loadingSubcategories ? "Loading…" : "Select sub-category…"}</option>
+                {dynamicSubcategories.map(s => (
+                  <option key={s.code_prefix} value={s.code_prefix}>
+                    {s.category} ({s.code_prefix}) · {s.activity_count} {s.activity_count === 1 ? "activity" : "activities"}
+                  </option>
+                ))}
+                <option value="__new__">+ Add new sub-category…</option>
+              </select>
+            )}
           </div>
 
-          {/* Step 3: Activity Code (auto-generated, editable) */}
+          {/* Step 3: Activity Code — auto-generated from the sub-category,
+              editable both when creating and when editing an existing
+              activity. Changing the code on an existing activity also
+              re-points every enrollment, club mapping, submission, and
+              report that referenced the old one (handled server-side). */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Activity Code</label>
             <div className="flex gap-2">
@@ -431,13 +465,13 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
                 value={formData.code}
                 onChange={handleChange}
                 className="flex-1 p-2 border rounded"
-                placeholder={subCategory ? `${DOMAIN_CODE_PREFIX[formData.domain]}-${subCategory}-001` : "Select domain & sub-category first"}
+                placeholder={subCategory ? `${subCategory}-001` : "Select domain & sub-category first"}
                 readOnly={generatingCode}
               />
               {subCategory && (
                 <button
                   type="button"
-                  onClick={() => generateCode(formData.domain, subCategory)}
+                  onClick={() => generateCode(subCategory)}
                   disabled={generatingCode}
                   title="Re-generate next available code"
                   className="px-3 py-2 border rounded bg-gray-50 hover:bg-gray-100 text-gray-600 disabled:opacity-50"
@@ -447,8 +481,11 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
               )}
             </div>
             {subCategory && (
-              <p className="text-xs text-gray-400 mt-1">
-                Auto-generated from {DOMAIN_CODE_PREFIX[formData.domain]}-{subCategory}. You can edit it.
+              <p className="text-xs text-gray-400 mt-1">Auto-generated from {subCategory}. You can edit it.</p>
+            )}
+            {!isNew && (
+              <p className="text-xs text-amber-600 mt-1">
+                Changing this updates every enrollment, mapping, submission, and report already linked to this activity.
               </p>
             )}
           </div>
@@ -460,14 +497,6 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-2 border rounded" rows={3} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
-            <select name="level" value={formData.level} onChange={handleChange} className="w-full border rounded-md px-3 py-2">
-              <option value="explorer">Explorer</option>
-              <option value="expert">Expert</option>
-              <option value="champion">Champion</option>
-            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">SAMAM Points</label>
@@ -747,6 +776,151 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
           })}
         </div>
       </div>
+
+      {/* Student-view preview — mirrors the sections of the real student
+          activity-catalogue page, rendered live from the current (possibly
+          unsaved) form state so an admin can check it before saving. */}
+      {showPreview && (() => {
+        const dom = DOMAINS[formData.domain] || { name: formData.domain, color: "#111827" };
+        const dateStr = formData.activity_date
+          ? new Date(formData.activity_date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+          : null;
+        return (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setShowPreview(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="sticky top-0 bg-white border-b px-6 py-3 flex items-center justify-between z-10">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Student Dashboard Preview</p>
+                <button onClick={() => setShowPreview(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500"><FiX /></button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Hero */}
+                <div>
+                  <span className="inline-block text-xs font-bold px-2.5 py-1 rounded-full text-white mb-3" style={{ backgroundColor: dom.color }}>
+                    {formData.domain} · {dom.name}
+                  </span>
+                  <h2 className="text-2xl font-bold text-gray-900">{formData.title || "Untitled Activity"}</h2>
+                  {formData.category && <p className="text-sm text-gray-500 mt-1">{formData.category}</p>}
+                  {formData.description && <p className="text-sm text-gray-600 mt-3 leading-relaxed">{formData.description}</p>}
+
+                  <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
+                    {dateStr && <span className="flex items-center gap-1.5"><FiCalendar size={14} style={{ color: dom.color }} /> {dateStr}</span>}
+                    {(formData.start_time || formData.end_time) && (
+                      <span className="flex items-center gap-1.5">
+                        <FiClock size={14} style={{ color: dom.color }} />
+                        {formData.start_time || "?"}{formData.end_time ? ` – ${formData.end_time}` : ""}
+                      </span>
+                    )}
+                    {formData.venue && <span className="flex items-center gap-1.5"><FiMapPin size={14} style={{ color: dom.color }} /> {formData.venue}</span>}
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 mt-4">
+                    <span className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {formData.sdc_credits || 0} SAMAM Points
+                    </span>
+                    <span className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-50 text-gray-700 border border-gray-200">
+                      {formData.difficulty}
+                    </span>
+                    <span className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-50 text-gray-700 border border-gray-200">
+                      Max {formData.max_seats} seats
+                    </span>
+                    {Number(formData.registration_open) !== 1 && (
+                      <span className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200">
+                        Registration closed
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Resources */}
+                <div className="border-t pt-5">
+                  <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2"><FiFileText size={14} /> Resources</h3>
+                  {formData.resources.length === 0 ? (
+                    <p className="text-xs text-gray-400">No resources added yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {formData.resources.map((r: any, i: number) => (
+                        <div key={r.id ?? i} className="flex items-center gap-2 p-2.5 border border-gray-100 rounded-lg text-sm">
+                          {r.type === "pdf" ? <FiFileText size={14} className="text-red-500" /> : <FiLink size={14} className="text-blue-500" />}
+                          <span className="font-medium text-gray-800">{r.title || "Untitled resource"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Tasks */}
+                <div className="border-t pt-5">
+                  <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2"><FiTarget size={14} /> Tasks</h3>
+                  {formData.assignments.length === 0 ? (
+                    <p className="text-xs text-gray-400">No tasks added yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {formData.assignments.map((a: any, i: number) => (
+                        <div key={a.id ?? i} className="p-3 border border-gray-100 rounded-lg">
+                          <p className="text-sm font-semibold text-gray-800">{a.title || "Untitled task"}</p>
+                          {a.description && <p className="text-xs text-gray-500 mt-1">{a.description}</p>}
+                          {(a.startDate || a.endDate) && (
+                            <p className="text-[11px] text-gray-400 mt-1.5">
+                              {a.startDate && `Opens ${a.startDate} ${a.startTime || ""}`}{a.endDate && ` · Due ${a.endDate} ${a.endTime || ""}`}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Outcomes / Competencies / GA */}
+                <div className="border-t pt-5 grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-900 mb-2 uppercase tracking-wide">Learning Outcomes</h4>
+                    {formData.outcomes.filter(Boolean).length === 0 ? <p className="text-xs text-gray-400">None yet.</p> : (
+                      <ul className="space-y-1 text-xs text-gray-600 list-disc list-inside">
+                        {formData.outcomes.filter(Boolean).map((o, i) => <li key={i}>{o}</li>)}
+                      </ul>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-900 mb-2 uppercase tracking-wide">Competencies</h4>
+                    {formData.competencies.filter(Boolean).length === 0 ? <p className="text-xs text-gray-400">None yet.</p> : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {formData.competencies.filter(Boolean).map((c, i) => (
+                          <span key={i} className="text-[11px] font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-700">{c}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-900 mb-2 uppercase tracking-wide">Graduate Attributes</h4>
+                    {formData.ga.filter(Boolean).length === 0 ? <p className="text-xs text-gray-400">None yet.</p> : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {formData.ga.filter(Boolean).map((g, i) => (
+                          <span key={i} className="text-[11px] font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">{g}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* SDGs */}
+                {formData.sdgs.length > 0 && (
+                  <div className="border-t pt-5">
+                    <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2"><FiGlobe size={14} /> Sustainable Development Goals</h3>
+                    <div className="flex flex-col gap-2">
+                      {formData.sdgs.map(sdg => (
+                        <span key={sdg} className="text-sm font-semibold px-4 py-2 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 w-fit">
+                          SDG {sdg}: {SDG_MAP[sdg] || "Sustainable Goal"}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
