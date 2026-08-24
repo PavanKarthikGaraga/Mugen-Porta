@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { ensureActivitySchema, getTableColumns } from '@/lib/dbMigrate';
 
 function parseJson(val: any): any {
     if (!val) return [];
@@ -21,8 +22,18 @@ export async function OPTIONS() {
 // No auth required — intended for the main SAC website.
 // Returns activities where registration_open = 1 AND activity_date, start_time,
 // and venue are all set. Always fresh — no caching layer.
+//
+// difficulty/sdgs are only added lazily by the admin activity editor's PUT
+// route (ensureActivityColumns there) and may not exist on every deployment
+// yet, so they're selected conditionally via getTableColumns rather than
+// hardcoded — an "Unknown column" 500 here would break the whole public feed.
 export async function GET() {
     try {
+        await ensureActivitySchema();
+        const columns = await getTableColumns('activity_catalogue');
+        const hasDifficulty = columns.size === 0 || columns.has('difficulty');
+        const hasSdgs = columns.size === 0 || columns.has('sdgs');
+
         const [rows]: any = await pool.execute(`
             SELECT
                 ac.code,
@@ -30,7 +41,7 @@ export async function GET() {
                 ac.description,
                 ac.domain,
                 ac.category,
-                ac.difficulty,
+                ${hasDifficulty ? 'ac.difficulty,' : ''}
                 ac.sdc_credits,
                 ac.max_seats,
                 ac.activity_date,
@@ -39,10 +50,9 @@ export async function GET() {
                 ac.venue,
                 ac.registration_open,
                 ac.outcomes,
-                ac.learning_outcomes,
                 ac.competencies,
-                ac.ga,
-                ac.sdgs
+                ac.ga
+                ${hasSdgs ? ', ac.sdgs' : ''}
             FROM activity_catalogue ac
             WHERE ac.registration_open = 1
               AND ac.activity_date IS NOT NULL
@@ -58,7 +68,7 @@ export async function GET() {
             description:      r.description,
             domain:           r.domain,
             category:         r.category,
-            difficulty:       r.difficulty,
+            difficulty:       r.difficulty ?? null,
             sdc_credits:      r.sdc_credits,
             max_seats:        r.max_seats,
             activity_date:    r.activity_date,
@@ -67,7 +77,6 @@ export async function GET() {
             venue:            r.venue,
             registration_open: r.registration_open === 1 || r.registration_open === true,
             outcomes:         parseJson(r.outcomes),
-            learning_outcomes: parseJson(r.learning_outcomes),
             competencies:     parseJson(r.competencies),
             ga:               parseJson(r.ga),
             sdgs:             parseJson(r.sdgs),
