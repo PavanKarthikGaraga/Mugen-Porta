@@ -24,12 +24,14 @@ export default function AdminStudents() {
     const [filters, setFilters] = useState({
         domain: "",
         year: "",
-        branch: "",
+        branch: [] as string[],
         residenceType: "",
         clubId: "",
         campus: "",
         careerChoice: ""
     });
+    const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
+    const branchDropdownRef = useRef<HTMLDivElement>(null);
     const [pagination, setPagination] = useState({
         page: 1,
         limit: 50,
@@ -71,7 +73,7 @@ export default function AdminStudents() {
                 search: effectiveSearch,
                 domain: effectiveFilters.domain,
                 year: effectiveFilters.year,
-                branch: effectiveFilters.branch,
+                branch: effectiveFilters.branch.join(','),
                 residenceType: effectiveFilters.residenceType,
                 clubId: effectiveFilters.clubId,
                 campus: effectiveFilters.campus,
@@ -125,6 +127,34 @@ export default function AdminStudents() {
         setFilters(next);
         fetchStudents(1, searchTerm, next);
     };
+
+    // Branch is multi-select — toggles one branch in/out of the array
+    // instead of replacing the whole filter value.
+    const toggleBranchFilter = (branch: string) => {
+        const set = new Set(filters.branch);
+        if (set.has(branch)) set.delete(branch); else set.add(branch);
+        const next = { ...filters, branch: Array.from(set) };
+        setFilters(next);
+        fetchStudents(1, searchTerm, next);
+    };
+
+    const clearBranchFilter = () => {
+        const next = { ...filters, branch: [] as string[] };
+        setFilters(next);
+        fetchStudents(1, searchTerm, next);
+    };
+
+    // Close the branch multi-select dropdown on outside click.
+    useEffect(() => {
+        if (!branchDropdownOpen) return;
+        const handler = (e: MouseEvent) => {
+            if (branchDropdownRef.current && !branchDropdownRef.current.contains(e.target as Node)) {
+                setBranchDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [branchDropdownOpen]);
 
     // Always forward the current search/filters so the stale useCallback
     // closure never silently drops active filter state on page navigation.
@@ -221,7 +251,7 @@ export default function AdminStudents() {
                 search: searchTerm,
                 domain: filters.domain,
                 year: filters.year,
-                branch: filters.branch,
+                branch: filters.branch.join(','),
                 residenceType: filters.residenceType,
                 clubId: filters.clubId,
                 campus: filters.campus,
@@ -431,15 +461,44 @@ export default function AdminStudents() {
                         </select>
                     </div>
 
-                    {/* Branch Filter */}
-                    <div>
-                        <select value={filters.branch} onChange={(e) => applyFilter("branch", e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                            <option value="">All Branches</option>
-                            {branchList.map((b) => (
-                                <option key={b} value={b}>{b}</option>
-                            ))}
-                        </select>
+                    {/* Branch Filter — multi-select */}
+                    <div className="relative" ref={branchDropdownRef}>
+                        <button
+                            type="button"
+                            onClick={() => setBranchDropdownOpen(o => !o)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-left text-sm bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 flex items-center justify-between"
+                        >
+                            <span className="truncate">
+                                {filters.branch.length === 0
+                                    ? "All Branches"
+                                    : filters.branch.length === 1
+                                        ? filters.branch[0]
+                                        : `${filters.branch.length} branches selected`}
+                            </span>
+                            <span className="text-gray-400 ml-2">▾</span>
+                        </button>
+                        {branchDropdownOpen && (
+                            <div className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg">
+                                <button
+                                    type="button"
+                                    onClick={clearBranchFilter}
+                                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-50 border-b border-gray-100 font-medium"
+                                >
+                                    Clear selection
+                                </button>
+                                {branchList.map((b) => (
+                                    <label key={b} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={filters.branch.includes(b)}
+                                            onChange={() => toggleBranchFilter(b)}
+                                            className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                        />
+                                        <span className="text-gray-700">{b}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Residence Type Filter */}

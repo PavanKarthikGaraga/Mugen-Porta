@@ -113,8 +113,13 @@ export async function GET(request) {
         }
 
         if (branch && branch.length > 0 && branch !== 'all') {
-            whereConditions.push('s.branch = ?');
-            queryParams.push(branch);
+            // Comma-separated for multi-select (e.g. "CSE,ECE,IT"); a single
+            // branch with no comma still works the same way as before.
+            const branches = branch.split(',').map(b => b.trim()).filter(Boolean);
+            if (branches.length > 0) {
+                whereConditions.push(`s.branch IN (${branches.map(() => '?').join(',')})`);
+                queryParams.push(...branches);
+            }
         }
 
         if (dateRange && dateRange.length > 0 && dateRange !== 'all') {
