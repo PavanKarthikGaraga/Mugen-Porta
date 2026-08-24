@@ -478,11 +478,17 @@ export default function AdminStudents() {
                             <span className="text-gray-400 ml-2">▾</span>
                         </button>
                         {branchDropdownOpen && (
-                            <div className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg">
+                            // Fixed wider width, not w-full — the trigger sits in a
+                            // narrow 1/8-width grid column, which squashed every
+                            // branch label (e.g. "B.Com. (Hons)") onto its own
+                            // cramped, wrapped line. The panel overflows past the
+                            // column since it's absolutely positioned, so it isn't
+                            // bound by the column's width.
+                            <div className="absolute z-20 mt-1 w-80 max-h-72 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg">
                                 <button
                                     type="button"
                                     onClick={clearBranchFilter}
-                                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-50 border-b border-gray-100 font-medium"
+                                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-50 border-b border-gray-100 font-medium sticky top-0 bg-white"
                                 >
                                     Clear selection
                                 </button>
@@ -492,9 +498,9 @@ export default function AdminStudents() {
                                             type="checkbox"
                                             checked={filters.branch.includes(b)}
                                             onChange={() => toggleBranchFilter(b)}
-                                            className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                            className="rounded border-gray-300 text-red-600 focus:ring-red-500 flex-shrink-0"
                                         />
-                                        <span className="text-gray-700">{b}</span>
+                                        <span className="text-gray-700 whitespace-nowrap">{b}</span>
                                     </label>
                                 ))}
                             </div>
