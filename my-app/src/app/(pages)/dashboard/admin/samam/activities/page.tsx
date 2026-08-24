@@ -3,13 +3,14 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import ActivityManager from "@/app/components/admin/samam/ActivityManager";
 import SamamControlHeader from "@/app/components/admin/samam/SamamControlHeader";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
 
 const TABS = ["overview", "students", "activities", "submissions", "completed", "notifications", "settings"];
 
 export default function AdminSamamActivitiesPage() {
   const [activities, setActivities] = useState<any[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
-  const [actSearchStr, setActSearchStr] = useState("");
+  const [actSearchStr, setActSearchStr] = usePersistedState("samam_activities_search_admin", "");
 
   const fetchActivities = useCallback(async () => {
     setActivitiesLoading(true);

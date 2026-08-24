@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FiSearch, FiRefreshCw, FiPlus, FiActivity, FiCheckCircle, FiAlertCircle, FiEdit2, FiTrash2, FiUserCheck, FiUsers, FiDownload } from "react-icons/fi";
 import { toast } from "sonner";
 import { BRAND, DOMAIN_COLORS } from "./SharedUI";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
 
 const DOMAIN_NAMES: Record<string, string> = {
   TEC: "TEC (Technical)",
@@ -41,9 +42,9 @@ function getActivityStatusInfo(a: any) {
 export default function ActivityManager({
   actSearchStr, setActSearchStr, fetchActivities, activitiesLoading, filteredActivities, deleteActivity, role = "admin"
 }: any) {
-  const [selectedDomain, setSelectedDomain] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedDomain, setSelectedDomain] = usePersistedState(`samam_activities_domain_${role}`, "");
+  const [selectedCategory, setSelectedCategory] = usePersistedState(`samam_activities_category_${role}`, "");
+  const [selectedStatus, setSelectedStatus] = usePersistedState(`samam_activities_status_${role}`, "");
   const [exporting, setExporting] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
