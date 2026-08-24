@@ -141,7 +141,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
         
         if (selectedClub === "ESO01" && !formData.pathway) return false;
         return true;
-    }, [selectedClub, selectedDomain, formData.pathway, isKLHCampus, isVaddeswaramCampus, clubType, isMHSDept, isDeptClub]);
+    }, [selectedClub, selectedDomain, formData.pathway, isKLHCampus, isVaddeswaramCampus, clubType]);
 
     // Communicate validation status to parent component
     React.useEffect(() => {
@@ -302,22 +302,25 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                         }
 
                                         if (isVaddeswaramCampus && clubType === 'MHS_DEPARTMENT') {
-                                            const mhsClubs = availableClubs.filter(club => club.domain === 'MHS. CLUBS' || club.id.startsWith('MHS'));
-                                            const isStudentBody = (club) => /\([A-Za-z .&/]+\)\s*$/.test(club.name);
-                                            const studentBodies = mhsClubs.filter(isStudentBody);
-                                            const societies = mhsClubs.filter(club => !isStudentBody(club));
+                                            const mhsClubs = availableClubs.filter(club => club.domain === 'MHS. CLUBS');
+                                            const mhsCategories = [
+                                                { label: 'Commerce',     prefix: 'COM' },
+                                                { label: 'Architecture', prefix: 'ARC' },
+                                                { label: 'BCA & MCA',   prefix: 'BCA' },
+                                                { label: 'MBA',          prefix: 'MBA' },
+                                                { label: 'Pharmacy',     prefix: 'PHR' },
+                                            ];
                                             return (
                                                 <>
-                                                    {societies.length > 0 && (
-                                                        <optgroup label="MHS Clubs">
-                                                            {societies.map(renderOption)}
-                                                        </optgroup>
-                                                    )}
-                                                    {studentBodies.length > 0 && (
-                                                        <optgroup label="MHS Student Bodies">
-                                                            {studentBodies.map(renderOption)}
-                                                        </optgroup>
-                                                    )}
+                                                    {mhsCategories.map(({ label, prefix }) => {
+                                                        const group = mhsClubs.filter(club => club.id.startsWith(prefix));
+                                                        if (group.length === 0) return null;
+                                                        return (
+                                                            <optgroup key={prefix} label={label}>
+                                                                {group.map(renderOption)}
+                                                            </optgroup>
+                                                        );
+                                                    })}
                                                 </>
                                             );
                                         }
