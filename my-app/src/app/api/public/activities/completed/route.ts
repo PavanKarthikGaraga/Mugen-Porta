@@ -41,6 +41,7 @@ export async function GET() {
                 ac.start_time,
                 ac.end_time,
                 ac.venue,
+                ac.poster_url     AS main_poster_url,
                 ar.id             AS report_id,
                 ar.status         AS report_status,
                 ar.generated_at   AS report_generated_at,
@@ -52,7 +53,7 @@ export async function GET() {
                 ar.conclusion,
                 ar.gallery,
                 ar.attendance_sheets,
-                ar.poster_url,
+                ar.poster_url     AS report_poster_url,
                 ar.permission_letter_url
             FROM activity_catalogue ac
             LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
@@ -75,7 +76,7 @@ export async function GET() {
                 conclusion:           r.conclusion,
                 gallery:              parseJson(r.gallery),
                 attendance_sheets:    parseJson(r.attendance_sheets),
-                poster_url:           r.poster_url,
+                poster_url:           r.report_poster_url,
                 permission_letter_url: r.permission_letter_url,
             } : null;
 
@@ -91,6 +92,7 @@ export async function GET() {
                 start_time:     r.start_time,
                 end_time:       r.end_time,
                 venue:          r.venue,
+                poster_url:     r.report_poster_url || r.main_poster_url || null,
                 report,
             };
         });

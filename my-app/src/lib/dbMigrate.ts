@@ -24,6 +24,7 @@ export async function ensureActivitySchema() {
     await addColumnIfMissing('activity_catalogue', 'start_time', 'TIME DEFAULT NULL');
     await addColumnIfMissing('activity_catalogue', 'end_time', 'TIME DEFAULT NULL');
     await addColumnIfMissing('activity_catalogue', 'venue', 'VARCHAR(255) DEFAULT NULL');
+    await addColumnIfMissing('activity_catalogue', 'poster_url', 'VARCHAR(500) DEFAULT NULL');
 
     // Registration gate. Defaults to open so existing activities keep their
     // current behaviour; when closed, the activity disappears from the

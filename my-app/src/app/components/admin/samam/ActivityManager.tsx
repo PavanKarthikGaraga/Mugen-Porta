@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { FiSearch, FiRefreshCw, FiPlus, FiActivity, FiCheckCircle, FiAlertCircle, FiEdit2, FiTrash2, FiUserCheck, FiUsers, FiDownload } from "react-icons/fi";
+import { FiSearch, FiRefreshCw, FiPlus, FiActivity, FiCheckCircle, FiAlertCircle, FiEdit2, FiTrash2, FiUserCheck, FiUsers, FiDownload, FiImage, FiUpload, FiX } from "react-icons/fi";
 import { toast } from "sonner";
 import { BRAND, DOMAIN_COLORS } from "./SharedUI";
 import { usePersistedState } from "@/lib/hooks/usePersistedState";
@@ -47,6 +47,49 @@ export default function ActivityManager({
   const [selectedStatus, setSelectedStatus] = usePersistedState(`samam_activities_status_${role}`, "");
   const [exporting, setExporting] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Poster upload state
+  const [selectedActivityForPoster, setSelectedActivityForPoster] = useState<any>(null);
+  const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [uploadingPoster, setUploadingPoster] = useState(false);
+
+  const handleUploadPoster = async () => {
+    if (!posterFile || !selectedActivityForPoster) return;
+    setUploadingPoster(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', posterFile);
+      formData.append('folder', 'posters');
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+      const uploadData = await uploadRes.json();
+      
+      if (!uploadRes.ok || !uploadData.success) {
+        throw new Error(uploadData.error || 'Failed to upload image');
+      }
+
+      const poster_url = uploadData.url;
+
+      const res = await fetch(`/api/activities/${selectedActivityForPoster.code}/poster`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ poster_url })
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast.success("Poster updated successfully");
+        setSelectedActivityForPoster(null);
+        setPosterFile(null);
+        fetchActivities(); // Refresh the list
+      } else {
+        throw new Error(data.message || data.error || "Failed to update poster");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to update poster");
+    } finally {
+      setUploadingPoster(false);
+    }
+  };
 
   const approveActivity = async (code: string, action: 'approve' | 'reject', note?: string) => {
     setActionLoading(code);
@@ -405,6 +448,12 @@ export default function ActivityManager({
                                       <FiEdit2 size={13} /> Edit
                                     </Link>
                                     <button
+                                      onClick={() => setSelectedActivityForPoster(a)}
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition-colors whitespace-nowrap"
+                                    >
+                                      <FiImage size={13} /> Poster
+                                    </button>
+                                    <button
                                       onClick={() => deleteActivity(a.code)}
                                       className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-colors whitespace-nowrap"
                                     >
@@ -426,6 +475,84 @@ export default function ActivityManager({
           )}
         </div>
       </div>
+      {selectedActivityForPoster && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-5 border-b flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900">Activity Poster</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{selectedActivityForPoster.title}</p>
+              </div>
+              <button onClick={() => { setSelectedActivityForPoster(null); setPosterFile(null); }} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                <FiX size={18} />
+              </button>
+            </div>
+            
+            <div className="p-5 overflow-y-auto">
+              {(selectedActivityForPoster.poster_url || posterFile) ? (
+                <div className="mb-5 border rounded-lg overflow-hidden relative group">
+                  <img 
+                    src={posterFile ? URL.createObjectURL(posterFile) : selectedActivityForPoster.poster_url} 
+                    alt="Activity Poster" 
+                    className="w-full h-auto max-h-[300px] object-contain bg-gray-50"
+                  />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button 
+                      onClick={() => setPosterFile(null)}
+                      className="px-3 py-1.5 bg-white text-gray-900 text-xs font-semibold rounded-lg shadow-sm"
+                    >
+                      Change Image
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-5">
+                  <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <FiUpload className="w-8 h-8 mb-3 text-gray-400" />
+                      <p className="mb-1 text-sm text-gray-500"><span className="font-semibold">Click to upload</span></p>
+                      <p className="text-xs text-gray-400">PNG, JPG, JPEG (Max. 5MB)</p>
+                    </div>
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) setPosterFile(file);
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+
+            <div className="p-5 border-t bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => { setSelectedActivityForPoster(null); setPosterFile(null); }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUploadPoster}
+                disabled={!posterFile || uploadingPoster}
+                className="px-4 py-2 text-sm font-bold text-white rounded-xl shadow-sm disabled:opacity-50 flex items-center gap-2"
+                style={{ backgroundColor: BRAND }}
+              >
+                {uploadingPoster ? (
+                  <>
+                    <FiRefreshCw size={14} className="animate-spin" /> Uploading...
+                  </>
+                ) : (
+                  "Save Poster"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
