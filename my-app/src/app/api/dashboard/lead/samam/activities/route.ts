@@ -159,7 +159,7 @@ export async function POST(request: Request) {
              purpose, outcomes, competencies, ga, resources, assignments, timeline,
              activity_date, start_time, end_time, venue, registration_open,
              created_by, submitted_by, approval_status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_approval', NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW())
         `, [
             code, title, description || '', domain, category, points, max_participants || null, status || 'upcoming',
             difficulty || 'Beginner', activity_pack || null, faculty_name || null,

@@ -211,8 +211,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             return NextResponse.json({ message: 'No fields to update' }, { status: 400 });
         }
 
-        // Always require re-approval when a lead edits an activity
-        fields.push(`approval_status = 'pending_approval'`);
+        // Lead edits no longer require re-approval
 
         const newCode = typeof body.code === 'string' ? body.code.trim() : undefined;
         const codeChanged = newCode && newCode !== id;
