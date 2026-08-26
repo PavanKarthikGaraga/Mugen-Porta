@@ -343,9 +343,15 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                   </button>
                 </>
               ) : !isRegistrationOpen ? (
-                <button title="Registrations not open yet" disabled className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg bg-gray-400 cursor-not-allowed">
-                  Enroll Now
-                </button>
+                <div className="relative">
+                  <button disabled className="peer px-6 py-2.5 text-sm font-semibold text-white rounded-lg bg-gray-400 cursor-not-allowed">
+                    Enroll Now
+                  </button>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all whitespace-nowrap z-50 pointer-events-none shadow-sm">
+                    Registrations not open yet
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
               ) : isFull ? (
                 <button disabled className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg bg-gray-400 cursor-not-allowed">
                   Activity Full
