@@ -10,7 +10,7 @@ import { generateActivityReportPdf } from "@/lib/activityReportPdf";
 
 const BRAND = "rgb(151,0,3)";
 const MAX_GALLERY = 4;
-const MAX_ATTENDANCE_SHEETS = 6;
+const MAX_ATTENDANCE_SHEETS = 10;
 
 type GalleryItem = { url: string };
 
@@ -304,6 +304,12 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
     if (form.gallery.length === 0) { toast.error("Upload at least one gallery photo"); return; }
     if (form.attendanceSheets.length === 0) { toast.error("Upload at least one attendance sheet scan"); return; }
     if (!form.facultyName.trim()) { toast.error("Faculty name is required"); return; }
+    if (!form.overview.trim()) { toast.error("Activity Overview is required"); return; }
+    if (!form.objectives.trim() || form.objectives.trim() === "") { toast.error("Objectives are required"); return; }
+    if (!form.proceedings.trim()) { toast.error("Activity Proceedings are required"); return; }
+    if (!form.keyHighlights.trim() || form.keyHighlights.trim() === "") { toast.error("Key Highlights are required"); return; }
+    if (!form.learningOutcomes.trim() || form.learningOutcomes.trim() === "") { toast.error("Learning Outcomes are required"); return; }
+    if (!form.conclusion.trim()) { toast.error("Conclusion is required"); return; }
 
     setGenerating(true);
     try {

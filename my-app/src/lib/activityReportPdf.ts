@@ -163,7 +163,8 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
   // visible on the last line or two of a paragraph, where a run of leftover
   // spaces has nothing after it to break up the gap.
   function normalizeWhitespace(s: string): string {
-    return s.replace(/\r\n?/g, "\n").replace(/[ \t\u00A0]+/g, " ");
+    // Convert \r\n to \n, then replace any run of whitespace (except \n) with a single space
+    return s.replace(/\r\n?/g, "\n").replace(/[^\S\n]+/g, " ");
   }
 
   function paragraph(text: string, size = 10.5) {
@@ -171,18 +172,21 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(size);
     doc.setTextColor(40, 40, 40);
-    // A single flowing paragraph -- collapse any hard line breaks the
-    // textarea captured back into spaces so wrapping is driven entirely by
-    // CONTENT_W, not leftover manual line breaks from the source text.
-    const clean = normalizeWhitespace(text).replace(/\n+/g, " ").trim();
-    const lines: string[] = doc.splitTextToSize(clean, CONTENT_W);
+    // Split by newline to preserve intentional paragraphs from the textarea
+    const paragraphs = normalizeWhitespace(text).split("\n");
     const lineHeight = size * 1.35;
-    for (const line of lines) {
-      ensureSpace(lineHeight);
-      doc.text(line, MARGIN, y);
-      y += lineHeight;
+    for (const p of paragraphs) {
+      const clean = p.trim();
+      if (!clean) continue;
+      const lines: string[] = doc.splitTextToSize(clean, CONTENT_W);
+      for (const line of lines) {
+        ensureSpace(lineHeight);
+        doc.text(line.trim(), MARGIN, y);
+        y += lineHeight;
+      }
+      y += size * 0.5; // space between paragraphs
     }
-    y += 8;
+    y += 4;
   }
 
   function bulletList(text: string, size = 10.5) {
@@ -198,11 +202,12 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
       lines.forEach((line, i) => {
         ensureSpace(lineHeight);
         if (i === 0) doc.text("•", MARGIN, y);
-        doc.text(line, MARGIN + bulletIndent, y);
+        doc.text(line.trim(), MARGIN + bulletIndent, y);
         y += lineHeight;
       });
+      y += size * 0.3; // space between bullets
     }
-    y += 8;
+    y += 4;
   }
 
   // ---------- 1. Cover page ----------
