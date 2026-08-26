@@ -44,16 +44,11 @@ export async function GET(request: Request) {
       }
     } catch (e) { /* non-student or table missing — show all */ }
 
-    const conditions: string[] = [`ac.approval_status = 'active'`];
+    const conditions: string[] = [`(ac.approval_status IN ('active', 'completed') OR ac.status = 'completed')`];
     const params: any[] = [];
 
-    // Students only ever see activities that are open for registration.
-    // Staff (admin/council/faculty/lead) keep seeing everything, because this
-    // same endpoint backs the activity pickers on Activity Awards and the
-    // admin award page, which must be able to reach closed activities too.
-    if (isStudent) {
-      conditions.push(`ac.registration_open = 1`);
-    }
+    // Students now see all mapped activities regardless of registration_open status
+    // so we removed the `ac.registration_open = 1` filter.
 
     if (domain && domain !== 'all') {
       conditions.push(`ac.domain = ?`);
