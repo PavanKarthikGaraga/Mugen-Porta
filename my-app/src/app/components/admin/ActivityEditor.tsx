@@ -56,6 +56,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
   const [newSubcategoryLabel, setNewSubcategoryLabel] = useState("");
   const [newSubcategoryAbbr, setNewSubcategoryAbbr] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [subCategoryLoaded, setSubCategoryLoaded] = useState(false);
 
   const [formData, setFormData] = useState({
     code: initialData?.code || "",
@@ -163,6 +164,19 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     try { return JSON.parse(val); } catch { return null; }
   }
 
+  // Auto-select the initial sub-category when editing an existing activity
+  useEffect(() => {
+    if (!isNew && !subCategoryLoaded && dynamicSubcategories.length > 0 && formData.category) {
+      const origCode = initialData?.code || activityId || "";
+      let match = dynamicSubcategories.find(s => origCode.startsWith(s.code_prefix));
+      if (!match) match = dynamicSubcategories.find(s => s.category === formData.category);
+      if (match) {
+        setSubCategory(match.code_prefix);
+        setSubCategoryLoaded(true);
+      }
+    }
+  }, [dynamicSubcategories, isNew, subCategoryLoaded, formData.category, initialData, activityId]);
+
   // Now takes the code prefix directly (e.g. "TECH-CYB", derived from real
   // existing activities) rather than synthesizing one from a hardcoded
   // domain+abbreviation pair.
@@ -202,7 +216,13 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     if (!value) return;
     const match = dynamicSubcategories.find(s => s.code_prefix === value);
     if (match) setFormData(prev => ({ ...prev, category: match.category }));
-    generateCode(value);
+    
+    const origCode = initialData?.code || activityId || "";
+    if (!isNew && origCode.startsWith(value)) {
+      setFormData(prev => ({ ...prev, code: origCode }));
+    } else {
+      generateCode(value);
+    }
   };
 
   // For a genuinely new club/series with no existing activities to derive a
@@ -493,6 +513,14 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full p-2 border rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+            <select name="difficulty" value={formData.difficulty} onChange={handleChange} className="w-full p-2 border rounded">
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
           </div>
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
