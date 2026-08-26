@@ -44,7 +44,11 @@ export async function GET(request: Request) {
       }
     } catch (e) { /* non-student or table missing — show all */ }
 
-    const conditions: string[] = [`(ac.approval_status IN ('active', 'completed') OR ac.status = 'completed')`];
+    const conditions: string[] = [`(
+      ac.approval_status IN ('active', 'completed') 
+      OR ac.status = 'completed'
+      OR EXISTS (SELECT 1 FROM activity_enrollments ae WHERE ae.activity_code = ac.code AND ae.attendance_marked = TRUE)
+    )`];
     const params: any[] = [];
 
     // Students now see all mapped activities regardless of registration_open status
@@ -68,7 +72,8 @@ export async function GET(request: Request) {
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const query = `
       SELECT ac.*,
-             (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count
+             (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count,
+             (SELECT 1 FROM activity_enrollments ae WHERE ae.activity_code = ac.code AND ae.attendance_marked = TRUE LIMIT 1) as is_attendance_locked
       FROM activity_catalogue ac
       ${where}
       ORDER BY ac.domain ASC, ac.category ASC, ac.code ASC

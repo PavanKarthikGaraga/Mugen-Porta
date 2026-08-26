@@ -58,7 +58,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     try {
       [rows] = await pool.query(
         `SELECT ac.*, bd.name as badgeName, bd.icon as badgeIcon,
-                (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count
+                (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count,
+                (SELECT 1 FROM activity_enrollments ae WHERE ae.activity_code = ac.code AND ae.attendance_marked = TRUE LIMIT 1) as is_attendance_locked
          FROM activity_catalogue ac
          LEFT JOIN badge_definitions bd ON ac.badge_id = bd.id
          WHERE ac.code = ? LIMIT 1`,
@@ -68,7 +69,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       // badge_definitions table may not exist — fall back to simple query
       [rows] = await pool.query(
         `SELECT *,
-                (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = code) as real_enrolled_count
+                (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = code) as real_enrolled_count,
+                (SELECT 1 FROM activity_enrollments ae WHERE ae.activity_code = code AND ae.attendance_marked = TRUE LIMIT 1) as is_attendance_locked
          FROM activity_catalogue WHERE code = ? LIMIT 1`,
         [id]
       );
