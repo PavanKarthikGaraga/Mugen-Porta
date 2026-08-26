@@ -25,7 +25,6 @@ const TABS = [
   { id: "discussion",  label: "Discussion",  icon: FiMessageSquare },
   { id: "reflection",  label: "Reflection",  icon: FiEdit3 },
   { id: "timeline",    label: "Timeline",    icon: FiCalendar },
-  { id: "mentor",      label: "Mentor",      icon: FiUser },
   { id: "impact",      label: "Impact",      icon: FiTrendingUp },
 ];
 
@@ -406,7 +405,10 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="border-b border-gray-100 overflow-x-auto">
           <div className="flex min-w-max">
-            {TABS.filter(tab => enrolled || ["overview", "timeline", "mentor", "impact"].includes(tab.id)).map((tab) => (
+            {TABS.filter(tab => {
+              if (tab.id === 'timeline' && (!activity.timeline || activity.timeline.length === 0)) return false;
+              return enrolled || ["overview", "timeline", "impact"].includes(tab.id);
+            }).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -839,19 +841,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* MENTOR */}
-          {activeTab === "mentor" && (
-            <div className="p-10 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <FiUser size={24} className="text-gray-400" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Mentor Not Assigned Yet</h3>
-              <p className="text-sm text-gray-500 max-w-sm">
-                A mentor will be assigned soon. Please check back later when the administration updates the event details.
-              </p>
             </div>
           )}
 
