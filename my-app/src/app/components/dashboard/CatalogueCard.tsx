@@ -39,7 +39,7 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
   const isFull = max > 0 && enrolled >= max;
   const diffConf = DIFFICULTY_CONFIG[activity.difficulty] || DIFFICULTY_CONFIG.Beginner;
   const isRegistrationOpen = activity.registration_open !== 0;
-  const isCompleted = activity.status === 'completed' || activity.approval_status === 'completed';
+  const isCompleted = activity.status === 'completed' || activity.approval_status === 'completed' || !!activity.is_attendance_locked;
 
   const dateLabel = formatActivityDate(activity.activity_date);
   const timeLabel = formatTimeRange(activity.start_time, activity.end_time);
@@ -129,6 +129,7 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
               Details
             </Link>
             <button
+              title={!isRegistrationOpen && !isCompleted && !isFull && !localEnrolled ? "Registrations not open yet" : undefined}
               disabled={!isRegistrationOpen || isCompleted || isFull || localEnrolled}
               onClick={() => isRegistrationOpen && !isCompleted && !localEnrolled && !isFull && setEnrollModalOpen(true)}
               className="text-xs font-bold px-3 py-1.5 rounded-xl text-white transition-all disabled:cursor-not-allowed"
@@ -136,7 +137,7 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
                 backgroundColor: (localEnrolled || isCompleted) ? "#10B981" : (!isRegistrationOpen || isFull) ? "#D1D5DB" : BRAND,
               }}
             >
-              {isCompleted ? "Completed" : localEnrolled ? "✓" : !isRegistrationOpen ? "Registrations not open yet" : isFull ? "Full" : "Enroll"}
+              {isCompleted ? "Completed" : localEnrolled ? "✓" : isFull ? "Full" : "Enroll"}
             </button>
           </div>
         </div>
@@ -268,6 +269,7 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
             Details <FiArrowRight size={11} />
           </Link>
           <button
+            title={!isRegistrationOpen && !isCompleted && !isFull && !localEnrolled ? "Registrations not open yet" : undefined}
             disabled={!isRegistrationOpen || isCompleted || isFull || localEnrolled}
             onClick={() => isRegistrationOpen && !isCompleted && !localEnrolled && !isFull && setEnrollModalOpen(true)}
             className="flex-1 text-xs font-bold py-2.5 rounded-xl text-white transition-all disabled:cursor-not-allowed"
@@ -277,7 +279,7 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
           >
             {isCompleted ? "Completed"
               : localEnrolled ? <span className="flex items-center justify-center gap-1"><FiCheckCircle size={11} /> Enrolled</span>
-              : !isRegistrationOpen ? "Registrations not open yet" : isFull ? "Full" : "Enroll"}
+              : isFull ? "Full" : "Enroll"}
           </button>
         </div>
       </div>

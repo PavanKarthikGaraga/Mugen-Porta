@@ -280,6 +280,8 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   const scheduleTime = formatTimeRange(activity.start_time, activity.end_time);
   const isFull = maxSeats > 0 && currentEnrolled >= maxSeats;
   const fillPct = maxSeats > 0 ? Math.round((currentEnrolled / maxSeats) * 100) : 0;
+  const isRegistrationOpen = activity.registration_open !== 0;
+  const isCompleted = activity.status === 'completed' || activity.approval_status === 'completed' || !!activity.is_attendance_locked;
 
   const handleSaveReflection = () => {
     setReflectionSaved(true);
@@ -323,7 +325,11 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             </div>
 
             <div className="flex-shrink-0 flex flex-col items-end gap-2">
-              {enrolled ? (
+              {isCompleted ? (
+                <button disabled className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg bg-emerald-500 cursor-not-allowed">
+                  Completed
+                </button>
+              ) : enrolled ? (
                 <>
                   <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700">
                     <FiCheckCircle size={15} /> Enrolled
@@ -336,6 +342,10 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                     {enrollLoading ? "Please wait..." : "Unenroll"}
                   </button>
                 </>
+              ) : !isRegistrationOpen ? (
+                <button title="Registrations not open yet" disabled className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg bg-gray-400 cursor-not-allowed">
+                  Enroll Now
+                </button>
               ) : isFull ? (
                 <button disabled className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg bg-gray-400 cursor-not-allowed">
                   Activity Full
