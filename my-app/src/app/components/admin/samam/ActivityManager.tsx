@@ -63,7 +63,7 @@ export default function ActivityManager({
       const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
       const uploadData = await uploadRes.json();
       
-      if (!uploadRes.ok || !uploadData.success) {
+      if (!uploadRes.ok || !uploadData.url) {
         throw new Error(uploadData.error || 'Failed to upload image');
       }
 
