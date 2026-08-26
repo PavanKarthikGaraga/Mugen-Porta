@@ -491,6 +491,7 @@ export default function ActivityManager({
             <div className="p-5 overflow-y-auto">
               {(selectedActivityForPoster.poster_url || posterFile) ? (
                 <div className="mb-5 border rounded-lg overflow-hidden relative group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={posterFile ? URL.createObjectURL(posterFile) : selectedActivityForPoster.poster_url} 
                     alt="Activity Poster" 

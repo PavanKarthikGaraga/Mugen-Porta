@@ -9,7 +9,7 @@ async function checkAuth() {
     const cookieStore = await cookies();
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
-    const decoded = await verifyToken(token);
+    const decoded: any = await verifyToken(token);
     if (!decoded || !['admin', 'faculty', 'council', 'lead'].includes(decoded.role)) return null;
     return decoded;
 }
