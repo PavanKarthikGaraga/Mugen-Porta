@@ -61,7 +61,7 @@ export async function GET(request: Request) {
                    difficulty, activity_pack, faculty_name, sdgs, hours,
                    activity_date, start_time, end_time, venue, registration_open,
                    approval_status, rejection_note,
-                   created_at,
+                   created_at, poster_url,
                    (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = activity_catalogue.code) as enrolledCount
             FROM activity_catalogue
             ${where}

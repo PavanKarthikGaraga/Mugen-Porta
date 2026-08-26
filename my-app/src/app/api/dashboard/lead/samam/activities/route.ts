@@ -110,7 +110,7 @@ export async function GET(request: Request) {
                    sdc_credits as points, max_seats as max_participants, status,
                    difficulty, activity_pack, faculty_name, sdgs, hours,
                    activity_date, start_time, end_time, venue, registration_open,
-                   approval_status, submitted_by, created_at,
+                   approval_status, submitted_by, created_at, poster_url,
                    (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = activity_catalogue.code) as enrolledCount
             FROM activity_catalogue
             ${where}
