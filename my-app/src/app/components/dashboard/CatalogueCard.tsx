@@ -44,7 +44,7 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
   const dateLabel = formatActivityDate(activity.activity_date);
   const timeLabel = formatTimeRange(activity.start_time, activity.end_time);
   const venueLabel = activity.venue || null;
-  const hasSchedule = Boolean(dateLabel || timeLabel || venueLabel);
+  const hasSchedule = isRegistrationOpen && Boolean(dateLabel || timeLabel || venueLabel);
 
   const handleEnroll = async () => {
     setEnrollLoading(true);

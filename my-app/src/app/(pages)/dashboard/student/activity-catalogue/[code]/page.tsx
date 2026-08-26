@@ -382,10 +382,10 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
               { label: "SAMAM Points", value: activity.credits, icon: <FiStar size={14} style={{ color: BRAND }} /> },
               { label: "Enrolled",    value: `${currentEnrolled}/${maxSeats || "∞"}`, icon: <FiUser size={14} className="text-gray-400" /> },
               { label: "Badge",       value: activity.badge, icon: <FiAward size={14} className="text-amber-500" /> },
-              // Schedule tiles only appear once the organiser has filled them in.
-              ...(scheduleDate ? [{ label: "Date", value: scheduleDate, icon: <FiCalendar size={14} className="text-gray-400" /> }] : []),
-              ...(scheduleTime ? [{ label: "Time", value: scheduleTime, icon: <FiClock size={14} className="text-gray-400" /> }] : []),
-              ...(activity.venue ? [{ label: "Venue", value: activity.venue, icon: <FiMapPin size={14} className="text-gray-400" /> }] : []),
+              // Schedule tiles only appear once the organiser has filled them in and registrations are open.
+              ...(isRegistrationOpen && scheduleDate ? [{ label: "Date", value: scheduleDate, icon: <FiCalendar size={14} className="text-gray-400" /> }] : []),
+              ...(isRegistrationOpen && scheduleTime ? [{ label: "Time", value: scheduleTime, icon: <FiClock size={14} className="text-gray-400" /> }] : []),
+              ...(isRegistrationOpen && activity.venue ? [{ label: "Venue", value: activity.venue, icon: <FiMapPin size={14} className="text-gray-400" /> }] : []),
             ].map((s) => (
               <div key={s.label} className="flex items-center gap-2.5 p-3 bg-gray-50 rounded-xl">
                 {s.icon}
