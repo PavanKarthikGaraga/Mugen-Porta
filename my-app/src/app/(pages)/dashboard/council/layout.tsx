@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX,
     FiActivity, FiCheckSquare, FiAward, FiKey, FiUnlock, FiStar,
+    FiBarChart2, FiFileText, FiBell, FiSettings, FiChevronDown, FiChevronUp
 } from "react-icons/fi";
 import ChangePassword from "@/app/components/ChangePassword";
 
@@ -18,6 +19,7 @@ const DOMAIN_LABELS: Record<string, string> = {
 
 export default function CouncilDashboardLayout({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [samamDropdownOpen, setSamamDropdownOpen] = useState(false);
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
     const [userData, setUserData] = useState<{ username: string; assignedDomains: string[] }>({ username: '', assignedDomains: [] });
     const pathname = usePathname();
@@ -47,6 +49,16 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
         { name: 'Attendance Records', href: '/dashboard/council/attendance-records',icon: FiActivity    },
         { name: 'Passport Approvals', href: '/dashboard/council/passport-approvals',icon: FiAward       },
         { name: 'Profile',            href: '/dashboard/council/profile',           icon: FiUser        },
+    ];
+
+    const samamNavigation = [
+        { name: 'Overview',      href: '/dashboard/council/samam/overview',      icon: FiBarChart2 },
+        { name: 'Students',      href: '/dashboard/council/samam/students',      icon: FiUsers     },
+        { name: 'Activities',    href: '/dashboard/council/samam/activities',    icon: FiActivity  },
+        { name: 'Submissions',   href: '/dashboard/council/samam/submissions',   icon: FiFileText  },
+        { name: 'Completed',     href: '/dashboard/council/samam/completed',     icon: FiCheckSquare },
+        { name: 'Notifications', href: '/dashboard/council/samam/notifications', icon: FiBell      },
+        { name: 'Settings',      href: '/dashboard/council/samam/settings',      icon: FiSettings  },
     ];
 
     const handleLogout = async () => {
@@ -111,7 +123,65 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
                     <div className="flex flex-col h-full">
                         <div className="flex-1 px-0 py-1 overflow-y-auto">
                             <nav className="space-y-1">
-                                {navigation.map((item) => {
+                                {navigation.slice(0, 2).map((item) => {
+                                    const isActive = pathname === item.href || (item.href !== '/dashboard/council' && pathname.startsWith(item.href + '/'));
+                                    return (
+                                        <Link
+                                            key={item.name}
+                                            href={item.href}
+                                            className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
+                                                isActive ? 'bg-red-700 text-white shadow-lg' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                            }`}
+                                            onClick={() => setSidebarOpen(false)}
+                                        >
+                                            <item.icon className={`mr-3 h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                                            {item.name}
+                                        </Link>
+                                    );
+                                })}
+
+                                {(() => {
+                                    const inSamam = samamNavigation.some((item) => pathname === item.href);
+                                    const isOpen = samamDropdownOpen || inSamam;
+                                    return (
+                                        <div className="border-b border-gray-600">
+                                            <button
+                                                onClick={() => setSamamDropdownOpen(!samamDropdownOpen)}
+                                                className={`flex items-center justify-between w-full px-3 py-3 text-sm font-medium transition-all duration-200 group ${
+                                                    inSamam ? 'text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                }`}
+                                            >
+                                                <div className="flex items-center">
+                                                    <FiAward className={`mr-3 h-5 w-5 ${inSamam ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                                                    SAMAM Control
+                                                </div>
+                                                {isOpen ? <FiChevronUp className="h-4 w-4" /> : <FiChevronDown className="h-4 w-4" />}
+                                            </button>
+                                            {isOpen && (
+                                                <div className="pb-2 ml-6 space-y-1">
+                                                    {samamNavigation.map((item) => {
+                                                        const isActive = pathname === item.href;
+                                                        return (
+                                                            <Link
+                                                                key={item.name}
+                                                                href={item.href}
+                                                                className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
+                                                                    isActive ? 'bg-red-700 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                                                }`}
+                                                                onClick={() => setSidebarOpen(false)}
+                                                            >
+                                                                <item.icon className={`mr-3 h-4 w-4 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'}`} />
+                                                                {item.name}
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+
+                                {navigation.slice(3).map((item) => {
                                     const isActive = pathname === item.href || (item.href !== '/dashboard/council' && pathname.startsWith(item.href + '/'));
                                     return (
                                         <Link

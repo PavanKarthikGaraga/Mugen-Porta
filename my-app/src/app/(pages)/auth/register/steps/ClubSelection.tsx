@@ -3,9 +3,14 @@ import PropTypes from "prop-types";
 import { toast } from "sonner";
 
 export default function ClubSelection({ formData, updateFormData, onValidationChange }) {
-    const [clubType, setClubType] = useState(""); // "SAC", "DEPARTMENT", or "MHS_DEPARTMENT"
-    const [selectedDomain, setSelectedDomain] = useState("");
-    const [selectedClub, setSelectedClub] = useState("");
+    const [clubType, setClubType] = useState(() => {
+        if (formData.selectedDomain === 'DEPT. CLUBS') return 'DEPARTMENT';
+        if (formData.selectedDomain === 'MHS. CLUBS') return 'MHS_DEPARTMENT';
+        if (formData.selectedDomain) return 'SAC';
+        return "";
+    });
+    const [selectedDomain, setSelectedDomain] = useState(formData.selectedDomain || "");
+    const [selectedClub, setSelectedClub] = useState(formData.selectedClub || "");
     const [availableClubs, setAvailableClubs] = useState([]);
     const [loading, setLoading] = useState(true);
 

@@ -20,7 +20,7 @@ const STATUS_BADGE: Record<string, { label: string; className: string; icon: any
   rejected: { label: "Rejected", className: "bg-red-50 text-red-700 border-red-200", icon: FiXCircle },
 };
 
-export default function SubmissionsManager({ role = "admin" }: { role?: "admin" | "lead" | "faculty" }) {
+export default function SubmissionsManager({ role = "admin" }: { role?: "admin" | "lead" | "faculty" | "council" }) {
   const [activities, setActivities] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<{ code: string; title: string } | null>(null);

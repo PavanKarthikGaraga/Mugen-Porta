@@ -20,7 +20,7 @@ interface DynamicSubcategory { category: string; code_prefix: string; activity_c
 interface ActivityEditorProps {
   activityId?: string;
   initialData?: any;
-  role?: "admin" | "lead";
+  role?: "admin" | "lead" | "council";
 }
 
 // MySQL DATE comes back as an ISO timestamp ("2026-08-14T00:00:00.000Z");
@@ -362,7 +362,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
       const data = await res.json();
       if (data.success) {
         toast.success(isNew ? "Activity created" : "Activity updated");
-        router.push(role === "lead" ? "/dashboard/lead/samam/activities" : "/dashboard/admin/samam/activities");
+        router.push(role === "lead" ? "/dashboard/lead/samam/activities" : role === "council" ? "/dashboard/council/samam/activities" : "/dashboard/admin/samam/activities");
       } else {
         toast.error(`Error: ${data.error || data.message}`);
       }
@@ -390,7 +390,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
       {/* Header */}
       <div className="flex justify-between items-center bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex items-center gap-4">
-          <Link href={role === "lead" ? "/dashboard/lead/samam/activities" : "/dashboard/admin/samam/activities"} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+          <Link href={role === "lead" ? "/dashboard/lead/samam/activities" : role === "council" ? "/dashboard/council/samam/activities" : "/dashboard/admin/samam/activities"} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
             <FiArrowLeft />
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{isNew ? "Create New Activity" : `Edit ${formData.code}`}</h1>
