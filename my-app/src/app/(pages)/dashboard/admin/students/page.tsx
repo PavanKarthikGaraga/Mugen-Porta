@@ -26,12 +26,14 @@ export default function AdminStudents() {
         year: "",
         branch: [] as string[],
         residenceType: "",
-        clubId: "",
+        clubId: [] as string[],
         campus: "",
         careerChoice: ""
     });
     const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
     const branchDropdownRef = useRef<HTMLDivElement>(null);
+    const [clubDropdownOpen, setClubDropdownOpen] = useState(false);
+    const clubDropdownRef = useRef<HTMLDivElement>(null);
     const [pagination, setPagination] = useState({
         page: 1,
         limit: 50,
@@ -75,7 +77,7 @@ export default function AdminStudents() {
                 year: effectiveFilters.year,
                 branch: effectiveFilters.branch.join(','),
                 residenceType: effectiveFilters.residenceType,
-                clubId: effectiveFilters.clubId,
+                clubId: effectiveFilters.clubId.join(','),
                 campus: effectiveFilters.campus,
                 careerChoice: effectiveFilters.careerChoice,
             });
@@ -123,7 +125,7 @@ export default function AdminStudents() {
     // Changing domain clears the club pick so stale cross-domain clubs can't persist.
     const applyFilter = (field: string, value: string) => {
         let next = { ...filters, [field]: value };
-        if (field === 'domain') next = { ...next, clubId: '' };
+        if (field === 'domain') next = { ...next, clubId: [] };
         setFilters(next);
         fetchStudents(1, searchTerm, next);
     };
@@ -144,6 +146,20 @@ export default function AdminStudents() {
         fetchStudents(1, searchTerm, next);
     };
 
+    const toggleClubFilter = (clubId: string) => {
+        const set = new Set(filters.clubId);
+        if (set.has(clubId)) set.delete(clubId); else set.add(clubId);
+        const next = { ...filters, clubId: Array.from(set) };
+        setFilters(next);
+        fetchStudents(1, searchTerm, next);
+    };
+
+    const clearClubFilter = () => {
+        const next = { ...filters, clubId: [] as string[] };
+        setFilters(next);
+        fetchStudents(1, searchTerm, next);
+    };
+
     // Close the branch multi-select dropdown on outside click.
     useEffect(() => {
         if (!branchDropdownOpen) return;
@@ -155,6 +171,18 @@ export default function AdminStudents() {
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, [branchDropdownOpen]);
+
+    // Close the club multi-select dropdown on outside click.
+    useEffect(() => {
+        if (!clubDropdownOpen) return;
+        const handler = (e: MouseEvent) => {
+            if (clubDropdownRef.current && !clubDropdownRef.current.contains(e.target as Node)) {
+                setClubDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [clubDropdownOpen]);
 
     // Always forward the current search/filters so the stale useCallback
     // closure never silently drops active filter state on page navigation.
@@ -253,7 +281,7 @@ export default function AdminStudents() {
                 year: filters.year,
                 branch: filters.branch.join(','),
                 residenceType: filters.residenceType,
-                clubId: filters.clubId,
+                clubId: filters.clubId.join(','),
                 campus: filters.campus,
                 careerChoice: filters.careerChoice
             });
@@ -517,20 +545,47 @@ export default function AdminStudents() {
                         </select>
                     </div>
 
-                    {/* Club Filter — narrowed to selected domain when one is active */}
-                    <div>
-                        <select value={filters.clubId} onChange={(e) => applyFilter("clubId", e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                            <option value="">All Clubs</option>
-                            {(filters.domain
-                                ? clubStats.filter((c: any) => c.clubDomain === filters.domain)
-                                : clubStats
-                            ).map((club: any) => (
-                                <option key={club.clubId} value={club.clubId}>
-                                    {club.clubName} ({club.memberCount})
-                                </option>
-                            ))}
-                        </select>
+                    {/* Club Filter — multi-select, narrowed to selected domain when one is active */}
+                    <div className="relative" ref={clubDropdownRef}>
+                        <button
+                            type="button"
+                            onClick={() => setClubDropdownOpen(o => !o)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-left text-sm bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 flex items-center justify-between"
+                        >
+                            <span className="truncate">
+                                {filters.clubId.length === 0
+                                    ? "All Clubs"
+                                    : filters.clubId.length === 1
+                                        ? clubStats.find((c: any) => c.clubId.toString() === filters.clubId[0])?.clubName || filters.clubId[0]
+                                        : `${filters.clubId.length} clubs selected`}
+                            </span>
+                            <span className="text-gray-400 ml-2">▾</span>
+                        </button>
+                        {clubDropdownOpen && (
+                            <div className="absolute z-20 mt-1 w-80 max-h-72 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg">
+                                <button
+                                    type="button"
+                                    onClick={clearClubFilter}
+                                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-50 border-b border-gray-100 font-medium sticky top-0 bg-white"
+                                >
+                                    Clear selection
+                                </button>
+                                {(filters.domain
+                                    ? clubStats.filter((c: any) => c.clubDomain === filters.domain)
+                                    : clubStats
+                                ).map((club: any) => (
+                                    <label key={club.clubId} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={filters.clubId.includes(club.clubId.toString())}
+                                            onChange={() => toggleClubFilter(club.clubId.toString())}
+                                            className="rounded border-gray-300 text-red-600 focus:ring-red-500 flex-shrink-0"
+                                        />
+                                        <span className="text-gray-700 whitespace-nowrap">{club.clubName} ({club.memberCount})</span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Career Choice Filter */}

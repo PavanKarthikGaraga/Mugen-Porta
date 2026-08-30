@@ -135,8 +135,11 @@ export async function GET(request) {
         }
 
         if (clubId && clubId.length > 0) {
-            whereConditions.push('s.clubId = ?');
-            queryParams.push(clubId);
+            const clubs = clubId.split(',').map(c => c.trim()).filter(Boolean);
+            if (clubs.length > 0) {
+                whereConditions.push(`s.clubId IN (${clubs.map(() => '?').join(',')})`);
+                queryParams.push(...clubs);
+            }
         }
 
         if (campus && campus.length > 0) {
