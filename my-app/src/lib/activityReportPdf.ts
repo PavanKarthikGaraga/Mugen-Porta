@@ -1,16 +1,5 @@
 "use client";
 
-/**
- * Client-side generator for the official KL SAC activity report PDF,
- * matching the university's template (letterhead on every page, cover
- * page with director + faculty signature blocks, poster, permission
- * letter, event particulars, description, gallery, attendance sheets).
- *
- * Runs entirely in the browser via jsPDF -- same pattern as
- * credentialExport.ts for badges/certificates -- so nothing is rendered or
- * stored server-side; the finished PDF goes straight to the lead's
- * downloads.
- */
 
 const LETTERHEAD_PATH = "/klef-letterhead.png";
 const LETTERHEAD_ASPECT = 1830 / 420;
@@ -162,9 +151,20 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
   // runs of whitespace were surviving straight into the word-wrap -- most
   // visible on the last line or two of a paragraph, where a run of leftover
   // spaces has nothing after it to break up the gap.
+  // jsPDF standard fonts (Helvetica) only support WinAnsiEncoding.
+  // Unmapped characters > 255 (like ₹, emojis) trigger UTF-16 encoding for the whole
+  // string, which standard fonts cannot render (resulting in spaced-out letters).
+  function sanitizeForPdf(s: string): string {
+    if (!s) return "";
+    return s
+      .replace(/₹/g, "Rs. ")
+      // Keep only ASCII, latin-1, and specific Unicode chars that jsPDF maps to WinAnsi
+      .replace(/[^\x20-\x7E\xA0-\xFF\u2013\u2014\u2018\u2019\u201A\u201C\u201D\u201E\u2020\u2021\u2022\u2026\u2030\u2039\u203A\u20AC\n\r]/g, "");
+  }
+
   function normalizeWhitespace(s: string): string {
     // Convert \r\n to \n, then replace any run of whitespace (except \n) with a single space
-    return s.replace(/\r\n?/g, "\n").replace(/[^\S\n]+/g, " ");
+    return sanitizeForPdf(s).replace(/\r\n?/g, "\n").replace(/[^\S\n]+/g, " ");
   }
 
   function paragraph(text: string, size = 10.5) {
@@ -227,12 +227,12 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
     doc.setFont("times", "normal");
     doc.setFontSize(15);
     doc.setTextColor(20, 20, 20);
-    doc.text(input.clubName || "Club Name", MARGIN, y);
+    doc.text(sanitizeForPdf(input.clubName || "Club Name"), MARGIN, y);
     y += 26;
 
     doc.setFont("times", "bold");
     doc.setFontSize(20);
-    doc.text((input.activityTitle || "ACTIVITY NAME").toUpperCase(), MARGIN, y);
+    doc.text(sanitizeForPdf(input.activityTitle || "ACTIVITY NAME").toUpperCase(), MARGIN, y);
     y += 14;
     doc.setDrawColor(20, 20, 20);
     doc.setLineWidth(1);
@@ -315,7 +315,7 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10.5);
     for (const [label, value] of rows) {
-      const valueLines: string[] = doc.splitTextToSize(value || "-", CONTENT_W - labelW - 10);
+      const valueLines: string[] = doc.splitTextToSize(sanitizeForPdf(value || "-"), CONTENT_W - labelW - 10);
       const rowH = Math.max(22, valueLines.length * 14 + 8);
       ensureSpace(rowH);
       doc.setDrawColor(180, 180, 180);
@@ -383,7 +383,7 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       doc.setTextColor(20, 20, 20);
-      doc.text(input.clubName || "", cellX + cellW, footerY + footerH / 2 + 4, { align: "right" });
+      doc.text(sanitizeForPdf(input.clubName || ""), cellX + cellW, footerY + footerH / 2 + 4, { align: "right" });
 
       if (col === 1 || i === input.gallery.length - 1) y = cellTop + cellH;
     }

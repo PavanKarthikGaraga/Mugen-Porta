@@ -305,11 +305,21 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
     if (form.attendanceSheets.length === 0) { toast.error("Upload at least one attendance sheet scan"); return; }
     if (!form.facultyName.trim()) { toast.error("Faculty name is required"); return; }
     if (!form.overview.trim()) { toast.error("Activity Overview is required"); return; }
-    if (!form.objectives.trim() || form.objectives.trim() === "") { toast.error("Objectives are required"); return; }
     if (!form.proceedings.trim()) { toast.error("Activity Proceedings are required"); return; }
-    if (!form.keyHighlights.trim() || form.keyHighlights.trim() === "") { toast.error("Key Highlights are required"); return; }
-    if (!form.learningOutcomes.trim() || form.learningOutcomes.trim() === "") { toast.error("Learning Outcomes are required"); return; }
     if (!form.conclusion.trim()) { toast.error("Conclusion is required"); return; }
+
+    const checkBullets = (text: string, name: string) => {
+      const count = text.split("\n").map(s => s.trim()).filter(Boolean).length;
+      if (count !== 5) {
+        toast.error(`${name} must have exactly 5 bullet points (you have ${count}).`);
+        return false;
+      }
+      return true;
+    };
+
+    if (!checkBullets(form.objectives, "Objectives")) return;
+    if (!checkBullets(form.keyHighlights, "Key Highlights")) return;
+    if (!checkBullets(form.learningOutcomes, "Learning Outcomes")) return;
 
     setGenerating(true);
     try {
@@ -368,8 +378,8 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
         <div>
           <h1 className="text-xl font-bold text-gray-900">{activity.title}</h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            {club?.name} &middot; {formatActivityDate(activity.activity_date)}
-            {reportStatus === "generated" && <span className="ml-2 text-emerald-600 font-medium">&middot; Report Generated</span>}
+            {club?.name} &middot; Event Date: {formatActivityDate(activity.activity_date)}
+            {reportStatus === "generated" && <span className="ml-2 text-emerald-600 font-medium">&middot; Status: Generated</span>}
           </p>
         </div>
       </div>
