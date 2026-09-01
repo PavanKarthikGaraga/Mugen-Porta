@@ -284,7 +284,9 @@ export async function GET(request) {
                 SUM(CASE WHEN selectedDomain = 'LCH' THEN 1 ELSE 0 END) as lch,
                 SUM(CASE WHEN selectedDomain = 'ESO' THEN 1 ELSE 0 END) as eso,
                 SUM(CASE WHEN selectedDomain = 'IIE' THEN 1 ELSE 0 END) as iie,
-                SUM(CASE WHEN selectedDomain = 'HWB' THEN 1 ELSE 0 END) as hwb
+                SUM(CASE WHEN selectedDomain = 'HWB' THEN 1 ELSE 0 END) as hwb,
+                SUM(CASE WHEN selectedDomain = 'MHS. CLUBS' THEN 1 ELSE 0 END) as mhs,
+                SUM(CASE WHEN selectedDomain = 'DEPT. CLUBS' THEN 1 ELSE 0 END) as dept
             FROM students s
             ${whereClause}
         `;

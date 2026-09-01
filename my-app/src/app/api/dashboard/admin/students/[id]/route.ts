@@ -24,7 +24,7 @@ export async function GET(request, { params }) {
             WHERE s.id = ?
         `;
 
-        const [students] = await pool.execute(query, [id]);
+        const [students]: any = await pool.execute(query, [id]);
 
         if (students.length === 0) {
             return NextResponse.json(
@@ -80,7 +80,7 @@ export async function PUT(request, { params }) {
         } = body;
 
         // First check if student exists
-        const [existingStudent] = await pool.execute(
+        const [existingStudent]: any = await pool.execute(
             'SELECT id FROM students WHERE id = ?',
             [id]
         );
@@ -162,7 +162,7 @@ export async function PATCH(request, { params }) {
     if (!authResult.success) return authResult.response;
 
     const { id } = await params;
-    const VALID_DOMAINS = ['TEC', 'ESO', 'LCH', 'IIE', 'HWB', 'DEPT'];
+    const VALID_DOMAINS = ['TEC', 'ESO', 'LCH', 'IIE', 'HWB', 'DEPT. CLUBS', 'MHS. CLUBS'];
 
     try {
         const { selectedDomain, clubId } = await request.json();
@@ -199,7 +199,7 @@ export async function DELETE(request, { params }) {
 
     try {
         // First check if student exists
-        const [existingStudent] = await pool.execute(
+        const [existingStudent]: any = await pool.execute(
             'SELECT username FROM students WHERE id = ?',
             [id]
         );

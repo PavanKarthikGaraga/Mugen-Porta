@@ -148,7 +148,7 @@ export async function POST(request) {
 
         await ensureCouncilTable(); // also ensures users.plainPassword exists, needed for every role
 
-        const VALID_DOMAINS = ['TEC', 'LCH', 'IIE', 'HWB', 'ESO'];
+        const VALID_DOMAINS = ['TEC', 'LCH', 'IIE', 'HWB', 'ESO', 'DEPT. CLUBS', 'MHS. CLUBS'];
         const domainList: string[] = Array.isArray(assignedDomains)
             ? assignedDomains.filter((d: any) => typeof d === 'string' && VALID_DOMAINS.includes(d))
             : [];
@@ -198,7 +198,7 @@ export async function POST(request) {
         try {
             if (role === 'lead') {
                 // For leads, check if student exists and update their role
-                const [existingStudent] = await connection.execute(
+                const [existingStudent]: any = await connection.execute(
                     'SELECT name, email, phoneNumber, year, branch FROM students WHERE username = ?',
                     [username]
                 );
@@ -331,7 +331,7 @@ export async function DELETE(request) {
 
         try {
             // Get user role before deletion
-            const [userResult] = await connection.execute(
+            const [userResult]: any = await connection.execute(
                 'SELECT role FROM users WHERE username = ?',
                 [username]
             );

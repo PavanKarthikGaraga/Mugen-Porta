@@ -4,7 +4,7 @@ import pool from '@/lib/db';
 import { verifyAdminToken } from '../../auth-helper';
 import { ensureLeadChildClubsColumn } from '@/lib/leadScope';
 
-const VALID_DOMAINS = ['TEC', 'LCH', 'IIE', 'HWB', 'ESO'];
+const VALID_DOMAINS = ['TEC', 'LCH', 'IIE', 'HWB', 'ESO', 'DEPT. CLUBS', 'MHS. CLUBS'];
 
 // Idempotent, matching the sibling create route's ensureCouncilTable — a
 // council row edited before that route ever ran (e.g. this endpoint hit
@@ -53,7 +53,7 @@ export async function POST(request, { params }) {
 
         try {
             // Get current user role
-            const [userResult] = await connection.execute(
+            const [userResult]: any = await connection.execute(
                 'SELECT role FROM users WHERE username = ?',
                 [username]
             );

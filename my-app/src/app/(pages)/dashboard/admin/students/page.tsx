@@ -10,6 +10,7 @@ const DOMAIN_OPTIONS = [
     { value: 'LCH', label: 'LCH — Liberal Arts' },
     { value: 'IIE', label: 'IIE — Innovation & Entrepreneurship' },
     { value: 'HWB', label: 'HWB — Health & Wellbeing' },
+    { value: 'MHS. CLUBS', label: 'MHS. CLUBS — Medical & Health Sciences' },
     // Real domain value on clubs.domain is 'DEPT. CLUBS' (matches
     // ClubSelection.tsx and every other place that filters department
     // clubs) -- this used to be the bare 'DEPT', which never matched any
@@ -399,6 +400,7 @@ export default function AdminStudents() {
             case 'ESO': return 'bg-green-100 text-green-800';
             case 'IIE': return 'bg-orange-100 text-orange-800';
             case 'HWB': return 'bg-pink-100 text-pink-800';
+            case 'MHS. CLUBS': return 'bg-teal-100 text-teal-800';
             default: return 'bg-gray-100 text-gray-800';
         }
     };
@@ -473,6 +475,7 @@ export default function AdminStudents() {
                             <option value="ESO">Environment & Social</option>
                             <option value="IIE">Innovation & Entrepreneurship</option>
                             <option value="HWB">Health & Wellbeing</option>
+                            <option value="MHS. CLUBS">Medical & Health Sciences</option>
                             <option value="DEPT. CLUBS">Department Clubs</option>
                         </select>
                     </div>

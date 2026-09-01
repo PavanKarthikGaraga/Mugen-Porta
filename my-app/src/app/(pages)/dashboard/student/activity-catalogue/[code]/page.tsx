@@ -24,8 +24,6 @@ const TABS = [
   { id: "attendance",  label: "Attendance",  icon: FiCheckCircle },
   { id: "discussion",  label: "Discussion",  icon: FiMessageSquare },
   { id: "reflection",  label: "Reflection",  icon: FiEdit3 },
-  { id: "timeline",    label: "Timeline",    icon: FiCalendar },
-  { id: "impact",      label: "Impact",      icon: FiTrendingUp },
 ];
 
 const DIFFICULTY_COLOR = {
@@ -406,8 +404,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
         <div className="border-b border-gray-100 overflow-x-auto">
           <div className="flex min-w-max">
             {TABS.filter(tab => {
-              if (tab.id === 'timeline' && (!activity.timeline || activity.timeline.length === 0)) return false;
-              return enrolled || ["overview", "timeline", "impact"].includes(tab.id);
+              return enrolled || ["overview"].includes(tab.id);
             }).map((tab) => (
               <button
                 key={tab.id}
@@ -820,52 +817,6 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
             </div>
           )}
 
-          {/* TIMELINE */}
-          {activeTab === "timeline" && (
-            <div className="relative">
-              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200" />
-              <div className="space-y-4">
-                {activity.timeline.map((t: any, i: number) => (
-                  <div key={i} className="flex items-start gap-4 relative">
-                    <div
-                      className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-[10px] font-bold flex-shrink-0 bg-white z-10"
-                      style={{ borderColor: BRAND, color: BRAND }}
-                    >
-                      {i + 1}
-                    </div>
-                    <div className="pb-2">
-                      <p className="text-sm font-semibold text-gray-900">{typeof t === 'string' ? t : (t.event || t.topic)}</p>
-                      {t.date && <p className="text-xs text-gray-400">{t.date}</p>}
-                      {t.week && <p className="text-xs text-gray-400">Week {t.week}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* IMPACT */}
-          {activeTab === "impact" && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { title: "Career Impact",  icon: FiBriefcase, color: "#2563EB", bg: "#EFF6FF", text: `This activity directly builds ${activity.competencies[0]} and ${activity.competencies[1]}, both critical for ${activity.career[0]} career path. 87% of students who completed this reported improved interview performance.` },
-                { title: "Life Impact",    icon: FiHeart,     color: "#059669", bg: "#ECFDF5", text: `Develops ${activity.ga[0] || "communication"} and personal resilience. Participants report improved confidence, time management, and ability to work in diverse teams.` },
-                { title: "Societal Impact",icon: FiGlobe,     color: "#7C3AED", bg: "#F5F3FF", text: `Aligned with ${activity.sdgs.slice(0, 3).map(s => `SDG ${s}`).join(", ")}. Each participant contributes to ${activity.nationalMission} by developing skills that drive national growth.` },
-              ].map((card) => (
-                <div
-                  key={card.title}
-                  className="p-4 rounded-xl border"
-                  style={{ backgroundColor: card.bg, borderColor: `${card.color}30` }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span style={{ color: card.color }}><card.icon size={18} /></span>
-                    <h4 className="text-sm font-bold" style={{ color: card.color }}>{card.title}</h4>
-                  </div>
-                  <p className="text-xs text-gray-700 leading-relaxed">{card.text}</p>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
