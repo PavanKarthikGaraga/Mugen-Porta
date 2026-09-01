@@ -181,6 +181,9 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
       const lines: string[] = doc.splitTextToSize(clean, CONTENT_W);
       for (const line of lines) {
         ensureSpace(lineHeight);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(size);
+        doc.setTextColor(40, 40, 40);
         doc.text(line.trim(), MARGIN, y);
         y += lineHeight;
       }
@@ -201,6 +204,9 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
       const lines: string[] = doc.splitTextToSize(item, CONTENT_W - bulletIndent);
       lines.forEach((line, i) => {
         ensureSpace(lineHeight);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(size);
+        doc.setTextColor(40, 40, 40);
         if (i === 0) doc.text("•", MARGIN, y);
         doc.text(line.trim(), MARGIN + bulletIndent, y);
         y += lineHeight;

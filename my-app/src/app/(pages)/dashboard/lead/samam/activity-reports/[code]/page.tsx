@@ -301,7 +301,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
   const handleGenerate = async () => {
     if (!form.posterUrl) { toast.error("Upload the activity poster first"); return; }
     if (!form.permissionLetterUrl) { toast.error("Upload the permission letter first"); return; }
-    if (form.gallery.length === 0) { toast.error("Upload at least one gallery photo"); return; }
+    if (form.gallery.length !== 4) { toast.error("Upload exactly 4 gallery photos"); return; }
     if (form.attendanceSheets.length === 0) { toast.error("Upload at least one attendance sheet scan"); return; }
     if (!form.facultyName.trim()) { toast.error("Faculty name is required"); return; }
     if (!form.overview.trim()) { toast.error("Activity Overview is required"); return; }
@@ -527,7 +527,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
       {/* Gallery */}
       <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h2 className="text-sm font-bold text-gray-900">Activity Gallery</h2>
-        <p className="text-[11px] text-gray-400">Up to {MAX_GALLERY} photos, geo-tagged if possible. Each photo will show the SAC logo and your club name as a footer.</p>
+        <p className="text-[11px] text-gray-400">Exactly {MAX_GALLERY} photos required, geo-tagged if possible. Each photo will show the SAC logo and your club name as a footer.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {form.gallery.map((item, idx) => (
             <div key={idx} className="relative inline-block">
