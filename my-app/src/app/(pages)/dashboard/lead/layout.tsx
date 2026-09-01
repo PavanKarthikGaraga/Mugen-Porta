@@ -56,8 +56,7 @@ export default function LeadDashboardLayout({ children }) {
         { name: 'Overview',            href: '/dashboard/lead',                  icon: FiHome     },
         { name: 'Profile',             href: '/dashboard/lead/profile',          icon: FiUser     },
         { name: 'Students',            href: '/dashboard/lead/students',         icon: FiUsers    },
-        { name: 'Attendance',          href: '/dashboard/lead/attendance',       icon: FiCheckSquare },
-        { name: 'Attendance Records',  href: '/dashboard/lead/attendance-records', icon: FiDatabase },
+        { name: 'Attendance Records',  href: '/dashboard/lead/attendance',       icon: FiCheckSquare },
         { name: 'Passport Approvals',  href: '/dashboard/lead/passport-approvals', icon: FiAward    },
     ];
 

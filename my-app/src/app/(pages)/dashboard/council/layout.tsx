@@ -45,8 +45,7 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
         { name: 'SAMAM Dashboard',    href: '/dashboard/council/samam',             icon: FiAward       },
         { name: 'SAMAM Access',       href: '/dashboard/council/samam-access',      icon: FiUnlock      },
         { name: 'Activity Awards',    href: '/dashboard/council/activity-awards',   icon: FiStar        },
-        { name: 'Attendance',         href: '/dashboard/council/attendance',        icon: FiCheckSquare },
-        { name: 'Attendance Records', href: '/dashboard/council/attendance-records',icon: FiActivity    },
+        { name: 'Attendance Records', href: '/dashboard/council/attendance',        icon: FiCheckSquare },
         { name: 'Passport Approvals', href: '/dashboard/council/passport-approvals',icon: FiAward       },
         { name: 'Profile',            href: '/dashboard/council/profile',           icon: FiUser        },
     ];

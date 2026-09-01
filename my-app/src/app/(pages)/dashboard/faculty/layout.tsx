@@ -39,8 +39,7 @@ export default function FacultyDashboardLayout({ children }) {
         { name: 'Overview',            href: '/dashboard/faculty',                  icon: FiHome        },
         { name: 'Profile',             href: '/dashboard/faculty/profile',           icon: FiUser        },
         { name: 'Students',            href: '/dashboard/faculty/students',          icon: FiUsers       },
-        { name: 'Attendance',          href: '/dashboard/faculty/attendance',        icon: FiCheckSquare },
-        { name: 'Attendance Records',  href: '/dashboard/faculty/attendance-records',icon: FiActivity    },
+        { name: 'Attendance Records',  href: '/dashboard/faculty/attendance',        icon: FiCheckSquare },
         { name: 'Passport Approvals',  href: '/dashboard/faculty/passport-approvals',icon: FiAward       },
         { name: 'SAMAM',               href: '/dashboard/faculty/samam/overview',    icon: FiActivity    },
     ];

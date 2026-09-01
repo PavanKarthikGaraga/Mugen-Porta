@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   FiDownload, FiExternalLink, FiRefreshCw, FiCheckCircle,
   FiXCircle, FiClock, FiSearch, FiFilter, FiActivity,
@@ -409,13 +410,24 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
 
                     {/* Actions */}
                     <div className="flex flex-col gap-2 flex-shrink-0">
+                      {/* Mark Attendance — lead only, unsubmitted records only */}
+                      {rec.status === "unsubmitted" && role === "lead" && (
+                        <Link
+                          href={`/dashboard/lead/samam/activities/${rec.activity_code}/attendance`}
+                          className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white rounded-lg transition-opacity hover:opacity-90 whitespace-nowrap justify-center"
+                          style={{ backgroundColor: BRAND }}
+                        >
+                          Mark Attendance <FiExternalLink size={12} />
+                        </Link>
+                      )}
+
                       {/* Approve / Reject — admin and faculty only, pending records only */}
                       {canReview && (
                         <>
                           <button
                             onClick={() => handleReview(rec.activity_code, "verified")}
                             disabled={isReviewing}
-                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white rounded-lg disabled:opacity-50 whitespace-nowrap"
+                            className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white rounded-lg disabled:opacity-50 whitespace-nowrap"
                             style={{ backgroundColor: "#059669" }}
                           >
                             <FiCheckCircle size={12} />
@@ -424,16 +436,27 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
                           <button
                             onClick={() => setShowNotesFor(showNotesFor === rec.activity_code ? null : rec.activity_code)}
                             disabled={isReviewing}
-                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 disabled:opacity-50 whitespace-nowrap"
+                            className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 disabled:opacity-50 whitespace-nowrap"
                           >
                             <FiXCircle size={12} /> Reject
                           </button>
                         </>
                       )}
+
+                      {/* View Details — goes to the detail page (attendance/[id]) */}
+                      {rec.status !== "unsubmitted" && ["council", "lead", "faculty"].includes(role) && (
+                        <Link
+                          href={`/dashboard/${role}/attendance/${rec.id}`}
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 whitespace-nowrap"
+                        >
+                          <FiExternalLink size={12} /> View Details
+                        </Link>
+                      )}
+
                       <button
                         onClick={() => handleExport(rec)}
-                        disabled={isExporting}
-                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 whitespace-nowrap"
+                        disabled={isExporting || rec.status === "unsubmitted"}
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 whitespace-nowrap"
                       >
                         <FiDownload size={12} />
                         {isExporting ? "Downloading…" : "Download XLSX"}
@@ -443,12 +466,12 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
                           href={rec.scanned_copy_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 whitespace-nowrap"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 whitespace-nowrap"
                         >
                           <FiExternalLink size={12} /> View Scanned PDF
                         </a>
                       ) : (
-                        <span className="flex items-center gap-1.5 px-3 py-2 text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg whitespace-nowrap cursor-default">
+                        <span className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg whitespace-nowrap cursor-default">
                           No Scan Uploaded
                         </span>
                       )}
