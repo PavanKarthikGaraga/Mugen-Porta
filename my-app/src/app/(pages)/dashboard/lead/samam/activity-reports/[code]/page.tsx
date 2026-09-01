@@ -202,7 +202,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
   });
 
   useEffect(() => {
-    fetch(`/api/dashboard/lead/samam/activity-reports/${code}`)
+    fetch(`/api/dashboard/lead/samam/activity-reports/${code}?t=${Date.now()}`)
       .then((r) => r.json())
       .then((d) => {
         if (!d.success) {
@@ -369,7 +369,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
           <h1 className="text-xl font-bold text-gray-900">{activity.title}</h1>
           <p className="text-xs text-gray-500 mt-0.5">
             {club?.name} &middot; {formatActivityDate(activity.activity_date)}
-            {reportStatus === "generated" && <span className="ml-2 text-emerald-600 font-medium">&middot; Previously generated</span>}
+            {reportStatus === "generated" && <span className="ml-2 text-emerald-600 font-medium"> &middot; Previously generated</span>}
           </p>
         </div>
       </div>

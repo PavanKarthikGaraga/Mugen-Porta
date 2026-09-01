@@ -40,7 +40,7 @@ export default function CompletedActivitiesPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch("/api/dashboard/admin/completed-activities");
+      const r = await fetch(`/api/dashboard/admin/completed-activities?t=${Date.now()}`);
       if (r.ok) setData(await r.json());
     } finally { setLoading(false); }
   }, []);
@@ -52,7 +52,7 @@ export default function CompletedActivitiesPage() {
   const downloadReport = async (code: string) => {
     setDownloadingCode(code);
     try {
-      const res = await fetch(`/api/dashboard/admin/samam/completed-activities?activity=${encodeURIComponent(code)}`);
+      const res = await fetch(`/api/dashboard/admin/samam/completed-activities?activity=${encodeURIComponent(code)}&t=${Date.now()}`);
       const data = await res.json();
       if (!res.ok || !data.report) {
         toast.error(data.message || "Report data not found");
