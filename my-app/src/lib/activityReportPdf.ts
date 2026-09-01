@@ -1,6 +1,5 @@
 "use client";
 
-
 const LETTERHEAD_PATH = "/klef-letterhead.png";
 const LETTERHEAD_ASPECT = 1830 / 420;
 const SAC_LOGO_PATH = "/sac-logo.png";
@@ -227,12 +226,22 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
     doc.setFont("times", "normal");
     doc.setFontSize(15);
     doc.setTextColor(20, 20, 20);
-    doc.text(sanitizeForPdf(input.clubName || "Club Name"), MARGIN, y);
+    const clubText = sanitizeForPdf(input.clubName || "Club Name");
+    const clubLines: string[] = doc.splitTextToSize(clubText, CONTENT_W);
+    for (let i = 0; i < clubLines.length; i++) {
+      doc.text(clubLines[i].trim(), MARGIN, y);
+      if (i < clubLines.length - 1) y += 18;
+    }
     y += 26;
 
     doc.setFont("times", "bold");
     doc.setFontSize(20);
-    doc.text(sanitizeForPdf(input.activityTitle || "ACTIVITY NAME").toUpperCase(), MARGIN, y);
+    const titleText = sanitizeForPdf(input.activityTitle || "ACTIVITY NAME").toUpperCase();
+    const titleLines: string[] = doc.splitTextToSize(titleText, CONTENT_W);
+    for (let i = 0; i < titleLines.length; i++) {
+      doc.text(titleLines[i].trim(), MARGIN, y);
+      if (i < titleLines.length - 1) y += 24;
+    }
     y += 14;
     doc.setDrawColor(20, 20, 20);
     doc.setLineWidth(1);

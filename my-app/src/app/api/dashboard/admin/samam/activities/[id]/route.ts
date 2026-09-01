@@ -1,3 +1,4 @@
+import { getCouncilDomains } from '@/lib/councilScope';
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -15,8 +16,7 @@ async function checkAdmin() {
 
 async function isAuthorizedForActivity(user: any, activityCode: string): Promise<boolean> {
     if (user.role !== 'council') return true;
-    const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0 
-        ? user.assignedDomains : (user.assignedDomain ? [user.assignedDomain] : []);
+    const councilDomains = await getCouncilDomains(user.username);
     
     if (councilDomains.length === 0) return false;
     
@@ -78,8 +78,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         } = body;
         
         if (user.role === 'council') {
-            const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0 
-                ? user.assignedDomains : (user.assignedDomain ? [user.assignedDomain] : []);
+            const councilDomains = await getCouncilDomains(user.username);
             if (!councilDomains.includes(domain)) {
                 return NextResponse.json({ message: 'Unauthorized domain modification' }, { status: 403 });
             }

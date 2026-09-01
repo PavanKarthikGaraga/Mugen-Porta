@@ -1,3 +1,4 @@
+import { getCouncilDomains } from '@/lib/councilScope';
 import pool from "@/lib/db";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
@@ -43,8 +44,7 @@ export async function GET(req: Request) {
     const queryParams: any[] = [];
 
     if (admin.role === 'council') {
-        const councilDomains = Array.isArray(admin.assignedDomains) && admin.assignedDomains.length > 0 
-            ? admin.assignedDomains : (admin.assignedDomain ? [admin.assignedDomain] : []);
+        const councilDomains = await getCouncilDomains(admin.username);
         
         if (councilDomains.length === 0) {
             return NextResponse.json(activityCode ? { success: true, activity: null, submissions: [] } : { success: true, activities: [] });

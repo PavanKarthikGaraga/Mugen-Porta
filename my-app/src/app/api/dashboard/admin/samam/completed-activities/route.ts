@@ -1,3 +1,4 @@
+import { getCouncilDomains } from '@/lib/councilScope';
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -28,8 +29,7 @@ export async function GET(request: Request) {
         const queryParams: any[] = [];
 
         if (user.role === 'council') {
-            const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0 
-                ? user.assignedDomains : (user.assignedDomain ? [user.assignedDomain] : []);
+            const councilDomains = await getCouncilDomains(user.username);
             
             if (councilDomains.length === 0) {
                 return NextResponse.json(activityCode ? { message: 'Unauthorized domain' } : { success: true, activities: [] }, { status: activityCode ? 403 : 200 });
