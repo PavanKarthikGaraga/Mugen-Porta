@@ -123,7 +123,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAuth(['admin', 'faculty']);
+  const auth = await requireAuth(['admin', 'faculty', 'council']);
   if (auth.response) return auth.response;
 
   try {
@@ -140,6 +140,23 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const data = await request.json();
+
+    if (auth.user.role === 'council') {
+      const { getCouncilDomains } = await import('@/lib/councilScope');
+      const councilDomains = await getCouncilDomains(auth.user.username as string);
+      
+      // Check if new domain is allowed
+      if (data.domain && !councilDomains.includes(data.domain)) {
+        return NextResponse.json({ success: false, error: 'Unauthorized domain' }, { status: 403 });
+      }
+      
+      // Check if the original activity belongs to an allowed domain
+      const [origRow]: any = await pool.query('SELECT domain FROM activity_catalogue WHERE code = ?', [id]);
+      if (origRow.length > 0 && !councilDomains.includes(origRow[0].domain)) {
+        return NextResponse.json({ success: false, error: 'Unauthorized domain' }, { status: 403 });
+      }
+    }
+
     const existingColumns = await getTableColumns('activity_catalogue');
 
     // The user might send partial updates, so we only update the fields provided.

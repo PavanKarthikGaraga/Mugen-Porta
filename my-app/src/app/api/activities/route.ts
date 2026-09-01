@@ -122,7 +122,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAuth(['admin', 'faculty']);
+  const auth = await requireAuth(['admin', 'faculty', 'council']);
   if (auth.response) return auth.response;
 
   try {
@@ -132,6 +132,14 @@ export async function POST(request: Request) {
       outcomes, timeline, resources, assignments, competencies, career,
       sdgs, ga, facultyFeedback, reflection, purpose, difficulty, level
     } = data;
+
+    if (auth.user.role === 'council') {
+      const { getCouncilDomains } = await import('@/lib/councilScope');
+      const councilDomains = await getCouncilDomains(auth.user.username as string);
+      if (!councilDomains.includes(domain)) {
+        return NextResponse.json({ success: false, error: 'Unauthorized domain' }, { status: 403 });
+      }
+    }
 
     const query = `
       INSERT INTO activity_catalogue (
