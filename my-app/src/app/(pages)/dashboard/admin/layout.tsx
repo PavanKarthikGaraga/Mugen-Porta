@@ -103,6 +103,11 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'AI Logs',             href: '/dashboard/admin/dev/ai-logs',         icon: FiCpu },
     ];
 
+    const iqacNavigation = [
+        { name: 'IQAC Activities', href: '/dashboard/admin/iqac/activities', icon: FiActivity },
+        { name: 'IQAC Reports', href: '/dashboard/admin/iqac/reports', icon: FiFileText }
+    ];
+
     const handleLogout = async () => {
         if (isProxySession) {
             // If in proxy session, logout from proxy first
@@ -199,64 +204,151 @@ export default function AdminDashboardLayout({ children }) {
                     <div className="flex flex-col h-full">
                         <div className="flex-1 px-0 py-1 overflow-y-auto">
                             <nav className="space-y-1">
-                                {navigation.slice(0, 4).map((item) => {
-                                    const isActive = pathname === item.href;
-                                    return (
-                                        <Link
-                                            key={item.name}
-                                            href={item.href}
-                                            className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
-                                                isActive
-                                                    ? 'bg-red-700 text-white shadow-lg'
-                                                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                                            }`}
-                                            onClick={() => setSidebarOpen(false)}
-                                        >
-                                            <item.icon className={`mr-3 h-5 w-5 ${
-                                                isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
-                                            }`} />
-                                            {item.name}
-                                        </Link>
-                                    );
-                                })}
+                                {userData.username === 'IQAC' ? (
+                                    <>
+                                        {iqacNavigation.map((item) => {
+                                            const isActive = pathname === item.href;
+                                            return (
+                                                <Link
+                                                    key={item.name}
+                                                    href={item.href}
+                                                    className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
+                                                        isActive
+                                                            ? 'bg-red-700 text-white shadow-lg'
+                                                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                    }`}
+                                                    onClick={() => setSidebarOpen(false)}
+                                                >
+                                                    <item.icon className={`mr-3 h-5 w-5 ${
+                                                        isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                                    }`} />
+                                                    {item.name}
+                                                </Link>
+                                            );
+                                        })}
+                                    </>
+                                ) : (
+                                    <>
+                                        {navigation.slice(0, 4).map((item) => {
+                                            const isActive = pathname === item.href;
+                                            return (
+                                                <Link
+                                                    key={item.name}
+                                                    href={item.href}
+                                                    className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
+                                                        isActive
+                                                            ? 'bg-red-700 text-white shadow-lg'
+                                                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                    }`}
+                                                    onClick={() => setSidebarOpen(false)}
+                                                >
+                                                    <item.icon className={`mr-3 h-5 w-5 ${
+                                                        isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                                    }`} />
+                                                    {item.name}
+                                                </Link>
+                                            );
+                                        })}
 
-                                {/* SAMAM Control group — 6 separate pages, not tabs.
-                                    Matched by exact href, not a path prefix: /samam/award
-                                    and /samam/activity-awards also live under this prefix
-                                    but are unrelated older pages, not part of this group —
-                                    a prefix match made the dropdown snap open with nothing
-                                    selected whenever either of those was visited. */}
-                                {(() => {
-                                    const inSamam = samamNavigation.some((item) => pathname === item.href);
-                                    const isOpen = samamDropdownOpen || inSamam;
-                                    return (
-                                        <div className="border-b border-gray-600">
-                                            <button
-                                                onClick={() => setSamamDropdownOpen(!samamDropdownOpen)}
-                                                className={`flex items-center justify-between w-full px-3 py-3 text-sm font-medium transition-all duration-200 group ${
-                                                    inSamam ? 'text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                                                }`}
-                                            >
-                                                <div className="flex items-center">
-                                                    <FiAward className={`mr-3 h-5 w-5 ${inSamam ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
-                                                    SAMAM Control
+                                        {/* SAMAM Control group */}
+                                        {(() => {
+                                            const inSamam = samamNavigation.some((item) => pathname === item.href);
+                                            const isOpen = samamDropdownOpen || inSamam;
+                                            return (
+                                                <div className="border-b border-gray-600">
+                                                    <button
+                                                        onClick={() => setSamamDropdownOpen(!samamDropdownOpen)}
+                                                        className={`flex items-center justify-between w-full px-3 py-3 text-sm font-medium transition-all duration-200 group ${
+                                                            inSamam ? 'text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center">
+                                                            <FiAward className={`mr-3 h-5 w-5 ${inSamam ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                                                            SAMAM Control
+                                                        </div>
+                                                        {isOpen ? <FiChevronUp className="h-4 w-4" /> : <FiChevronDown className="h-4 w-4" />}
+                                                    </button>
+                                                    {isOpen && (
+                                                        <div className="pb-2 ml-6 space-y-1">
+                                                            {samamNavigation.map((item) => {
+                                                                const isActive = pathname === item.href;
+                                                                return (
+                                                                    <Link
+                                                                        key={item.name}
+                                                                        href={item.href}
+                                                                        className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
+                                                                            isActive ? 'bg-red-700 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                                                        }`}
+                                                                        onClick={() => setSidebarOpen(false)}
+                                                                    >
+                                                                        <item.icon className={`mr-3 h-4 w-4 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'}`} />
+                                                                        {item.name}
+                                                                    </Link>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                {isOpen ? <FiChevronUp className="h-4 w-4" /> : <FiChevronDown className="h-4 w-4" />}
-                                            </button>
-                                            {isOpen && (
-                                                <div className="pb-2 ml-6 space-y-1">
-                                                    {samamNavigation.map((item) => {
+                                            );
+                                        })()}
+
+                                        {navigation.slice(4).map((item) => {
+                                            const isActive = pathname === item.href;
+                                            return (
+                                                <Link
+                                                    key={item.name}
+                                                    href={item.href}
+                                                    className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
+                                                        isActive
+                                                            ? 'bg-red-700 text-white shadow-lg'
+                                                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                    }`}
+                                                    onClick={() => setSidebarOpen(false)}
+                                                >
+                                                    <item.icon className={`mr-3 h-5 w-5 ${
+                                                        isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                                    }`} />
+                                                    {item.name}
+                                                </Link>
+                                            );
+                                        })}
+
+                                        {/* Dev Dropdown */}
+                                        {hasDevAccess && (
+                                            <div className="pt-4">
+                                                <button
+                                                    onClick={() => setDevDropdownOpen(!devDropdownOpen)}
+                                                    className="flex items-center justify-between w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:text-white group"
+                                                >
+                                                    <div className="flex items-center">
+                                                        <FiTool className="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" />
+                                                        Dev
+                                                    </div>
+                                                    {devDropdownOpen ? (
+                                                        <FiChevronUp className="h-4 w-4" />
+                                                    ) : (
+                                                        <FiChevronDown className="h-4 w-4" />
+                                                    )}
+                                                </button>
+                                                
+                                                {devDropdownOpen && (
+                                                    <div className="mt-2 ml-6 space-y-1">
+                                                    {devNavigation.map((item) => {
                                                         const isActive = pathname === item.href;
                                                         return (
                                                             <Link
                                                                 key={item.name}
                                                                 href={item.href}
                                                                 className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
-                                                                    isActive ? 'bg-red-700 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                                                    isActive 
+                                                                        ? 'bg-red-700 text-white shadow-lg' 
+                                                                        : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                                                                 }`}
                                                                 onClick={() => setSidebarOpen(false)}
                                                             >
-                                                                <item.icon className={`mr-3 h-4 w-4 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'}`} />
+                                                                <item.icon className={`mr-3 h-4 w-4 ${
+                                                                    isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'
+                                                                }`} />
                                                                 {item.name}
                                                             </Link>
                                                         );
@@ -264,73 +356,8 @@ export default function AdminDashboardLayout({ children }) {
                                                 </div>
                                             )}
                                         </div>
-                                    );
-                                })()}
-
-                                {navigation.slice(4).map((item) => {
-                                    const isActive = pathname === item.href;
-                                    return (
-                                        <Link
-                                            key={item.name}
-                                            href={item.href}
-                                            className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
-                                                isActive
-                                                    ? 'bg-red-700 text-white shadow-lg'
-                                                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                                            }`}
-                                            onClick={() => setSidebarOpen(false)}
-                                        >
-                                            <item.icon className={`mr-3 h-5 w-5 ${
-                                                isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
-                                            }`} />
-                                            {item.name}
-                                        </Link>
-                                    );
-                                })}
-
-                                {/* Dev Dropdown - Only show for authorized users */}
-                                {hasDevAccess && (
-                                    <div className="pt-4">
-                                        <button
-                                            onClick={() => setDevDropdownOpen(!devDropdownOpen)}
-                                            className="flex items-center justify-between w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:text-white group"
-                                        >
-                                            <div className="flex items-center">
-                                                <FiTool className="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" />
-                                                Dev
-                                            </div>
-                                            {devDropdownOpen ? (
-                                                <FiChevronUp className="h-4 w-4" />
-                                            ) : (
-                                                <FiChevronDown className="h-4 w-4" />
-                                            )}
-                                        </button>
-                                        
-                                        {devDropdownOpen && (
-                                            <div className="mt-2 ml-6 space-y-1">
-                                            {devNavigation.map((item) => {
-                                                const isActive = pathname === item.href;
-                                                return (
-                                                    <Link
-                                                        key={item.name}
-                                                        href={item.href}
-                                                        className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
-                                                            isActive 
-                                                                ? 'bg-red-700 text-white shadow-lg' 
-                                                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                                                        }`}
-                                                        onClick={() => setSidebarOpen(false)}
-                                                    >
-                                                        <item.icon className={`mr-3 h-4 w-4 ${
-                                                            isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'
-                                                        }`} />
-                                                        {item.name}
-                                                    </Link>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
+                                        )}
+                                    </>
                                 )}
                             </nav>
                         </div>

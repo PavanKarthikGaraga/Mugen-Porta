@@ -128,6 +128,59 @@ export async function ensureActivityReportsTable() {
     _activityReportsDone = true;
 }
 
+let _iqacDone = false;
+
+export async function ensureIqacTables() {
+    if (_iqacDone) return;
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS iqac_activities (
+            id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+            activity_code VARCHAR(50) NOT NULL UNIQUE,
+            title         VARCHAR(200) NOT NULL,
+            activity_date DATE NOT NULL,
+            start_time    TIME NOT NULL,
+            end_time      TIME NOT NULL,
+            venue         VARCHAR(255) NOT NULL,
+            created_by    VARCHAR(100) NOT NULL,
+            created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS iqac_activity_reports (
+            id                    BIGINT AUTO_INCREMENT PRIMARY KEY,
+            activity_code         VARCHAR(50) NOT NULL UNIQUE,
+            submitted_by          VARCHAR(10) NOT NULL,
+            organizing_entity     VARCHAR(200) DEFAULT 'SAC (Student Activity Center)',
+            director_name         VARCHAR(200) DEFAULT 'Er. P Sai Vijay Pisni',
+            director_title        VARCHAR(200) DEFAULT 'Director-SAC',
+            faculty_name          VARCHAR(200) DEFAULT '',
+            faculty_title         VARCHAR(200) DEFAULT 'Faculty Mentor',
+            academic_year         VARCHAR(20) DEFAULT NULL,
+            time_slot             VARCHAR(100) DEFAULT NULL,
+            venue                 VARCHAR(255) DEFAULT NULL,
+            students_participated INT DEFAULT NULL,
+            poster_url            VARCHAR(500) DEFAULT NULL,
+            permission_letter_url VARCHAR(500) DEFAULT NULL,
+            overview              TEXT,
+            objectives            TEXT,
+            proceedings           TEXT,
+            key_highlights        TEXT,
+            learning_outcomes     TEXT,
+            conclusion            TEXT,
+            gallery               JSON,
+            attendance_sheets     JSON,
+            status                VARCHAR(20) NOT NULL DEFAULT 'draft',
+            generated_at          TIMESTAMP NULL DEFAULT NULL,
+            created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+
+    _iqacDone = true;
+}
+
 let _roadmapCacheDone = false;
 
 /**
