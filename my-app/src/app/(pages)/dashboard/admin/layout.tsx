@@ -204,7 +204,7 @@ export default function AdminDashboardLayout({ children }) {
                     <div className="flex flex-col h-full">
                         <div className="flex-1 px-0 py-1 overflow-y-auto">
                             <nav className="space-y-1">
-                                {userData.username === 'IQAC' ? (
+                                {userData.username === 'iqac' ? (
                                     <>
                                         {iqacNavigation.map((item) => {
                                             const isActive = pathname === item.href;

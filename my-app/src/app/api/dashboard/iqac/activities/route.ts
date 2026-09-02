@@ -10,7 +10,7 @@ async function checkIqacUser() {
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
     const decoded = await verifyToken(token);
-    if (!decoded || decoded.username !== 'IQAC') return null;
+    if (!decoded || decoded.username !== 'iqac') return null;
     return decoded;
 }
 
