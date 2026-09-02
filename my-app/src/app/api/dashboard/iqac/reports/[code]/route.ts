@@ -54,19 +54,21 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
         const [result] = await pool.execute(`
             INSERT INTO iqac_activity_reports (
                 activity_code, submitted_by, organizing_entity,
-                director_name, director_title, faculty_name, faculty_title,
-                academic_year, time_slot, venue, students_participated,
+                director_name, director_title, faculty_name, faculty_id, faculty_title,
+                student_lead_name, academic_year, time_slot, venue, students_participated,
                 poster_url, permission_letter_url,
                 overview, objectives, proceedings, key_highlights,
                 learning_outcomes, conclusion, gallery, attendance_sheets, status
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             ) ON DUPLICATE KEY UPDATE
                 organizing_entity = VALUES(organizing_entity),
                 director_name = VALUES(director_name),
                 director_title = VALUES(director_title),
                 faculty_name = VALUES(faculty_name),
+                faculty_id = VALUES(faculty_id),
                 faculty_title = VALUES(faculty_title),
+                student_lead_name = VALUES(student_lead_name),
                 academic_year = VALUES(academic_year),
                 time_slot = VALUES(time_slot),
                 venue = VALUES(venue),
@@ -85,8 +87,8 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
         `, [
             code, user.username, data.organizing_entity || 'SAC (Student Activity Center)',
             data.director_name || 'Er. P Sai Vijay Pisni', data.director_title || 'Director-SAC',
-            data.faculty_name || '', data.faculty_title || 'Faculty Mentor',
-            data.academic_year || null, data.time_slot || null, data.venue || null,
+            data.faculty_name || '', data.faculty_id || null, data.faculty_title || 'Faculty Mentor',
+            data.student_lead_name || null, data.academic_year || null, data.time_slot || null, data.venue || null,
             data.students_participated || null, data.poster_url || null, data.permission_letter_url || null,
             data.overview || null, data.objectives || null, data.proceedings || null,
             data.key_highlights || null, data.learning_outcomes || null, data.conclusion || null,

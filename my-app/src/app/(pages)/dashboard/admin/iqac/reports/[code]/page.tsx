@@ -182,7 +182,9 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
     directorName: "Er. P Sai Vijay Pisni",
     directorTitle: "Director-SAC",
     facultyName: "",
+    facultyId: "",
     facultyTitle: "Faculty Mentor",
+    studentLeadName: "",
     academicYear: currentAcademicYear(), timeSlot: "", venue: "", studentsParticipated: "",
     posterUrl: "", permissionLetterUrl: "",
     overview: "", objectives: "", proceedings: "", keyHighlights: "", learningOutcomes: "", conclusion: "",
@@ -214,7 +216,9 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
           directorName: repData.report.director_name || "Er. P Sai Vijay Pisni",
           directorTitle: repData.report.director_title || "Director-SAC",
           facultyName: repData.report.faculty_name || "",
+          facultyId: repData.report.faculty_id || "",
           facultyTitle: repData.report.faculty_title || "Faculty Mentor",
+          studentLeadName: repData.report.student_lead_name || "",
           academicYear: repData.report.academic_year || currentAcademicYear(),
           timeSlot: repData.report.time_slot || timeSlot,
           venue: repData.report.venue || actData.activity.venue || "",
@@ -328,8 +332,8 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
           activityName: activity?.title || "",
           organizingClub: form.organizingEntity,
           academicYear: form.academicYear,
-          facultyIncharge: form.facultyName,
-          studentLead: "-",
+          facultyIncharge: [form.facultyName, form.facultyId].filter(Boolean).join(" - "),
+          studentLead: form.studentLeadName || "-",
           timeSlot: form.timeSlot,
           venue: form.venue,
           studentsParticipated: form.studentsParticipated ? String(form.studentsParticipated) : "",
@@ -403,10 +407,26 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
             />
           </div>
           <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Student Lead Name</label>
+            <input
+              value={form.studentLeadName}
+              onChange={(e) => setForm({ ...form, studentLeadName: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md"
+            />
+          </div>
+          <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Faculty Name</label>
             <input
               value={form.facultyName}
               onChange={(e) => setForm({ ...form, facultyName: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Faculty ID</label>
+            <input
+              value={form.facultyId}
+              onChange={(e) => setForm({ ...form, facultyId: e.target.value })}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md"
             />
           </div>
