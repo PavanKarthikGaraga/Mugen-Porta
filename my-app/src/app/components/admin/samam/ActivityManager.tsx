@@ -499,7 +499,10 @@ export default function ActivityManager({
                   />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button 
-                      onClick={() => setPosterFile(null)}
+                      onClick={() => {
+                        setPosterFile(null);
+                        setSelectedActivityForPoster((prev: any) => ({ ...prev, poster_url: "" }));
+                      }}
                       className="px-3 py-1.5 bg-white text-gray-900 text-xs font-semibold rounded-lg shadow-sm"
                     >
                       Change Image

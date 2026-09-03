@@ -18,17 +18,26 @@ async function isAuthorizedForActivity(user: any, activityCode: string): Promise
     if (user.role === 'admin' || user.role === 'faculty') return true;
 
     if (user.role === 'council') {
+        const [actRows] = await pool.execute('SELECT domain, submitted_by FROM activity_catalogue WHERE code = ?', [activityCode]);
+        if ((actRows as any[]).length > 0 && (actRows as any[])[0].submitted_by === user.username) {
+            return true;
+        }
+
         const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0
             ? user.assignedDomains : (user.assignedDomain ? [user.assignedDomain] : []);
         if (councilDomains.length === 0) return false;
         
-        const [rows] = await pool.execute('SELECT domain FROM activity_catalogue WHERE code = ?', [activityCode]);
-        if ((rows as any[]).length === 0) return true;
+        if ((actRows as any[]).length === 0) return true;
         
-        return councilDomains.includes((rows as any[])[0].domain);
+        return councilDomains.includes((actRows as any[])[0].domain);
     }
 
     if (user.role === 'lead') {
+        const [actRows] = await pool.execute('SELECT submitted_by FROM activity_catalogue WHERE code = ?', [activityCode]);
+        if ((actRows as any[]).length > 0 && (actRows as any[])[0].submitted_by === user.username) {
+            return true;
+        }
+
         const leadClubs = Array.isArray(user.assignedClubs) && user.assignedClubs.length > 0
             ? user.assignedClubs : (user.assignedClub ? [user.assignedClub] : []);
         if (leadClubs.length === 0) return false;
