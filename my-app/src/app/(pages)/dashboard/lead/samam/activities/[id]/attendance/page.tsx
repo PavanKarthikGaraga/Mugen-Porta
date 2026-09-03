@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { FiArrowLeft, FiCheck, FiSave, FiAlertCircle, FiDownload, FiSend, FiClock, FiXCircle } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiSave, FiAlertCircle, FiDownload, FiSend, FiClock, FiXCircle, FiSearch, FiArrowUp, FiArrowDown } from "react-icons/fi";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -19,8 +19,10 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
 
   const [loading,          setLoading         ] = useState(true);
   const [students,         setStudents        ] = useState<any[]>([]);
-  const [absentees,        setAbsentees       ] = useState<Set<string>>(new Set());
+  const [presents,         setPresents        ] = useState<Set<string>>(new Set());
   const [verifyMode,       setVerifyMode      ] = useState(false);
+  const [searchQuery,      setSearchQuery     ] = useState("");
+  const [sortOrder,        setSortOrder       ] = useState<'asc' | 'desc'>('asc');
   const [saving,           setSaving          ] = useState(false);
   const [exporting,        setExporting       ] = useState(false);
   const [submitting,       setSubmitting      ] = useState(false);
@@ -38,6 +40,9 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
         if (d.activity) setActivityInfo(d.activity);
         if (d.students.length > 0 && d.students[0].attendance_marked) {
           setAttendanceMarked(true);
+          setPresents(new Set(
+            d.students.filter((s: any) => s.attendance_percentage === 100).map((s: any) => s.username)
+          ));
         }
       } else {
         toast.error("Failed to load students");
@@ -77,14 +82,14 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
       headerRow.height = 20;
 
       students.forEach((s) => {
-        const isAbsent = attendanceMarked ? s.attendance_percentage === 0 : absentees.has(s.username);
-        const row = sheet.addRow([s.username, s.name, isAbsent ? "A" : "P"]);
+        const isPresent = attendanceMarked ? s.attendance_percentage === 100 : presents.has(s.username);
+        const row = sheet.addRow([s.username, s.name, isPresent ? "P" : "A"]);
         row.getCell(1).alignment = { horizontal: "center" };
         row.getCell(2).alignment = { horizontal: "left" };
         const sc = row.getCell(3);
         sc.alignment = { horizontal: "center", vertical: "middle" };
         sc.font = { bold: true, color: { argb: "FFFFFFFF" } };
-        sc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: isAbsent ? "FFDC2626" : "FF16A34A" } };
+        sc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: !isPresent ? "FFDC2626" : "FF16A34A" } };
         row.eachCell((cell) => { cell.border = { top: { style: "thin", color: { argb: "FFE5E7EB" } }, bottom: { style: "thin", color: { argb: "FFE5E7EB" } }, left: { style: "thin", color: { argb: "FFE5E7EB" } }, right: { style: "thin", color: { argb: "FFE5E7EB" } } }; });
       });
 
@@ -103,27 +108,29 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
     }
   };
 
-  const toggleAbsent = (username: string) => {
+  const togglePresent = (username: string) => {
     if (attendanceMarked) return;
-    const s = new Set(absentees);
+    const s = new Set(presents);
     s.has(username) ? s.delete(username) : s.add(username);
-    setAbsentees(s);
+    setPresents(s);
   };
 
   const handleSave = async () => {
     if (!confirm("Save attendance? This action cannot be altered later.")) return;
     setSaving(true);
     try {
+      const absenteesArray = students.filter(s => !presents.has(s.username)).map(s => s.username);
       const res = await fetch(`/api/dashboard/lead/samam/activities/${id}/attendance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ absentees: Array.from(absentees) }),
+        body: JSON.stringify({ absentees: absenteesArray }),
       });
       const data = await res.json();
       if (data.success) {
-        toast.success("Attendance saved successfully");
+        toast.success("Attendance saved successfully. Submitted for verification.");
         setAttendanceMarked(true);
         setVerifyMode(false);
+        setSubmission({ status: "pending" });
       } else {
         toast.error(data.error || "Failed to save attendance");
       }
@@ -153,12 +160,23 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
     setSubmitting(false);
   };
 
-  if (loading) return <div className="p-12 text-center text-gray-500">Loading enrolled students...</div>;
+  const filteredStudents = useMemo(() => {
+    let list = verifyMode ? students.filter(s => !presents.has(s.username)) : students;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(s => s.username.toLowerCase().includes(q) || s.name.toLowerCase().includes(q));
+    }
+    return list.sort((a, b) => {
+      if (sortOrder === 'asc') return a.username.localeCompare(b.username);
+      return b.username.localeCompare(a.username);
+    });
+  }, [students, presents, verifyMode, searchQuery, sortOrder]);
 
-  const displayedStudents = verifyMode ? students.filter(s => absentees.has(s.username)) : students;
-  const presentCount = students.filter(s => attendanceMarked ? s.attendance_percentage === 100 : !absentees.has(s.username)).length;
+  const presentCount = students.filter(s => attendanceMarked ? s.attendance_percentage === 100 : presents.has(s.username)).length;
   const absentCount  = students.length - presentCount;
   const subMeta = submission ? statusMeta[submission.status] : null;
+
+  if (loading) return <div className="p-12 text-center text-gray-500">Loading enrolled students...</div>;
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
@@ -210,7 +228,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
             {subMeta.icon}
             {subMeta.label}
             {submission.faculty_notes && (
-              <span className="ml-2 text-gray-600 font-normal">— "{submission.faculty_notes}"</span>
+              <span className="ml-2 text-gray-600 font-normal">— &quot;{submission.faculty_notes}&quot;</span>
             )}
             {submission.status === 'rejected' && (
               <button
@@ -244,10 +262,29 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
 
       {/* Student table */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-          <h2 className="text-sm font-semibold text-gray-700">
-            {verifyMode ? "Verifying Absentees" : "All Enrolled Students"} ({displayedStudents.length})
-          </h2>
+        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50">
+          <div className="flex items-center gap-4">
+            <h2 className="text-sm font-semibold text-gray-700">
+              {verifyMode ? "Verifying Absentees" : "All Enrolled Students"} ({filteredStudents.length})
+            </h2>
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-2 py-1 focus-within:ring-1 focus-within:ring-blue-500">
+              <FiSearch className="text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="text-xs outline-none bg-transparent w-24 sm:w-32"
+              />
+            </div>
+            <button 
+              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+              className="p-1.5 text-gray-500 hover:text-gray-700 bg-white border border-gray-200 rounded-lg"
+              title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+            >
+              {sortOrder === 'asc' ? <FiArrowUp size={14} /> : <FiArrowDown size={14} />}
+            </button>
+          </div>
           {!attendanceMarked && (
             <div className="flex gap-2">
               {verifyMode ? (
@@ -270,41 +307,43 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
 
         {students.length === 0 ? (
           <div className="p-12 text-center text-gray-500">No students enrolled in this activity.</div>
-        ) : displayedStudents.length === 0 && verifyMode ? (
+        ) : filteredStudents.length === 0 && verifyMode ? (
           <div className="p-12 text-center text-emerald-600 font-medium flex flex-col items-center gap-3">
             <FiCheck size={32} />
             <p>100% Attendance — no absentees.</p>
           </div>
+        ) : filteredStudents.length === 0 ? (
+          <div className="p-12 text-center text-gray-500">No students match your search.</div>
         ) : (
           <div className="overflow-x-auto">
           <table className="w-full min-w-[480px] text-left text-sm">
             <thead>
               <tr className="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider border-b">
-                {!attendanceMarked && <th className="p-4 font-semibold w-14 text-center">Absent</th>}
+                {!attendanceMarked && <th className="p-4 font-semibold w-14 text-center">Present</th>}
                 <th className="p-4 font-semibold">Student Name</th>
                 <th className="p-4 font-semibold">ID</th>
                 <th className="p-4 font-semibold text-right">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {displayedStudents.map((s) => {
-                const isAbsent = attendanceMarked ? s.attendance_percentage === 0 : absentees.has(s.username);
+              {filteredStudents.map((s) => {
+                const isPresent = attendanceMarked ? s.attendance_percentage === 100 : presents.has(s.username);
                 return (
-                  <tr key={s.id} className={`hover:bg-gray-50 transition-colors ${isAbsent ? 'bg-red-50/40' : ''}`}>
+                  <tr key={s.id} className={`hover:bg-gray-50 transition-colors ${!isPresent ? 'bg-red-50/20' : ''}`}>
                     {!attendanceMarked && (
                       <td className="p-4 text-center">
                         <input
                           type="checkbox"
-                          className="w-4 h-4 accent-red-600 rounded cursor-pointer"
-                          checked={isAbsent}
-                          onChange={() => toggleAbsent(s.username)}
+                          className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
+                          checked={isPresent}
+                          onChange={() => togglePresent(s.username)}
                         />
                       </td>
                     )}
                     <td className="p-4 font-medium text-gray-900">{s.name}</td>
                     <td className="p-4 text-gray-400 text-xs font-mono">{s.username}</td>
                     <td className="p-4 text-right">
-                      {isAbsent
+                      {!isPresent
                         ? <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">Absent</span>
                         : <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded">Present</span>
                       }
@@ -321,7 +360,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
       {!attendanceMarked && (
         <div className="bg-blue-50 p-4 rounded-xl flex gap-3 text-sm text-blue-800 items-start">
           <FiAlertCircle className="mt-0.5 flex-shrink-0" size={16} />
-          <p>All students are marked <em>Present</em> by default. Check boxes for <em>absent</em> students only. Once saved, attendance is permanently locked and you can submit for faculty verification.</p>
+          <p>All students are marked <em>Absent</em> by default. Check boxes to mark students as <strong>Present</strong>. Once saved, attendance is permanently locked and automatically sent for faculty verification.</p>
         </div>
       )}
     </div>

@@ -44,7 +44,7 @@ export async function GET(req: Request) {
     const queryParams: any[] = [];
 
     if (admin.role === 'council') {
-        const councilDomains = await getCouncilDomains(admin.username);
+        const councilDomains = await getCouncilDomains(admin.username as string);
         
         if (councilDomains.length === 0) {
             return NextResponse.json(activityCode ? { success: true, activity: null, submissions: [] } : { success: true, activities: [] });

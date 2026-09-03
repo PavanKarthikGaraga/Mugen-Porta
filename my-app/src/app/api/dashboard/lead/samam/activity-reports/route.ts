@@ -75,7 +75,7 @@ export async function GET() {
             FROM activity_catalogue ac
             LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
             WHERE ${conditions.join(' AND ')}
-            ORDER BY ac.activity_date DESC, ac.created_at DESC
+            ORDER BY ac.code ASC
         `, params);
 
         return NextResponse.json({ success: true, activities: rows });

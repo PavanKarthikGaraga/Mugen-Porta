@@ -101,6 +101,45 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             [id]
         );
 
+        // Auto-approve the submission when Admin/Faculty takes attendance
+        try {
+            await pool.execute(`
+                CREATE TABLE IF NOT EXISTS attendance_submissions (
+                    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+                    activity_code VARCHAR(50)  NOT NULL,
+                    club_id       VARCHAR(20)  NOT NULL,
+                    club_name     VARCHAR(100) NOT NULL DEFAULT '',
+                    activity_title VARCHAR(200) NOT NULL DEFAULT '',
+                    lead_username VARCHAR(10)  NOT NULL,
+                    submitted_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+                    updated_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    status        ENUM('pending','verified','rejected') DEFAULT 'pending',
+                    scanned_copy_url VARCHAR(500) DEFAULT NULL,
+                    verified_by   VARCHAR(10)  DEFAULT NULL,
+                    verified_at   TIMESTAMP    DEFAULT NULL,
+                    faculty_notes TEXT         DEFAULT NULL,
+                    UNIQUE KEY uq_activity (activity_code)
+                )
+            `);
+
+            const [actInfo]: any = await pool.execute(
+                'SELECT title FROM activity_catalogue WHERE code = ?', [id]
+            );
+            const actTitle = (actInfo as any[])[0]?.title ?? id;
+
+            await pool.execute(`
+                INSERT INTO attendance_submissions
+                    (activity_code, club_id, club_name, activity_title, lead_username, status, verified_by, verified_at)
+                VALUES (?, 'ADMIN_TAKEN', 'Admin Action', ?, ?, 'verified', ?, CURRENT_TIMESTAMP)
+                ON DUPLICATE KEY UPDATE
+                    status = 'verified',
+                    verified_by = ?,
+                    verified_at = CURRENT_TIMESTAMP
+            `, [id, actTitle, user.username, user.username, user.username]);
+        } catch (submitErr) {
+            console.error('Auto-verify for admin failed (non-fatal):', submitErr);
+        }
+
         return NextResponse.json({ success: true, message: 'Attendance saved successfully' });
 
     } catch (error: any) {
