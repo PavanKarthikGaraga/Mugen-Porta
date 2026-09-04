@@ -172,6 +172,18 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
     });
   }, [students, presents, verifyMode, searchQuery, sortOrder]);
 
+  const handleSelectAll = () => {
+    if (attendanceMarked) return;
+    const allFilteredPresent = filteredStudents.length > 0 && filteredStudents.every(s => presents.has(s.username));
+    const newPresents = new Set(presents);
+    if (allFilteredPresent) {
+      filteredStudents.forEach(s => newPresents.delete(s.username));
+    } else {
+      filteredStudents.forEach(s => newPresents.add(s.username));
+    }
+    setPresents(newPresents);
+  };
+
   const presentCount = students.filter(s => attendanceMarked ? s.attendance_percentage === 100 : presents.has(s.username)).length;
   const absentCount  = students.length - presentCount;
   const subMeta = submission ? statusMeta[submission.status] : null;
@@ -287,6 +299,12 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
           </div>
           {!attendanceMarked && (
             <div className="flex gap-2">
+              <button 
+                onClick={handleSelectAll}
+                className="px-3 py-1.5 text-xs text-gray-600 bg-white border rounded hover:bg-gray-50 font-medium"
+              >
+                {filteredStudents.length > 0 && filteredStudents.every(s => presents.has(s.username)) ? "Deselect All" : "Select All"}
+              </button>
               {verifyMode ? (
                 <>
                   <button onClick={() => setVerifyMode(false)} className="px-3 py-1.5 text-xs text-gray-600 bg-white border rounded hover:bg-gray-50">

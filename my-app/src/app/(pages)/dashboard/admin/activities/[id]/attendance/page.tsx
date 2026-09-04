@@ -105,6 +105,18 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
     });
   }, [students, presents, verifyMode, searchQuery, sortOrder]);
 
+  const handleSelectAll = () => {
+    if (!canEdit) return;
+    const allFilteredPresent = filteredStudents.length > 0 && filteredStudents.every(s => presents.has(s.username));
+    const newPresents = new Set(presents);
+    if (allFilteredPresent) {
+      filteredStudents.forEach(s => newPresents.delete(s.username));
+    } else {
+      filteredStudents.forEach(s => newPresents.add(s.username));
+    }
+    setPresents(newPresents);
+  };
+
   if (loading) return <div className="p-12 text-center text-gray-500">Loading enrolled students...</div>;
 
   return (
@@ -152,6 +164,12 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
           </div>
           {canEdit && (
             <div className="flex gap-3">
+              <button 
+                onClick={handleSelectAll}
+                className="px-4 py-2 text-sm text-gray-600 bg-white border rounded hover:bg-gray-50 font-medium"
+              >
+                {filteredStudents.length > 0 && filteredStudents.every(s => presents.has(s.username)) ? "Deselect All" : "Select All"}
+              </button>
               {verifyMode ? (
                 <>
                   <button onClick={() => setVerifyMode(false)} className="px-4 py-2 text-sm text-gray-600 bg-white border rounded hover:bg-gray-50">
