@@ -1,5 +1,6 @@
 import { getCouncilDomains } from '@/lib/councilScope';
 import { getFacultyClubIds } from '@/lib/facultyScope';
+import { getLeadClubIds } from '@/lib/leadScope';
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -10,8 +11,8 @@ async function checkAdmin() {
     const cookieStore = await cookies();
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
-    const decoded = await verifyToken(token);
-    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'faculty' && decoded.role !== 'council')) return null;
+    const decoded = await verifyToken(token) as { role: string; username: string } | null;
+    if (!decoded || !['admin', 'faculty', 'council', 'lead'].includes(decoded.role)) return null;
     return decoded;
 }
 
@@ -30,6 +31,12 @@ async function isAuthorizedForActivity(user: any, activityCode: string): Promise
         if (facultyClubs.length === 0) return false;
         const placeholders = facultyClubs.map(() => '?').join(',');
         const [rows] = await pool.execute(`SELECT 1 FROM club_activity_mappings WHERE activity_code = ? AND club_id IN (${placeholders})`, [activityCode, ...facultyClubs]);
+        return (rows as any[]).length > 0;
+    } else if (user.role === 'lead') {
+        const leadClubs = await getLeadClubIds(user.username);
+        if (leadClubs.length === 0) return false;
+        const placeholders = leadClubs.map(() => '?').join(',');
+        const [rows] = await pool.execute(`SELECT 1 FROM club_activity_mappings WHERE activity_code = ? AND club_id IN (${placeholders})`, [activityCode, ...leadClubs]);
         return (rows as any[]).length > 0;
     }
     return true; // admin
