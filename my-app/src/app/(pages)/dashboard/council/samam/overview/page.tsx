@@ -12,7 +12,7 @@ export default function AdminSamamOverviewPage() {
   const fetchAnalytics = useCallback(async () => {
     setAnalyticsLoading(true);
     try {
-      const res = await fetch("/api/dashboard/council/samam/stats");
+      const res = await fetch("/api/dashboard/admin/samam-stats");
       if (res.ok) setAnalytics(await res.json());
     } finally { setAnalyticsLoading(false); }
   }, []);

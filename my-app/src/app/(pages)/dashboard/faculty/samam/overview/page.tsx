@@ -12,11 +12,9 @@ export default function FacultySamamOverviewPage() {
   const fetchAnalytics = useCallback(async () => {
     setAnalyticsLoading(true);
     try {
-      const res = await fetch("/api/dashboard/faculty/samam/stats");
+      const res = await fetch("/api/dashboard/admin/samam-stats");
       if (res.ok) {
-        const d = await res.json();
-        // AnalyticsView expects `totalClubStudents`; faculty stats returns `activeSamamStudents`
-        setAnalytics({ ...d, totalClubStudents: d.activeSamamStudents });
+        setAnalytics(await res.json());
       }
     } finally { setAnalyticsLoading(false); }
   }, []);
