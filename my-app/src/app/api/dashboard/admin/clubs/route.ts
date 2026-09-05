@@ -1,5 +1,6 @@
 import pool from '../../../../../lib/db';
 import { NextResponse } from 'next/server';
+import { ResultSetHeader } from 'mysql2';
 import { verifyAdminToken } from '../auth-helper';
 
 export async function GET(request) {
@@ -28,7 +29,7 @@ export async function POST(request) {
     try {
     const { id, name, description, domain, memberLimit } = await request.json();
         
-        const [result] = await pool.execute(
+        const [result] = await pool.execute<ResultSetHeader>(
             'INSERT INTO clubs (id, name, description, domain, memberLimit) VALUES (?, ?, ?, ?, ?)',
             [id, name, description, domain, memberLimit || 50]
         );

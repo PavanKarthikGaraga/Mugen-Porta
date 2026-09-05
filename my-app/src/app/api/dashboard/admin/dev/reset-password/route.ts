@@ -4,11 +4,16 @@ import pool from '@/lib/db';
 import { verifyDevAccess } from '../../auth-helper';
 import { safeMessage } from '@/lib/apiSecurity';
 
-// Fixed reset password requested by the admin team. Deliberately does NOT
+// Reset value comes from the DEV_RESET_PASSWORD env var — it must NOT be
+// hardcoded here (this file is committed to the repo). Deliberately does NOT
 // need to satisfy the strength regex used by the self-service change-password
 // flow — that regex only applies when a user changes their own password.
-const RESET_PASSWORD = 'sac@123';
 const SALT_ROUNDS = 12;
+
+function getResetPassword(): string | null {
+    const value = process.env.DEV_RESET_PASSWORD;
+    return value && value.trim().length > 0 ? value : null;
+}
 
 // Dev-only: this resets ANY user's password (including other admins), so it
 // is gated behind the same DEV_USERNAMES allowlist as the rest of
@@ -69,7 +74,15 @@ export async function POST(request: Request) {
         }
 
         const target = rows[0];
-        const hashed = await bcrypt.hash(RESET_PASSWORD, SALT_ROUNDS);
+        const resetPassword = getResetPassword();
+        if (!resetPassword) {
+            console.error('DEV_RESET_PASSWORD env var is not configured');
+            return NextResponse.json(
+                { error: 'Reset password is not configured on the server (DEV_RESET_PASSWORD)' },
+                { status: 500 }
+            );
+        }
+        const hashed = await bcrypt.hash(resetPassword, SALT_ROUNDS);
 
         const [result]: any = await pool.execute(
             `UPDATE users SET password = ? WHERE username = ?`,
@@ -82,6 +95,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             success: true,
+            resetPassword,
             message: `Password reset for ${target.name} (${target.username}, ${target.role})`,
         });
     } catch (error: any) {

@@ -94,20 +94,29 @@ export default function FacultyStudents() {
         fetchUserData();
     }, []);
 
+    // Initial load + club-scope change: fetch immediately.
+    // fetchStudents is intentionally not a dep — its identity changes with
+    // every keystroke, which would defeat the debounce below.
     useEffect(() => {
         if (userData.assignedClubs.length > 0) {
             fetchClubs();
             fetchStudents(1);
         }
-    }, [userData.assignedClubs, fetchClubs, fetchStudents]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userData.assignedClubs]);
 
+    // Search/filter changes: debounced fetch so rapid typing fires one
+    // request, not one per keystroke (and stale responses can't clobber
+    // newer ones as easily).
     useEffect(() => {
+        if (userData.assignedClubs.length === 0) return;
         const timeoutId = setTimeout(() => {
             fetchStudents(1);
         }, 500);
 
         return () => clearTimeout(timeoutId);
-    }, [fetchStudents]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchTerm, filters]);
 
     const handlePageChange = (newPage) => {
         fetchStudents(newPage);

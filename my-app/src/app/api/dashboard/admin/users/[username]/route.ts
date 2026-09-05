@@ -81,8 +81,8 @@ export async function POST(request, { params }) {
             if (newPassword) {
                 const hashedPassword = await bcrypt.hash(newPassword, 12);
                 await connection.execute(
-                    'UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email), password = ?, plainPassword = ? WHERE username = ?',
-                    [name || null, email || null, hashedPassword, newPassword, username]
+                    'UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email), password = ? WHERE username = ?',
+                    [name || null, email || null, hashedPassword, username]
                 );
             } else {
                 await connection.execute(

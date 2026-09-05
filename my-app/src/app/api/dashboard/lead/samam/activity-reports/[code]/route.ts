@@ -12,7 +12,23 @@ async function getLead() {
     if (!token) return null;
     const decoded = await verifyToken(token);
     if (!decoded || decoded.role !== 'lead') return null;
-    return decoded;
+
+    let assigned_categories: string[] = [];
+    try {
+        const [rows]: any = await pool.execute('SELECT assigned_categories FROM leads WHERE username = ?', [decoded.username as string]);
+        if (rows[0]?.assigned_categories) {
+            try {
+                assigned_categories = typeof rows[0].assigned_categories === 'string'
+                    ? JSON.parse(rows[0].assigned_categories)
+                    : rows[0].assigned_categories;
+            } catch {}
+        }
+    } catch (e: any) {
+        // Column may not exist yet on old schemas — treat as no categories.
+        if (e.code !== 'ER_BAD_FIELD_ERROR' && !e.message?.includes('assigned_categories')) throw e;
+    }
+
+    return { decoded, assigned_categories };
 }
 
 const parseJson = (val: any, fallback: any) => {
@@ -22,21 +38,35 @@ const parseJson = (val: any, fallback: any) => {
 };
 
 /** Which of the lead's clubs actually organizes this activity, resolved via
- * club_activity_mappings (falls back to the lead's parent club if there's no
- * explicit mapping, e.g. a legacy assigned_categories-only activity). */
-async function resolveOrganizingClub(clubIds: string[], activityCode: string) {
-    if (clubIds.length === 0) return null;
-    const placeholders = clubIds.map(() => '?').join(',');
-    const [rows]: any = await pool.execute(
-        `SELECT c.id, c.name FROM club_activity_mappings cam
-         JOIN clubs c ON c.id = cam.club_id
-         WHERE cam.activity_code = ? AND cam.club_id IN (${placeholders}) LIMIT 1`,
-        [activityCode, ...clubIds]
-    );
-    if (rows[0]) return { id: rows[0].id, name: rows[0].name };
+ * club_activity_mappings, with an assigned_categories fallback for legacy
+ * category-scoped leads. Unlike a parent-club fallback, an activity with
+ * neither a mapping nor a matching category is DENIED — otherwise any lead
+ * could read/forge the report of any activity in the catalogue. */
+async function resolveOrganizingClub(clubIds: string[], assignedCategories: string[], activityCode: string) {
+    if (clubIds.length > 0) {
+        const placeholders = clubIds.map(() => '?').join(',');
+        const [rows]: any = await pool.execute(
+            `SELECT c.id, c.name FROM club_activity_mappings cam
+             JOIN clubs c ON c.id = cam.club_id
+             WHERE cam.activity_code = ? AND cam.club_id IN (${placeholders}) LIMIT 1`,
+            [activityCode, ...clubIds]
+        );
+        if (rows[0]) return { id: rows[0].id, name: rows[0].name };
+    }
 
-    const [fallback]: any = await pool.execute('SELECT id, name FROM clubs WHERE id = ? LIMIT 1', [clubIds[0]]);
-    return fallback[0] ? { id: fallback[0].id, name: fallback[0].name } : null;
+    if (assignedCategories.length > 0) {
+        const placeholders = assignedCategories.map(() => '?').join(',');
+        const [catRows]: any = await pool.execute(
+            `SELECT clubId FROM activity_catalogue WHERE code = ? AND category IN (${placeholders}) LIMIT 1`,
+            [activityCode, ...assignedCategories]
+        );
+        if (catRows[0]?.clubId) {
+            const [fallback]: any = await pool.execute('SELECT id, name FROM clubs WHERE id = ? LIMIT 1', [catRows[0].clubId]);
+            return fallback[0] ? { id: fallback[0].id, name: fallback[0].name } : null;
+        }
+    }
+
+    return null;
 }
 
 export async function GET(_request: Request, { params }: { params: Promise<{ code: string }> }) {
@@ -56,13 +86,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
         }
         const activity = actRows[0];
 
-        const clubIds = await getLeadClubIds(lead.username as string);
-        const club = await resolveOrganizingClub(clubIds, code);
+        const clubIds = await getLeadClubIds(lead.decoded.username as string);
+        const club = await resolveOrganizingClub(clubIds, lead.assigned_categories, code);
         if (!club) {
             return NextResponse.json({ message: 'Activity is not assigned to your club' }, { status: 403 });
         }
 
-        const [leadRows]: any = await pool.execute('SELECT name, username FROM leads WHERE username = ?', [lead.username as string]);
+        const [leadRows]: any = await pool.execute('SELECT name, username FROM leads WHERE username = ?', [lead.decoded.username as string]);
 
         const [reportRows]: any = await pool.execute('SELECT * FROM activity_reports WHERE activity_code = ?', [code]);
         const report = reportRows[0] || null;
@@ -93,8 +123,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
         await ensureActivityReportsTable();
         const { code } = await params;
 
-        const clubIds = await getLeadClubIds(lead.username as string);
-        const club = await resolveOrganizingClub(clubIds, code);
+        const clubIds = await getLeadClubIds(lead.decoded.username as string);
+        const club = await resolveOrganizingClub(clubIds, lead.assigned_categories, code);
         if (!club) {
             return NextResponse.json({ message: 'Activity is not assigned to your club' }, { status: 403 });
         }
@@ -137,7 +167,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
                 status = VALUES(status),
                 generated_at = VALUES(generated_at)
         `, [
-            code, club.id, lead.username, facultyName || null, facultyId || null,
+            code, club.id, lead.decoded.username, facultyName || null, facultyId || null,
             studentLeadName || null, studentLeadId || null, academicYear || null, timeSlot || null, venue || null,
             studentsParticipated || null, posterUrl || null, permissionLetterUrl || null,
             overview || null, objectives || null, proceedings || null, keyHighlights || null, learningOutcomes || null, conclusion || null,

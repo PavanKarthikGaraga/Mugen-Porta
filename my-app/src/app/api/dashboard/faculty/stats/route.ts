@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { RowDataPacket } from 'mysql2';
 import { verifyToken } from '@/lib/jwt';
 
 export async function GET(request) {
@@ -13,7 +14,7 @@ export async function GET(request) {
             );
         }
 
-        const payload = await verifyToken(token);
+        const payload = await verifyToken(token) as { role: string; username: string } | null;
         if (!payload || payload.role !== 'faculty') {
             return NextResponse.json(
                 { error: 'Unauthorized' },
@@ -25,7 +26,7 @@ export async function GET(request) {
         const clubId = searchParams.get('clubId');
 
         // Get faculty's assigned clubs
-        const [facultyResult] = await pool.execute(
+        const [facultyResult] = await pool.execute<RowDataPacket[]>(
             'SELECT assignedClubs FROM faculty WHERE username = ?',
             [payload.username]
         );
@@ -69,13 +70,13 @@ export async function GET(request) {
         );
 
         // Get year-wise count
-        const [yearWiseResult] = await pool.execute(
+        const [yearWiseResult] = await pool.execute<RowDataPacket[]>(
             `SELECT year, COUNT(*) as count FROM students WHERE clubId IN (${placeholders}) GROUP BY year ORDER BY year`,
             clubsToQuery
         );
 
         // Get residence-wise count (Hostel vs Day Scholar)
-        const [residenceWiseResult] = await pool.execute(
+        const [residenceWiseResult] = await pool.execute<RowDataPacket[]>(
             `SELECT residenceType, COUNT(*) as count FROM students WHERE clubId IN (${placeholders}) GROUP BY residenceType`,
             clubsToQuery
         );

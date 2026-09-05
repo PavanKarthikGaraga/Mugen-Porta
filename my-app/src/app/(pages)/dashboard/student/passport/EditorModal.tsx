@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { FiX, FiPlus, FiTrash2, FiUploadCloud } from "react-icons/fi";
 import { toast } from "sonner";
 import SkillInput from "./SkillInput";
@@ -8,6 +8,12 @@ const BRAND = "rgb(151,0,3)";
 
 export default function EditorModal({ isOpen, onClose, initialData, onSave }) {
     const [data, setData] = useState(initialData);
+    // useState snapshots initialData only on first mount — resync whenever
+    // the parent passes a fresh copy (e.g. after external data refreshes)
+    // so the editor never shows a stale version.
+    useEffect(() => {
+        setData(initialData);
+    }, [initialData]);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState<'avatar' | 'banner' | null>(null);
     const [cropSrc, setCropSrc] = useState<string | null>(null);

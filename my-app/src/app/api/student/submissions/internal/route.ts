@@ -49,8 +49,8 @@ export async function GET(request) {
                 // Check if the requested student is in one of the lead's clubs
                 const [studentResult] = await pool.execute(
                     'SELECT clubId FROM students WHERE username = ?',
-                    [requestedUsername]
-                );
+                    [requestedUsername] as any[]
+                ) as [any[], any];
 
                 if (studentResult.length > 0 && leadClubIds.includes(studentResult[0].clubId)) {
                     authorized = true;
@@ -61,8 +61,8 @@ export async function GET(request) {
             // Faculty can access submissions for students in their assigned clubs
             const [facultyResult] = await pool.execute(
                 'SELECT assignedClubs FROM faculty WHERE username = ?',
-                [payload.username]
-            );
+                [payload.username] as any[]
+            ) as [any[], any];
 
             if (facultyResult.length > 0 && facultyResult[0].assignedClubs) {
                 const assignedClubs = facultyResult[0].assignedClubs.split(',').map(id => id.trim());
@@ -70,8 +70,8 @@ export async function GET(request) {
                 // Check if the requested student is in one of the faculty's assigned clubs
                 const [studentResult] = await pool.execute(
                     'SELECT clubId FROM students WHERE username = ?',
-                    [requestedUsername]
-                );
+                    [requestedUsername] as any[]
+                ) as [any[], any];
 
                 if (studentResult.length > 0 && assignedClubs.includes(studentResult[0].clubId.toString())) {
                     authorized = true;
@@ -94,8 +94,8 @@ export async function GET(request) {
         // Fetch internal submissions for the requested student (6 days)
         const [submissions] = await pool.execute(
             'SELECT num, report, linkedin, youtube, status, reason FROM internal_submissions WHERE username = ? ORDER BY num',
-            [accessUsername]
-        );
+            [accessUsername] as any[]
+        ) as [any[], any];
 
         // Convert to the format expected by frontend
         const formattedSubmissions = [];
@@ -235,8 +235,8 @@ export async function POST(request) {
         // Check if this day already has a submission
         const [existingSubmission] = await pool.execute(
             'SELECT id, status FROM internal_submissions WHERE username = ? AND num = ?',
-            [payload.username, day]
-        );
+            [payload.username, day] as any[]
+        ) as [any[], any];
 
         if (existingSubmission.length > 0) {
             const submission = existingSubmission[0];
@@ -249,13 +249,13 @@ export async function POST(request) {
             // Update existing record
             await pool.execute(
                 'UPDATE internal_submissions SET report = ?, linkedin = ?, youtube = ?, status = "S", updated_at = CURRENT_TIMESTAMP WHERE username = ? AND num = ?',
-                [reportUrl, linkedinUrl, youtubeUrl, payload.username, day]
+                [reportUrl, linkedinUrl, youtubeUrl, payload.username, day] as any[]
             );
         } else {
             // Insert new record
             await pool.execute(
                 'INSERT INTO internal_submissions (username, num, report, linkedin, youtube, status) VALUES (?, ?, ?, ?, ?, "S")',
-                [payload.username, day, reportUrl, linkedinUrl, youtubeUrl]
+                [payload.username, day, reportUrl, linkedinUrl, youtubeUrl] as any[]
             );
         }
 
@@ -339,8 +339,8 @@ export async function PUT(request) {
             // Check if this day has a rejected submission that can be resubmitted
             const [existingSubmission] = await pool.execute(
                 'SELECT id, status FROM internal_submissions WHERE username = ? AND num = ?',
-                [payload.username, day]
-            );
+                [payload.username, day] as any[]
+            ) as [any[], any];
 
             if (existingSubmission.length === 0) {
                 return NextResponse.json(
@@ -360,7 +360,7 @@ export async function PUT(request) {
             // Update the submission with new URLs and set status to 'N'
             await pool.execute(
                 'UPDATE internal_submissions SET report = ?, linkedin = ?, youtube = ?, status = "N", reason = NULL, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND num = ?',
-                [reportUrl, linkedinUrl, youtubeUrl, payload.username, day]
+                [reportUrl, linkedinUrl, youtubeUrl, payload.username, day] as any[]
             );
 
             return NextResponse.json({
@@ -372,8 +372,8 @@ export async function PUT(request) {
             // Check if this day has a rejected submission
             const [existingSubmission] = await pool.execute(
                 'SELECT id, status FROM internal_submissions WHERE username = ? AND num = ?',
-                [payload.username, day]
-            );
+                [payload.username, day] as any[]
+            ) as [any[], any];
 
             if (existingSubmission.length === 0) {
                 return NextResponse.json(

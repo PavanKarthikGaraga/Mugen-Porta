@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
+import { RowDataPacket } from 'mysql2';
 import pool from '@/lib/db';
 import { verifyToken } from '@/lib/jwt';
+import { checkRateLimit } from '@/lib/rateLimit';
 import { cookies } from 'next/headers';
 
 export async function POST(request) {
@@ -54,9 +56,9 @@ export async function POST(request) {
         }
 
         // Get current user data
-        const [userRows] = await pool.execute(
+        const [userRows] = await pool.execute<RowDataPacket[]>(
             'SELECT password FROM users WHERE username = ?',
-            [payload.username]
+            [payload.username] as any[]
         );
 
         if (userRows.length === 0) {
@@ -67,6 +69,21 @@ export async function POST(request) {
         }
 
         const user = userRows[0];
+
+        // Brute-force protection, mirroring the login route: a generous
+        // per-IP ceiling (the campus shares one NAT address) plus a tight
+        // per-account ceiling keyed on the username, checked before the
+        // bcrypt compare so password guessing against a valid session is
+        // throttled the same way as login attempts.
+        const ipLimit = await checkRateLimit(request, 'change-password-ip', { limit: 100, windowMs: 60 * 1000 });
+        if (ipLimit.limited) return ipLimit.response;
+
+        const userLimit = await checkRateLimit(request, 'change-password-user', {
+            limit: 10,
+            windowMs: 15 * 60 * 1000,
+            key: String(payload.username).toLowerCase(),
+        });
+        if (userLimit.limited) return userLimit.response;
 
         // Verify current password
         const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
@@ -84,7 +101,7 @@ export async function POST(request) {
         // Update password in database
         await pool.execute(
             'UPDATE users SET password = ? WHERE username = ?',
-            [hashedNewPassword, payload.username]
+            [hashedNewPassword, payload.username] as any[]
         );
 
         return NextResponse.json({

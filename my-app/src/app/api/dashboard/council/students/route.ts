@@ -61,8 +61,12 @@ export async function GET(request: Request) {
         const campus       = searchParams.get('campus')   || '';
         const residenceType = searchParams.get('residenceType') || '';
         const careerChoice = searchParams.get('careerChoice') || '';
-        const page         = Math.max(1, parseInt(searchParams.get('page')  || '1'));
-        const limit        = exportAll ? 100000 : Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
+        // parseInt can yield NaN on garbage input ("?page=abc") — NaN would
+        // poison every derived value below, so fall back to the defaults.
+        const parsedPage  = parseInt(searchParams.get('page')  || '1');
+        const parsedLimit = parseInt(searchParams.get('limit') || '50');
+        const page         = Number.isNaN(parsedPage)  ? 1  : Math.max(1, parsedPage);
+        const limit        = exportAll ? 100000 : Math.min(100, Math.max(1, Number.isNaN(parsedLimit) ? 50 : parsedLimit));
         const offset       = exportAll ? 0 : (page - 1) * limit;
 
         if (domainFilter && !domains.includes(domainFilter)) {

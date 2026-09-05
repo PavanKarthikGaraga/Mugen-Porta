@@ -3,7 +3,11 @@ import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 
-const DEMO_ACCOUNTS = new Set(['2400000000']);
+// Demo accounts (if any) come from the DEMO_ACCOUNTS env var as a
+// comma-separated username list — never hardcoded here.
+const DEMO_ACCOUNTS = new Set(
+    (process.env.DEMO_ACCOUNTS || '').split(',').map(u => u.trim()).filter(Boolean)
+);
 
 export async function GET() {
     try {

@@ -37,18 +37,18 @@ async function ensureCouncilTable() {
             );
         } catch {}
 
-        // Plaintext password, alongside the bcrypt hash, so an admin can see
-        // the password they set for a user they manage — a deliberate
-        // tradeoff for this internal admin tool (see users created here
-        // are lead/faculty/council/admin, not students, who register
-        // themselves). A leaked database exposes these in the clear, unlike
-        // the hash; that's accepted here in exchange for the admin being
-        // able to actually recall what they set.
+        // users.plainPassword is a legacy column from an earlier admin
+        // workflow. Passwords are never selected or written back anymore;
+        // existing rows are scrubbed below so a database leak exposes only
+        // bcrypt hashes.
         try {
             await pool.query(`ALTER TABLE users ADD COLUMN plainPassword VARCHAR(100) NULL`);
         } catch (e: any) {
             if (e.code !== 'ER_DUP_FIELDNAME') throw e;
         }
+        try {
+            await pool.query(`UPDATE users SET plainPassword = NULL`);
+        } catch {}
     } catch {}
 }
 
@@ -72,7 +72,6 @@ export async function GET(request) {
             // Get all non-student users
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
-                       u.plainPassword,
                        COALESCE(s.phoneNumber, f.phoneNumber) as phoneNumber,
                        s.year, s.branch, l.clubId, l.childClubIds, c.name as clubName,
                        f.assignedClubs,
@@ -91,7 +90,6 @@ export async function GET(request) {
             // Get users by specific role
             query = `
                 SELECT u.id, u.username, u.name, u.email, u.role, u.created_at,
-                       u.plainPassword,
                        COALESCE(s.phoneNumber, f.phoneNumber) as phoneNumber,
                        s.year, s.branch, l.clubId, l.childClubIds, c.name as clubName,
                        f.assignedClubs,
@@ -184,12 +182,11 @@ export async function POST(request) {
             defaultPassword = username + phoneNumber.slice(-4);
         }
 
-        // Hash the password
+        // Hash the password. The plaintext is intentionally NOT stored
+        // anymore (the legacy users.plainPassword column is scrubbed in
+        // ensureCouncilTable) — the generated password is returned in the
+        // response and emailed to the user instead.
         const hashedPassword = await bcrypt.hash(defaultPassword, 12);
-        // Also kept in the clear so the admin can look it back up when
-        // editing this user later — see ensureCouncilTable()'s comment on
-        // users.plainPassword for the tradeoff this accepts.
-        const plainPassword = defaultPassword;
 
         // Start transaction
         const connection = await pool.getConnection();
@@ -236,8 +233,8 @@ export async function POST(request) {
 
             } else if (role === 'council') {
                 await connection.execute(
-                    'INSERT INTO users (username, name, email, password, role, plainPassword) VALUES (?, ?, ?, ?, ?, ?)',
-                    [username, username, `${username}@council.kluniversity.in`, hashedPassword, 'council', plainPassword]
+                    'INSERT INTO users (username, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
+                    [username, username, `${username}@council.kluniversity.in`, hashedPassword, 'council']
                 );
                 try {
                     await connection.execute(
@@ -259,10 +256,10 @@ export async function POST(request) {
                 // For faculty and admin, create new user
                 // Insert into users table
                 const userQuery = `
-                    INSERT INTO users (username, name, email, password, role, plainPassword)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO users (username, name, email, password, role)
+                    VALUES (?, ?, ?, ?, ?)
                 `;
-                await connection.execute(userQuery, [username, name, email, hashedPassword, role, plainPassword]);
+                await connection.execute(userQuery, [username, name, email, hashedPassword, role]);
 
                 // Insert into specific role table
                 if (role === 'faculty') {

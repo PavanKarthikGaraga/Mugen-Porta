@@ -236,7 +236,7 @@ export default function Register() {
     }
 
     // Show message if registrations are disabled
-    if (false) {
+    if (registrationsEnabled === false) {
         return (
             <div className="w-full h-screen flex flex-col">
                 {/* Red Navbar */}

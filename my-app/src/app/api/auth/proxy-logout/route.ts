@@ -2,6 +2,7 @@ import pool from "@/lib/db";
 import { generateToken } from "@/lib/jwt";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
+import { RowDataPacket } from "mysql2";
 
 export async function POST(req) {
     try {
@@ -31,7 +32,7 @@ export async function POST(req) {
         if (payload.proxyAdminUsername) {
             // Admin proxy session - return to admin
             const db = await pool.getConnection();
-            const [adminUser] = await db.query('SELECT * FROM users WHERE username = ?', [payload.proxyAdminUsername]);
+            const [adminUser] = await db.query<RowDataPacket[]>('SELECT * FROM users WHERE username = ?', [payload.proxyAdminUsername]);
 
             if (!adminUser || adminUser.length === 0) {
                 return new Response(JSON.stringify({ error: "Admin user not found" }), {
@@ -46,7 +47,7 @@ export async function POST(req) {
         } else if (payload.proxyLeadUsername) {
             // Lead proxy session - return to lead
             const db = await pool.getConnection();
-            const [leadUser] = await db.query('SELECT * FROM users WHERE username = ?', [payload.proxyLeadUsername]);
+            const [leadUser] = await db.query<RowDataPacket[]>('SELECT * FROM users WHERE username = ?', [payload.proxyLeadUsername]);
 
             if (!leadUser || leadUser.length === 0) {
                 return new Response(JSON.stringify({ error: "Lead user not found" }), {

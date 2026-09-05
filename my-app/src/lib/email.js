@@ -1,5 +1,15 @@
 import { transporter } from './emailQueue';
 
+// Escape user-controlled values interpolated into HTML email templates —
+// a registration name or club description containing markup would otherwise
+// inject content into outgoing mail.
+const escapeHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 export const sendPasswordResetEmail = async (email, name, resetLink) => {
     const htmlTemplate = `
     <!DOCTYPE html>
@@ -87,14 +97,14 @@ export const sendPasswordResetEmail = async (email, name, resetLink) => {
             </div>
 
             <div class="content">
-                <p>Hello <strong>${name}</strong>,</p>
+                <p>Hello <strong>${escapeHtml(name)}</strong>,</p>
 
                 <p>We received a request to reset your password for your SAC Activities account. If you didn't make this request, you can safely ignore this email.</p>
 
                 <p>To reset your password, click the button below:</p>
 
                 <div style="text-align: center;">
-                    <a href="${resetLink}" class="reset-button">Reset My Password</a>
+                    <a href="${escapeHtml(resetLink)}" class="reset-button">Reset My Password</a>
                 </div>
 
                 <p><strong>This link will expire in 1 hour</strong> for security reasons.</p>
@@ -275,7 +285,7 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
             </div>
 
             <div class="content">
-                <p>Dear <strong>${name}</strong>,</p>
+                <p>Dear <strong>${escapeHtml(name)}</strong>,</p>
 
                 <p class="success">Congratulations! You have successfully registered for the SAC Activities.</p>
 
@@ -285,7 +295,7 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                     <div class="credentials-title">Your Login Credentials</div>
                     <div class="credential-item">
                         <span class="credential-label">Username:</span>
-                        <span class="credential-value">${username}</span>
+                        <span class="credential-value">${escapeHtml(username)}</span>
                     </div>
                     <div class="credential-item">
                         <span class="credential-label">Password Pattern:</span>
@@ -296,9 +306,9 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                 ${clubDetails ? `
                 <div class="selection-details">
                     <h3>Your Club Selection${isY24Student ? ' (Y24)' : isY23Student ? ' (Y23)' : isY22Student ? ' (Y22)' : isY25Student ? ' (Y25)' : ''}</h3>
-                    <p><strong>Club:</strong> ${clubDetails.name}</p>
-                    <p><strong>Description:</strong> ${clubDetails.description}</p>
-                    <p><strong>Domain:</strong> ${selectedDomain}</p>
+                    <p><strong>Club:</strong> ${escapeHtml(clubDetails.name)}</p>
+                    <p><strong>Description:</strong> ${escapeHtml(clubDetails.description)}</p>
+                    <p><strong>Domain:</strong> ${escapeHtml(selectedDomain)}</p>
                 </div>
                 ` : ''}
 
@@ -307,7 +317,7 @@ export const sendRegistrationEmail = async (email, name, username, password, yea
                 <ul>
                     <li><strong>Updates:</strong> Keep an eye on your email for important announcements about your club activities</li>
                     <li><strong>Preparation:</strong> Start familiarizing yourself with your selected club activities</li>
-                    <li><strong>Community:</strong> Get ready to collaborate with fellow students and mentors in your ${selectedDomain} domain</li>
+                    <li><strong>Community:</strong> Get ready to collaborate with fellow students and mentors in your ${escapeHtml(selectedDomain)} domain</li>
                 </ul>
 
                 <p><span class="important">Important:</span> Please keep your login credentials safe. You will need them to access the student portal once it's available.</p>

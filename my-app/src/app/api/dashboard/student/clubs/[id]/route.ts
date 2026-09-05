@@ -21,8 +21,8 @@ export async function GET(request, { params }) {
         // Fetch club data
         const [clubData] = await pool.execute(
             'SELECT * FROM clubs WHERE id = ?',
-            [id]
-        );
+            [id] as any[]
+        ) as [any[], any];
 
         if (clubData.length === 0) {
             return NextResponse.json(
@@ -36,8 +36,8 @@ export async function GET(request, { params }) {
         // Get member count for this club
         const [memberCount] = await pool.execute(
             'SELECT COUNT(*) as count FROM students WHERE clubId = ?',
-            [id]
-        );
+            [id] as any[]
+        ) as [any[], any];
 
         const clubWithMemberCount = {
             ...club,

@@ -198,10 +198,14 @@ export default function PassportPage() {
   };
 
   const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(getShareUrl());
-    setCopied(true);
-    toast.success("Link copied to clipboard!");
-    setTimeout(() => setCopied(false), 2500);
+    try {
+      await navigator.clipboard.writeText(getShareUrl());
+      setCopied(true);
+      toast.success("Link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      toast.error("Couldn't copy — copy the URL from the address bar instead.");
+    }
   };
 
   if (loading) return <div className="p-10 text-center">Loading Passport...</div>;

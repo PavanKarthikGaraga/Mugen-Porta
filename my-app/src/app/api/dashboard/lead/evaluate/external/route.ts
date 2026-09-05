@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from "@/lib/jwt";
 import { cookies } from 'next/headers';
+import { RowDataPacket } from 'mysql2';
 import pool from '@/lib/db';
 import { getLeadClubIds } from '@/lib/leadScope';
 
@@ -53,7 +54,7 @@ export async function POST(request) {
         }
 
         // Verify student is in lead's club
-        const [studentResult] = await pool.execute(
+        const [studentResult] = await pool.execute<RowDataPacket[]>(
             'SELECT clubId FROM students WHERE username = ?',
             [studentUsername]
         );
@@ -73,19 +74,19 @@ export async function POST(request) {
         }
 
         // Check if marks record exists for the student
-        const [existingMarks] = await pool.execute(
+        const [existingMarks] = await pool.execute<RowDataPacket[]>(
             'SELECT id FROM student_external_marks WHERE username = ?',
             [studentUsername]
         );
 
         const marksData = {
-            frm: parseInt(evaluationData.frm) || 0,
+            frm: parseFloat(evaluationData.frm) || 0,
             fyt_m: parseFloat(evaluationData.fyt_m) || 0,
             flk_m: parseFloat(evaluationData.flk_m) || 0
         };
 
         // Get internal marks total
-        const [internalMarks] = await pool.execute(
+        const [internalMarks] = await pool.execute<RowDataPacket[]>(
             'SELECT total FROM student_internal_marks WHERE username = ?',
             [studentUsername]
         );
@@ -97,12 +98,13 @@ export async function POST(request) {
         const finalTotal = internalTotal + total;
 
         if (existingMarks.length > 0) {
-            // Update existing marks
+            // Update existing marks (total combines internal + external so
+            // re-evaluation never drops the internal component)
             await pool.execute(
                 `UPDATE student_external_marks SET
                     frm = ?, fyt_m = ?, flk_m = ?, total = ?
                 WHERE username = ?`,
-                [marksData.frm, marksData.fyt_m, marksData.flk_m, total, studentUsername]
+                [marksData.frm, marksData.fyt_m, marksData.flk_m, finalTotal, studentUsername]
             );
         } else {
             // Insert new marks record

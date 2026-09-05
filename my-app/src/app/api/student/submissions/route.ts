@@ -34,14 +34,14 @@ export async function GET(request) {
         // Fetch internal marks
         const [internalMarks] = await pool.execute(
             'SELECT m1, m2, m3, m4, m5, m6, m7, yt_m, lk_m, total FROM student_internal_marks WHERE username = ?',
-            [payload.username]
-        );
+            [payload.username] as any[]
+        ) as [any[], any];
 
         // Fetch external marks
         const [externalMarks] = await pool.execute(
             'SELECT internal, frm, fyt_m, flk_m, total FROM student_external_marks WHERE username = ?',
-            [payload.username]
-        );
+            [payload.username] as any[]
+        ) as [any[], any];
 
         const internalData = internalMarks.length > 0 ? internalMarks[0] : {
             m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0,

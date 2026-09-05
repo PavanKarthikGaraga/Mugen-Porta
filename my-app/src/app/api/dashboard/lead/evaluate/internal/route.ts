@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from "@/lib/jwt";
 import { cookies } from 'next/headers';
+import { RowDataPacket } from 'mysql2';
 import pool from '@/lib/db';
 import { getLeadClubIds } from '@/lib/leadScope';
 
@@ -74,7 +75,7 @@ export async function POST(request) {
         }
 
         // Verify student is in lead's club
-        const [studentResult] = await pool.execute(
+        const [studentResult] = await pool.execute<RowDataPacket[]>(
             'SELECT clubId FROM students WHERE username = ?',
             [studentUsername]
         );
@@ -94,7 +95,7 @@ export async function POST(request) {
         }
 
         // Check if the submission exists for this day
-        const [existingSubmission] = await pool.execute(
+        const [existingSubmission] = await pool.execute<RowDataPacket[]>(
             'SELECT id, status FROM internal_submissions WHERE username = ? AND num = ?',
             [studentUsername, day]
         );
@@ -124,7 +125,7 @@ export async function POST(request) {
         );
 
         // Calculate new total internal marks (10 marks per approved day)
-        const [allSubmissions] = await pool.execute(
+        const [allSubmissions] = await pool.execute<RowDataPacket[]>(
             'SELECT num, status FROM internal_submissions WHERE username = ?',
             [studentUsername]
         );
@@ -134,7 +135,7 @@ export async function POST(request) {
             .length * 10;
 
         // Update external marks table with the new internal total
-        const [existingExternalMarks] = await pool.execute(
+        const [existingExternalMarks] = await pool.execute<RowDataPacket[]>(
             'SELECT id FROM student_external_marks WHERE username = ?',
             [studentUsername]
         );
@@ -147,7 +148,7 @@ export async function POST(request) {
             );
 
             // Recalculate total external marks
-            const [externalMarks] = await pool.execute(
+            const [externalMarks] = await pool.execute<RowDataPacket[]>(
                 'SELECT frm, fyt_m, flk_m FROM student_external_marks WHERE username = ?',
                 [studentUsername]
             );

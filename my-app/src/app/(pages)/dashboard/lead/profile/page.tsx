@@ -4,7 +4,7 @@ import { FiUser, FiMail, FiPhone, FiCalendar, FiMapPin, FiEdit2, FiSave, FiX } f
 import { handleApiError, handleApiSuccess } from '@/lib/apiErrorHandler';
 
 export default function LeadProfilePage() {
-    const [profile, setProfile] = useState({
+    const [profile, setProfile] = useState<any>({
         username: '',
         name: '',
         email: '',
@@ -16,7 +16,7 @@ export default function LeadProfilePage() {
     });
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
-    const [formData, setFormData] = useState({});
+    const [formData, setFormData] = useState<any>({});
 
     useEffect(() => {
         fetchProfile();

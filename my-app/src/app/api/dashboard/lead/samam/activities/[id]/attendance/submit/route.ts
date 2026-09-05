@@ -37,7 +37,23 @@ async function checkLead() {
   try {
     const clubIds = await getLeadClubIds(decoded.username as string);
     if (clubIds.length === 0) return null;
-    return { decoded, clubIds };
+
+    let assigned_categories: string[] = [];
+    try {
+      const [rows]: any = await pool.execute('SELECT assigned_categories FROM leads WHERE username = ?', [decoded.username as string]);
+      if (rows[0]?.assigned_categories) {
+        try {
+          assigned_categories = typeof rows[0].assigned_categories === 'string'
+            ? JSON.parse(rows[0].assigned_categories)
+            : rows[0].assigned_categories;
+        } catch {}
+      }
+    } catch (e: any) {
+      // Column may not exist on old schemas — treat as no categories.
+      if (e.code !== 'ER_BAD_FIELD_ERROR' && !e.message?.includes('assigned_categories')) throw e;
+    }
+
+    return { decoded, clubIds, assigned_categories };
   } catch {
     return null;
   }
@@ -46,16 +62,30 @@ async function checkLead() {
 // One attendance_submissions row per activity, attributed to whichever of
 // the lead's clubs actually owns it (via club_activity_mappings) -- not
 // blindly the lead's parent club, since a multi-club lead may be submitting
-// for an activity that belongs to a TEC child club. Falls back to the
-// parent club (clubIds[0] -- getLeadClubIds() always puts it first) when no
-// explicit mapping exists, matching the legacy assigned_categories path.
-async function resolveSubmissionClub(clubIds: string[], activityCode: string) {
+// for an activity that belongs to a TEC child club. When no explicit mapping
+// exists, legacy category-scoped leads fall back to their parent club ONLY if
+// the activity's category is in their assigned_categories; otherwise the
+// activity is not theirs to submit and null is returned (deny by default —
+// without this, any lead could submit/forge a verification request for any
+// activity code in the catalogue).
+async function resolveSubmissionClub(clubIds: string[], assignedCategories: string[], activityCode: string) {
   const placeholders = clubIds.map(() => '?').join(',');
   const [mapRows]: any = await pool.execute(
     `SELECT club_id FROM club_activity_mappings WHERE activity_code = ? AND club_id IN (${placeholders}) LIMIT 1`,
     [activityCode, ...clubIds]
   );
-  const clubId = mapRows[0]?.club_id || clubIds[0];
+  let clubId: string | null = mapRows[0]?.club_id ?? null;
+
+  if (!clubId && assignedCategories.length > 0) {
+    const catPlaceholders = assignedCategories.map(() => '?').join(',');
+    const [actRows]: any = await pool.execute(
+      `SELECT category FROM activity_catalogue WHERE code = ? AND category IN (${catPlaceholders}) LIMIT 1`,
+      [activityCode, ...assignedCategories]
+    );
+    if (actRows[0]) clubId = clubIds[0]; // legacy path: attribute to parent club
+  }
+
+  if (!clubId) return null;
   const [clubRows]: any = await pool.execute('SELECT name FROM clubs WHERE id = ?', [clubId]);
   return { clubId, clubName: clubRows[0]?.name || '' };
 }
@@ -99,7 +129,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       [id]
     );
     const actTitle = actInfo[0]?.title ?? id;
-    const { clubId, clubName } = await resolveSubmissionClub(lead.clubIds, id);
+    const submissionClub = await resolveSubmissionClub(lead.clubIds, lead.assigned_categories, id);
+    if (!submissionClub) {
+      return NextResponse.json({ error: 'Activity is not assigned to your club' }, { status: 403 });
+    }
+    const { clubId, clubName } = submissionClub;
 
     await pool.execute(`
       INSERT INTO attendance_submissions (activity_code, club_id, club_name, activity_title, lead_username, status)

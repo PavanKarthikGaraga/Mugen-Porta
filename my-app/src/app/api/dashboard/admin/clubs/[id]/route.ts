@@ -1,5 +1,6 @@
 import pool from '../../../../../../lib/db';
 import { NextResponse } from 'next/server';
+import { ResultSetHeader } from 'mysql2';
 import { verifyAdminToken } from '../../auth-helper';
 
 export async function PUT(request, { params }) {
@@ -22,7 +23,7 @@ export async function PUT(request, { params }) {
 
             // Update the main club record
             const targetId = newId || oldId;
-            const [result] = await connection.execute(
+            const [result] = await connection.execute<ResultSetHeader>(
                 'UPDATE clubs SET id = ?, name = ?, description = ?, domain = ?, memberLimit = ? WHERE id = ?',
                 [targetId, name, description, domain, memberLimit || 50, oldId]
             );
@@ -67,7 +68,7 @@ export async function DELETE(request, { params }) {
         const { id } = await params;
         
         
-        const [result] = await pool.execute('DELETE FROM clubs WHERE id = ?', [id]);
+        const [result] = await pool.execute<ResultSetHeader>('DELETE FROM clubs WHERE id = ?', [id]);
         
         if (result.affectedRows === 0) {
             return NextResponse.json({ error: 'Club not found' }, { status: 404 });

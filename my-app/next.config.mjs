@@ -6,6 +6,19 @@ const nextConfig = {
   serverActions: {
     bodySizeLimit: '10mb',
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-DNS-Prefetch-Control', value: 'off' },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return [
       // Rewrite /uploads/* to the API file-server so every Nginx proxy config

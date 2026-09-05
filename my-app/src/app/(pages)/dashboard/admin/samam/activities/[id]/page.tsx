@@ -25,7 +25,7 @@ const DIFFICULTY_COLOR = {
   Advanced:     { bg: "#FEF2F2", color: "#DC2626" },
 };
 
-export default function AdminActivityDetailPage({ params }) {
+export default function AdminActivityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   

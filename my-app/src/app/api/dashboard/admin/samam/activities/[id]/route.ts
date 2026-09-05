@@ -11,7 +11,7 @@ async function checkAdmin() {
     const cookieStore = await cookies();
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
-    const decoded = await verifyToken(token);
+    const decoded = await verifyToken(token) as { role: string; username: string } | null;
     if (!decoded || !['admin', 'faculty', 'council', 'lead'].includes(decoded.role)) return null;
     return decoded;
 }

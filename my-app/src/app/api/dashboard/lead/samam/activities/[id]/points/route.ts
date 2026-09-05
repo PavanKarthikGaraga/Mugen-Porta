@@ -6,6 +6,10 @@ import { checkIssuer, loadPermittedActivity } from '@/lib/samamActivityAuth';
 export const dynamic = 'force-dynamic';
 
 const MAX_BULK = 500;
+// Sanity cap on a single award so a forged/buggy request can't inflate a
+// student's total with absurd amounts (e.g. credits: 1000000). Legitimate
+// per-activity awards are far below this.
+const MAX_CREDITS_PER_AWARD = 1000;
 
 /**
  * Bulk SAMAM points award for a single activity — admin/council/faculty/lead
@@ -35,6 +39,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         const credits = Number(body?.credits);
         if (!Number.isFinite(credits) || credits <= 0) {
             return NextResponse.json({ message: 'Enter a valid points amount' }, { status: 400 });
+        }
+        if (credits > MAX_CREDITS_PER_AWARD) {
+            return NextResponse.json(
+                { message: `Points amount exceeds the maximum of ${MAX_CREDITS_PER_AWARD} per award` },
+                { status: 400 }
+            );
         }
         const reason = typeof body?.reason === 'string' && body.reason.trim()
             ? body.reason.trim()
@@ -81,8 +91,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 // students. sdc_transactions is an append-only ledger with no separate
 // running total anywhere (every total is SUM(credits) at query time), so
 // deleting the matching row(s) is sufficient — there's nothing else to fix
-// up. Removes every row this activity ever wrote for that student, in case
-// they were awarded more than once (the award POST isn't idempotent).
+// up. Only rows granted BY THE CURRENT ISSUER are removed, so a lead can't
+// erase points an admin/faculty awarded for the same activity; rows awarded
+// by someone else are left untouched.
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const issuer = await checkIssuer();
@@ -104,8 +115,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
         const placeholders = requested.map(() => '?').join(',');
         const [result]: any = await pool.execute(
-            `DELETE FROM sdc_transactions WHERE category = ? AND username IN (${placeholders})`,
-            [`Activity: ${activity.code}`, ...requested]
+            `DELETE FROM sdc_transactions WHERE category = ? AND granted_by = ? AND username IN (${placeholders})`,
+            [`Activity: ${activity.code}`, issuer.decoded.username, ...requested]
         );
 
         return NextResponse.json({

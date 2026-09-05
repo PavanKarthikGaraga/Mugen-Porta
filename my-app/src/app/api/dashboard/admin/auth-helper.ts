@@ -3,8 +3,7 @@ import { NextResponse } from 'next/server';
 import {cookies} from "next/headers"; 
 
 const envUsers = process.env.DEV_USERNAME ? process.env.DEV_USERNAME.split(',') : [];
-const defaultUsers = ['2300032048', '2400030188', '240030188'];
-const DEV_USERNAMES = [...new Set([...envUsers, ...defaultUsers])].map(u => u.trim());
+const DEV_USERNAMES = [...new Set(envUsers)].map(u => u.trim());
 
 export async function verifyAdminToken(request) {
     const cookieStore = await cookies();
@@ -67,7 +66,7 @@ export async function verifyDevAccess(request) {
     }
 
     // Check if user has dev access (specific usernames)
-    if (!DEV_USERNAMES.includes(authResult.payload.username)) {
+    if (!DEV_USERNAMES.includes(authResult.payload.username as string)) {
         return {
             success: false,
             response: NextResponse.json(

@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { RowDataPacket } from 'mysql2';
 import { verifyToken } from '@/lib/jwt';
 
 export async function GET(request) {
@@ -13,7 +14,7 @@ export async function GET(request) {
             );
         }
 
-        const payload = await verifyToken(token);
+        const payload = await verifyToken(token) as { role: string; username: string } | null;
         if (!payload || payload.role !== 'faculty') {
             return NextResponse.json(
                 { error: 'Unauthorized' },
@@ -22,7 +23,7 @@ export async function GET(request) {
         }
 
         // Get faculty's assigned clubs
-        const [facultyResult] = await pool.execute(
+        const [facultyResult] = await pool.execute<RowDataPacket[]>(
             'SELECT assignedClubs FROM faculty WHERE username = ?',
             [payload.username]
         );
@@ -45,7 +46,7 @@ export async function GET(request) {
         const placeholders = assignedClubs.map(() => '?').join(',');
 
         // Get only the assigned clubs
-        const [clubsResult] = await pool.execute(
+        const [clubsResult] = await pool.execute<RowDataPacket[]>(
             `SELECT * FROM clubs WHERE id IN (${placeholders}) ORDER BY name`,
             assignedClubs
         );

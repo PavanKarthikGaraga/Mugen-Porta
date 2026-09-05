@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { RowDataPacket } from 'mysql2';
 import pool from '@/lib/db';
 import { verifyAdminToken } from '../../auth-helper';
 
@@ -27,7 +28,7 @@ export async function POST(request) {
 
         try {
             // Check if student exists and get their details
-            const [studentResult] = await connection.execute(
+            const [studentResult] = await connection.execute<RowDataPacket[]>(
                 'SELECT name, email, phoneNumber, year, branch, clubId FROM students WHERE username = ?',
                 [username]
             );
@@ -43,7 +44,7 @@ export async function POST(request) {
             const studentData = studentResult[0];
 
             // Check if user already exists and what their current role is
-            const [userResult] = await connection.execute(
+            const [userResult] = await connection.execute<RowDataPacket[]>(
                 'SELECT role FROM users WHERE username = ?',
                 [username]
             );
@@ -79,7 +80,7 @@ export async function POST(request) {
             }
 
             // Check if lead record already exists
-            const [existingLead] = await connection.execute(
+            const [existingLead] = await connection.execute<RowDataPacket[]>(
                 'SELECT id FROM leads WHERE username = ?',
                 [username]
             );

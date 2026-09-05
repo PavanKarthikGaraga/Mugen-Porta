@@ -10,7 +10,7 @@ export async function POST(request) {
         connection = await getConnection();
 
         // Verify JWT token from cookie
-        const cookieStore = cookies();
+        const cookieStore = await cookies();
         const token = cookieStore.get('tck')?.value;
 
         if (!token) {
@@ -49,8 +49,8 @@ export async function POST(request) {
         // Check if faculty has access to this student's club
         const [facultyResult] = await connection.execute(
             'SELECT assignedClubs FROM faculty WHERE username = ?',
-            [facultyUsername]
-        );
+            [facultyUsername] as any[]
+        ) as [any[], any];
 
         if (facultyResult.length === 0) {
             return NextResponse.json(
@@ -98,8 +98,8 @@ export async function POST(request) {
         // Get student's club
         const [studentResult] = await connection.execute(
             'SELECT clubId FROM students WHERE username = ?',
-            [studentUsername]
-        );
+            [studentUsername] as any[]
+        ) as [any[], any];
 
         if (studentResult.length === 0) {
             return NextResponse.json(
@@ -124,8 +124,8 @@ export async function POST(request) {
             // Get internal marks total
             const [internalMarks] = await connection.execute(
                 'SELECT total FROM student_internal_marks WHERE username = ?',
-                [studentUsername]
-            );
+                [studentUsername] as any[]
+            ) as [any[], any];
 
             const internalTotal = internalMarks.length > 0 ? parseFloat(internalMarks[0].total) || 0 : 0;
 
@@ -138,8 +138,8 @@ export async function POST(request) {
             // Check if external marks record exists
             const [existingMarks] = await connection.execute(
                 'SELECT id FROM student_external_marks WHERE username = ?',
-                [studentUsername]
-            );
+                [studentUsername] as any[]
+            ) as [any[], any];
 
             if (existingMarks.length > 0) {
                 // Update existing record
@@ -147,14 +147,14 @@ export async function POST(request) {
                     `UPDATE student_external_marks
                      SET internal = ?, frm = ?, fyt_m = ?, flk_m = ?, total = ?, evaluated_by = ?
                      WHERE username = ?`,
-                    [internalTotal, frm, fyt_m, flk_m, externalTotal, facultyUsername, studentUsername]
+                    [internalTotal, frm, fyt_m, flk_m, externalTotal, facultyUsername, studentUsername] as any[]
                 );
             } else {
                 // Insert new record
                 await connection.execute(
                     `INSERT INTO student_external_marks (username, internal, frm, fyt_m, flk_m, total, evaluated_by)
                      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                    [studentUsername, internalTotal, frm, fyt_m, flk_m, externalTotal, facultyUsername]
+                    [studentUsername, internalTotal, frm, fyt_m, flk_m, externalTotal, facultyUsername] as any[]
                 );
             }
 

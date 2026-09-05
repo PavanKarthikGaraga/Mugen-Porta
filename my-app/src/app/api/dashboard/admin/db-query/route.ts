@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { RowDataPacket } from 'mysql2';
 import pool from '@/lib/db';
 import { verifyDevAccess } from '../auth-helper';
 
@@ -7,6 +8,15 @@ export async function POST(request) {
     const authResult = await verifyDevAccess(request);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // Hard gate: this is a dev-only tool and must be explicitly re-enabled
+    // via env before it will execute anything.
+    if (process.env.ALLOW_DB_QUERY !== 'true') {
+        return NextResponse.json(
+            { error: 'Database query tool is disabled' },
+            { status: 403 }
+        );
     }
 
     try {
@@ -98,7 +108,7 @@ export async function GET(request) {
 
     try {
         // Get list of tables
-        const [tables] = await pool.execute('SHOW TABLES');
+        const [tables] = await pool.execute<RowDataPacket[]>('SHOW TABLES');
         const tableNames = tables.map(row => Object.values(row)[0]);
 
         // Get sample queries

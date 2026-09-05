@@ -11,7 +11,9 @@ const ROLE_BADGE: Record<string, string> = {
     student: "bg-emerald-100 text-emerald-800",
 };
 
-const RESET_PASSWORD = "sac@123";
+// The reset value comes from the DEV_RESET_PASSWORD env var (server-side
+// only) — see the API route. It is returned by the server after a successful
+// reset so it is never baked into the client bundle.
 const API_BASE = "/api/dashboard/admin/dev/reset-password";
 
 export default function AdminResetPasswordPage() {
@@ -25,6 +27,7 @@ export default function AdminResetPasswordPage() {
     const [resetting, setResetting] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [lastReset, setLastReset] = useState<string | null>(null);
+    const [resetPassword, setResetPassword] = useState<string | null>(null);
 
     // Client-side gate matching the other /dashboard/admin/dev/* pages —
     // the API route enforces this too (verifyDevAccess), this just avoids
@@ -34,9 +37,10 @@ export default function AdminResetPasswordPage() {
             const res = await fetch('/api/auth/me');
             if (!res.ok) { setHasAccess(false); router.push('/dashboard/admin'); return; }
             const data = await res.json();
+            // Client-side hint only — the API route enforces the real gate
+            // (verifyDevAccess). No hardcoded usernames here by design.
             const envUsers = process.env.NEXT_PUBLIC_DEV_USERNAME ? process.env.NEXT_PUBLIC_DEV_USERNAME.split(',') : [];
-            const defaultUsers = ['2300032048', '2400030188', '240030188'];
-            const devUsernames = [...new Set([...envUsers, ...defaultUsers])].map((u) => u.trim());
+            const devUsernames = [...new Set(envUsers)].map((u) => u.trim());
             const devOk = devUsernames.includes(data.user.username);
             setHasAccess(devOk);
             if (!devOk) router.push('/dashboard/admin');
@@ -91,7 +95,8 @@ export default function AdminResetPasswordPage() {
                 toast.error(data.error || "Failed to reset password");
                 return;
             }
-            toast.success(`Password reset to "${RESET_PASSWORD}" for ${user.name}`);
+            toast.success(`Password reset to "${data.resetPassword}" for ${user.name}`);
+            setResetPassword(data.resetPassword ?? null);
             setLastReset(user.username);
             setShowConfirm(false);
         } catch (e) {
@@ -119,7 +124,7 @@ export default function AdminResetPasswordPage() {
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
                     Look up any administrator, lead, faculty member, or student by username and reset their
-                    password to the default (<span className="font-mono font-semibold text-gray-700">{RESET_PASSWORD}</span>).
+                    password to the configured default (<span className="font-mono font-semibold text-gray-700">DEV_RESET_PASSWORD</span>).
                 </p>
             </div>
 
@@ -179,7 +184,7 @@ export default function AdminResetPasswordPage() {
 
                     {lastReset === user.username && (
                         <div className="mx-6 mb-4 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-                            <FiCheckCircle size={14} /> Password reset to &ldquo;{RESET_PASSWORD}&rdquo;.
+                            <FiCheckCircle size={14} /> Password reset to &ldquo;{resetPassword ?? "the configured default"}&rdquo;.
                         </div>
                     )}
 
@@ -188,7 +193,7 @@ export default function AdminResetPasswordPage() {
                             onClick={() => setShowConfirm(true)}
                             className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                         >
-                            <FiKey size={14} /> Reset Password to &ldquo;{RESET_PASSWORD}&rdquo;
+                            <FiKey size={14} /> Reset Password to Default
                         </button>
                     </div>
                 </div>
@@ -202,7 +207,7 @@ export default function AdminResetPasswordPage() {
                             <h3 className="text-lg font-medium text-gray-900 mb-3">Confirm Password Reset</h3>
                             <p className="text-gray-600 text-sm leading-relaxed">
                                 This will immediately set <strong>{user.name}</strong>&apos;s ({user.username}, {user.role})
-                                password to <span className="font-mono font-semibold text-gray-800">{RESET_PASSWORD}</span>.
+                                password to the value of the <span className="font-mono font-semibold text-gray-800">DEV_RESET_PASSWORD</span> env var.
                                 They will need to log in with this password and should change it afterwards.
                             </p>
                             <div className="flex justify-end gap-3 mt-6">

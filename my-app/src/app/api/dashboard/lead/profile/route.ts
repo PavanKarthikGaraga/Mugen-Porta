@@ -27,8 +27,8 @@ export async function GET(request) {
              FROM leads l
              LEFT JOIN clubs c ON l.clubId = c.id
              WHERE l.username = ?`,
-            [payload.username]
-        );
+            [payload.username] as any[]
+        ) as [any[], any];
 
         if (profileResult.length === 0) {
             return NextResponse.json(
@@ -86,13 +86,13 @@ export async function PUT(request) {
             // Update users table
             await connection.execute(
                 'UPDATE users SET name = ?, email = ? WHERE username = ?',
-                [name, email, payload.username]
+                [name, email, payload.username] as any[]
             );
 
             // Update leads table
             await connection.execute(
                 'UPDATE leads SET name = ?, email = ?, phoneNumber = ?, year = ?, branch = ? WHERE username = ?',
-                [name, email, phoneNumber, year, branch, payload.username]
+                [name, email, phoneNumber, year, branch, payload.username] as any[]
             );
 
             await connection.commit();

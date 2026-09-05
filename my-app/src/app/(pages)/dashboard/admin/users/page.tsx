@@ -124,9 +124,9 @@ export default function UsersPage() {
         if (filters.search) {
             const searchTerm = filters.search.toLowerCase();
             filtered = filtered.filter(user =>
-                user.name.toLowerCase().includes(searchTerm) ||
-                user.username.toLowerCase().includes(searchTerm) ||
-                user.email.toLowerCase().includes(searchTerm)
+                (user.name || '').toLowerCase().includes(searchTerm) ||
+                (user.username || '').toLowerCase().includes(searchTerm) ||
+                (user.email || '').toLowerCase().includes(searchTerm)
             );
         }
 
@@ -307,10 +307,10 @@ export default function UsersPage() {
             assignedClubs: parseArrayField(user.assignedClubs),
             assignedDomains: domains.length > 0 ? domains : (user.assignedDomain ? [user.assignedDomain] : []),
             childClubIds: parseArrayField(user.childClubIds),
-            // Prefills with the password set when this account was created
-            // (or last changed here) — see users.plainPassword. Admin can
-            // leave it as-is or type a new one to change it.
-            password: user.plainPassword || '',
+            // Blank means "leave the password as-is" — the API only changes
+            // it when a new one is typed. Passwords are no longer stored or
+            // returned in plaintext, so this always starts empty.
+            password: '',
             studentDetails: null,
             isPromotingStudent: false,
         });

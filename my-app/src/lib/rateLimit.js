@@ -26,6 +26,12 @@ const redis = new Redis({
     host: process.env.REDIS_HOST || '127.0.0.1',
     port: Number(process.env.REDIS_PORT) || 6379,
     password: process.env.REDIS_PASSWORD || undefined,
+    // Fail fast: without these, a Redis outage makes every command sit in the
+    // offline retry queue (default ~20 retries with backoff) before rejecting,
+    // hanging the login/register request path for ages before the documented
+    // fail-open path below is reached.
+    maxRetriesPerRequest: 2,
+    commandTimeout: 5000,
 });
 
 // A connection blip must never crash the process -- ioredis throws on an

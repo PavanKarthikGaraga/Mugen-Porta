@@ -42,7 +42,11 @@ export async function GET(
 ) {
     const { path: parts } = await params;
 
-    // Block path traversal
+    // Block path traversal: reject dot segments outright — path.basename('..')
+    // returns '..', so it cannot be relied on as a sanitizer.
+    if (parts.some(p => p === '.' || p === '..')) {
+        return new NextResponse('Not found', { status: 404 });
+    }
     const safeParts = parts.map(p => path.basename(p));
     const filePath = findFile(safeParts);
 

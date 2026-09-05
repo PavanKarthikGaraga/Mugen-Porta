@@ -67,6 +67,12 @@ export async function middleware(request) {
                 }
             }
 
+            if (pathname.startsWith('/dashboard/council')) {
+                if (payload.role !== 'council') {
+                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
+                }
+            }
+
             // Allow access if token is valid
             return NextResponse.next();
         } catch (error) {

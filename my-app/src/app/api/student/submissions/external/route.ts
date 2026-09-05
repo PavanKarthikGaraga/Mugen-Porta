@@ -49,8 +49,8 @@ export async function GET(request) {
                 // Check if the requested student is in one of the lead's clubs
                 const [studentResult] = await pool.execute(
                     'SELECT clubId FROM students WHERE username = ?',
-                    [requestedUsername]
-                );
+                    [requestedUsername] as any[]
+                ) as [any[], any];
 
                 if (studentResult.length > 0 && leadClubIds.includes(studentResult[0].clubId)) {
                     authorized = true;
@@ -61,8 +61,8 @@ export async function GET(request) {
             // Faculty can access submissions for students in their assigned clubs
             const [facultyResult] = await pool.execute(
                 'SELECT assignedClubs FROM faculty WHERE username = ?',
-                [payload.username]
-            );
+                [payload.username] as any[]
+            ) as [any[], any];
 
             if (facultyResult.length > 0 && facultyResult[0].assignedClubs) {
                 const assignedClubs = facultyResult[0].assignedClubs.split(',').map(id => id.trim());
@@ -70,8 +70,8 @@ export async function GET(request) {
                 // Check if the requested student is in one of the faculty's assigned clubs
                 const [studentResult] = await pool.execute(
                     'SELECT clubId FROM students WHERE username = ?',
-                    [requestedUsername]
-                );
+                    [requestedUsername] as any[]
+                ) as [any[], any];
 
                 if (studentResult.length > 0 && assignedClubs.includes(studentResult[0].clubId.toString())) {
                     authorized = true;
@@ -94,13 +94,13 @@ export async function GET(request) {
         // Fetch external submission and marks for the requested student
         const [submissions] = await pool.execute(
             'SELECT fr, fyt_l, flk_l FROM student_external_submissions WHERE username = ?',
-            [accessUsername]
-        );
+            [accessUsername] as any[]
+        ) as [any[], any];
 
         const [marks] = await pool.execute(
             'SELECT internal, frm, fyt_m, flk_m, total FROM student_external_marks WHERE username = ?',
-            [accessUsername]
-        );
+            [accessUsername] as any[]
+        ) as [any[], any];
 
         const submissionData = submissions.length > 0 ? submissions[0] : {
             fr: null, fyt_l: null, flk_l: null
@@ -172,20 +172,20 @@ export async function POST(request) {
         // Check if student has a record in external_submissions, if not create one
         const [existing] = await pool.execute(
             'SELECT id FROM student_external_submissions WHERE username = ?',
-            [payload.username]
-        );
+            [payload.username] as any[]
+        ) as [any[], any];
 
         if (existing.length > 0) {
             // Update existing record
             await pool.execute(
                 'UPDATE student_external_submissions SET fr = ?, fyt_l = ?, flk_l = ? WHERE username = ?',
-                [finalReportUrl, presentationYoutubeUrl, presentationLinkedinUrl, payload.username]
+                [finalReportUrl, presentationYoutubeUrl, presentationLinkedinUrl, payload.username] as any[]
             );
         } else {
             // Insert new record
             await pool.execute(
                 'INSERT INTO student_external_submissions (username, fr, fyt_l, flk_l) VALUES (?, ?, ?, ?)',
-                [payload.username, finalReportUrl, presentationYoutubeUrl, presentationLinkedinUrl]
+                [payload.username, finalReportUrl, presentationYoutubeUrl, presentationLinkedinUrl] as any[]
             );
         }
 

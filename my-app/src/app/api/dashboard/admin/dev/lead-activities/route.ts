@@ -11,10 +11,10 @@ async function checkDevAdmin() {
     const decoded = await verifyToken(token);
     if (!decoded || decoded.role !== 'admin') return null;
 
-    // Check dev access
-    const envUsers = process.env.NEXT_PUBLIC_DEV_USERNAME ? process.env.NEXT_PUBLIC_DEV_USERNAME.split(',') : [];
-    const defaultUsers = ['2300032048', '2400030188', '240030188'];
-    const devUsernames = [...new Set([...envUsers, ...defaultUsers])].map(u => u.trim());
+    // Check dev access — server-only env var (never NEXT_PUBLIC_*, which is
+    // inlined into the client bundle). No hardcoded fallback list.
+    const envUsers = process.env.DEV_USERNAME ? process.env.DEV_USERNAME.split(',') : [];
+    const devUsernames = [...new Set(envUsers)].map(u => u.trim());
     
     if (!devUsernames.includes(decoded.username as string)) return null;
     

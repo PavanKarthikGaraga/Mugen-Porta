@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { RowDataPacket } from 'mysql2';
 import { verifyToken } from '@/lib/jwt';
 
 export async function GET(request) {
@@ -13,7 +14,7 @@ export async function GET(request) {
             );
         }
 
-        const payload = await verifyToken(token);
+        const payload = await verifyToken(token) as { role: string; username: string } | null;
         if (!payload || payload.role !== 'faculty') {
             return NextResponse.json(
                 { error: 'Unauthorized' },
@@ -22,7 +23,7 @@ export async function GET(request) {
         }
 
         // Get faculty profile data
-        const [profileResult] = await pool.execute(
+        const [profileResult] = await pool.execute<RowDataPacket[]>(
             'SELECT * FROM faculty WHERE username = ?',
             [payload.username]
         );

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import pool from '@/lib/db';
 import { verifyDevAccess } from '../auth-helper';
 
@@ -83,7 +84,7 @@ export async function POST(request) {
 
         if (action === 'clear-old-logs') {
             // Clear old email logs older than 30 days (keeping historical data)
-            const [result] = await pool.execute(`
+            const [result] = await pool.execute<ResultSetHeader>(`
                 DELETE FROM email_queue
                 WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
             `);

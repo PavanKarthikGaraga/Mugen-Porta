@@ -70,7 +70,7 @@ export async function GET(request) {
             // Get total count
             const countQuery = `SELECT COUNT(*) as total FROM students s ${whereClause}`;
 
-            const [countResult] = await pool.execute(countQuery, queryParams);
+            const [countResult] = await pool.execute(countQuery, queryParams as any[]) as [any[], any];
             const total = countResult[0].total;
 
             // Get students data with submissions
@@ -106,7 +106,7 @@ export async function GET(request) {
                 LIMIT ${limit} OFFSET ${offset}
             `;
 
-            const [studentsResult] = await pool.execute(studentsQuery, queryParams);
+            const [studentsResult] = await pool.execute(studentsQuery, queryParams as any[]) as [any[], any];
 
             // Get usernames for internal submissions query
             const usernames = studentsResult.map(student => student.username);
@@ -120,8 +120,8 @@ export async function GET(request) {
                      FROM internal_submissions
                      WHERE username IN (${placeholders})
                      ORDER BY username, num`,
-                    usernames
-                );
+                    usernames as any[]
+                ) as [any[], any];
                 internalSubmissions = internalResults;
             }
 

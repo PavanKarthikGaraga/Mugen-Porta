@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         const cookieStore = await cookies();
         const token = cookieStore.get('tck')?.value;
         if (!token) return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
-        const decoded = await verifyToken(token);
+        const decoded = await verifyToken(token) as { role: string; username: string } | null;
         if (!decoded) return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 });
         if (!decoded || !['admin', 'superadmin', 'faculty', 'council', 'lead'].includes(decoded.role)) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
