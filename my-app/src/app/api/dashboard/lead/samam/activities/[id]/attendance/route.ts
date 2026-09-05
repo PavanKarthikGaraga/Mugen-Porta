@@ -76,12 +76,12 @@ async function resolveAccessibleActivity(lead: any, code: string) {
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const lead = await checkLead();
-        if (!lead) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        if (!lead) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const { id } = await params; // id is the activity code
 
         const activity = await resolveAccessibleActivity(lead, id);
         if (!activity) {
-            return NextResponse.json({ message: 'Activity not found or not assigned to you' }, { status: 403 });
+            return NextResponse.json({ error: 'Activity not found or not assigned to you' }, { status: 403 });
         }
 
         // Fetch ALL students enrolled in this activity
@@ -108,14 +108,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const lead = await checkLead();
-        if (!lead) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        if (!lead) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const { id } = await params;
         const body = await request.json().catch(() => ({}));
         const absentees: string[] = Array.isArray(body.absentees) ? body.absentees : [];
 
         const activity = await resolveAccessibleActivity(lead, id);
         if (!activity) {
-            return NextResponse.json({ message: 'Activity not found or not assigned to you' }, { status: 403 });
+            return NextResponse.json({ error: 'Activity not found or not assigned to you' }, { status: 403 });
         }
 
         // Once attendance has been marked/locked for this activity, only an
@@ -127,7 +127,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             [id]
         );
         if ((lockRows as any[]).length > 0) {
-            return NextResponse.json({ message: 'Attendance is locked. Only an admin can make further changes.' }, { status: 403 });
+            return NextResponse.json({ error: 'Attendance is locked. Only an admin can make further changes.' }, { status: 403 });
         }
 
         const absenteesPlaceholders = absentees.length > 0 ? absentees.map(() => '?').join(',') : "''";
@@ -206,7 +206,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             console.error('Auto-submit for verification failed (non-fatal):', submitErr);
         }
 
-        return NextResponse.json({ success: true, message: 'Attendance saved and sent for verification' });
+        return NextResponse.json({ success: true, error: 'Attendance saved and sent for verification' });
 
     } catch (error: any) {
         console.error('Save attendance error:', error);

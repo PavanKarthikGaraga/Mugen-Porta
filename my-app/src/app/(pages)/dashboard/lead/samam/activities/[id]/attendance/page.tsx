@@ -38,7 +38,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
       if (d.success) {
         setStudents(d.students);
         if (d.activity) setActivityInfo(d.activity);
-        if (d.students.length > 0 && d.students[0].attendance_marked) {
+        if (d.students.length > 0 && d.students.some((s: any) => s.attendance_marked)) {
           setAttendanceMarked(true);
           setPresents(new Set(
             d.students.filter((s: any) => s.attendance_percentage === 100).map((s: any) => s.username)
@@ -337,7 +337,20 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
           <table className="w-full min-w-[480px] text-left text-sm">
             <thead>
               <tr className="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider border-b">
-                {!attendanceMarked && <th className="p-4 font-semibold w-14 text-center">Present</th>}
+                {!attendanceMarked && (
+                  <th className="p-4 font-semibold w-14 text-center">
+                    <div className="flex flex-col items-center justify-center gap-1">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 accent-emerald-600 rounded cursor-pointer disabled:opacity-50"
+                        checked={filteredStudents.length > 0 && filteredStudents.every(s => presents.has(s.username))}
+                        onChange={handleSelectAll}
+                        title="Select/Deselect All"
+                      />
+                      <span>Present</span>
+                    </div>
+                  </th>
+                )}
                 <th className="p-4 font-semibold">Student Name</th>
                 <th className="p-4 font-semibold">ID</th>
                 <th className="p-4 font-semibold text-right">Status</th>

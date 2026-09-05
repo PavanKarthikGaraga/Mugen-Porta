@@ -37,7 +37,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
       .then(d => {
         if (d.success) {
           setStudents(d.students);
-          if (d.students.length > 0 && d.students[0].attendance_marked) {
+          if (d.students.length > 0 && d.students.some((s: any) => s.attendance_marked)) {
             setAttendanceMarked(true);
             // Seed presents from the saved state so an admin editing after
             // the lock starts from what's actually recorded, not blank.
@@ -202,7 +202,19 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
           <table className="w-full min-w-[520px] text-left">
             <thead>
               <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b">
-                <th className="p-4 font-semibold w-16 text-center">Present</th>
+                <th className="p-4 font-semibold w-16 text-center">
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 accent-emerald-600 rounded cursor-pointer disabled:opacity-50"
+                      checked={filteredStudents.length > 0 && filteredStudents.every(s => presents.has(s.username))}
+                      onChange={handleSelectAll}
+                      disabled={!canEdit}
+                      title="Select/Deselect All"
+                    />
+                    <span>Present</span>
+                  </div>
+                </th>
                 <th className="p-4 font-semibold">Student Name</th>
                 <th className="p-4 font-semibold">Username (ID)</th>
                 <th className="p-4 font-semibold text-right">Status</th>
