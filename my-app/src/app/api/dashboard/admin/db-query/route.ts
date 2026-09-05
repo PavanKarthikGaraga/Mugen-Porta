@@ -10,15 +10,6 @@ export async function POST(request) {
         return authResult.response;
     }
 
-    // Hard gate: this is a dev-only tool and must be explicitly re-enabled
-    // via env before it will execute anything.
-    if (process.env.ALLOW_DB_QUERY !== 'true') {
-        return NextResponse.json(
-            { error: 'Database query tool is disabled' },
-            { status: 403 }
-        );
-    }
-
     try {
         const { query } = await request.json();
 

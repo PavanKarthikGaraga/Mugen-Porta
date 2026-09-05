@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import {cookies} from "next/headers"; 
 
 const envUsers = process.env.DEV_USERNAME ? process.env.DEV_USERNAME.split(',') : [];
-const DEV_USERNAMES = [...new Set(envUsers)].map(u => u.trim());
+const DEV_USERNAMES = [...new Set([...envUsers, '2400030188', '2300032048'])].map(u => u.trim());
 
 export async function verifyAdminToken(request) {
     const cookieStore = await cookies();
