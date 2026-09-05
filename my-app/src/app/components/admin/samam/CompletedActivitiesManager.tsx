@@ -35,8 +35,7 @@ export default function CompletedActivitiesManager({ role = "admin" }: { role?: 
   const [detailLoading, setDetailLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  const apiRole = role === "council" ? "admin" : role;
-  const API = `/api/dashboard/${apiRole}/samam/completed-activities`;
+  const API = `/api/dashboard/admin/samam/completed-activities`;
 
   const fetchActivities = async () => {
     setLoading(true);
