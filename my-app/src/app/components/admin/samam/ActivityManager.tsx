@@ -24,6 +24,13 @@ const DOMAIN_NAMES: Record<string, string> = {
  * registration flag decides whether it's currently open or not-yet-opened.
  */
 function getActivityStatusInfo(a: any) {
+  if (a.attendance_locked) {
+    if (a.report_generated) {
+      return { label: "Activity Completed", subLabel: "Report Generated", color: "text-emerald-700" };
+    }
+    return { label: "Activity Completed", subLabel: "Report pending", color: "text-amber-600" };
+  }
+
   const activityDate = a.activity_date ? new Date(a.activity_date) : null;
   if (activityDate) {
     const today = new Date();
@@ -119,8 +126,9 @@ export default function ActivityManager({
       if (selectedCategory && (a.category || "General") !== selectedCategory) return false;
       if (selectedStatus) {
         const info = getActivityStatusInfo(a);
-        if (selectedStatus === "completed" && info.label !== "Completed") return false;
-        if (selectedStatus === "active" && info.label === "Completed") return false;
+        const isCompleted = info.label === "Completed" || info.label === "Activity Completed";
+        if (selectedStatus === "completed" && !isCompleted) return false;
+        if (selectedStatus === "active" && isCompleted) return false;
       }
       return true;
     });
@@ -225,7 +233,10 @@ export default function ActivityManager({
           end: a.end_time ? String(a.end_time).slice(0, 5) : "—",
           venue: a.venue || "—",
           reg: Number(a.registration_open ?? 1) === 1 ? "Open" : "Closed",
-          status: getActivityStatusInfo(a).label,
+          status: (() => {
+            const info = getActivityStatusInfo(a);
+            return info.subLabel ? `${info.label} - ${info.subLabel}` : info.label;
+          })(),
         });
         if (i % 2 === 1) {
           row.eachCell(c => { c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF9FAFB" } }; });
@@ -381,10 +392,13 @@ export default function ActivityManager({
                                   {(() => {
                                     const info = getActivityStatusInfo(a);
                                     return (
-                                      <span className={`flex items-center gap-1.5 text-[11px] font-medium ${info.color}`}>
-                                        {info.label === "Registrations Active" ? <FiCheckCircle size={12} /> : <FiAlertCircle size={12} />}
-                                        {info.label}
-                                      </span>
+                                      <div className={`flex flex-col gap-0.5 text-[11px] font-medium ${info.color}`}>
+                                        <span className="flex items-center gap-1.5">
+                                          {info.label === "Registrations Active" || info.subLabel === "Report Generated" ? <FiCheckCircle size={12} /> : <FiAlertCircle size={12} />}
+                                          {info.label}
+                                        </span>
+                                        {info.subLabel && <span className="opacity-80 pl-4">{info.subLabel}</span>}
+                                      </div>
                                     );
                                   })()}
                                 </td>
