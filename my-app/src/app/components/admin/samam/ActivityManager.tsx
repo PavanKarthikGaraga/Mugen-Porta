@@ -300,7 +300,7 @@ export default function ActivityManager({
           <FiDownload size={14} /> {exporting ? "Exporting…" : `Export XLSX (${displayActivities.length})`}
         </button>
         <Link
-          href={role === "admin" ? "/dashboard/admin/samam/activities/new" : role === "council" ? "/dashboard/council/samam/activities/new" : "/dashboard/lead/samam/activities/new"}
+          href={`/dashboard/${role}/samam/activities/new`}
           className="h-9 px-4 text-[13px] font-medium rounded-md text-white flex items-center gap-2 hover:opacity-90 transition-opacity shadow-sm" style={{ backgroundColor: BRAND }}>
           <FiPlus size={14} /> New Activity
         </Link>
@@ -406,7 +406,7 @@ export default function ActivityManager({
                                     borders clip. */}
                                 <td className="px-5 py-3 whitespace-nowrap w-px align-middle">
                                   <div className="flex items-center gap-2 justify-end">
-                                    {(role === "admin" || role === "faculty" || role === "council") && a.approval_status === 'pending_approval' && (
+                                    {(role === "admin" || role === "faculty" || role === "council" || role === "lead") && a.approval_status === 'pending_approval' && (
                                       <>
                                         <button
                                           onClick={() => approveActivity(a.code, 'approve')}
@@ -430,19 +430,19 @@ export default function ActivityManager({
                                     {/* Registrations come before Attendance —
                                         you check who signed up, then mark them. */}
                                     <Link
-                                      href={role === "admin" ? `/dashboard/admin/samam/activities/${a.code}/students` : role === "council" ? `/dashboard/council/samam/activities/${a.code}/students` : `/dashboard/lead/samam/activities/${a.code}/students`}
+                                      href={`/dashboard/${role}/samam/activities/${a.code}/students`}
                                       className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors whitespace-nowrap"
                                     >
                                       <FiUsers size={13} /> Registrations
                                     </Link>
                                     <Link
-                                      href={role === "admin" ? `/dashboard/admin/activities/${a.code}/attendance` : role === "council" ? `/dashboard/council/samam/activities/${a.code}/attendance` : `/dashboard/lead/samam/activities/${a.code}/attendance`}
+                                      href={role === "admin" ? `/dashboard/admin/activities/${a.code}/attendance` : `/dashboard/${role}/samam/activities/${a.code}/attendance`}
                                       className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors whitespace-nowrap"
                                     >
                                       <FiUserCheck size={13} /> Attendance
                                     </Link>
                                     <Link
-                                      href={role === "admin" ? `/dashboard/admin/samam/activities/${a.code}/edit` : role === "council" ? `/dashboard/council/samam/activities/${a.code}/edit` : `/dashboard/lead/samam/activities/${a.code}/edit`}
+                                      href={`/dashboard/${role}/samam/activities/${a.code}/edit`}
                                       className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors whitespace-nowrap"
                                     >
                                       <FiEdit2 size={13} /> Edit

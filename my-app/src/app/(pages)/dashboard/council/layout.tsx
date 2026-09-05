@@ -56,8 +56,6 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
         { name: 'Activities',    href: '/dashboard/council/samam/activities',    icon: FiActivity  },
         { name: 'Submissions',   href: '/dashboard/council/samam/submissions',   icon: FiFileText  },
         { name: 'Completed',     href: '/dashboard/council/samam/completed',     icon: FiCheckSquare },
-        { name: 'Notifications', href: '/dashboard/council/samam/notifications', icon: FiBell      },
-        { name: 'Settings',      href: '/dashboard/council/samam/settings',      icon: FiSettings  },
     ];
 
     const handleLogout = async () => {

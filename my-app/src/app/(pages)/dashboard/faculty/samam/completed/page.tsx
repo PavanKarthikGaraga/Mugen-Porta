@@ -9,7 +9,7 @@ export default function AdminSamamCompletedPage() {
     <div className="max-w-[1400px] mx-auto">
       <SamamControlHeader basePath="/dashboard/faculty/samam" tabs={TABS} />
       <div className="bg-white rounded-md border border-gray-200 shadow-sm p-6">
-        <CompletedActivitiesManager />
+        <CompletedActivitiesManager role="faculty" />
       </div>
     </div>
   );

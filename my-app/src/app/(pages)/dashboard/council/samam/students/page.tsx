@@ -82,6 +82,7 @@ function AdminSamamStudentsInner() {
       students={students} studentsTotal={studentsTotal} studentsPage={studentsPage} studentsLoading={studentsLoading}
       search={search} setSearch={setSearch} filterLevel={filterLevel} setFilterLevel={setFilterLevel} filterYear={filterYear} setFilterYear={setFilterYear} fetchStudents={fetchStudents}
       selectedStudent={selectedStudent} setSelectedStudent={setSelectedStudent} studentDetail={studentDetail} setStudentDetail={setStudentDetail} detailLoading={detailLoading} openStudent={openStudent}
+      role="council"
     />
   );
 }

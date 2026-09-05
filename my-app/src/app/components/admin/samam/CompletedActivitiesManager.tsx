@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { BRAND, DOMAIN_COLORS, DOMAIN_ICONS } from "./SharedUI";
 import { generateActivityReportPdf } from "@/lib/activityReportPdf";
 
-const API = "/api/dashboard/admin/samam/completed-activities";
 
 type ActivityRow = {
   code: string;
@@ -28,13 +27,16 @@ function formatDate(d: string | null) {
   return dt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export default function CompletedActivitiesManager() {
+export default function CompletedActivitiesManager({ role = "admin" }: { role?: "admin" | "lead" | "faculty" | "council" }) {
   const [activities, setActivities] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<{ code: string; title: string } | null>(null);
   const [detail, setDetail] = useState<{ activity: any; students: any[]; report: any } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
+
+  const apiRole = role === "council" ? "admin" : role;
+  const API = `/api/dashboard/${apiRole}/samam/completed-activities`;
 
   const fetchActivities = async () => {
     setLoading(true);

@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp,
-    FiCheckSquare, FiActivity, FiAward, FiKey, FiMusic
+    FiCheckSquare, FiActivity, FiAward, FiKey, FiMusic, FiBarChart2, FiFileText
 } from "react-icons/fi";
 import ChangePassword from "@/app/components/ChangePassword";
 
 export default function FacultyDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [samamDropdownOpen, setSamamDropdownOpen] = useState(false);
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
     const [userData, setUserData] = useState({ username: '', name: '', assignedClubs: [] });
     const pathname = usePathname();
@@ -41,7 +42,14 @@ export default function FacultyDashboardLayout({ children }) {
         { name: 'Students',            href: '/dashboard/faculty/students',          icon: FiUsers       },
         { name: 'Attendance Records',  href: '/dashboard/faculty/attendance',        icon: FiCheckSquare },
         { name: 'Passport Approvals',  href: '/dashboard/faculty/passport-approvals',icon: FiAward       },
-        { name: 'SAMAM',               href: '/dashboard/faculty/samam/overview',    icon: FiActivity    },
+    ];
+
+    const samamNavigation = [
+        { name: 'Overview',      href: '/dashboard/faculty/samam/overview',      icon: FiBarChart2 },
+        { name: 'Students',      href: '/dashboard/faculty/samam/students',      icon: FiUsers     },
+        { name: 'Activities',    href: '/dashboard/faculty/samam/activities',    icon: FiActivity  },
+        { name: 'Submissions',   href: '/dashboard/faculty/samam/submissions',   icon: FiFileText  },
+        { name: 'Completed',     href: '/dashboard/faculty/samam/completed',     icon: FiCheckSquare },
     ];
 
     if (userData.assignedClubs.includes('LCH03')) {
@@ -146,6 +154,47 @@ export default function FacultyDashboardLayout({ children }) {
                                         </Link>
                                     );
                                 })}
+
+                                {(() => {
+                                    const inSamam = samamNavigation.some((item) => pathname === item.href);
+                                    const isOpen = samamDropdownOpen || inSamam;
+                                    return (
+                                        <div className="border-b border-gray-600">
+                                            <button
+                                                onClick={() => setSamamDropdownOpen(!samamDropdownOpen)}
+                                                className={`flex items-center justify-between w-full px-3 py-3 text-sm font-medium transition-all duration-200 group ${
+                                                    inSamam ? 'text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                }`}
+                                            >
+                                                <div className="flex items-center">
+                                                    <FiAward className={`mr-3 h-5 w-5 ${inSamam ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                                                    SAMAM Control
+                                                </div>
+                                                {isOpen ? <FiChevronUp className="h-4 w-4" /> : <FiChevronDown className="h-4 w-4" />}
+                                            </button>
+                                            {isOpen && (
+                                                <div className="pb-2 ml-6 space-y-1">
+                                                    {samamNavigation.map((item) => {
+                                                        const isActive = pathname === item.href;
+                                                        return (
+                                                            <Link
+                                                                key={item.name}
+                                                                href={item.href}
+                                                                className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
+                                                                    isActive ? 'bg-red-700 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                                                }`}
+                                                                onClick={() => setSidebarOpen(false)}
+                                                            >
+                                                                <item.icon className={`mr-3 h-4 w-4 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'}`} />
+                                                                {item.name}
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
                                 <button
                                     onClick={() => { setChangePasswordOpen(true); setSidebarOpen(false); }}
                                     className="w-full flex items-center px-3 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-200 group border-b border-gray-600"

@@ -248,7 +248,7 @@ export default function LeadDashboardLayout({ children }) {
                                             >
                                                 <div className="flex items-center">
                                                     <FiActivity className={`mr-3 h-5 w-5 ${inSamam ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
-                                                    SAMAM
+                                                    SAMAM Control
                                                 </div>
                                                 {isOpen ? <FiChevronUp className="h-4 w-4" /> : <FiChevronDown className="h-4 w-4" />}
                                             </button>

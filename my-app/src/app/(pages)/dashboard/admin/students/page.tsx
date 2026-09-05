@@ -5,17 +5,17 @@ import { handleApiError, handleApiSuccess } from "@/lib/apiErrorHandler";
 import { toast } from "sonner";
 
 const DOMAIN_OPTIONS = [
-    { value: 'TEC', label: 'TEC — Technology' },
-    { value: 'ESO', label: 'ESO — Environment & Social' },
-    { value: 'LCH', label: 'LCH — Liberal Arts' },
-    { value: 'IIE', label: 'IIE — Innovation & Entrepreneurship' },
-    { value: 'HWB', label: 'HWB — Health & Wellbeing' },
-    { value: 'MHS. CLUBS', label: 'MHS. CLUBS — Medical & Health Sciences' },
+    { value: 'TEC', label: 'TEC' },
+    { value: 'LCH', label: 'LCH' },
+    { value: 'ESO', label: 'ESO' },
+    { value: 'IIE', label: 'IIE' },
+    { value: 'HWB', label: 'HWB' },
+    { value: 'MHS. CLUBS', label: 'MHS. CLUBS' },
     // Real domain value on clubs.domain is 'DEPT. CLUBS' (matches
     // ClubSelection.tsx and every other place that filters department
     // clubs) -- this used to be the bare 'DEPT', which never matched any
     // real club and made this option silently return an empty list.
-    { value: 'DEPT. CLUBS', label: 'DEPT. CLUBS — Department' },
+    { value: 'DEPT. CLUBS', label: 'DEPT. CLUBS' },
 ];
 
 export default function AdminStudents() {
@@ -470,13 +470,13 @@ export default function AdminStudents() {
                         <select value={filters.domain} onChange={(e) => applyFilter("domain", e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <option value="">All Domains</option>
-                            <option value="TEC">Technology</option>
-                            <option value="LCH">Liberal Arts</option>
-                            <option value="ESO">Environment & Social</option>
-                            <option value="IIE">Innovation & Entrepreneurship</option>
-                            <option value="HWB">Health & Wellbeing</option>
-                            <option value="MHS. CLUBS">Medical & Health Sciences</option>
-                            <option value="DEPT. CLUBS">Department Clubs</option>
+                            <option value="TEC">TEC</option>
+                            <option value="LCH">LCH</option>
+                            <option value="ESO">ESO</option>
+                            <option value="IIE">IIE</option>
+                            <option value="HWB">HWB</option>
+                            <option value="MHS. CLUBS">MHS. CLUBS</option>
+                            <option value="DEPT. CLUBS">DEPT. CLUBS</option>
                         </select>
                     </div>
 

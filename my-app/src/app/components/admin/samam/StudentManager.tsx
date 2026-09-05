@@ -6,6 +6,7 @@ export default function StudentManager({
   students, studentsTotal, studentsPage, studentsLoading,
   search, setSearch, filterLevel, setFilterLevel, filterYear, setFilterYear, fetchStudents,
   selectedStudent, setSelectedStudent, studentDetail, setStudentDetail, detailLoading, openStudent,
+  role = "admin"
 }: any) {
   return (
     <div className="space-y-4">
@@ -199,12 +200,12 @@ export default function StudentManager({
                 {/* Quick award buttons — deep-link to the single-student award page, pre-loaded */}
                 <div className="p-5 flex gap-3">
                   <button
-                    onClick={() => { window.location.href = `/dashboard/admin/samam/award?student=${encodeURIComponent(selectedStudent.username)}&tab=points`; }}
+                    onClick={() => { window.location.href = `/dashboard/${role}/samam/award?student=${encodeURIComponent(selectedStudent.username)}&tab=points`; }}
                     className="flex-1 text-[12px] font-medium py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5">
                     Allocate Points
                   </button>
                   <button
-                    onClick={() => { window.location.href = `/dashboard/admin/samam/award?student=${encodeURIComponent(selectedStudent.username)}&tab=badge`; }}
+                    onClick={() => { window.location.href = `/dashboard/${role}/samam/award?student=${encodeURIComponent(selectedStudent.username)}&tab=badge`; }}
                     className="flex-1 text-[12px] font-medium py-2 rounded-md text-white transition-colors hover:opacity-90 flex items-center justify-center gap-1.5"
                     style={{ backgroundColor: BRAND }}>
                     Grant Recognition
