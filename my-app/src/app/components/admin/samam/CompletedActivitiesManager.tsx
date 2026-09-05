@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FiArrowLeft, FiCheckCircle, FiXCircle, FiDownload, FiRefreshCw, FiUsers, FiCalendar, FiMapPin } from "react-icons/fi";
 import { toast } from "sonner";
 import { BRAND, DOMAIN_COLORS, DOMAIN_ICONS } from "./SharedUI";
@@ -37,7 +37,7 @@ export default function CompletedActivitiesManager({ role = "admin" }: { role?: 
 
   const API = `/api/dashboard/admin/samam/completed-activities`;
 
-  const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(API);
@@ -49,7 +49,7 @@ export default function CompletedActivitiesManager({ role = "admin" }: { role?: 
     } finally {
       setLoading(false);
     }
-  };
+  }, [API]);
 
   const fetchDetail = async (code: string) => {
     setDetailLoading(true);
@@ -65,7 +65,7 @@ export default function CompletedActivitiesManager({ role = "admin" }: { role?: 
     }
   };
 
-  useEffect(() => { fetchActivities(); }, []);
+  useEffect(() => { fetchActivities(); }, [fetchActivities]);
 
   const openActivity = (a: ActivityRow) => {
     setSelected({ code: a.code, title: a.title });
