@@ -59,10 +59,10 @@ export async function GET() {
                 SELECT COALESCE(sp.level, 'Explorer') as level, COUNT(*) as count
                 FROM students s
                 LEFT JOIN student_profiles sp ON s.username = sp.username
-                WHERE s.samam_access = 1
+                WHERE s.samam_access = 1 AND s.clubId IN (SELECT id FROM clubs WHERE domain IN (${domainPlaceholders}))
                 GROUP BY COALESCE(sp.level, 'Explorer')
                 ORDER BY count DESC
-            `),
+            `, councilDomains),
 
             // 2. Total SAMAM Points distributed in their domains
             pool.execute(`
@@ -123,8 +123,8 @@ export async function GET() {
 
             // 8. Active SAMAM students - global
             pool.execute(`
-                SELECT COUNT(*) as count FROM students WHERE samam_access = 1
-            `),
+                SELECT COUNT(*) as count FROM students WHERE samam_access = 1 AND clubId IN (SELECT id FROM clubs WHERE domain IN (${domainPlaceholders}))
+            `, councilDomains),
 
             // 9. Activities completed in their domains
             pool.execute(`

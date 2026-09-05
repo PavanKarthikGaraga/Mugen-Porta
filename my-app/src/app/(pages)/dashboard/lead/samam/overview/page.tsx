@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import AnalyticsView from "@/app/components/admin/samam/AnalyticsView";
 import SamamControlHeader from "@/app/components/admin/samam/SamamControlHeader";
 
-const TABS = ["overview", "activities", "submissions"];
+const TABS = ["overview", "students", "activities", "submissions", "completed"];
 
 export default function LeadSamamOverviewPage() {
   const [analytics, setAnalytics] = useState<any>(null);

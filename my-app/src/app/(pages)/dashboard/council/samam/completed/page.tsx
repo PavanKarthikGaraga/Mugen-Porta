@@ -2,7 +2,7 @@
 import CompletedActivitiesManager from "@/app/components/admin/samam/CompletedActivitiesManager";
 import SamamControlHeader from "@/app/components/admin/samam/SamamControlHeader";
 
-const TABS = ["overview", "students", "activities", "submissions", "completed", "notifications", "settings"];
+const TABS = ["overview", "students", "activities", "submissions", "completed"];
 
 export default function AdminSamamCompletedPage() {
   return (

@@ -60,7 +60,7 @@ function AdminSamamStudentsInner() {
     await fetchStudentDetail(s.username);
   }, [fetchStudentDetail]);
 
-  // Deep-link support: /dashboard/council/samam/students?username=X opens
+  // Deep-link support: /dashboard/admin/samam/students?username=X opens
   // that student's detail panel directly, replacing the old same-page
   // setTab("students") + openStudent(s) call from the Overview leaderboard.
   useEffect(() => {
@@ -89,7 +89,7 @@ function AdminSamamStudentsInner() {
 export default function AdminSamamStudentsPage() {
   return (
     <div className="max-w-[1400px] mx-auto">
-      <SamamControlHeader basePath="/dashboard/council/samam" tabs={TABS} />
+      <SamamControlHeader basePath="/dashboard/lead/samam" tabs={TABS} />
       <div className="bg-white rounded-md border border-gray-200 shadow-sm p-6">
         <Suspense fallback={null}>
           <AdminSamamStudentsInner />

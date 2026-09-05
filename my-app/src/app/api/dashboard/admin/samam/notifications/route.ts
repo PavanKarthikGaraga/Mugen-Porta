@@ -10,7 +10,7 @@ async function getAdmin() {
   const token = cookieStore.get("tck")?.value;
   if (!token) return null;
   const decoded = await verifyToken(token);
-  if (!decoded || (decoded.role !== "admin" && decoded.role !== "superadmin")) return null;
+  if (!decoded || !['admin', 'superadmin', 'faculty', 'council', 'lead'].includes(decoded.role as string)) return null;
   return decoded;
 }
 

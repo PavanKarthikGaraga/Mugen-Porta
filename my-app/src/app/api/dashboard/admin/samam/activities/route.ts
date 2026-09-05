@@ -1,4 +1,5 @@
 import { getCouncilDomains } from '@/lib/councilScope';
+import { getFacultyClubIds } from '@/lib/facultyScope';
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -6,12 +7,14 @@ import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 import { ensureActivitySchema } from '@/lib/dbMigrate';
 
+import { getLeadClubIds } from '@/lib/leadScope';
+
 async function checkAdmin() {
     const cookieStore = await cookies();
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
     const decoded = await verifyToken(token);
-    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'faculty' && decoded.role !== 'council')) return null;
+    if (!decoded || !['admin', 'faculty', 'council', 'lead'].includes(decoded.role)) return null;
     return decoded;
 }
 
@@ -43,6 +46,33 @@ export async function GET(request: Request) {
             } else {
                 conditions.push(`domain IN (${councilDomains.map(() => '?').join(',')})`);
                 params.push(...councilDomains);
+            }
+        } else if (user.role === 'faculty') {
+            const facultyClubs = await getFacultyClubIds(user.username);
+            if (facultyClubs.length === 0) {
+                return NextResponse.json({ activities: [] });
+            }
+            const clubPlaceholders = facultyClubs.map(() => '?').join(',');
+            // Get all activities mapped to these clubs
+            conditions.push(`code IN (SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${clubPlaceholders}))`);
+            params.push(...facultyClubs);
+            
+            if (domainParam) {
+                conditions.push('domain = ?');
+                params.push(domainParam);
+            }
+        } else if (user.role === 'lead') {
+            const leadClubs = await getLeadClubIds(user.username);
+            if (leadClubs.length === 0) {
+                return NextResponse.json({ activities: [] });
+            }
+            const clubPlaceholders = leadClubs.map(() => '?').join(',');
+            conditions.push(`code IN (SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${clubPlaceholders}))`);
+            params.push(...leadClubs);
+            
+            if (domainParam) {
+                conditions.push('domain = ?');
+                params.push(domainParam);
             }
         } else if (domainParam) {
             conditions.push('domain = ?');
@@ -97,6 +127,9 @@ export async function POST(request: Request) {
             if (!councilDomains.includes(domain)) {
                 return NextResponse.json({ message: 'Unauthorized domain' }, { status: 403 });
             }
+        } else if (user.role === 'faculty' || user.role === 'lead') {
+            // For creation, we don't strictly enforce domain here if they are a lead/faculty since their activity will be mapped to their club later.
+            // But they can only manage activities mapped to their clubs. (The mapping is done in another step/API or auto-mapped if needed).
         }
 
         await ensureActivitySchema();

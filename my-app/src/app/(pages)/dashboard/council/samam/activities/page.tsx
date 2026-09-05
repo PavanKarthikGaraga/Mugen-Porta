@@ -5,7 +5,7 @@ import ActivityManager from "@/app/components/admin/samam/ActivityManager";
 import SamamControlHeader from "@/app/components/admin/samam/SamamControlHeader";
 import { usePersistedState } from "@/lib/hooks/usePersistedState";
 
-const TABS = ["overview", "students", "activities", "submissions", "completed", "notifications", "settings"];
+const TABS = ["overview", "students", "activities", "submissions", "completed"];
 
 export default function AdminSamamActivitiesPage() {
   const [activities, setActivities] = useState<any[]>([]);

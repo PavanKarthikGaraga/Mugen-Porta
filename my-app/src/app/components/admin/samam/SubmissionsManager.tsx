@@ -28,10 +28,12 @@ export default function SubmissionsManager({ role = "admin" }: { role?: "admin" 
   const [detailLoading, setDetailLoading] = useState(false);
   const [processing, setProcessing] = useState<number | null>(null);
 
+  const apiRole = role === "council" ? "admin" : role;
+
   const fetchActivities = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/dashboard/${role}/samam/submissions`);
+      const res = await fetch(`/api/dashboard/${apiRole}/samam/submissions`);
       const data = await res.json();
       if (res.ok) {
         setActivities(data.activities || []);
@@ -48,7 +50,7 @@ export default function SubmissionsManager({ role = "admin" }: { role?: "admin" 
   const fetchDetail = async (code: string) => {
     setDetailLoading(true);
     try {
-      const res = await fetch(`/api/dashboard/${role}/samam/submissions?activity=${encodeURIComponent(code)}`);
+      const res = await fetch(`/api/dashboard/${apiRole}/samam/submissions?activity=${encodeURIComponent(code)}`);
       const data = await res.json();
       if (res.ok) {
         setSubmissions(data.submissions || []);
@@ -82,7 +84,7 @@ export default function SubmissionsManager({ role = "admin" }: { role?: "admin" 
 
     setProcessing(id);
     try {
-      const res = await fetch(`/api/dashboard/${role}/samam/submissions/${id}/review`, {
+      const res = await fetch(`/api/dashboard/${apiRole}/samam/submissions/${id}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, reason }),

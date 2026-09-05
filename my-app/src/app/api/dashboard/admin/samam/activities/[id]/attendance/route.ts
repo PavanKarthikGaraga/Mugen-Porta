@@ -1,4 +1,5 @@
 import { getCouncilDomains } from '@/lib/councilScope';
+import { getFacultyClubIds } from '@/lib/facultyScope';
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -15,15 +16,23 @@ async function checkAdmin() {
 }
 
 async function isAuthorizedForActivity(user: any, activityCode: string): Promise<boolean> {
-    if (user.role !== 'council') return true;
-    const councilDomains = await getCouncilDomains(user.username);
-    
-    if (councilDomains.length === 0) return false;
-    
-    const [rows] = await pool.execute('SELECT domain FROM activity_catalogue WHERE code = ?', [activityCode]);
-    if ((rows as any[]).length === 0) return true; // Let 404 handle it
-    
-    return councilDomains.includes((rows as any[])[0].domain);
+    if (user.role === 'council') {
+        const councilDomains = await getCouncilDomains(user.username);
+        
+        if (councilDomains.length === 0) return false;
+        
+        const [rows] = await pool.execute('SELECT domain FROM activity_catalogue WHERE code = ?', [activityCode]);
+        if ((rows as any[]).length === 0) return true; // Let 404 handle it
+        
+        return councilDomains.includes((rows as any[])[0].domain);
+    } else if (user.role === 'faculty') {
+        const facultyClubs = await getFacultyClubIds(user.username);
+        if (facultyClubs.length === 0) return false;
+        const placeholders = facultyClubs.map(() => '?').join(',');
+        const [rows] = await pool.execute(`SELECT 1 FROM club_activity_mappings WHERE activity_code = ? AND club_id IN (${placeholders})`, [activityCode, ...facultyClubs]);
+        return (rows as any[]).length > 0;
+    }
+    return true; // admin
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -127,15 +136,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             );
             const actTitle = (actInfo as any[])[0]?.title ?? id;
 
-            await pool.execute(`
-                INSERT INTO attendance_submissions
-                    (activity_code, club_id, club_name, activity_title, lead_username, status, verified_by, verified_at)
-                VALUES (?, 'ADMIN_TAKEN', 'Admin Action', ?, ?, 'verified', ?, CURRENT_TIMESTAMP)
-                ON DUPLICATE KEY UPDATE
-                    status = 'verified',
-                    verified_by = ?,
-                    verified_at = CURRENT_TIMESTAMP
-            `, [id, actTitle, user.username, user.username, user.username]);
+            if (user.role === 'admin') {
+                await pool.execute(`
+                    INSERT INTO attendance_submissions
+                        (activity_code, club_id, club_name, activity_title, lead_username, status, verified_by, verified_at)
+                    VALUES (?, 'ADMIN_TAKEN', 'Admin Action', ?, ?, 'verified', ?, CURRENT_TIMESTAMP)
+                    ON DUPLICATE KEY UPDATE
+                        status = 'verified',
+                        verified_by = ?,
+                        verified_at = CURRENT_TIMESTAMP
+                `, [id, actTitle, user.username, user.username, user.username]);
+            } else {
+                await pool.execute(`
+                    INSERT INTO attendance_submissions
+                        (activity_code, club_id, club_name, activity_title, lead_username, status)
+                    VALUES (?, 'ROLE_TAKEN', ?, ?, ?, 'pending')
+                    ON DUPLICATE KEY UPDATE
+                        status = 'pending',
+                        verified_by = NULL,
+                        verified_at = NULL
+                `, [id, String(user.role).toUpperCase() + ' Action', actTitle, user.username]);
+            }
         } catch (submitErr) {
             console.error('Auto-verify for admin failed (non-fatal):', submitErr);
         }

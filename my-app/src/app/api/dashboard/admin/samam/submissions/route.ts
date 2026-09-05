@@ -1,4 +1,6 @@
 import { getCouncilDomains } from '@/lib/councilScope';
+import { getFacultyClubIds } from '@/lib/facultyScope';
+import { getLeadClubIds } from '@/lib/leadScope';
 import pool from "@/lib/db";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
@@ -11,7 +13,7 @@ async function getAdmin() {
   const token = cookieStore.get("tck")?.value;
   if (!token) return null;
   const decoded = await verifyToken(token);
-  if (!decoded || (decoded.role !== "admin" && decoded.role !== "superadmin" && decoded.role !== "faculty" && decoded.role !== "council")) return null;
+  if (!decoded || !['admin', 'superadmin', 'faculty', 'council', 'lead'].includes(decoded.role as string)) return null;
   return decoded;
 }
 
@@ -45,12 +47,27 @@ export async function GET(req: Request) {
 
     if (admin.role === 'council') {
         const councilDomains = await getCouncilDomains(admin.username as string);
-        
         if (councilDomains.length === 0) {
             return NextResponse.json(activityCode ? { success: true, activity: null, submissions: [] } : { success: true, activities: [] });
         }
         domainCondition = ` AND a.domain IN (${councilDomains.map(() => '?').join(',')})`;
         queryParams.push(...councilDomains);
+    } else if (admin.role === 'faculty') {
+        const facultyClubs = await getFacultyClubIds(admin.username as string);
+        if (facultyClubs.length === 0) {
+            return NextResponse.json(activityCode ? { success: true, activity: null, submissions: [] } : { success: true, activities: [] });
+        }
+        const placeholders = facultyClubs.map(() => '?').join(',');
+        domainCondition = ` AND a.code IN (SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${placeholders}))`;
+        queryParams.push(...facultyClubs);
+    } else if (admin.role === 'lead') {
+        const leadClubs = await getLeadClubIds(admin.username as string);
+        if (leadClubs.length === 0) {
+            return NextResponse.json(activityCode ? { success: true, activity: null, submissions: [] } : { success: true, activities: [] });
+        }
+        const placeholders = leadClubs.map(() => '?').join(',');
+        domainCondition = ` AND a.code IN (SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${placeholders}))`;
+        queryParams.push(...leadClubs);
     }
 
     if (activityCode) {

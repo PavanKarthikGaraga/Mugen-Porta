@@ -3,13 +3,16 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { clampInt, safeMessage } from '@/lib/apiSecurity';
+import { getCouncilDomains } from '@/lib/councilScope';
+import { getFacultyClubIds } from '@/lib/facultyScope';
+import { getLeadClubIds } from '@/lib/leadScope';
 
 async function checkAdmin(request: Request) {
     const cookieStore = await cookies();
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
     const decoded = await verifyToken(token);
-    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'faculty')) return null;
+    if (!decoded || !['admin', 'faculty', 'council', 'lead'].includes(decoded.role)) return null;
     return decoded;
 }
 
@@ -30,6 +33,37 @@ export async function GET(request: Request) {
 
         const conditions: string[] = [];
         const params: any[] = [];
+
+        const admin = await checkAdmin(request);
+        if (admin && admin.role === 'council') {
+            const councilDomains = await getCouncilDomains(admin.username as string);
+            if (councilDomains.length > 0) {
+                const placeholders = councilDomains.map(() => '?').join(',');
+                conditions.push(`s.clubId IN (SELECT id FROM clubs WHERE domain IN (${placeholders}))`);
+                params.push(...councilDomains);
+            } else {
+                // If no domains mapped, return 0 students
+                conditions.push('1 = 0');
+            }
+        } else if (admin && admin.role === 'faculty') {
+            const facultyClubs = await getFacultyClubIds(admin.username as string);
+            if (facultyClubs.length > 0) {
+                const placeholders = facultyClubs.map(() => '?').join(',');
+                conditions.push(`s.clubId IN (${placeholders})`);
+                params.push(...facultyClubs);
+            } else {
+                conditions.push('1 = 0');
+            }
+        } else if (admin && admin.role === 'lead') {
+            const leadClubs = await getLeadClubIds(admin.username as string);
+            if (leadClubs.length > 0) {
+                const placeholders = leadClubs.map(() => '?').join(',');
+                conditions.push(`s.clubId IN (${placeholders})`);
+                params.push(...leadClubs);
+            } else {
+                conditions.push('1 = 0');
+            }
+        }
 
         if (search) {
             conditions.push('(s.name LIKE ? OR s.username LIKE ?)');

@@ -2,6 +2,7 @@ import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { getCouncilClubIds } from '@/lib/councilScope';
+import { getFacultyClubIds } from '@/lib/facultyScope';
 import { getLeadClubIds } from '@/lib/leadScope';
 
 /**
@@ -30,8 +31,13 @@ export async function checkIssuer(): Promise<ActivityIssuer | null> {
     const decoded: any = await verifyToken(token);
     if (!decoded) return null;
 
-    if (decoded.role === 'faculty' || decoded.role === 'admin') {
+    if (decoded.role === 'admin') {
         return { decoded, unrestricted: true, clubIds: [], assigned_categories: [] };
+    }
+
+    if (decoded.role === 'faculty') {
+        const clubIds = await getFacultyClubIds(decoded.username);
+        return { decoded, unrestricted: false, clubIds, assigned_categories: [] };
     }
 
     if (decoded.role === 'council') {

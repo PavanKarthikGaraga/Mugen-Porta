@@ -1,4 +1,6 @@
 import { getCouncilDomains } from '@/lib/councilScope';
+import { getFacultyClubIds } from '@/lib/facultyScope';
+import { getLeadClubIds } from '@/lib/leadScope';
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -11,7 +13,7 @@ async function checkAdmin() {
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
     const decoded = await verifyToken(token);
-    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'faculty' && decoded.role !== 'council')) return null;
+    if (!decoded || !['admin', 'faculty', 'council', 'lead'].includes(decoded.role as string)) return null;
     return decoded;
 }
 
@@ -29,13 +31,29 @@ export async function GET(request: Request) {
         const queryParams: any[] = [];
 
         if (user.role === 'council') {
-            const councilDomains = await getCouncilDomains(user.username);
+            const councilDomains = await getCouncilDomains(user.username as string);
             
             if (councilDomains.length === 0) {
                 return NextResponse.json(activityCode ? { message: 'Unauthorized domain' } : { success: true, activities: [] }, { status: activityCode ? 403 : 200 });
             }
             domainCondition = ` AND ac.domain IN (${councilDomains.map(() => '?').join(',')})`;
             queryParams.push(...councilDomains);
+        } else if (user.role === 'faculty') {
+            const facultyClubs = await getFacultyClubIds(user.username as string);
+            if (facultyClubs.length === 0) {
+                return NextResponse.json(activityCode ? { message: 'Unauthorized domain' } : { success: true, activities: [] }, { status: activityCode ? 403 : 200 });
+            }
+            const placeholders = facultyClubs.map(() => '?').join(',');
+            domainCondition = ` AND ac.code IN (SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${placeholders}))`;
+            queryParams.push(...facultyClubs);
+        } else if (user.role === 'lead') {
+            const leadClubs = await getLeadClubIds(user.username as string);
+            if (leadClubs.length === 0) {
+                return NextResponse.json(activityCode ? { message: 'Unauthorized domain' } : { success: true, activities: [] }, { status: activityCode ? 403 : 200 });
+            }
+            const placeholders = leadClubs.map(() => '?').join(',');
+            domainCondition = ` AND ac.code IN (SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${placeholders}))`;
+            queryParams.push(...leadClubs);
         }
 
         if (activityCode) {

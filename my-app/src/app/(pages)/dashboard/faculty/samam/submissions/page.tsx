@@ -2,7 +2,7 @@
 import SubmissionsManager from "@/app/components/admin/samam/SubmissionsManager";
 import SamamControlHeader from "@/app/components/admin/samam/SamamControlHeader";
 
-const TABS = ["overview", "activities", "submissions", "notifications"];
+const TABS = ["overview", "students", "activities", "submissions", "completed"];
 
 export default function FacultySamamSubmissionsPage() {
   return (

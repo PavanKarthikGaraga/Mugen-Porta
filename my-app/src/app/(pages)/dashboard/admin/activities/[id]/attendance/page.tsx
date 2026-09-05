@@ -81,7 +81,7 @@ export default function ActivityAttendancePage({ params }: { params: Promise<{ i
       const data = await res.json();
       
       if (data.success) {
-        toast.success("Attendance saved successfully");
+        toast.success(isAdmin ? "Attendance saved successfully" : "Attendance saved and submitted to admin for verification.");
         setAttendanceMarked(true);
         setVerifyMode(false);
       } else {

@@ -135,10 +135,14 @@ export async function POST(request: Request) {
             code, title, description, domain, category, points, max_participants, status,
             difficulty, activity_pack, faculty_name, sdgs, hours,
             purpose, outcomes, competencies, ga, resources, assignments, timeline,
-            activity_date, start_time, end_time, venue, registration_open
+            activity_date, start_time, end_time, venue, registration_open,
+            sdc_credits, max_seats
         } = body;
 
-        if (!title || !domain || !points || !code || !category) {
+        const finalPoints = points ?? sdc_credits;
+        const finalMaxSeats = max_participants ?? max_seats;
+
+        if (!title || !domain || (finalPoints === undefined) || !code || !category) {
             return NextResponse.json({ message: 'Code, title, domain, category, and points are required' }, { status: 400 });
         }
 
@@ -161,7 +165,7 @@ export async function POST(request: Request) {
              created_by, submitted_by, approval_status, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW())
         `, [
-            code, title, description || '', domain, category, points, max_participants || null, status || 'upcoming',
+            code, title, description || '', domain, category, finalPoints, finalMaxSeats || null, status || 'upcoming',
             difficulty || 'Beginner', activity_pack || null, faculty_name || null,
             safeJson(sdgs), hours || 0.0,
             purpose || null, safeJson(outcomes), safeJson(competencies), safeJson(ga),
