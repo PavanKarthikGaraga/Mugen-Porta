@@ -17,23 +17,19 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string; ic
 };
 
 const DOMAIN_LABELS: Record<string, string> = {
-  TEC: "Technology & Engineering",
-  BUS: "Business & Management",
-  CUL: "Arts, Culture & Humanities",
-  SPT: "Sports & Wellness",
-  SOC: "Social Impact & Community",
-  SCI: "Science & Research",
-  COM: "Communication & Media",
+  TEC: "Technology & Emerging Technologies",
+  LCH: "Liberal Arts, Creative Arts & Humanities",
+  ESO: "Extension and Social Outreach",
+  IIE: "Innovation, Incubation & Entrepreneurship",
+  HWB: "Health and Well-being",
 };
 
 const DOMAIN_COLORS: Record<string, string> = {
-  TEC: "#3B82F6",
-  BUS: "#8B5CF6",
-  CUL: "#EC4899",
-  SPT: "#10B981",
-  SOC: "#F59E0B",
-  SCI: "#06B6D4",
-  COM: "#EF4444",
+  TEC: "#2563EB",
+  LCH: "#8B5CF6",
+  ESO: "#059669",
+  IIE: "#D97706",
+  HWB: "#EC4899",
 };
 
 interface AttendanceSession {
@@ -319,110 +315,72 @@ function GroupedView({
 }: {
   records: AttendanceSession[];
 } & Omit<Parameters<typeof RecordCard>[0], "rec">) {
-  // domain → club_name → records
-  const grouped = records.reduce<Record<string, Record<string, AttendanceSession[]>>>((acc, r) => {
-    const domain = r.domain || "OTHER";
+  // club_name → records
+  const grouped = records.reduce<Record<string, AttendanceSession[]>>((acc, r) => {
     const club = r.club_name || r.club_id || "Unknown Club";
-    if (!acc[domain]) acc[domain] = {};
-    if (!acc[domain][club]) acc[domain][club] = [];
-    acc[domain][club].push(r);
+    if (!acc[club]) acc[club] = [];
+    acc[club].push(r);
     return acc;
   }, {});
 
-  const domains = Object.keys(grouped).sort();
-  const [openDomains, setOpenDomains] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(domains.map(d => [d, true]))
-  );
+  const clubs = Object.keys(grouped).sort((a, b) => {
+    // Sort by domain first, then club name
+    const domainA = grouped[a][0]?.domain || "OTHER";
+    const domainB = grouped[b][0]?.domain || "OTHER";
+    if (domainA !== domainB) return domainA.localeCompare(domainB);
+    return a.localeCompare(b);
+  });
   const [openClubs, setOpenClubs] = useState<Record<string, boolean>>({});
-
-  const toggleDomain = (d: string) => setOpenDomains(p => ({ ...p, [d]: !p[d] }));
   const toggleClub = (key: string) => setOpenClubs(p => ({ ...p, [key]: !p[key] }));
 
   return (
     <div className="space-y-4">
-      {domains.map(domain => {
+      {clubs.map(club => {
+        const clubRecs = grouped[club];
+        const domain = clubRecs[0]?.domain || "OTHER";
         const domainColor = DOMAIN_COLORS[domain] ?? "#6B7280";
-        const domainLabel = DOMAIN_LABELS[domain] ?? domain;
-        const clubs = Object.keys(grouped[domain]).sort();
-        const totalRecords = clubs.reduce((s, c) => s + grouped[domain][c].length, 0);
-        const pendingCount = clubs.reduce((s, c) => s + grouped[domain][c].filter(r => r.status === "pending").length, 0);
-        const isDomainOpen = openDomains[domain] ?? true;
+        const isClubOpen = openClubs[club] ?? true;
+        const clubPending = clubRecs.filter(r => r.status === "pending").length;
+        const clubVerified = clubRecs.filter(r => r.status === "verified").length;
 
         return (
-          <div key={domain} className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-            {/* Domain Header */}
+          <div key={club} className="rounded-xl overflow-hidden border border-gray-100 shadow-sm bg-white">
+            {/* Club Header */}
             <button
-              onClick={() => toggleDomain(domain)}
-              className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors hover:opacity-90"
-              style={{ backgroundColor: domainColor }}
+              onClick={() => toggleClub(club)}
+              className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors text-left border-l-4"
+              style={{ borderLeftColor: domainColor }}
             >
-              <div className="flex items-center gap-3">
-                <span className="text-white font-bold text-sm tracking-wide">{domainLabel}</span>
-                <span className="text-[11px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-semibold text-gray-800">{club}</span>
+                <span className="text-[10px] font-bold text-white px-1.5 py-0.5 rounded" style={{ backgroundColor: domainColor }}>
                   {domain}
                 </span>
-                <span className="text-[11px] text-white/80">{totalRecords} session{totalRecords !== 1 ? "s" : ""}</span>
-                {pendingCount > 0 && (
-                  <span className="text-[11px] font-bold bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">
-                    {pendingCount} pending
+                <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                  {clubRecs.length} session{clubRecs.length !== 1 ? "s" : ""}
+                </span>
+                {clubPending > 0 && (
+                  <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                    {clubPending} pending
+                  </span>
+                )}
+                {clubVerified > 0 && (
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    {clubVerified} verified
                   </span>
                 )}
               </div>
-              {isDomainOpen
-                ? <FiChevronDown size={16} className="text-white flex-shrink-0" />
-                : <FiChevronRight size={16} className="text-white flex-shrink-0" />}
+              {isClubOpen
+                ? <FiChevronDown size={14} className="text-gray-400 flex-shrink-0" />
+                : <FiChevronRight size={14} className="text-gray-400 flex-shrink-0" />}
             </button>
 
-            {/* Clubs inside domain */}
-            {isDomainOpen && (
-              <div className="bg-gray-50 divide-y divide-gray-100">
-                {clubs.map(club => {
-                  const clubKey = `${domain}__${club}`;
-                  const clubRecs = grouped[domain][club];
-                  const isClubOpen = openClubs[clubKey] ?? true;
-                  const clubPending = clubRecs.filter(r => r.status === "pending").length;
-                  const clubVerified = clubRecs.filter(r => r.status === "verified").length;
-
-                  return (
-                    <div key={clubKey}>
-                      {/* Club sub-header */}
-                      <button
-                        onClick={() => toggleClub(clubKey)}
-                        className="w-full flex items-center justify-between px-5 py-3 bg-white hover:bg-gray-50 transition-colors text-left border-l-4"
-                        style={{ borderLeftColor: domainColor }}
-                      >
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold text-gray-800">{club}</span>
-                          <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                            {clubRecs.length} session{clubRecs.length !== 1 ? "s" : ""}
-                          </span>
-                          {clubPending > 0 && (
-                            <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                              {clubPending} pending
-                            </span>
-                          )}
-                          {clubVerified > 0 && (
-                            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                              {clubVerified} verified
-                            </span>
-                          )}
-                        </div>
-                        {isClubOpen
-                          ? <FiChevronDown size={14} className="text-gray-400 flex-shrink-0" />
-                          : <FiChevronRight size={14} className="text-gray-400 flex-shrink-0" />}
-                      </button>
-
-                      {/* Records */}
-                      {isClubOpen && (
-                        <div className="p-3 space-y-3">
-                          {clubRecs.map(rec => (
-                            <RecordCard key={rec.id} rec={rec} {...cardProps} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            {/* Records */}
+            {isClubOpen && (
+              <div className="p-3 bg-gray-50 border-t border-gray-50 space-y-3">
+                {clubRecs.map(rec => (
+                  <RecordCard key={rec.id} rec={rec} {...cardProps} />
+                ))}
               </div>
             )}
           </div>
@@ -438,6 +396,7 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
   const [loading,      setLoading     ] = useState(true);
   const [search,       setSearch      ] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [domainFilter, setDomainFilter] = useState("all");
   const [exportingId,  setExportingId ] = useState<number | null>(null);
   const [reviewingCode,setReviewingCode] = useState<string | null>(null);
   const [rejectNotes,  setRejectNotes ] = useState<Record<string, string>>({});
@@ -517,7 +476,8 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
       || r.club_name.toLowerCase().includes(q)
       || (r.domain && r.domain.toLowerCase().includes(q));
     const matchStatus = statusFilter === "all" || r.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchDomain = domainFilter === "all" || r.domain === domainFilter;
+    return matchSearch && matchStatus && matchDomain;
   });
 
   const counts: Record<string, number> = {
@@ -616,8 +576,9 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
       </div>
 
       {/* Search + Filter */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center">
-        <div className="flex items-center gap-2 flex-1 min-w-48 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3">
+        {/* Top Row: Search */}
+        <div className="flex items-center gap-2 w-full max-w-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
           <FiSearch size={13} className="text-gray-400 flex-shrink-0" />
           <input
             type="text"
@@ -627,20 +588,48 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
             className="text-xs flex-1 bg-transparent outline-none text-gray-700 placeholder:text-gray-400"
           />
         </div>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <FiFilter size={12} className="text-gray-400" />
-          {(["all", "pending", "verified", "rejected", ...(role === "lead" ? ["unsubmitted"] : [])] as const).map(f => (
-            <button
-              key={f}
-              onClick={() => setStatusFilter(f)}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-full transition-colors ${
-                statusFilter === f ? "text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-              style={statusFilter === f ? { backgroundColor: f === "all" ? BRAND : STATUS_META[f]?.color } : {}}
-            >
-              {f === "all" ? "All" : STATUS_META[f].label} ({counts[f]})
-            </button>
-          ))}
+
+        {/* Filters Row */}
+        <div className="flex flex-wrap gap-4 items-center">
+          {/* Status Filter */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <FiFilter size={12} className="text-gray-400" />
+            <span className="text-[11px] font-semibold text-gray-400 mr-1 uppercase">Status</span>
+            {(["all", "pending", "verified", "rejected", ...(role === "lead" ? ["unsubmitted"] : [])] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setStatusFilter(f)}
+                className={`px-2.5 py-1 text-[11px] font-semibold rounded-full transition-colors ${
+                  statusFilter === f ? "text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+                style={statusFilter === f ? { backgroundColor: f === "all" ? BRAND : STATUS_META[f]?.color } : {}}
+              >
+                {f === "all" ? "All" : STATUS_META[f].label} ({counts[f]})
+              </button>
+            ))}
+          </div>
+
+          {/* Domain Filter (Only Admin) */}
+          {role === "admin" && (
+            <div className="flex items-center gap-1.5 flex-wrap pl-4 border-l border-gray-200">
+              <FiActivity size={12} className="text-gray-400" />
+              <span className="text-[11px] font-semibold text-gray-400 mr-1 uppercase">Domain</span>
+              {["all", "TEC", "LCH", "ESO", "IIE", "HWB"].map(d => {
+                const label = d === "all" ? "All" : d;
+                return (
+                  <button
+                    key={d}
+                    onClick={() => setDomainFilter(d)}
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-full transition-colors ${
+                      domainFilter === d ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
