@@ -110,10 +110,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
         await pool.execute(query, queryParams);
 
-        // Close registration immediately when attendance is locked so no new
-        // students can enroll after the fact.
+        // Close registration and mark activity completed when attendance is locked
         await pool.execute(
-            'UPDATE activity_catalogue SET registration_open = 0 WHERE code = ?',
+            "UPDATE activity_catalogue SET registration_open = 0, status = 'completed' WHERE code = ?",
             [id]
         );
 

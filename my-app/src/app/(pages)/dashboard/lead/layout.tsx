@@ -61,7 +61,7 @@ export default function LeadDashboardLayout({ children }) {
     ];
 
     if (userData.clubId === 'LCH03') {
-        navigation.push({ name: 'Music Roster', href: '/dashboard/lead/music-roster', icon: FiMusic });
+        navigation.push({ name: 'Music Choice', href: '/dashboard/lead/music-roster', icon: FiMusic });
     }
 
     // SAMAM used to be one link to a page with 3 client-side tabs, plus a

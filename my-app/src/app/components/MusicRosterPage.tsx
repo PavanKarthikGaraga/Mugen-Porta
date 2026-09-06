@@ -58,7 +58,7 @@ export default function MusicRosterPage() {
         try {
             const res = await fetch("/api/dashboard/music-roster");
             const data = await res.json();
-            if (!res.ok) { setError(data.error || "Failed to load roster"); return; }
+            if (!res.ok) { setError(data.error || "Failed to load data"); return; }
             setStudents(data.students || []);
             setStats(data.stats || null);
         } catch {
@@ -85,7 +85,7 @@ export default function MusicRosterPage() {
         const csv = [header, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
         const a = document.createElement("a");
         a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-        a.download = `music_club_roster_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.download = `music_club_choice_${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
     };
 
@@ -106,7 +106,7 @@ export default function MusicRosterPage() {
         <div className="flex items-center justify-center min-h-[60vh]">
             <div className="flex flex-col items-center gap-3">
                 <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: "rgb(151,0,3)", borderTopColor: "transparent" }} />
-                <p className="text-gray-500 text-sm">Loading Music Roster…</p>
+                <p className="text-gray-500 text-sm">Loading Music Choice…</p>
             </div>
         </div>
     );
@@ -131,7 +131,7 @@ export default function MusicRosterPage() {
                         <FiMusic className="text-white" size={20} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Music Club Roster</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Music Choice</h1>
                         <p className="text-gray-500 text-sm">LCH03 — Instrument & Vocal Preferences</p>
                     </div>
                 </div>

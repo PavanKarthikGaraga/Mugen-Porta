@@ -95,6 +95,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
          WHERE activity_code = ? AND attendance_percentage = 100 AND status = 'active'`,
         [sub.activity_code]
       );
+
+      await pool.execute(
+        `UPDATE activity_catalogue
+         SET status = 'completed', registration_open = 0
+         WHERE code = ?`,
+        [sub.activity_code]
+      );
     }
 
     return NextResponse.json({ success: true, message: `Attendance ${status} successfully` });

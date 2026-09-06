@@ -53,7 +53,7 @@ export default function FacultyDashboardLayout({ children }) {
     ];
 
     if (userData.assignedClubs.includes('LCH03')) {
-        navigation.push({ name: 'Music Roster', href: '/dashboard/faculty/music-roster', icon: FiMusic });
+        navigation.push({ name: 'Music Choice', href: '/dashboard/faculty/music-roster', icon: FiMusic });
     }
 
     const handleLogout = async () => {
