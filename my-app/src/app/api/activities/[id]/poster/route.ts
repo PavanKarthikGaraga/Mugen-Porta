@@ -4,6 +4,8 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 import { ensureActivitySchema } from '@/lib/dbMigrate';
+import { getLeadClubIds } from '@/lib/leadScope';
+import { getCouncilDomains } from '@/lib/councilScope';
 
 async function checkAuth() {
     const cookieStore = await cookies();
@@ -15,41 +17,49 @@ async function checkAuth() {
 }
 
 async function isAuthorizedForActivity(user: any, activityCode: string): Promise<boolean> {
+    // Admin and faculty have full access to all activities
     if (user.role === 'admin' || user.role === 'faculty') return true;
 
     if (user.role === 'council') {
-        const [actRows] = await pool.execute('SELECT domain, submitted_by FROM activity_catalogue WHERE code = ?', [activityCode]);
+        // Council can edit activities in their assigned domains OR ones they submitted
+        const [actRows] = await pool.execute(
+            'SELECT domain, submitted_by FROM activity_catalogue WHERE code = ?',
+            [activityCode]
+        );
         if ((actRows as any[]).length > 0 && (actRows as any[])[0].submitted_by === user.username) {
             return true;
         }
 
-        const councilDomains = Array.isArray(user.assignedDomains) && user.assignedDomains.length > 0
-            ? user.assignedDomains : (user.assignedDomain ? [user.assignedDomain] : []);
+        // Look up council's assigned domains from DB (not from JWT — they're not in the token)
+        const councilDomains = await getCouncilDomains(user.username);
         if (councilDomains.length === 0) return false;
-        
-        if ((actRows as any[]).length === 0) return true;
-        
+        if ((actRows as any[]).length === 0) return true; // let 404 handle it
+
         return councilDomains.includes((actRows as any[])[0].domain);
     }
 
     if (user.role === 'lead') {
-        const [actRows] = await pool.execute('SELECT submitted_by FROM activity_catalogue WHERE code = ?', [activityCode]);
+        // Lead can edit activities they submitted OR that belong to their club mapping
+        const [actRows] = await pool.execute(
+            'SELECT submitted_by FROM activity_catalogue WHERE code = ?',
+            [activityCode]
+        );
         if ((actRows as any[]).length > 0 && (actRows as any[])[0].submitted_by === user.username) {
             return true;
         }
 
-        const leadClubs = Array.isArray(user.assignedClubs) && user.assignedClubs.length > 0
-            ? user.assignedClubs : (user.assignedClub ? [user.assignedClub] : []);
+        // Look up lead's club IDs from DB (not from JWT — they're not in the token)
+        const leadClubs = await getLeadClubIds(user.username);
         if (leadClubs.length === 0) return false;
 
         const [rows] = await pool.execute(`
             SELECT 1 FROM club_activity_mappings 
             WHERE activity_code = ? AND club_id IN (${leadClubs.map(() => '?').join(',')})
         `, [activityCode, ...leadClubs]);
-        
+
         return (rows as any[]).length > 0;
     }
-    
+
     return false;
 }
 

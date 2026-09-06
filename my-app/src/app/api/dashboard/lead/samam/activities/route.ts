@@ -111,7 +111,8 @@ export async function GET(request: Request) {
                    difficulty, activity_pack, faculty_name, sdgs, hours,
                    activity_date, start_time, end_time, venue, registration_open,
                    approval_status, submitted_by, created_at, poster_url,
-                   (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = activity_catalogue.code) as enrolledCount
+                   (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = activity_catalogue.code) as enrolledCount,
+                   (SELECT 1 FROM activity_enrollments ae WHERE ae.activity_code = activity_catalogue.code AND ae.attendance_marked = TRUE LIMIT 1) as is_attendance_locked
             FROM activity_catalogue
             ${where}
             ORDER BY domain ASC, category ASC, code ASC

@@ -34,13 +34,14 @@ export async function GET(request: Request) {
       const clubs = await getLeadClubIds(username);
       if (clubs.length === 0) return NextResponse.json({ records: [] });
 
+      const ph = clubs.map(() => '?').join(',');
       if (clubFilter && clubs.includes(clubFilter)) {
-        whereClause = 'WHERE ats.club_id = ?';
-        queryParams = [clubFilter];
+        // Also include legacy ADMIN_TAKEN/ROLE_TAKEN records for activities in their clubs
+        whereClause = `WHERE (ats.club_id = ? OR (ats.club_id IN ('ADMIN_TAKEN','ROLE_TAKEN') AND EXISTS (SELECT 1 FROM club_activity_mappings cam WHERE cam.activity_code = ats.activity_code AND cam.club_id = ?)))`;
+        queryParams = [clubFilter, clubFilter];
       } else {
-        const ph = clubs.map(() => '?').join(',');
-        whereClause = `WHERE ats.club_id IN (${ph})`;
-        queryParams = clubs;
+        whereClause = `WHERE (ats.club_id IN (${ph}) OR (ats.club_id IN ('ADMIN_TAKEN','ROLE_TAKEN') AND EXISTS (SELECT 1 FROM club_activity_mappings cam WHERE cam.activity_code = ats.activity_code AND cam.club_id IN (${ph}))))`;
+        queryParams = [...clubs, ...clubs];
       }
     } else if (role === 'faculty') {
       const [facRows]: any = await pool.execute('SELECT assignedClubs FROM faculty WHERE username = ?', [username]);
@@ -63,25 +64,25 @@ export async function GET(request: Request) {
       } catch { clubs = []; }
       if (clubs.length === 0) return NextResponse.json({ records: [] });
 
+      const ph = clubs.map(() => '?').join(',');
       if (clubFilter && clubs.includes(clubFilter)) {
-        whereClause = 'WHERE ats.club_id = ?';
-        queryParams = [clubFilter];
+        whereClause = `WHERE (ats.club_id = ? OR (ats.club_id IN ('ADMIN_TAKEN','ROLE_TAKEN') AND EXISTS (SELECT 1 FROM club_activity_mappings cam WHERE cam.activity_code = ats.activity_code AND cam.club_id = ?)))`;
+        queryParams = [clubFilter, clubFilter];
       } else {
-        const ph = clubs.map(() => '?').join(',');
-        whereClause = `WHERE ats.club_id IN (${ph})`;
-        queryParams = clubs;
+        whereClause = `WHERE (ats.club_id IN (${ph}) OR (ats.club_id IN ('ADMIN_TAKEN','ROLE_TAKEN') AND EXISTS (SELECT 1 FROM club_activity_mappings cam WHERE cam.activity_code = ats.activity_code AND cam.club_id IN (${ph}))))`;
+        queryParams = [...clubs, ...clubs];
       }
     } else if (role === 'council') {
       const clubs = await getCouncilClubIds(username);
       if (clubs.length === 0) return NextResponse.json({ records: [] });
 
+      const ph = clubs.map(() => '?').join(',');
       if (clubFilter && clubs.includes(clubFilter)) {
-        whereClause = 'WHERE ats.club_id = ?';
-        queryParams = [clubFilter];
+        whereClause = `WHERE (ats.club_id = ? OR (ats.club_id IN ('ADMIN_TAKEN','ROLE_TAKEN') AND EXISTS (SELECT 1 FROM club_activity_mappings cam WHERE cam.activity_code = ats.activity_code AND cam.club_id = ?)))`;
+        queryParams = [clubFilter, clubFilter];
       } else {
-        const ph = clubs.map(() => '?').join(',');
-        whereClause = `WHERE ats.club_id IN (${ph})`;
-        queryParams = clubs;
+        whereClause = `WHERE (ats.club_id IN (${ph}) OR (ats.club_id IN ('ADMIN_TAKEN','ROLE_TAKEN') AND EXISTS (SELECT 1 FROM club_activity_mappings cam WHERE cam.activity_code = ats.activity_code AND cam.club_id IN (${ph}))))`;
+        queryParams = [...clubs, ...clubs];
       }
     } else if (role === 'admin') {
       if (clubFilter) {
@@ -97,12 +98,15 @@ export async function GET(request: Request) {
     const [rows]: any = await pool.execute(`
       SELECT
         ats.*,
+        COALESCE(ac.domain, '')   AS domain,
+        COALESCE(ac.category, '') AS category,
         (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ats.activity_code AND ae.attendance_percentage = 100) AS present_count,
         (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ats.activity_code AND ae.attendance_percentage = 0)   AS absent_count,
         (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ats.activity_code)                                    AS total_count
       FROM attendance_submissions ats
+      LEFT JOIN activity_catalogue ac ON ac.code = ats.activity_code
       ${whereClause}
-      ORDER BY ats.submitted_at DESC
+      ORDER BY COALESCE(ac.domain, ''), ats.club_name ASC, ats.submitted_at DESC
     `, queryParams);
 
     return NextResponse.json({ records: rows });

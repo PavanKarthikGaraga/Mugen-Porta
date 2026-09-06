@@ -143,26 +143,45 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             );
             const actTitle = (actInfo as any[])[0]?.title ?? id;
 
-            if (user.role === 'admin') {
+        // Resolve the real club that owns this activity so the record appears
+        // in the lead/faculty/council views (which filter by their own club IDs).
+        let realClubId   = 'ADMIN_TAKEN';
+        let realClubName = 'Admin Action';
+        try {
+            const [mapRows]: any = await pool.execute(
+                'SELECT cam.club_id, c.name as club_name FROM club_activity_mappings cam LEFT JOIN clubs c ON c.id = cam.club_id WHERE cam.activity_code = ? LIMIT 1',
+                [id]
+            );
+            if ((mapRows as any[]).length > 0) {
+                realClubId   = mapRows[0].club_id;
+                realClubName = mapRows[0].club_name || mapRows[0].club_id;
+            }
+        } catch { /* non-fatal */ }
+
+        if (user.role === 'admin') {
                 await pool.execute(`
                     INSERT INTO attendance_submissions
                         (activity_code, club_id, club_name, activity_title, lead_username, status, verified_by, verified_at)
-                    VALUES (?, 'ADMIN_TAKEN', 'Admin Action', ?, ?, 'verified', ?, CURRENT_TIMESTAMP)
+                    VALUES (?, ?, ?, ?, ?, 'verified', ?, CURRENT_TIMESTAMP)
                     ON DUPLICATE KEY UPDATE
-                        status = 'verified',
-                        verified_by = ?,
-                        verified_at = CURRENT_TIMESTAMP
-                `, [id, actTitle, user.username, user.username, user.username]);
+                        club_id      = VALUES(club_id),
+                        club_name    = VALUES(club_name),
+                        status       = 'verified',
+                        verified_by  = ?,
+                        verified_at  = CURRENT_TIMESTAMP
+                `, [id, realClubId, realClubName, actTitle, user.username, user.username, user.username]);
             } else {
                 await pool.execute(`
                     INSERT INTO attendance_submissions
                         (activity_code, club_id, club_name, activity_title, lead_username, status)
-                    VALUES (?, 'ROLE_TAKEN', ?, ?, ?, 'pending')
+                    VALUES (?, ?, ?, ?, ?, 'pending')
                     ON DUPLICATE KEY UPDATE
-                        status = 'pending',
+                        club_id     = VALUES(club_id),
+                        club_name   = VALUES(club_name),
+                        status      = 'pending',
                         verified_by = NULL,
                         verified_at = NULL
-                `, [id, String(user.role).toUpperCase() + ' Action', actTitle, user.username]);
+                `, [id, realClubId, realClubName, actTitle, user.username]);
             }
         } catch (submitErr) {
             console.error('Auto-verify for admin failed (non-fatal):', submitErr);
