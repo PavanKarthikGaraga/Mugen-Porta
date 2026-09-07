@@ -120,6 +120,13 @@ export default function IqacActivitiesPage() {
         setShowForm(!showForm);
     };
 
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredActivities = activities.filter((a: any) => 
+        (a.activity_code || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (a.title || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-100">
@@ -183,9 +190,18 @@ export default function IqacActivitiesPage() {
                 </div>
             ) : (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="p-4 border-b border-gray-200 bg-gray-50">
+                        <input
+                            type="text"
+                            placeholder="Search by title or code..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                        />
+                    </div>
                     {loading ? (
                         <div className="p-8 text-center text-gray-500">Loading activities...</div>
-                    ) : activities.length === 0 ? (
+                    ) : filteredActivities.length === 0 ? (
                         <div className="p-8 text-center text-gray-500">No activities found.</div>
                     ) : (
                         <table className="min-w-full divide-y divide-gray-200">
@@ -200,7 +216,7 @@ export default function IqacActivitiesPage() {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {activities.map((a: any) => (
+                                {filteredActivities.map((a: any) => (
                                     <tr key={a.id}>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{a.activity_code}</td>
                                         <td className="px-6 py-4 text-sm text-gray-500">{a.title}</td>

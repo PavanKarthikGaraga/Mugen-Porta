@@ -24,7 +24,7 @@ export async function GET(request: Request) {
         const [rows] = await pool.execute(`
             SELECT id, activity_code, title, activity_date, start_time, end_time, venue, created_at
             FROM iqac_activities
-            ORDER BY created_at DESC
+            ORDER BY activity_date ASC, activity_code ASC
         `);
 
         return NextResponse.json({ activities: rows });

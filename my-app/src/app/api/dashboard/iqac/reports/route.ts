@@ -27,7 +27,7 @@ export async function GET(request: Request) {
                 r.id as report_id, COALESCE(r.status, 'draft') as status
             FROM iqac_activities a
             LEFT JOIN iqac_activity_reports r ON a.activity_code = r.activity_code
-            ORDER BY a.created_at DESC
+            ORDER BY a.activity_date ASC, a.activity_code ASC
         `);
 
         return NextResponse.json({ reports: rows });
