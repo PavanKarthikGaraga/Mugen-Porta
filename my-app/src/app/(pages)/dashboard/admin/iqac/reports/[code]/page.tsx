@@ -264,8 +264,27 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
   };
 
   const buildPayload = (markGenerated: boolean) => ({
-    ...form,
-    studentsParticipated: form.studentsParticipated === "" ? null : Number(form.studentsParticipated),
+    organizing_entity: form.organizingEntity,
+    director_name: form.directorName,
+    director_title: form.directorTitle,
+    faculty_name: form.facultyName,
+    faculty_id: form.facultyId,
+    faculty_title: form.facultyTitle,
+    student_lead_name: form.studentLeadName,
+    academic_year: form.academicYear,
+    time_slot: form.timeSlot,
+    venue: form.venue,
+    students_participated: form.studentsParticipated === "" ? null : Number(form.studentsParticipated),
+    poster_url: form.posterUrl,
+    permission_letter_url: form.permissionLetterUrl,
+    overview: form.overview,
+    objectives: form.objectives,
+    proceedings: form.proceedings,
+    key_highlights: form.keyHighlights,
+    learning_outcomes: form.learningOutcomes,
+    conclusion: form.conclusion,
+    gallery: form.gallery,
+    attendance_sheets: form.attendanceSheets,
     status: markGenerated ? 'generated' : 'draft',
   });
 

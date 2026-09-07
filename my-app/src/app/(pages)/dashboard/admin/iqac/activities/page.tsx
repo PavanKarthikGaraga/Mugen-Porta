@@ -17,6 +17,8 @@ export default function IqacActivitiesPage() {
     });
     const [submitting, setSubmitting] = useState(false);
 
+    const [editingId, setEditingId] = useState<string | null>(null);
+
     useEffect(() => {
         fetchActivities();
     }, []);
@@ -43,8 +45,11 @@ export default function IqacActivitiesPage() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            const res = await fetch('/api/dashboard/iqac/activities', {
-                method: 'POST',
+            const url = editingId ? `/api/dashboard/iqac/activities/${editingId}` : '/api/dashboard/iqac/activities';
+            const method = editingId ? 'PUT' : 'POST';
+            
+            const res = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
@@ -52,18 +57,67 @@ export default function IqacActivitiesPage() {
             if (res.ok) {
                 toast.success(data.message);
                 setShowForm(false);
+                setEditingId(null);
                 setFormData({
                     activity_code: '', title: '', activity_date: '', start_time: '', end_time: '', venue: ''
                 });
                 fetchActivities();
             } else {
-                toast.error(data.error || data.message || "Failed to create activity");
+                toast.error(data.error || data.message || `Failed to ${editingId ? 'update' : 'create'} activity`);
             }
         } catch (e) {
-            toast.error("Failed to create activity");
+            toast.error(`Failed to ${editingId ? 'update' : 'create'} activity`);
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const handleEdit = (activity) => {
+        // Parse date for the input field (YYYY-MM-DD format)
+        let formattedDate = '';
+        if (activity.activity_date) {
+            const dateObj = new Date(activity.activity_date);
+            formattedDate = dateObj.toISOString().split('T')[0];
+        }
+
+        setFormData({
+            activity_code: activity.activity_code || '',
+            title: activity.title || '',
+            activity_date: formattedDate,
+            start_time: activity.start_time || '',
+            end_time: activity.end_time || '',
+            venue: activity.venue || ''
+        });
+        setEditingId(activity.id);
+        setShowForm(true);
+    };
+
+    const handleDelete = async (id) => {
+        if (!confirm("Are you sure you want to delete this activity? This cannot be undone.")) return;
+        
+        try {
+            const res = await fetch(`/api/dashboard/iqac/activities/${id}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                toast.success(data.message || "Activity deleted successfully");
+                fetchActivities();
+            } else {
+                toast.error(data.error || data.message || "Failed to delete activity");
+            }
+        } catch (e) {
+            toast.error("Failed to delete activity");
+        }
+    };
+
+    const handleAddNew = () => {
+        setFormData({
+            activity_code: '', title: '', activity_date: '', start_time: '', end_time: '', venue: ''
+        });
+        setEditingId(null);
+        setShowForm(!showForm);
     };
 
     return (
@@ -74,7 +128,7 @@ export default function IqacActivitiesPage() {
                     <p className="text-gray-500 mt-1">Manage simplified activities for IQAC reporting.</p>
                 </div>
                 <button
-                    onClick={() => setShowForm(!showForm)}
+                    onClick={handleAddNew}
                     className="flex items-center space-x-2 bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
                 >
                     {showForm ? 'List Activities' : 'Add Activity'}
@@ -83,7 +137,7 @@ export default function IqacActivitiesPage() {
 
             {showForm ? (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold mb-4 text-gray-800">Add New Activity</h2>
+                    <h2 className="text-lg font-semibold mb-4 text-gray-800">{editingId ? 'Edit Activity' : 'Add New Activity'}</h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -117,9 +171,12 @@ export default function IqacActivitiesPage() {
                                     className="w-full px-3 py-2 border rounded-md" />
                             </div>
                         </div>
-                        <div className="flex justify-end pt-4">
+                        <div className="flex justify-end pt-4 space-x-3">
+                            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                Cancel
+                            </button>
                             <button disabled={submitting} type="submit" className="bg-red-700 text-white px-6 py-2 rounded-md hover:bg-red-800 disabled:opacity-50">
-                                {submitting ? 'Creating...' : 'Create Activity'}
+                                {submitting ? (editingId ? 'Updating...' : 'Creating...') : (editingId ? 'Update Activity' : 'Create Activity')}
                             </button>
                         </div>
                     </form>
@@ -139,16 +196,31 @@ export default function IqacActivitiesPage() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {activities.map((a) => (
+                                {activities.map((a: any) => (
                                     <tr key={a.id}>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{a.activity_code}</td>
                                         <td className="px-6 py-4 text-sm text-gray-500">{a.title}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(a.activity_date).toLocaleDateString()}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{a.start_time} - {a.end_time}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{a.venue}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button 
+                                                onClick={() => handleEdit(a)} 
+                                                className="text-blue-600 hover:text-blue-900 mr-4"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDelete(a.id)} 
+                                                className="text-red-600 hover:text-red-900"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

@@ -351,15 +351,11 @@ export async function DELETE(request) {
             await connection.execute('DELETE FROM student_external_marks WHERE username = ? OR evaluated_by = ?', [username, username]);
             await connection.execute('DELETE FROM email_queue WHERE username = ?', [username]);
 
-            // Delete from role-specific tables
-            if (role === 'lead') {
-                // Delete from leads table first
-                await connection.execute('DELETE FROM leads WHERE username = ?', [username]);
-                // Also delete from students table since leads were originally students
-                await connection.execute('DELETE FROM students WHERE username = ?', [username]);
-            } else if (role === 'faculty') {
-                await connection.execute('DELETE FROM faculty WHERE username = ?', [username]);
-            } else if (role === 'council') {
+            // Delete from role-specific tables unconditionally to handle stray records
+            await connection.execute('DELETE FROM leads WHERE username = ?', [username]);
+            await connection.execute('DELETE FROM faculty WHERE username = ?', [username]);
+            await connection.execute('DELETE FROM students WHERE username = ?', [username]);
+            try {
                 // No ensureCouncilTable() here -- it runs ALTER TABLE users
                 // on a *different* pooled connection than this transaction's
                 // `connection`, which already holds a lock on `users` from
@@ -367,11 +363,10 @@ export async function DELETE(request) {
                 // transaction to end, while this code blocks awaiting the
                 // ALTER -- an unbreakable circular wait that also queues up
                 // every other query touching `users` (including login)
-                // behind it. The table is guaranteed to already exist here
-                // anyway, since we're deleting an existing council row.
+                // behind it. 
                 await connection.execute('DELETE FROM council WHERE username = ?', [username]);
-            } else if (role === 'student') {
-                await connection.execute('DELETE FROM students WHERE username = ?', [username]);
+            } catch (e: any) {
+                if (e.code !== 'ER_NO_SUCH_TABLE') throw e;
             }
 
             // Delete from users table
