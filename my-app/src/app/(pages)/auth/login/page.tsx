@@ -26,6 +26,7 @@ export default function Login() {
     const [captchaInput, setCaptchaInput] = useState("");
     const [loading,setLoading] = useState(false);
     const [redirecting, setRedirecting] = useState(false);
+    const [showForgotModal, setShowForgotModal] = useState(false);
 
     const router=useRouter();
 
@@ -262,12 +263,13 @@ export default function Login() {
                         </Button>
 
                         <div className="text-center space-y-2">
-                            <Link
-                                href="/auth/forget-password"
+                            <button
+                                type="button"
+                                onClick={() => setShowForgotModal(true)}
                                 className="text-sm text-blue-600 hover:text-blue-800 underline"
                             >
                                 Forgot Password?
-                            </Link>
+                            </button>
                             <div className="text-sm text-gray-600">
                                 Don&apos;t have an account?{" "}
                                 <Link
@@ -282,6 +284,29 @@ export default function Login() {
                     </CardContent>
                 </Card>
             </div>)}
+
+            <Dialog open={showForgotModal} onOpenChange={setShowForgotModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogTitle className="text-xl font-bold">Default Password Format</DialogTitle>
+                    <div className="space-y-4 text-sm text-gray-700 mt-2">
+                        <p>Because email delivery is currently disabled, please use the default password format to log in.</p>
+                        <div className="bg-gray-100 p-4 rounded-md space-y-2">
+                            <p><strong>Username:</strong> Your ID</p>
+                            <p><strong>Password:</strong> Your ID + last 4 digits of phone number</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="font-semibold text-gray-900">Example:</p>
+                            <ul className="list-disc list-inside space-y-1 ml-1 text-gray-600">
+                                <li>If ID is <span className="font-mono bg-gray-100 px-1 rounded">2400030188</span></li>
+                                <li>And Phone is <span className="font-mono bg-gray-100 px-1 rounded">1234567890</span></li>
+                                <li><strong>Username:</strong> <span className="font-mono bg-blue-50 px-1 rounded text-blue-700">2400030188</span></li>
+                                <li><strong>Password:</strong> <span className="font-mono bg-blue-50 px-1 rounded text-blue-700">24000301887890</span> <span className="text-xs text-gray-400">(14 digits)</span></li>
+                            </ul>
+                        </div>
+                        <Button className="w-full mt-4" onClick={() => setShowForgotModal(false)}>Got it</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

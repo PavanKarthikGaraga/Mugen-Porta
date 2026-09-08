@@ -11,8 +11,8 @@ export async function GET() {
     try {
         await ensureActivitySchema();
         const [[clubs], [activities], [mappings]] = await Promise.all([
-            // Only SAC clubs — exclude departmental clubs
-            pool.execute(`SELECT id, name, domain FROM clubs WHERE domain != 'DEPT. CLUBS' ORDER BY domain ASC, name ASC`),
+            // All clubs including departmental clubs
+            pool.execute(`SELECT id, name, domain FROM clubs ORDER BY domain ASC, name ASC`),
             // All activities except rejected (include pending so new additions are mappable)
             pool.execute(`
                 SELECT code, title, domain, category, sdc_credits, difficulty, approval_status

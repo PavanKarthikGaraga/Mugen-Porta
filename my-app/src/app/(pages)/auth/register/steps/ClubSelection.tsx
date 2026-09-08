@@ -315,6 +315,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                                 { label: 'BCA & MCA',   prefix: 'BCA' },
                                                 { label: 'MBA',          prefix: 'MBA' },
                                                 { label: 'Pharmacy',     prefix: 'PHR' },
+                                                { label: 'Law',          prefix: 'LAW' },
                                             ];
                                             return (
                                                 <>
