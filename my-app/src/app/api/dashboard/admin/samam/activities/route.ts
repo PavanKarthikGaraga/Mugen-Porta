@@ -144,7 +144,7 @@ export async function POST(request: Request) {
             INSERT INTO activity_catalogue
             (code, title, description, domain, category, sdc_credits, max_seats, status,
              difficulty, activity_pack, faculty_name, sdgs, hours,
-             purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
+             purpose, outcomes, competencies, ga, resources, assignments, timeline,
              activity_date, start_time, end_time, venue, registration_open,
              created_by, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())

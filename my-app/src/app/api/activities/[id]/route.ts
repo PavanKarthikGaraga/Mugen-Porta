@@ -167,12 +167,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const values = [];
 
     // Form sends 'outcomes'; DB column is 'learning_outcomes'
-    const COLUMN_ALIASES: Record<string, string> = {
-      outcomes: 'learning_outcomes',
-      learning_outcomes: 'learning_outcomes',
-      ga: 'graduate_attributes',
-      graduate_attributes: 'graduate_attributes',
-    };
+    const COLUMN_ALIASES: Record<string, string> = {};
     const JSON_FIELDS = new Set(['outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments', 'competencies', 'graduate_attributes', 'career', 'sdgs', 'ga']);
 
     const seenColumns = new Set<string>();

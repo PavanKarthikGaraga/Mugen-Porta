@@ -142,12 +142,7 @@ const EDITABLE_ACTIVITY_FIELDS = new Set([
     'faculty_name', 'hours', 'graduate_attributes',
     'activity_date', 'start_time', 'end_time', 'venue', 'registration_open',
 ]);
-const COLUMN_ALIASES: Record<string, string> = {
-    outcomes: 'learning_outcomes',
-    learning_outcomes: 'learning_outcomes',
-    ga: 'graduate_attributes',
-    graduate_attributes: 'graduate_attributes',
-};
+const COLUMN_ALIASES: Record<string, string> = {};
 // Empty strings from the date/time inputs must become NULL, not '' — MySQL
 // rejects '' for DATE/TIME columns in strict mode.
 const NULLABLE_WHEN_BLANK = new Set(['activity_date', 'start_time', 'end_time']);
