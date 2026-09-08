@@ -17,7 +17,7 @@ async function getLeadClubData() {
     let leadResult: any[] = [];
     try {
         const [rows]: any = await pool.execute(
-            'SELECT l.clubId, c.name as clubName, l.assigned_categories FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
+            'SELECT l.clubId, c.name as clubName, c.domain as clubDomain, l.assigned_categories FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
             [decoded.username as string]
         );
         leadResult = rows;
@@ -25,7 +25,7 @@ async function getLeadClubData() {
         // If assigned_categories column doesn't exist yet, fall back without it
         if (e.code === 'ER_BAD_FIELD_ERROR' || e.message?.includes('assigned_categories')) {
             const [rows]: any = await pool.execute(
-                'SELECT l.clubId, c.name as clubName FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
+                'SELECT l.clubId, c.name as clubName, c.domain as clubDomain FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
                 [decoded.username as string]
             );
             leadResult = rows;
@@ -47,7 +47,7 @@ async function getLeadClubData() {
         // the full parent + TEC child clubs scope used for actual queries.
         const clubIds = await getLeadClubIds(decoded.username as string);
         return {
-            decoded, clubId: leadResult[0].clubId, clubName: leadResult[0].clubName,
+            decoded, clubId: leadResult[0].clubId, clubName: leadResult[0].clubName, clubDomain: leadResult[0].clubDomain,
             clubIds, assigned_categories,
         };
     }
@@ -68,10 +68,13 @@ export async function GET(request: Request) {
 
         const conditions: string[] = [];
         const params: any[] = [];
-
-        // Check admin-defined club_activity_mappings first — students see the same set
         let usedMappings = false;
-        if (clubIds.length > 0) {
+
+        // For DEPT and MHS leads, restrict to their domain and bypass mappings
+        if (leadData.clubDomain === 'DEPT. CLUBS' || leadData.clubDomain === 'MHS. CLUBS') {
+            conditions.push(`domain = ?`);
+            params.push(leadData.clubDomain);
+        } else if (clubIds.length > 0) {
             try {
                 const [mapRows]: any = await pool.execute(
                     `SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${clubIds.map(() => '?').join(',')})`,
@@ -86,8 +89,8 @@ export async function GET(request: Request) {
             } catch { /* table may not exist yet */ }
         }
 
-        // Fall back to per-lead assigned_categories if no admin mappings
-        if (!usedMappings) {
+        // Fall back to per-lead assigned_categories if no admin mappings or domain restriction
+        if (!usedMappings && leadData.clubDomain !== 'DEPT. CLUBS' && leadData.clubDomain !== 'MHS. CLUBS') {
             if (assigned_categories && assigned_categories.length > 0) {
                 const categoryPlaceholders = assigned_categories.map(() => '?').join(',');
                 conditions.push(`category IN (${categoryPlaceholders})`);
@@ -118,7 +121,12 @@ export async function GET(request: Request) {
             ORDER BY domain ASC, category ASC, code ASC
         `, params);
 
-        return NextResponse.json({ activities: rows, assigned_categories });
+        return NextResponse.json({ 
+            activities: rows, 
+            assigned_categories,
+            clubName: leadData.clubName,
+            clubDomain: leadData.clubDomain
+        });
 
     } catch (error: any) {
         console.error('Activities list error:', error);
@@ -151,6 +159,10 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'You can only create activities in your assigned categories' }, { status: 403 });
         }
 
+        if ((leadData.clubDomain === 'DEPT. CLUBS' || leadData.clubDomain === 'MHS. CLUBS') && domain !== leadData.clubDomain) {
+            return NextResponse.json({ message: `You can only create activities in your department domain (${leadData.clubDomain})` }, { status: 403 });
+        }
+
         await ensureActivitySchema();
 
         const safeJson = (val: any) => val ? JSON.stringify(val) : null;
@@ -177,6 +189,20 @@ export async function POST(request: Request) {
         ]);
 
         const insertId = (result as any).insertId;
+
+        // Auto-map the activity for DEPT and MHS clubs
+        if (leadData.clubDomain === 'DEPT. CLUBS' || leadData.clubDomain === 'MHS. CLUBS') {
+            try {
+                await pool.execute(
+                    `INSERT IGNORE INTO club_activity_mappings (club_id, activity_code) VALUES (?, ?)`,
+                    [leadData.clubId, code]
+                );
+            } catch (mappingError) {
+                console.error("Auto-mapping error:", mappingError);
+                // We don't fail the entire request if mapping fails, but log it.
+            }
+        }
+
         return NextResponse.json({ success: true, id: insertId, message: 'Activity created successfully' }, { status: 201 });
 
     } catch (error: any) {

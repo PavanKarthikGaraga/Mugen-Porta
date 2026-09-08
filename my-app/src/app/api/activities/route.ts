@@ -15,6 +15,7 @@ export async function GET(request: Request) {
 
     // Resolve the calling student's club so we can filter by mappings
     let studentClubId: number | null = null;
+    let studentDeptDomain: string | null = null;
     let hasMappings = false;
     let isStudent = false;
     let isDemoAccount = false;
@@ -29,15 +30,21 @@ export async function GET(request: Request) {
             isDemoAccount = true;
           } else {
             const [clubRows]: any = await pool.query(
-              `SELECT clubId FROM students WHERE username = ?`, [decoded.username]
+              `SELECT s.clubId, c.domain as clubDomain FROM students s LEFT JOIN clubs c ON s.clubId = c.id WHERE s.username = ?`, [decoded.username]
             );
             const clubId = clubRows[0]?.clubId;
+            const clubDomain = clubRows[0]?.clubDomain;
             if (clubId) {
               studentClubId = clubId;
-              const [mapCount]: any = await pool.query(
-                `SELECT COUNT(*) as cnt FROM club_activity_mappings WHERE club_id = ?`, [clubId]
-              );
-              hasMappings = (mapCount[0]?.cnt || 0) > 0;
+              if (clubDomain === 'DEPT. CLUBS' || clubDomain === 'MHS. CLUBS') {
+                // For DEPT and MHS clubs, hard-filter by domain directly, skipping mapper logic
+                studentDeptDomain = clubDomain;
+              } else {
+                const [mapCount]: any = await pool.query(
+                  `SELECT COUNT(*) as cnt FROM club_activity_mappings WHERE club_id = ?`, [clubId]
+                );
+                hasMappings = (mapCount[0]?.cnt || 0) > 0;
+              }
             }
           }
         }
@@ -57,6 +64,11 @@ export async function GET(request: Request) {
     if (domain && domain !== 'all') {
       conditions.push(`ac.domain = ?`);
       params.push(domain);
+    }
+
+    if (studentDeptDomain) {
+      conditions.push(`ac.domain = ?`);
+      params.push(studentDeptDomain);
     }
 
     // Demo account sees all activities across all domains — no club/mapper filter

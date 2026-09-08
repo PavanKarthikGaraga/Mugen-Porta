@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { FiSave, FiArrowLeft, FiPlus, FiTrash2, FiUpload, FiLink, FiFileText, FiRefreshCw, FiEye, FiX, FiCalendar, FiMapPin, FiClock, FiTarget, FiGlobe } from "react-icons/fi";
 import Link from "next/link";
 import { SDG_MAP, DOMAINS } from "@/app/Data/activities-mock";
+import { getClubPrefix } from "@/lib/clubPrefixes";
 
 // Domain prefix used only as a fallback when creating the very first
 // activity for a brand-new sub-category (one with no existing activities to
@@ -13,6 +14,7 @@ import { SDG_MAP, DOMAINS } from "@/app/Data/activities-mock";
 // instead -- see fetchSubcategories below.
 const DOMAIN_CODE_PREFIX: Record<string, string> = {
   TEC: "TECH", ESO: "ESO", LCH: "LCH", HWB: "HWB", IIE: "IIE",
+  "DEPT. CLUBS": "DEP", "MHS. CLUBS": "MHS"
 };
 
 interface DynamicSubcategory { category: string; code_prefix: string; activity_count: number; }
@@ -48,6 +50,8 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
   const isNew = !activityId && !initialData;
   const apiPrefix = role === "lead" ? "/api/dashboard/lead/samam/activities" : "/api/activities";
   const [assignedCategories, setAssignedCategories] = useState<string[]>([]);
+  const [leadClubName, setLeadClubName] = useState<string>("");
+  const [leadClubDomain, setLeadClubDomain] = useState<string>("");
   const [subCategory, setSubCategory] = useState<string>("");
   const [generatingCode, setGeneratingCode] = useState(false);
   const [dynamicSubcategories, setDynamicSubcategories] = useState<DynamicSubcategory[]>([]);
@@ -64,7 +68,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     description: initialData?.description || "",
     domain: initialData?.domain || "TEC",
     category: initialData?.category || "General",
-    sdc_credits: initialData?.sdc_credits || initialData?.credits || 0,
+    sdc_credits: initialData?.sdc_credits ?? initialData?.credits ?? 50,
     max_seats: initialData?.max_seats || initialData?.maxEnrollment || 50,
     difficulty: initialData?.difficulty || "Beginner",
     // Schedule + venue. `activity_date` arrives from MySQL as a full ISO
@@ -139,10 +143,28 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     if (role === "lead") {
       fetch("/api/dashboard/lead/samam/activities")
         .then(r => r.json())
-        .then(d => { if (d.assigned_categories) setAssignedCategories(d.assigned_categories); })
+        .then(d => { 
+            if (d.assigned_categories) setAssignedCategories(d.assigned_categories);
+            if (d.clubName) setLeadClubName(d.clubName);
+            if (d.clubDomain) {
+                setLeadClubDomain(d.clubDomain);
+                if (isNew && (d.clubDomain === 'DEPT. CLUBS' || d.clubDomain === 'MHS. CLUBS')) {
+                    const prefix = getClubPrefix(d.clubName, d.clubDomain);
+                    setFormData(prev => ({ ...prev, domain: d.clubDomain, category: d.clubName }));
+                    setSubCategory(prefix);
+                    setGeneratingCode(true);
+                    fetch(`/api/activities/next-code?prefix=${encodeURIComponent(prefix)}`)
+                      .then(rr => rr.json())
+                      .then(dd => {
+                        if (dd.code) setFormData(prev => ({ ...prev, domain: d.clubDomain, category: d.clubName, code: dd.code }));
+                      })
+                      .finally(() => setGeneratingCode(false));
+                }
+            }
+        })
         .catch(console.error);
     }
-  }, [role]);
+  }, [role, isNew]);
 
   // Sub-category options are the real (category, code prefix) pairs already
   // in use for this domain -- not a hardcoded list -- so a new activity
@@ -414,12 +436,14 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Domain <span className="text-red-500">*</span>
             </label>
-            <select value={formData.domain} onChange={handleDomainChange} className="w-full border rounded-md px-3 py-2">
+            <select value={formData.domain} onChange={handleDomainChange} disabled={leadClubDomain === 'DEPT. CLUBS' || leadClubDomain === 'MHS. CLUBS'} className="w-full border rounded-md px-3 py-2">
               <option value="TEC">TEC — Technical</option>
               <option value="LCH">LCH — Liberal Arts & Cultural</option>
               <option value="ESO">ESO — Extension & Society</option>
               <option value="IIE">IIE — Innovation & Entrepreneurship</option>
               <option value="HWB">HWB — Health & Wellbeing</option>
+              <option value="DEPT. CLUBS">Engineering Dept.</option>
+              <option value="MHS. CLUBS">MHS Dept.</option>
             </select>
           </div>
 
@@ -430,7 +454,9 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Sub-category <span className="text-red-500">*</span>
             </label>
-            {addingNewSubcategory ? (
+            {(leadClubDomain === 'DEPT. CLUBS' || leadClubDomain === 'MHS. CLUBS') ? (
+              <input type="text" readOnly className="w-full p-2 border rounded bg-gray-50 text-gray-600" value={formData.category} />
+            ) : addingNewSubcategory ? (
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -528,7 +554,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">SAMAM Points</label>
-            <input type="number" name="sdc_credits" value={formData.sdc_credits} onChange={handleChange} className="w-full p-2 border rounded" />
+            <input type="number" name="sdc_credits" value={formData.sdc_credits} onChange={handleChange} className="w-full p-2 border rounded" disabled={role !== "admin"} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Max Seats</label>
