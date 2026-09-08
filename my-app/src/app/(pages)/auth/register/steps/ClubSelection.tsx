@@ -309,13 +309,13 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                         if (isVaddeswaramCampus && clubType === 'MHS_DEPARTMENT') {
                                             const mhsClubs = availableClubs.filter(club => club.domain === 'MHS. CLUBS');
                                             const mhsCategories = [
-                                                { label: 'Agriculture',  prefix: 'AGR' },
-                                                { label: 'Commerce',     prefix: 'COM' },
+                                                { label: 'Agriculture', prefix: 'AGR' },
+                                                { label: 'Commerce', prefix: 'COM' },
                                                 { label: 'Architecture', prefix: 'ARC' },
-                                                { label: 'BCA & MCA',   prefix: 'BCA' },
-                                                { label: 'MBA',          prefix: 'MBA' },
-                                                { label: 'Pharmacy',     prefix: 'PHR' },
-                                                { label: 'Law',          prefix: 'LAW' },
+                                                { label: 'BCA & MCA', prefix: 'BCA' },
+                                                { label: 'BBA & MBA', prefix: 'MBA' },
+                                                { label: 'Pharmacy', prefix: 'PHR' },
+                                                { label: 'Law', prefix: 'LAW' },
                                             ];
                                             return (
                                                 <>
