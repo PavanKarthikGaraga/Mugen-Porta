@@ -169,26 +169,30 @@ export async function POST(request: Request) {
         // MySQL rejects '' for DATE/TIME columns in strict mode.
         const blankToNull = (val: any) => (val === '' || val === undefined ? null : val);
 
-        const [result] = await pool.execute(`
-            INSERT INTO activity_catalogue
-            (code, title, description, domain, category, sdc_credits, max_seats, status,
-             difficulty, activity_pack, faculty_name, sdgs, hours,
-             purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
-             activity_date, start_time, end_time, venue, registration_open,
-             created_by, submitted_by, approval_status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW())
-        `, [
-            code, title, description || '', domain, category, finalPoints, finalMaxSeats || null, status || 'upcoming',
-            difficulty || 'Beginner', activity_pack || null, faculty_name || null,
-            safeJson(sdgs), hours || 0.0,
-            purpose || null, safeJson(outcomes), safeJson(competencies), safeJson(ga),
-            safeJson(resources), safeJson(assignments), safeJson(timeline),
-            blankToNull(activity_date), blankToNull(start_time), blankToNull(end_time),
-            venue || null, registration_open === undefined ? 1 : Number(registration_open),
-            leadData.decoded.username || 'lead', leadData.decoded.username || 'lead'
-        ]);
-
-        const insertId = (result as any).insertId;
+        let result: any;
+        try {
+            [result] = await pool.execute(`
+                INSERT INTO activity_catalogue
+                (code, title, description, domain, category, sdc_credits, max_seats, status,
+                 difficulty, activity_pack, faculty_name, sdgs, hours,
+                 purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
+                 activity_date, start_time, end_time, venue, registration_open,
+                 created_by, submitted_by, approval_status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW())
+            `, [
+                code, title, description || '', domain, category, finalPoints, finalMaxSeats || null, status || 'upcoming',
+                difficulty || 'Beginner', activity_pack || null, faculty_name || null,
+                safeJson(sdgs), hours || 0.0,
+                purpose || null, safeJson(outcomes), safeJson(competencies), safeJson(ga),
+                safeJson(resources), safeJson(assignments), safeJson(timeline),
+                blankToNull(activity_date), blankToNull(start_time), blankToNull(end_time),
+                venue || null, registration_open === undefined ? 1 : Number(registration_open),
+                leadData.decoded.username || 'lead', leadData.decoded.username || 'lead'
+            ]);
+        } catch (sqlError: any) {
+            return NextResponse.json({ error: sqlError.message, sqlError: true }, { status: 500 });
+        }
+        const insertId = result.insertId;
 
         // Auto-map the activity for DEPT and MHS clubs
         if (leadData.clubDomain === 'DEPT. CLUBS' || leadData.clubDomain === 'MHS. CLUBS') {
