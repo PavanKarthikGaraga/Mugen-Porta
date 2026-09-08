@@ -438,6 +438,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
               min={0}
               value={form.studentsParticipated}
               onChange={(e) => setForm({ ...form, studentsParticipated: e.target.value })}
+              onWheel={(e) => (e.target as HTMLElement).blur()}
               placeholder={String(activity.enrolledCount ?? "")}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:border-gray-400"
             />

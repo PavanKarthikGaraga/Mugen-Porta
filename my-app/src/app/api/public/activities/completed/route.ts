@@ -61,6 +61,7 @@ export async function GET() {
             SELECT 1 FROM activity_enrollments ae
             WHERE ae.activity_code = ac.code AND ae.attendance_marked = TRUE
         )
+          AND ac.domain NOT IN ('DEPT. CLUBS', 'MHS. CLUBS')
             ORDER BY ac.activity_date DESC, ac.code ASC
         `);
 

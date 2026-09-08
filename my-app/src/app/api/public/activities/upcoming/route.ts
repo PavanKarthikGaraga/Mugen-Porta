@@ -60,6 +60,7 @@ export async function GET() {
               AND ac.start_time IS NOT NULL
               AND ac.venue IS NOT NULL
               AND ac.venue != ''
+              AND ac.domain NOT IN ('DEPT. CLUBS', 'MHS. CLUBS')
             ORDER BY ac.activity_date ASC, ac.start_time ASC, ac.code ASC
         `);
 

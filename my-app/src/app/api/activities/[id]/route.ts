@@ -170,6 +170,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const COLUMN_ALIASES: Record<string, string> = {
       outcomes: 'learning_outcomes',
       learning_outcomes: 'learning_outcomes',
+      ga: 'graduate_attributes',
+      graduate_attributes: 'graduate_attributes',
     };
     const JSON_FIELDS = new Set(['outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments', 'competencies', 'graduate_attributes', 'career', 'sdgs', 'ga']);
 

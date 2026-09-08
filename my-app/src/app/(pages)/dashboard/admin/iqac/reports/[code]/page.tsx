@@ -495,6 +495,7 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
               min={0}
               value={form.studentsParticipated}
               onChange={(e) => setForm({ ...form, studentsParticipated: e.target.value })}
+              onWheel={(e) => (e.target as HTMLElement).blur()}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:border-gray-400"
             />
           </div>

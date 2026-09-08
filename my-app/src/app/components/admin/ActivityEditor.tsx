@@ -553,12 +553,12 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             <textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-2 border rounded" rows={3} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">SAMAM Points</label>
-            <input type="number" name="sdc_credits" value={formData.sdc_credits} onChange={handleChange} className="w-full p-2 border rounded" disabled={role !== "admin"} />
+            <label className="block text-sm font-medium text-gray-700 mb-1">SDC Credits <span className="text-red-500">*</span></label>
+            <input type="number" name="sdc_credits" value={formData.sdc_credits} onChange={handleChange} onWheel={(e) => (e.target as HTMLElement).blur()} className="w-full p-2 border rounded" disabled={role !== "admin"} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max Seats</label>
-            <input type="number" name="max_seats" value={formData.max_seats} onChange={handleChange} className="w-full p-2 border rounded" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Max Seats (0 = unlimited)</label>
+            <input type="number" name="max_seats" value={formData.max_seats} onChange={handleChange} onWheel={(e) => (e.target as HTMLElement).blur()} className="w-full p-2 border rounded" />
           </div>
         </div>
       </div>

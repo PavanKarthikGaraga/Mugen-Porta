@@ -145,6 +145,8 @@ const EDITABLE_ACTIVITY_FIELDS = new Set([
 const COLUMN_ALIASES: Record<string, string> = {
     outcomes: 'learning_outcomes',
     learning_outcomes: 'learning_outcomes',
+    ga: 'graduate_attributes',
+    graduate_attributes: 'graduate_attributes',
 };
 // Empty strings from the date/time inputs must become NULL, not '' — MySQL
 // rejects '' for DATE/TIME columns in strict mode.
