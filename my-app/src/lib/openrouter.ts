@@ -44,8 +44,8 @@ function getOpenRouterKeys(): string[] {
     return keys
 }
 
-// Increased budgets to handle large context windows (15k tokens) and many retries.
-const ATTEMPT_TIMEOUT_MS = 60_000 // 60s per individual API call attempt
+// Reduced timeout so it doesn't hang forever on slow models (like Nemotron)
+const ATTEMPT_TIMEOUT_MS = 25_000 // 25s per individual API call attempt
 const OPENROUTER_BUDGET_MS = 120_000 // Total fallback budget 2 mins
 
 async function fetchWithTimeout(url: string, options: RequestInit, maxWaitMs: number): Promise<Response> {
@@ -160,20 +160,25 @@ async function tryOpenRouter(
                     lastError = new Error(
                         `OpenRouter request failed (${res.status}) for model ${model}: ${bodyText.slice(0, 200)}`,
                     )
-                    continue
+                    // If it's a model routing/overloaded error (502, 503, 529), or invalid request, switch model completely
+                    if (res.status >= 500 && res.status !== 529) {
+                        break; // Move to next model
+                    }
+                    // Otherwise (like 429 Rate Limit or Auth Error), just try the next key
+                    continue;
                 }
 
                 const data = await res.json()
                 const content = data?.choices?.[0]?.message?.content
                 if (!content || typeof content !== 'string') {
                     lastError = new Error(`OpenRouter model ${model} returned an empty response`)
-                    continue
+                    break; // Model failure, don't waste other keys on it
                 }
 
                 const parsed = safeParseJson(content)
                 if (!parsed) {
                     lastError = new Error(`OpenRouter model ${model} returned a response that was not valid JSON`)
-                    continue
+                    break; // Model failure, don't waste other keys on it
                 }
 
                 return { success: true, data: parsed, usage: extractUsage(data), model }
