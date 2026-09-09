@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { getStudentCareerContext } from '@/lib/careerContext';
-import { callGroqJSON, GroqConfigError } from '@/lib/groq';
+import { callOpenRouterJSON, OpenRouterConfigError } from '@/lib/openrouter';
 import { logAiUsage } from '@/lib/dbMigrate';
 
 export const dynamic = 'force-dynamic';
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
         const context = await getStudentCareerContext(username);
         const userPrompt = `Here is the student's profile:\n\n${context.contextText}\n\nBased strictly on this evidence, identify my best-fit career roles across various domains and how strong a match each one is.`;
 
-        const { result, usage, provider, model } = await callGroqJSON({ systemPrompt: SYSTEM_PROMPT, userPrompt, temperature: 0.5, maxTokens: 2000 });
+        const { result, usage, provider, model } = await callOpenRouterJSON({ systemPrompt: SYSTEM_PROMPT, userPrompt, temperature: 0.5 });
         logAiUsage({ username, feature: 'role_matches', provider, model, usage });
 
         const roles = Array.isArray(result?.roles)
@@ -168,8 +168,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, roles, generatedAt, fromCache: false, canRerun: isDemo });
     } catch (error: any) {
         console.error('Career role-matches error:', error);
-        if (error instanceof GroqConfigError) {
-            return NextResponse.json({ error: 'AI analysis is not configured yet. Please contact the administrator.' }, { status: 503 });
+        if (error instanceof OpenRouterConfigError) {
+            return NextResponse.json({ error: 'AI capabilities are currently unavailable' }, { status: 503 });
         }
         return NextResponse.json(
             { error: safeMessage(error, 'Could not generate role matches right now. Please try again in a moment.') },

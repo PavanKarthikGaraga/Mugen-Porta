@@ -194,6 +194,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             console.error('Auto-verify for admin failed (non-fatal):', submitErr);
         }
 
+        const { logUserAction } = require('@/lib/apiSecurity');
+        await logUserAction(
+            user, 
+            `Saved attendance for activity ${id}`, 
+            'POST', 
+            `/api/dashboard/admin/samam/activities/${id}/attendance`, 
+            { absenteesCount: absentees.length }
+        );
+
         return NextResponse.json({ success: true, message: 'Attendance saved successfully' });
 
     } catch (error: any) {

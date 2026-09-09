@@ -1,6 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { requireAuth, safeMessage } from '@/lib/apiSecurity';
+import { requireAuth, safeMessage, logUserAction } from '@/lib/apiSecurity';
 import { ensureActivitySchema } from '@/lib/dbMigrate';
 
 // GET: all pending activities
@@ -45,10 +45,24 @@ export async function PATCH(request: Request) {
                 `UPDATE activity_catalogue SET approval_status = 'active', rejection_note = NULL WHERE id = ?`,
                 [id]
             );
+            await logUserAction(
+                auth.user as any, 
+                `Approved activity ${id}`, 
+                'PATCH', 
+                '/api/dashboard/admin/activity-approvals', 
+                { activityId: id, action: 'approve' }
+            );
         } else {
             await pool.execute(
                 `UPDATE activity_catalogue SET approval_status = 'rejected', rejection_note = ? WHERE id = ?`,
                 [rejectionNote || 'Not approved', id]
+            );
+            await logUserAction(
+                auth.user as any, 
+                `Rejected activity ${id}`, 
+                'PATCH', 
+                '/api/dashboard/admin/activity-approvals', 
+                { activityId: id, action: 'reject', reason: rejectionNote }
             );
         }
 
@@ -67,6 +81,15 @@ export async function DELETE(request: Request) {
     try {
         const { id } = await request.json();
         await pool.execute(`DELETE FROM activity_catalogue WHERE id = ? AND approval_status = 'rejected'`, [id]);
+
+        await logUserAction(
+            auth.user as any, 
+            `Permanently deleted rejected activity ${id}`, 
+            'DELETE', 
+            '/api/dashboard/admin/activity-approvals', 
+            { activityId: id }
+        );
+
         return NextResponse.json({ success: true });
     } catch (error: any) {
         return NextResponse.json({ success: false, error: safeMessage(error) }, { status: 500 });

@@ -39,6 +39,15 @@ export async function POST(request: Request) {
         // Update student profile total (if student_profiles table tracks it)
         // The level will be recomputed from sum — no need to update here
 
+        const { logUserAction } = require('@/lib/apiSecurity');
+        await logUserAction(
+            admin as any, 
+            `Awarded ${points} points to ${username}`, 
+            'POST', 
+            '/api/dashboard/admin/samam/award-points', 
+            { student: username, points, domain, reason }
+        );
+
         return NextResponse.json({
             success: true,
             message: `Successfully awarded ${points} SAMAM Points to ${(studentRows as any[])[0].name}`

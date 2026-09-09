@@ -274,7 +274,7 @@ let _aiUsageLogDone = false;
  * student and per feature (see the AI Logs admin page at
  * /dashboard/admin/dev/ai-logs). "feature" values: 'career_roadmap',
  * 'role_matches', 'role_fit' -- the first two Career Dashboard panels plus
- * the separate Career Roadmap questionnaire, the only 3 callGroqJSON call
+ * the separate Career Roadmap questionnaire, the only 3 callOpenRouterJSON call
  * sites in the app.
  */
 export async function ensureAiUsageLogTable() {
@@ -323,4 +323,25 @@ export async function logAiUsage(entry: {
     } catch (err) {
         console.error('AI usage log insert failed (non-fatal):', err);
     }
+}
+
+let _userLogsDone = false;
+
+export async function ensureUserLogsTable() {
+    if (_userLogsDone) return;
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS user_logs (
+            id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+            username   VARCHAR(50)  NOT NULL,
+            role       VARCHAR(20)  NOT NULL,
+            action     VARCHAR(200) NOT NULL,
+            method     VARCHAR(10)  NOT NULL,
+            url        VARCHAR(500) NOT NULL,
+            details    JSON         DEFAULT NULL,
+            created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_username (username),
+            INDEX idx_role (role)
+        )
+    `);
+    _userLogsDone = true;
 }

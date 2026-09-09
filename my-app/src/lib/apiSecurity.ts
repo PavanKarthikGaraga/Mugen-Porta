@@ -96,3 +96,26 @@ export function clampInt(value: any, { min = 0, max = Number.MAX_SAFE_INTEGER, f
     if (!Number.isFinite(n) || Number.isNaN(n)) return fallback;
     return Math.min(max, Math.max(min, n));
 }
+
+import pool from '@/lib/db';
+import { ensureUserLogsTable } from '@/lib/dbMigrate';
+
+export async function logUserAction(user: { username: string; role: string }, action: string, method: string, url: string, details: any = null) {
+    try {
+        await ensureUserLogsTable();
+        await pool.execute(
+            `INSERT INTO user_logs (username, role, action, method, url, details)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+                user.username,
+                user.role,
+                action,
+                method,
+                url,
+                details ? JSON.stringify(details) : null
+            ]
+        );
+    } catch (e) {
+        console.error('Failed to log user action internally:', e);
+    }
+}

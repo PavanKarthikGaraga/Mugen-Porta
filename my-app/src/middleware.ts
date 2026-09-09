@@ -1,8 +1,41 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from './lib/jwt';
 
-export async function middleware(request) {
+export async function middleware(request, event) {
     const pathname = request.nextUrl.pathname;
+
+    // --- API Logging Interceptor ---
+    if (pathname.startsWith('/api/') && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
+        // Skip logging for the internal log route itself and auth routes
+        if (!pathname.startsWith('/api/internal/log') && !pathname.startsWith('/api/auth/')) {
+            const token = request.cookies.get('tck')?.value;
+            if (token) {
+                // Fire and forget logging
+                event.waitUntil(
+                    (async () => {
+                        try {
+                            const payload = await verifyToken(token);
+                            if (payload && payload.username) {
+                                await fetch(new URL('/api/internal/log', request.url), {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        username: payload.username,
+                                        role: payload.role || 'unknown',
+                                        action: `API Mutation: ${pathname}`,
+                                        method: request.method,
+                                        url: pathname,
+                                    })
+                                }).catch(() => {});
+                            }
+                        } catch (e) {
+                            // Silently fail if token is invalid or fetch fails
+                        }
+                    })()
+                );
+            }
+        }
+    }
 
     // Check if the request is for auth routes (login, register, etc.)
     if (pathname.startsWith('/auth/')) {
@@ -86,5 +119,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/auth/:path*']
+    matcher: ['/dashboard/:path*', '/auth/:path*', '/api/:path*']
 };

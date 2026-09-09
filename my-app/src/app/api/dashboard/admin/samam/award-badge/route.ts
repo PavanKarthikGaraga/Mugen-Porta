@@ -92,6 +92,15 @@ export async function POST(request: Request) {
             VALUES (?, ?, ?, ?, ?, NOW())
         `, [username, badge_id, recognitionText, verificationId, shareUrl]);
 
+        const { logUserAction } = require('@/lib/apiSecurity');
+        await logUserAction(
+            admin as any, 
+            `Awarded badge "${(badgeRows as any[])[0].name}" to ${username}`, 
+            'POST', 
+            '/api/dashboard/admin/samam/award-badge', 
+            { student: username, badgeId: badge_id, reason: recognitionText }
+        );
+
         return NextResponse.json({
             success: true,
             message: `Badge "${(badgeRows as any[])[0].name}" awarded to ${(studentRows as any[])[0].name}`,
@@ -139,6 +148,15 @@ export async function DELETE(request: Request) {
         if (result.affectedRows === 0) {
             return NextResponse.json({ message: 'Student does not have this badge' }, { status: 404 });
         }
+
+        const { logUserAction } = require('@/lib/apiSecurity');
+        await logUserAction(
+            admin as any, 
+            `Revoked badge ${badge_id} from ${username}`, 
+            'DELETE', 
+            '/api/dashboard/admin/samam/award-badge', 
+            { student: username, badgeId: badge_id }
+        );
 
         return NextResponse.json({ success: true, message: `Badge revoked from ${(studentRows as any[])[0].name}` });
     } catch (error: any) {

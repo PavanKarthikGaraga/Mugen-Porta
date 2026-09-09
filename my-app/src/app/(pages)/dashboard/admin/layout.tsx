@@ -94,9 +94,8 @@ export default function AdminDashboardLayout({ children }) {
     ];
 
     const devNavigation = [
-        { name: 'Email Queue', href: '/dashboard/admin/dev/email-queue', icon: FiMail },
+        { name: 'User Logs', href: '/dashboard/admin/dev/user-logs', icon: FiActivity },
         { name: 'Database Query', href: '/dashboard/admin/dev/db-query', icon: FiDatabase },
-        { name: 'Lead Activities', href: '/dashboard/admin/dev/lead-activities', icon: FiAward },
         { name: 'Reset Password', href: '/dashboard/admin/dev/reset-password', icon: FiKey },
         { name: 'Career Roadmap Access', href: '/dashboard/admin/dev/career-roadmap', icon: FiMap },
         { name: 'CR Access',           href: '/dashboard/admin/dev/cr-access',       icon: FiUserCheck },

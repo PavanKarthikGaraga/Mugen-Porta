@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
-import { callGroqJSON, GroqConfigError } from '@/lib/groq';
+import { callOpenRouterJSON, OpenRouterConfigError } from '@/lib/openrouter';
 import { ensureCareerRoadmapCacheTable, logAiUsage } from '@/lib/dbMigrate';
 
 export const dynamic = 'force-dynamic';
@@ -277,16 +277,10 @@ ${clubsList || 'No clubs data available'}
 
 Generate a personalized career roadmap for this student that is specifically tailored to their academic field and career direction — not a generic engineering roadmap.`;
 
-        const { result, usage, provider, model } = await callGroqJSON({
+        const { result, usage, provider, model } = await callOpenRouterJSON({
             systemPrompt: SYSTEM_PROMPT,
             userPrompt,
             temperature: 0.6,
-            // Without an explicit cap some providers fall back to a small
-            // internal default rather than the model's real max, which was
-            // silently truncating this large schema (empty projects, only 1
-            // club, missing goalRoadmap). Lowered from 9500 alongside
-            // groq.ts's tighter per-attempt/total timeouts (12s/25s) after
-            // hitting a real 504 in production — a smaller completion
             // generates faster, making it more likely to actually finish
             // within the shortened window. The schema is already ordered so
             // the career-guidance fields (paths, clubs, skills, projects,
@@ -511,7 +505,7 @@ Generate a personalized career roadmap for this student that is specifically tai
     } catch (error: any) {
         console.error('Career roadmap error:', error);
         const errMsg: string = error?.message || String(error);
-        if (error instanceof GroqConfigError || errMsg.includes('All AI providers failed') || errMsg.includes('No OpenRouter keys')) {
+        if (error instanceof OpenRouterConfigError || errMsg.includes('All AI providers failed') || errMsg.includes('No OpenRouter keys')) {
             // For demo account surface the full provider error chain so the issue can be diagnosed
             const displayMsg = isDemo ? `AI unavailable — ${errMsg}` : 'AI service is unavailable. Please contact admin.';
             return NextResponse.json({ error: displayMsg }, { status: 503 });

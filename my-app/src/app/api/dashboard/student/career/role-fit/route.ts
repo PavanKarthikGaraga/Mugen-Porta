@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { getStudentCareerContext } from '@/lib/careerContext';
-import { callGroqJSON, GroqConfigError } from '@/lib/groq';
+import { callOpenRouterJSON, OpenRouterConfigError } from '@/lib/openrouter';
 import { logAiUsage } from '@/lib/dbMigrate';
 
 export const dynamic = 'force-dynamic';
@@ -107,7 +107,11 @@ export async function POST(request: Request) {
         const context = await getStudentCareerContext(username);
         const userPrompt = `Here is the student's profile:\n\n${context.contextText}\n\nTarget role I'm interested in: "${role}"\n\nAnalyze how well I currently fit this specific role and what I should improve to get there.`;
 
-        const { result, usage, provider, model } = await callGroqJSON({ systemPrompt: SYSTEM_PROMPT, userPrompt, temperature: 0.5, maxTokens: 1500 });
+        const { result, usage, provider, model } = await callOpenRouterJSON({
+            systemPrompt: SYSTEM_PROMPT,
+            userPrompt,
+            temperature: 0.5,
+        });
         logAiUsage({ username, feature: 'role_fit', provider, model, usage });
 
         if (!result || typeof result.matchPercentage !== 'number') {
@@ -152,7 +156,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, analysis, generatedAt, fromCache: false, canRerun: isDemo });
     } catch (error: any) {
         console.error('Career role-fit error:', error);
-        if (error instanceof GroqConfigError) {
+        if (error instanceof OpenRouterConfigError) {
             return NextResponse.json({ error: 'AI analysis is not configured yet. Please contact the administrator.' }, { status: 503 });
         }
         return NextResponse.json(
