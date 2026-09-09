@@ -46,7 +46,7 @@ function getOpenRouterKeys(): string[] {
 
 // Reduced timeout so it doesn't hang forever on slow models (like Nemotron)
 const ATTEMPT_TIMEOUT_MS = 25_000 // 25s per individual API call attempt
-const OPENROUTER_BUDGET_MS = 120_000 // Total fallback budget 2 mins
+const OPENROUTER_BUDGET_MS = 85_000 // Total fallback budget 85s to prevent 100s proxy timeout
 
 async function fetchWithTimeout(url: string, options: RequestInit, maxWaitMs: number): Promise<Response> {
     const controller = new AbortController()
