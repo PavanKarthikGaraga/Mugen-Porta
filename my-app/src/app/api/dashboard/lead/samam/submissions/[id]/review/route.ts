@@ -55,16 +55,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       [status, reason || null, decoded.username, id]
     );
 
-    await ensureNotificationsTable();
-    const task = taskTitle(sub.assignments, sub.assignment_id);
-    const title = status === 'approved' ? "Task Approved" : "Task Rejected";
-    const message = status === 'approved'
-      ? `Your submission for "${task}" in ${sub.activity_title} has been approved by your club lead.`
-      : `Your submission for "${task}" in ${sub.activity_title} was rejected by your club lead. Reason: ${reason}. You can resubmit.`;
-    await pool.execute(
-      `INSERT INTO notifications (username, type, title, message) VALUES (?, ?, ?, ?)`,
-      [sub.username, status === 'approved' ? 'success' : 'alert', title, message]
-    );
+    try {
+      await ensureNotificationsTable();
+      const task = taskTitle(sub.assignments, sub.assignment_id);
+      const title = status === 'approved' ? "Task Approved" : "Task Rejected";
+      const message = status === 'approved'
+        ? `Your submission for "${task}" in ${sub.activity_title} has been approved by your club lead.`
+        : `Your submission for "${task}" in ${sub.activity_title} was rejected by your club lead. Reason: ${reason}. You can resubmit.`;
+      await pool.execute(
+        `INSERT INTO notifications (username, type, title, message) VALUES (?, ?, ?, ?)`,
+        [sub.username, status === 'approved' ? 'success' : 'alert', title, message]
+      );
+    } catch (notifErr) {
+      console.warn("Failed to create notification, but submission was updated:", notifErr);
+    }
 
     return NextResponse.json({ success: true, message: `Submission ${status === 'approved' ? 'approved' : 'rejected'} successfully` });
   } catch (error: any) {
