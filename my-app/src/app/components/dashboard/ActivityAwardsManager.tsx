@@ -102,7 +102,7 @@ export default function ActivityAwardsManager() {
         if (d.success) {
           setStudents(d.students ?? []);
           setActivityInfo(d.activity ?? null);
-          setSelected(new Set((d.students ?? []).filter((s: StudentRow) => s.eligible).map((s: StudentRow) => s.username)));
+          setSelected(new Set((d.students ?? []).filter((s: StudentRow) => s.attendance > 0).map((s: StudentRow) => s.username)));
           setPointsAmount(d.activity?.credits ? String(d.activity.credits) : "");
         } else {
           toast.error(d.message || "Not authorized for this activity");
@@ -115,7 +115,7 @@ export default function ActivityAwardsManager() {
 
   const toggle = (u: string) => setSelected(p => { const n = new Set(p); n.has(u) ? n.delete(u) : n.add(u); return n; });
   const toggleAll = () => setSelected(selected.size === students.length ? new Set() : new Set(students.map(s => s.username)));
-  const eligibleCount = students.filter(s => s.eligible).length;
+  const eligibleCount = students.filter(s => s.attendance > 0).length;
   // How many of the currently-selected students actually have something to
   // revoke for each award type — drives the revoke buttons' labels/disabled
   // state so an admin isn't offered to "revoke" from students who never
@@ -328,7 +328,6 @@ export default function ActivityAwardsManager() {
                 </button>
                 <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex-1">Student</span>
                 <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider w-24 sm:w-32 text-right">Status</span>
-                <span className="hidden sm:block text-[11px] font-bold text-gray-500 uppercase tracking-wider w-40 text-right">Awards</span>
               </div>
 
               <div className="divide-y divide-gray-50 max-h-[45vh] overflow-y-auto">
@@ -342,26 +341,10 @@ export default function ActivityAwardsManager() {
                         <p className="text-[11px] text-gray-400">{s.username}</p>
                       </div>
                       <span className={`w-24 sm:w-32 flex-shrink-0 text-right text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center justify-end gap-1 ${
-                        s.eligible ? "text-emerald-700" : s.attendance === 0 ? "text-red-600" : "text-amber-600"
+                        s.attendance > 0 ? "text-emerald-700" : "text-red-600"
                       }`}>
-                        {s.eligible ? <FiCheckCircle size={11} className="flex-shrink-0" /> : s.attendance === 0 ? <FiXCircle size={11} className="flex-shrink-0" /> : <FiClock size={11} className="flex-shrink-0" />}
-                        <span className="truncate">{s.eligible ? "Completed" : s.enrollmentStatus || "Pending"}</span>
-                      </span>
-                      {/* Award state is secondary — dropped on phones so the
-                          student name keeps usable width. */}
-                      <span className="hidden sm:flex w-40 flex-shrink-0 justify-end items-center gap-1.5">
-                        {s.certificate && (
-                          <span title="Has certificate" className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Cert</span>
-                        )}
-                        {s.pointsFromActivity > 0 && (
-                          <span title={`${s.pointsFromActivity} points from this activity`} className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">{s.pointsFromActivity}pt</span>
-                        )}
-                        {s.badgeAwarded && (
-                          <span title="Has this activity's badge" className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">Badge</span>
-                        )}
-                        {!s.certificate && !(s.pointsFromActivity > 0) && !s.badgeAwarded && (
-                          <span className="text-[10px] text-gray-400">—</span>
-                        )}
+                        {s.attendance > 0 ? <FiCheckCircle size={11} className="flex-shrink-0" /> : <FiXCircle size={11} className="flex-shrink-0" />}
+                        <span className="truncate">{s.attendance > 0 ? "Present" : "Absent"}</span>
                       </span>
                     </label>
                   );

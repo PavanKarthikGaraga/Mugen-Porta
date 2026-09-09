@@ -18,7 +18,8 @@ async function getFacultyClubs(username: string): Promise<string[]> {
 function taskTitle(assignments: any, assignmentId: string): string {
   let list: any[] = [];
   try {
-    list = typeof assignments === 'string' ? JSON.parse(assignments) : (assignments || []);
+    const parsed = typeof assignments === 'string' ? JSON.parse(assignments) : assignments;
+    list = Array.isArray(parsed) ? parsed : [];
   } catch { /* ignore malformed JSON */ }
   return list.find((a: any) => String(a?.id) === String(assignmentId))?.title || `Task ${assignmentId}`;
 }

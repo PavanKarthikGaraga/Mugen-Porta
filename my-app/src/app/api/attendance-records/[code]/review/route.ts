@@ -70,7 +70,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
       await pool.execute(
         `UPDATE activity_enrollments
          SET status = 'completed'
-         WHERE activity_code = ? AND attendance_percentage = 100 AND status = 'active'`,
+         WHERE activity_code = ? AND status IN ('registered', 'active', 'ongoing')`,
         [code]
       );
 

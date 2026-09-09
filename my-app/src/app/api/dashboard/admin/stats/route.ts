@@ -88,15 +88,15 @@ export async function GET(request) {
                 params
             ),
 
-            // 5. Internal submission status breakdown (filtered via student join)
+            // 5. SAMAM activity submission status breakdown (filtered via student join)
             pool.execute(
                 `SELECT
-                    SUM(CASE WHEN iss.status = 'A' THEN 1 ELSE 0 END) AS approved,
-                    SUM(CASE WHEN iss.status = 'R' THEN 1 ELSE 0 END) AS rejected,
-                    SUM(CASE WHEN iss.status = 'S' THEN 1 ELSE 0 END) AS pending,
-                    SUM(CASE WHEN iss.status = 'N' THEN 1 ELSE 0 END) AS not_submitted,
+                    SUM(CASE WHEN iss.status = 'approved' THEN 1 ELSE 0 END) AS approved,
+                    SUM(CASE WHEN iss.status = 'rejected' THEN 1 ELSE 0 END) AS rejected,
+                    SUM(CASE WHEN iss.status = 'pending' THEN 1 ELSE 0 END) AS pending,
+                    0 AS not_submitted,
                     COUNT(*) AS total
-                 FROM internal_submissions iss
+                 FROM activity_assignment_submissions iss
                  INNER JOIN students s ON iss.username = s.username
                  ${whereClause}`,
                 params

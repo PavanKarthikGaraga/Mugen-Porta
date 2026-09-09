@@ -169,6 +169,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
                         verified_by  = ?,
                         verified_at  = CURRENT_TIMESTAMP
                 `, [id, realClubId, realClubName, actTitle, user.username, user.username, user.username]);
+
+                // Also mark student enrollments as completed since attendance is verified
+                await pool.execute(
+                    `UPDATE activity_enrollments 
+                     SET status = 'completed' 
+                     WHERE activity_code = ? AND status IN ('registered', 'active', 'ongoing')`,
+                    [id]
+                );
             } else {
                 await pool.execute(`
                     INSERT INTO attendance_submissions

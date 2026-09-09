@@ -340,7 +340,7 @@ export default function AdminOverviewPage() {
         {/* Submission status */}
         <DashboardCard
           title="Submission Status"
-          subtitle="Internal activity submissions breakdown"
+          subtitle="SAMAM activity submissions breakdown"
           action={
             <Link href="/dashboard/admin/reports" className="text-xs font-medium hover:underline flex items-center gap-0.5" style={{ color: BRAND }}>
               View all <FiChevronRight size={12} />
