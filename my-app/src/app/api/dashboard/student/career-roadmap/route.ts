@@ -178,7 +178,7 @@ Gardner scoring guide — map each selected activity to an intelligence:
 Score each 0-100 based on how many selected activities map to it (count matches, normalize to 0-100). primary = highest score. secondary = second highest.
 
 CAREER ALIGNMENT:
-- careerPaths: exactly 3, ordered by relevanceScore descending. Derive from fiveYearCareer, postGradPlan, careerValues, orgAttraction. Must be field-specific — NOT generic engineering unless student is in engineering.
+- careerPaths: exactly 3, ordered by relevanceScore descending. Derive from fiveYearCareer, postGradPlan, careerValues, orgAttraction. Must be field-specific. CRITICAL: If the student lists non-technical/creative interests (like dance, filmmaking, music) alongside a technical degree (like CS or Engineering), you MUST cross-pollinate them for at least one path (e.g., VFX Software Engineer, Motion Capture Developer, Music Tech Analyst). Do NOT just give generic engineering paths if they have unique creative interests.
 - relevanceScore: calculate based on how many of their answers point to this path (use 0-100)
 
 BLOOM'S + GARDNER CROSS-ANALYSIS for careerPaths and projectIdeas:
@@ -193,14 +193,14 @@ STANDARD RULES:
 - primaryDomain: exactly one of TEC / LCH / ESO / HWB / IIE
 - careerDirection: 2-4 word summary (e.g. "Industry Placement", "Research & PhD", "Creative Practice")
 - personalityTraits: 4-6 professional traits derived from the full 20-question analysis
-- goalRoadmap: 3-5 STAGES (not fixed years) that plot a path from where they are now to their stated goal (fiveYearCareer, postGradPlan). Name each stage for what happens in it (e.g. "Foundation", "Core Skill Building", "Specialization & Projects", "Placement Prep" for a job-bound student; "Coursework & Fundamentals", "Research Focus Area", "Publications", "Thesis & Defense" for a research/PhD-bound student) — do NOT default to generic "Year 1..4" labels. timeframe = a realistic relative duration from their current stage (e.g. "Months 1-6", "Semester 3-4", "Final Year") sized to how much time they actually have left (academicStage), not assumed to be 4 years. Each stage: topics = 3-5 subject areas to study, skills = 3-5 concrete skills to build, goals = 3-4 measurable milestones, samamTip = 1 relevant SAC club/activity type
+- goalRoadmap: 3-5 STAGES (not fixed years) that plot a path from where they are now to their stated goal (fiveYearCareer, postGradPlan). Name each stage for what happens in it (e.g. "Foundation", "Core Skill Building", "Specialization & Projects", "Placement Prep" for a job-bound student; "Coursework & Fundamentals", "Research Focus Area", "Publications", "Thesis & Defense" for a research/PhD-bound student) — do NOT default to generic "Year 1..4" labels. timeframe = a realistic relative duration from their current stage (e.g. "Months 1-6", "Semester 3-4", "Final Year") sized to how much time they actually have left (academicStage), not assumed to be 4 years. Each stage: topics = 3-5 subject areas to study, skills = 3-5 concrete skills to build, goals = 3-4 measurable milestones, samamTip = 1 relevant SAC club/activity type. IMPORTANT: At least one milestone must bridge their academic degree and their specific personal interests.
 - skillsToLearn: 5-7 skills, highly specific to their field and Gardner/Bloom's profile
 - topMNCs: EXACTLY 6 real companies; role = specific job title; INR package = "₹X–Y LPA"; USD = "$XK–YK/yr". Use real market data. Field-appropriate (hospitals for medicine, law firms for law, etc.)
 - clubRecommendations: the array MUST contain EXACTLY 3 objects, never 1 or 2 — pick 3 distinct clubs from the provided clubs list only, using their exact names. Reason must link to their Gardner/personality profile.
 - socialImpactOpportunities: 3-4 actionable ways using their specific strengths
 - motivationalMessage: 2-3 sentences, cite their specific personality type and primary intelligence
 - researchAreas: 3-4 areas, field-specific; subfields 3-5 each
-- projectIdeas: each of software/hardware/management arrays MUST contain EXACTLY 4 objects — never leave any of the 3 arrays empty. Software = digital/app/AI/web. Hardware = physical/IoT/lab/electronics. Management = business plan/case study/campaign/strategy. Adapt for non-engineering (law student hardware = moot court setup; design student software = portfolio platform). Real tools only.
+- projectIdeas: each of software/hardware/management arrays MUST contain EXACTLY 4 objects — never leave any of the 3 arrays empty. Software = digital/app/AI/web. Hardware = physical/IoT/lab/electronics. Management = business plan/case study/campaign/strategy. Adapt for non-engineering (law student hardware = moot court setup; design student software = portfolio platform). Real tools only. CRITICAL: If the student lists specific creative hobbies (dance, filmmaking, sports, music, etc.), at least half of these projects MUST explicitly combine their academic degree with those creative interests (e.g., an AI-based choreography tool, a cinematography hardware rig).
 - entrepreneurPaths: 4 areas; description 2 sentences; ideas = 3-4 concrete business concepts
 - topUniversities: 5-7 universities; mix Indian (IISc, NID, IIM, NLSIU, AIIMS) and global (MIT, Stanford, Harvard, LSE, NUS); field-appropriate
 - personalDevelopmentPlan: 6 areas each with 3-4 actionable, specific recommendations. Must account for their stress management pattern, personality type, and Gardner intelligence. Communication = specific to their intro/extrovert type. Leadership = based on their current team role. Networking = actionable for their field and location. Wellbeing = matched to their stressResponse answer. TimeManagement = matched to their learning style. EmotionalResilience = based on their careerConfidence score and motivation type.
@@ -275,17 +275,12 @@ ${answersText}
 Available SAC Clubs (use ONLY these names in clubRecommendations):
 ${clubsList || 'No clubs data available'}
 
-Generate a personalized career roadmap for this student that is specifically tailored to their academic field and career direction — not a generic engineering roadmap.`;
+Generate a highly personalized, INTERDISCIPLINARY career roadmap for this student. It must be specifically tailored to their academic field combined with their unique personal interests and career direction. Do NOT generate generic engineering roadmaps if they have distinct creative/niche hobbies; merge them instead.`;
 
         const { result, usage, provider, model } = await callOpenRouterJSON({
             systemPrompt: SYSTEM_PROMPT,
             userPrompt,
             temperature: 0.6,
-            // generates faster, making it more likely to actually finish
-            // within the shortened window. The schema is already ordered so
-            // the career-guidance fields (paths, clubs, skills, projects,
-            // goal roadmap) generate first and are protected either way.
-            maxTokens: 6000,
         });
         logAiUsage({ username, feature: 'career_roadmap', provider, model, usage });
 
