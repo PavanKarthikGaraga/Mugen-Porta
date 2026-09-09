@@ -32,7 +32,14 @@ export async function GET(request) {
         const whereConditions: string[] = [];
         const params: (string | number)[] = [];
 
-        if (domain)                    { whereConditions.push('s.selectedDomain = ?'); params.push(domain); }
+        if (domain) {
+            if (domain === 'ALL_SAC') {
+                whereConditions.push("s.selectedDomain IN ('TEC', 'LCH', 'ESO', 'IIE', 'HWB')");
+            } else if (domain !== 'all') {
+                whereConditions.push('s.selectedDomain = ?');
+                params.push(domain);
+            }
+        }
         if (year)                      { whereConditions.push('s.year = ?');            params.push(year);   }
         if (branch && branch !== 'all'){ whereConditions.push('s.branch = ?');          params.push(branch); }
 

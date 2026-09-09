@@ -470,6 +470,7 @@ export default function AdminStudents() {
                         <select value={filters.domain} onChange={(e) => applyFilter("domain", e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                             <option value="">All Domains</option>
+                            <option value="ALL_SAC">ALL SAC</option>
                             <option value="TEC">TEC</option>
                             <option value="LCH">LCH</option>
                             <option value="ESO">ESO</option>

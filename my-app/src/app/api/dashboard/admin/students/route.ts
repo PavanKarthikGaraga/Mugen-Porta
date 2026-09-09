@@ -103,8 +103,12 @@ export async function GET(request) {
         }
 
         if (domain && domain.length > 0 && domain !== 'all') {
-            whereConditions.push('s.selectedDomain = ?');
-            queryParams.push(domain);
+            if (domain === 'ALL_SAC') {
+                whereConditions.push(`s.selectedDomain IN ('TEC', 'LCH', 'ESO', 'IIE', 'HWB')`);
+            } else {
+                whereConditions.push('s.selectedDomain = ?');
+                queryParams.push(domain);
+            }
         }
 
         if (year && year.length > 0 && year !== 'all') {

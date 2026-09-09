@@ -224,6 +224,7 @@ export default function AdminOverviewPage() {
                   className="w-full h-8 px-2 text-xs rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-400"
                 >
                   <option value="all">All Domains</option>
+                  <option value="ALL_SAC">ALL SAC</option>
                   <option value="TEC">Technical (TEC)</option>
                   <option value="LCH">Liberal Arts, Culture and Heritage (LCH)</option>
                   <option value="ESO">Extension &amp; Society Outreach (ESO)</option>

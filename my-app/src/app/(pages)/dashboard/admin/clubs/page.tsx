@@ -192,6 +192,7 @@ export default function ClubsPage() {
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                         >
                             <option value="">All Domains</option>
+                            <option value="ALL_SAC">ALL SAC</option>
                             <option value="TEC">Technical (TEC)</option>
                             <option value="LCH">Liberal Arts, Culture and Heritage (LCH)</option>
                             <option value="ESO">Extension & Society Outreach (ESO)</option>

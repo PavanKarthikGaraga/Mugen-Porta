@@ -517,6 +517,7 @@ export default function UsersPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Domains</SelectItem>
+                                <SelectItem value="ALL_SAC">ALL SAC</SelectItem>
                                 {DOMAIN_OPTIONS.map(d => (
                                     <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
                                 ))}

@@ -43,6 +43,8 @@ export async function GET(request: Request) {
             if (domainParam && councilDomains.includes(domainParam)) {
                 conditions.push('domain = ?');
                 params.push(domainParam);
+            } else if (domainParam === 'ALL_SAC') {
+                conditions.push(`domain IN ('TEC', 'LCH', 'ESO', 'IIE', 'HWB')`);
             } else {
                 conditions.push(`domain IN (${councilDomains.map(() => '?').join(',')})`);
                 params.push(...councilDomains);
@@ -58,8 +60,12 @@ export async function GET(request: Request) {
             params.push(...facultyClubs);
             
             if (domainParam) {
-                conditions.push('domain = ?');
-                params.push(domainParam);
+                if (domainParam === 'ALL_SAC') {
+                    conditions.push(`domain IN ('TEC', 'LCH', 'ESO', 'IIE', 'HWB')`);
+                } else {
+                    conditions.push('domain = ?');
+                    params.push(domainParam);
+                }
             }
         } else if (user.role === 'lead') {
             const leadClubs = await getLeadClubIds(user.username);
@@ -71,12 +77,20 @@ export async function GET(request: Request) {
             params.push(...leadClubs);
             
             if (domainParam) {
+                if (domainParam === 'ALL_SAC') {
+                    conditions.push(`domain IN ('TEC', 'LCH', 'ESO', 'IIE', 'HWB')`);
+                } else {
+                    conditions.push('domain = ?');
+                    params.push(domainParam);
+                }
+            }
+        } else if (domainParam) {
+            if (domainParam === 'ALL_SAC') {
+                conditions.push(`domain IN ('TEC', 'LCH', 'ESO', 'IIE', 'HWB')`);
+            } else {
                 conditions.push('domain = ?');
                 params.push(domainParam);
             }
-        } else if (domainParam) {
-            conditions.push('domain = ?');
-            params.push(domainParam);
         }
 
         if (search) { conditions.push('title LIKE ?'); params.push(`%${search}%`); }

@@ -279,6 +279,7 @@ export default function ActivityManager({
             className="h-9 px-3 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 transition-colors shadow-sm bg-white w-44 truncate"
           >
             <option value="">All Domains</option>
+                            <option value="ALL_SAC">ALL SAC</option>
             {availableDomains.map(d => <option key={d} value={d}>{DOMAIN_NAMES[d] || d}</option>)}
           </select>
 

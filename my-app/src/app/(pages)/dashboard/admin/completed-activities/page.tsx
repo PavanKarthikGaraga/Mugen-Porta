@@ -101,7 +101,11 @@ export default function CompletedActivitiesPage() {
         .concat(Object.keys(data.byDomain).filter(d => !DOMAIN_ORDER.includes(d)))
     : [];
 
-  const visibleDomains = selectedDomain === "ALL" ? allDomains : allDomains.filter(d => d === selectedDomain);
+  const visibleDomains = selectedDomain === "ALL" 
+    ? allDomains 
+    : selectedDomain === "ALL_SAC"
+    ? allDomains.filter(d => ["TEC", "LCH", "ESO", "IIE", "HWB"].includes(d))
+    : allDomains.filter(d => d === selectedDomain);
 
   const filterActivities = (acts: any[]) => {
     if (!search) return acts;
@@ -194,6 +198,16 @@ export default function CompletedActivitiesPage() {
             }`}
           >
             All Domains
+          </button>
+          <button
+            onClick={() => setSelectedDomain("ALL_SAC")}
+            className={`px-3 py-1.5 text-[12px] font-medium rounded-full border transition-colors ${
+              selectedDomain === "ALL_SAC"
+                ? "bg-gray-900 text-white border-gray-900"
+                : "text-gray-600 border-gray-200 hover:bg-gray-50"
+            }`}
+          >
+            ALL SAC
           </button>
           {allDomains.map(d => (
             <button
