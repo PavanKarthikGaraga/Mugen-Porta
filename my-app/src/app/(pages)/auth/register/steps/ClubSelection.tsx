@@ -310,12 +310,15 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                             const mhsClubs = availableClubs.filter(club => club.domain === 'MHS. CLUBS');
                                             const mhsCategories = [
                                                 { label: 'Agriculture', prefix: 'AGR' },
-                                                { label: 'Commerce', prefix: 'COM' },
                                                 { label: 'Architecture', prefix: 'ARC' },
+                                                { label: 'BBA', prefix: 'BBA' },
                                                 { label: 'BCA & MCA', prefix: 'BCA' },
-                                                { label: 'BBA & MBA', prefix: 'MBA' },
-                                                { label: 'Pharmacy', prefix: 'PHR' },
+                                                { label: 'Commerce', prefix: 'COM' },
                                                 { label: 'Law', prefix: 'LAW' },
+                                                { label: 'MBA', prefix: 'MBA' },
+                                                { label: 'Fine Arts', prefix: 'FIN' },
+                                                { label: 'Pharmacy', prefix: 'PHR' },
+
                                             ];
                                             return (
                                                 <>
