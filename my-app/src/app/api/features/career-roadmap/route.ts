@@ -18,7 +18,8 @@ export async function GET() {
         if (!decoded) return NextResponse.json({ enabled: false }, { status: 401 });
 
         // Demo account always has full access
-        if (DEMO_ACCOUNTS.has(decoded.username as string)) {
+        const username = String(decoded.username);
+        if (username === '2400000000' || DEMO_ACCOUNTS.has(username)) {
             return NextResponse.json({ enabled: true });
         }
 

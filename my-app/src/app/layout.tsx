@@ -26,7 +26,7 @@ export default function RootLayout({ children }) {
   return (
     // suppressHydrationWarning: next-themes sets the theme class on <html>
     // before React hydrates, which otherwise logs a hydration mismatch.
-    <html lang="en" className={poppins.variable} suppressHydrationWarning>
+    <html lang="en" className={`${poppins.variable} scroll-smooth`} suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#ffffff" />
         <meta name="msapplication-TileColor" content="#ffffff" />
