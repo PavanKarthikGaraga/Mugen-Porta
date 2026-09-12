@@ -346,7 +346,7 @@ export default function Home() {
     )},
   ];
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-red-900/20 selection:text-red-900">
+    <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-red-900/20 selection:text-red-900 overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="w-full flex h-16 sm:h-20 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -379,9 +379,9 @@ export default function Home() {
         </div>
       </nav>
 
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-16 sm:pt-20">
         {/* HERO SECTION */}
-        <section className="relative overflow-hidden pt-20 pb-20 lg:pt-24 lg:pb-24">
+        <section className="relative overflow-hidden pt-8 pb-12 sm:pt-14 sm:pb-20 lg:pt-24 lg:pb-24">
           <div className="absolute top-1/4 left-1/4 -z-10 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-100/60 blur-[100px]"></div>
           <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-16 lg:gap-8 items-center">
@@ -402,7 +402,7 @@ export default function Home() {
               </div>
 
               {/* Interactive Dashboard Mockup */}
-              <div className="relative h-[350px] sm:h-[450px] lg:h-[580px] w-full flex justify-center items-center mt-8 lg:mt-0">
+              <div className="relative h-[320px] sm:h-[450px] lg:h-[580px] w-full flex justify-center items-center mt-6 lg:mt-0 overflow-hidden">
                 <div className="absolute w-[640px] h-[550px] rounded-3xl bg-white/90 backdrop-blur-xl border border-slate-200 shadow-2xl z-20 overflow-hidden flex origin-center scale-[0.55] sm:scale-[0.75] md:scale-90 lg:scale-100">
                   {/* Sidebar */}
                   <div className="w-[35%] border-r border-slate-100 bg-white flex flex-col shrink-0">
