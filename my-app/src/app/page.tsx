@@ -384,27 +384,33 @@ export default function Home() {
           <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-16 lg:gap-8 items-center">
               {/* Left Content */}
-              <div className="space-y-10 text-center lg:text-left">
-                <div className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-900">
-                  <Sparkles className="mr-2 h-4 w-4 text-red-700" />
-                  Student Activity Management & Achievement Model
+              <div className="space-y-8 sm:space-y-10 text-center lg:text-left">
+                <div className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-red-900">
+                  <Sparkles className="mr-2 h-3 w-3 sm:h-4 sm:w-4 text-red-700 shrink-0" />
+                  Student Activity Management &amp; Achievement Model
                 </div>
-                <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl leading-[1.1] text-red-950">
+                <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl leading-[1.1] text-red-950">
                   Your Journey.<br />
                   <span className="text-red-800">Your Skills.</span><br />
                   Your Future.
                 </h1>
-                <p className="max-w-2xl text-lg sm:text-xl text-slate-600 leading-relaxed mx-auto lg:mx-0 font-medium">
+                <p className="max-w-2xl text-base sm:text-xl text-slate-600 leading-relaxed mx-auto lg:mx-0 font-medium">
                   Discover what you can become. Every activity, experience, and achievement builds the ultimate portfolio of your university journey.
                 </p>
-                <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 justify-center lg:justify-start">
-                  <a
-                    href="#intro"
-                    className="inline-flex h-14 items-center justify-center rounded-xl bg-red-900 text-white px-8 text-lg font-bold shadow-xl shadow-red-900/20 transition-all hover:bg-red-800 hover:-translate-y-1"
+                <div className="flex flex-row flex-wrap items-center gap-3 sm:gap-4 pt-2 justify-center lg:justify-start">
+                  <Link
+                    href="/auth/register"
+                    className="inline-flex h-11 sm:h-14 items-center justify-center rounded-xl bg-red-900 text-white px-6 sm:px-8 text-sm sm:text-lg font-bold shadow-xl shadow-red-900/20 transition-all hover:bg-red-800 hover:-translate-y-1"
                   >
-                    Scroll Down
-                    <ChevronDown className="ml-2 h-5 w-5 animate-bounce" />
-                  </a>
+                    Get Started
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  </Link>
+                  <Link
+                    href="/auth/login"
+                    className="inline-flex h-11 sm:h-14 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 px-6 sm:px-8 text-sm sm:text-lg font-bold shadow-sm transition-all hover:border-red-200 hover:text-red-900 hover:-translate-y-1"
+                  >
+                    Sign In
+                  </Link>
                 </div>
               </div>
 
