@@ -350,16 +350,12 @@ export default function Home() {
       {/* Navigation */}
       <nav className="fixed top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="w-full flex h-16 sm:h-20 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          {/* Left: Logo + Brand */}
-          <div className="flex items-center gap-2 sm:gap-6 min-w-0">
-            <Image src="/sac-logo.png" alt="SAC Logo" width={80} height={40} className="h-8 sm:h-10 w-auto object-contain shrink-0" priority />
-            <div className="h-6 sm:h-8 w-px bg-slate-300 hidden sm:block shrink-0"></div>
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-red-900 text-white shadow-md shadow-red-900/20">
-                <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
-              </div>
-              <span className="text-lg sm:text-2xl font-extrabold tracking-tight text-red-950 hidden sm:block">SAMAM</span>
+          {/* Left: Brand */}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-red-900 text-white shadow-md shadow-red-900/20 shrink-0">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
+            <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-red-950">SAMAM</span>
           </div>
           {/* Right: Buttons — constrained, no overflow */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0 ml-4">
