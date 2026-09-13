@@ -66,7 +66,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     code: initialData?.code || "",
     title: initialData?.title || initialData?.name || "",
     description: initialData?.description || "",
-    domain: initialData?.domain || "TEC",
+    domain: initialData?.domain || (role === "lead" ? "" : "TEC"),
     category: initialData?.category || "General",
     sdc_credits: initialData?.sdc_credits ?? initialData?.credits ?? 50,
     max_seats: initialData?.max_seats || initialData?.maxEnrollment || 50,
@@ -146,25 +146,27 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
         .then(d => { 
             if (d.assigned_categories) setAssignedCategories(d.assigned_categories);
             if (d.clubName) setLeadClubName(d.clubName);
-            if (d.clubDomain) {
-                setLeadClubDomain(d.clubDomain);
-                if (isNew) {
-                    if (d.clubDomain === 'DEPT. CLUBS' || d.clubDomain === 'MHS. CLUBS') {
-                        // DEPT/MHS lead: lock domain + category to club, auto-gen code
-                        const prefix = getClubPrefix(d.clubName, d.clubDomain);
-                        setFormData(prev => ({ ...prev, domain: d.clubDomain, category: d.clubName }));
+            const clubDomain = d.clubDomain || '';
+            if (clubDomain) {
+                setLeadClubDomain(clubDomain);
+                // Always update formData.domain for ALL leads from the API response
+                if (clubDomain === 'DEPT. CLUBS' || clubDomain === 'MHS. CLUBS') {
+                    // DEPT/MHS lead: lock domain + category to club, auto-gen code
+                    const prefix = getClubPrefix(d.clubName, clubDomain);
+                    setFormData(prev => ({ ...prev, domain: clubDomain, category: d.clubName }));
+                    if (isNew) {
                         setSubCategory(prefix);
                         setGeneratingCode(true);
                         fetch(`/api/activities/next-code?prefix=${encodeURIComponent(prefix)}`)
                           .then(rr => rr.json())
                           .then(dd => {
-                            if (dd.code) setFormData(prev => ({ ...prev, domain: d.clubDomain, category: d.clubName, code: dd.code }));
+                            if (dd.code) setFormData(prev => ({ ...prev, domain: clubDomain, category: d.clubName, code: dd.code }));
                           })
                           .finally(() => setGeneratingCode(false));
-                    } else {
-                        // SAC lead: lock domain to their club domain (TEC/LCH/etc)
-                        setFormData(prev => ({ ...prev, domain: d.clubDomain }));
                     }
+                } else {
+                    // SAC lead: lock domain to their club domain (TEC/LCH/etc)
+                    setFormData(prev => ({ ...prev, domain: clubDomain }));
                 }
             }
         })
@@ -173,10 +175,9 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
   }, [role, isNew]);
 
 
-  // Sub-category options are the real (category, code prefix) pairs already
-  // in use for this domain -- not a hardcoded list -- so a new activity
-  // always attaches to the club series it actually belongs to. Re-fetched
-  // whenever the domain changes.
+  // Sub-category options: fetched from the server for the current domain.
+  // Skip the fetch if the domain hasn't been resolved yet (empty string) to
+  // avoid an erroneous TEC fetch before the lead's real domain loads.
   useEffect(() => {
     if (!formData.domain) return;
     setLoadingSubcategories(true);
@@ -446,7 +447,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             {role === "lead" ? (
               // Lead: domain is always locked to their club's domain
               <div className="w-full border rounded-md px-3 py-2 bg-gray-50 text-gray-700 text-sm flex items-center justify-between">
-                <span className="font-medium">{formData.domain || leadClubDomain || "Loading…"}</span>
+                <span className="font-medium">{leadClubDomain || formData.domain || "Loading…"}</span>
                 <span className="text-xs text-gray-400">Auto-set from your club</span>
               </div>
             ) : (
@@ -470,7 +471,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             {(leadClubDomain === 'DEPT. CLUBS' || leadClubDomain === 'MHS. CLUBS') ? (
               // DEPT/MHS lead: sub-category is locked to their club name
               <div className="w-full border rounded-md px-3 py-2 bg-gray-50 text-gray-700 text-sm flex items-center justify-between">
-                <span className="font-medium">{formData.category || leadClubName || "Loading…"}</span>
+                <span className="font-medium">{leadClubName || formData.category || "Loading…"}</span>
                 <span className="text-xs text-gray-400">Auto-set from your club</span>
               </div>
             ) : addingNewSubcategory ? (
