@@ -508,7 +508,8 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
                 {dynamicSubcategories
                   // For leads with assigned categories, restrict to only their categories
                   .filter(s => {
-                    if (role !== 'lead' || !assignedCategories || assignedCategories.length === 0) return true;
+                    if (role !== 'lead') return true;
+                    if (!assignedCategories || assignedCategories.length === 0) return false;
                     return assignedCategories.includes(s.category);
                   })
                   .map(s => (

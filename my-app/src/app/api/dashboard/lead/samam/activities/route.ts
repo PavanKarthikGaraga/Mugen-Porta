@@ -64,7 +64,8 @@ export async function GET(request: Request) {
 
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
-        const { assigned_categories, clubIds } = leadData;
+        const { clubIds } = leadData;
+        let { assigned_categories } = leadData;
 
         const conditions: string[] = [];
         const params: any[] = [];
@@ -80,6 +81,10 @@ export async function GET(request: Request) {
                 );
                 if (catMapRows.length > 0) {
                     const mappedCategories: string[] = (catMapRows as any[]).map((r: any) => r.category);
+                    
+                    // Merge these into the response array so the UI editor dropdown restricts to them
+                    assigned_categories = [...new Set([...(assigned_categories || []), ...mappedCategories])];
+
                     conditions.push(`category IN (${mappedCategories.map(() => '?').join(',')})`);
                     params.push(...mappedCategories);
                     resolved = true;
