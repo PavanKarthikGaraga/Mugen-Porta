@@ -68,12 +68,27 @@ export async function GET(request: Request) {
 
         const conditions: string[] = [];
         const params: any[] = [];
-        let usedMappings = false;
+        let resolved = false;
 
-        // For all leads (DEPT, MHS, SAC), first try club_activity_mappings for their specific club.
-        // This ensures a Google club lead only sees Google club activities, not all DEPT activities.
-        let usedClubMappings = false;
+        // ── Priority 1: club_category_mappings (subcategory-based, covers current + future activities) ──
+        // This is the new admin-managed system. If a club has category mappings, use them exclusively.
         if (clubIds.length > 0) {
+            try {
+                const [catMapRows]: any = await pool.execute(
+                    `SELECT category FROM club_category_mappings WHERE club_id IN (${clubIds.map(() => '?').join(',')})`,
+                    clubIds
+                );
+                if (catMapRows.length > 0) {
+                    const mappedCategories: string[] = (catMapRows as any[]).map((r: any) => r.category);
+                    conditions.push(`category IN (${mappedCategories.map(() => '?').join(',')})`);
+                    params.push(...mappedCategories);
+                    resolved = true;
+                }
+            } catch { /* table may not exist yet — continue to fallbacks */ }
+        }
+
+        // ── Priority 2: club_activity_mappings (individual activity mappings — legacy/manual) ──
+        if (!resolved && clubIds.length > 0) {
             try {
                 const [mapRows]: any = await pool.execute(
                     `SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${clubIds.map(() => '?').join(',')})`,
@@ -83,31 +98,18 @@ export async function GET(request: Request) {
                     const codes: string[] = (mapRows as any[]).map((r: any) => r.activity_code);
                     conditions.push(`code IN (${codes.map(() => '?').join(',')})`);
                     params.push(...codes);
-                    usedMappings = true;
-                    usedClubMappings = true;
+                    resolved = true;
                 }
             } catch { /* table may not exist yet */ }
         }
 
-        // Only fall back to domain-wide filter for DEPT/MHS if absolutely no mappings exist for this club.
-        // This prevents cross-club activity leakage.
-        if (!usedClubMappings && (leadData.clubDomain === 'DEPT. CLUBS' || leadData.clubDomain === 'MHS. CLUBS')) {
-            // Fallback: restrict to domain + their specific club category only
-            conditions.push(`domain = ?`);
-            params.push(leadData.clubDomain);
-            // Also restrict by category if it matches the club name to narrow scope
-            if (leadData.clubName) {
-                conditions.push(`category = ?`);
-                params.push(leadData.clubName);
-            }
-        }
-
-        // Fall back to per-lead assigned_categories if no admin mappings or domain restriction
-        if (!usedMappings && leadData.clubDomain !== 'DEPT. CLUBS' && leadData.clubDomain !== 'MHS. CLUBS') {
+        // ── Priority 3: per-lead assigned_categories (legacy direct assignment) ──
+        if (!resolved) {
             if (assigned_categories && assigned_categories.length > 0) {
                 const categoryPlaceholders = assigned_categories.map(() => '?').join(',');
                 conditions.push(`category IN (${categoryPlaceholders})`);
                 params.push(...assigned_categories);
+                resolved = true;
             } else {
                 // Nothing mapped or assigned — return empty so lead knows to contact admin
                 return NextResponse.json({ activities: [], assigned_categories });
@@ -115,6 +117,7 @@ export async function GET(request: Request) {
         }
 
         if (search) {
+
             conditions.push('(title LIKE ? OR code LIKE ?)');
             params.push(`%${search}%`, `%${search}%`);
         }

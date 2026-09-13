@@ -16,7 +16,8 @@ export async function GET(request: Request) {
     // Resolve the calling student's club so we can filter by mappings
     let studentClubId: number | null = null;
     let studentDeptDomain: string | null = null;
-    let hasMappings = false;
+    let categoryMappedCats: string[] = [];   // from club_category_mappings (new system)
+    let hasMappings = false;                 // from club_activity_mappings (legacy system)
     let isStudent = false;
     let isDemoAccount = false;
     try {
@@ -36,16 +37,28 @@ export async function GET(request: Request) {
             const clubDomain = clubRows[0]?.clubDomain;
             if (clubId) {
               studentClubId = clubId;
-              // Check club_activity_mappings first for ALL club types (DEPT, MHS, SAC)
-              // This prevents a Google club student from seeing RPA club activities
-              const [mapCount]: any = await pool.query(
-                `SELECT COUNT(*) as cnt FROM club_activity_mappings WHERE club_id = ?`, [clubId]
-              );
-              hasMappings = (mapCount[0]?.cnt || 0) > 0;
 
-              if (!hasMappings && (clubDomain === 'DEPT. CLUBS' || clubDomain === 'MHS. CLUBS')) {
-                // Fallback only if no mappings exist: restrict by domain to limit exposure
-                studentDeptDomain = clubDomain;
+              // Priority 1: check club_category_mappings (new subcategory system)
+              try {
+                const [catRows]: any = await pool.query(
+                  `SELECT category FROM club_category_mappings WHERE club_id = ?`, [clubId]
+                );
+                if (catRows.length > 0) {
+                  categoryMappedCats = (catRows as any[]).map((r: any) => r.category);
+                }
+              } catch { /* table may not exist yet */ }
+
+              // Priority 2 (fallback): club_activity_mappings (individual activity mappings)
+              if (categoryMappedCats.length === 0) {
+                const [mapCount]: any = await pool.query(
+                  `SELECT COUNT(*) as cnt FROM club_activity_mappings WHERE club_id = ?`, [clubId]
+                );
+                hasMappings = (mapCount[0]?.cnt || 0) > 0;
+
+                // Priority 3 (last resort): domain-wide filter for DEPT/MHS if no mappings at all
+                if (!hasMappings && (clubDomain === 'DEPT. CLUBS' || clubDomain === 'MHS. CLUBS')) {
+                  studentDeptDomain = clubDomain;
+                }
               }
             }
           }
@@ -60,28 +73,31 @@ export async function GET(request: Request) {
     )`];
     const params: any[] = [];
 
-    // Students now see all mapped activities regardless of registration_open status
-    // so we removed the `ac.registration_open = 1` filter.
-
     if (domain && domain !== 'all') {
       conditions.push(`ac.domain = ?`);
       params.push(domain);
     }
 
-    if (studentDeptDomain) {
-      conditions.push(`ac.domain = ?`);
-      params.push(studentDeptDomain);
+    // Apply the club activity filter (demo sees all; others see only what their club is mapped to)
+    if (!isDemoAccount) {
+      if (categoryMappedCats.length > 0) {
+        // New system: filter by mapped categories (covers all current + future activities)
+        conditions.push(`ac.category IN (${categoryMappedCats.map(() => '?').join(',')})`);
+        params.push(...categoryMappedCats);
+      } else if (studentDeptDomain) {
+        // Last-resort fallback: domain-wide filter (only if truly nothing is mapped for the club)
+        conditions.push(`ac.domain = ?`);
+        params.push(studentDeptDomain);
+      } else if (studentClubId && hasMappings) {
+        // Legacy individual mapping system
+        conditions.push(`EXISTS (
+          SELECT 1 FROM club_activity_mappings cam
+          WHERE cam.club_id = ? AND cam.activity_code = ac.code
+        )`);
+        params.push(studentClubId);
+      }
     }
 
-    // Demo account sees all activities across all domains — no club/mapper filter
-    // Regular students: if club has mappings, restrict to only mapped activities
-    if (!isDemoAccount && studentClubId && hasMappings) {
-      conditions.push(`EXISTS (
-        SELECT 1 FROM club_activity_mappings cam
-        WHERE cam.club_id = ? AND cam.activity_code = ac.code
-      )`);
-      params.push(studentClubId);
-    }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const query = `
