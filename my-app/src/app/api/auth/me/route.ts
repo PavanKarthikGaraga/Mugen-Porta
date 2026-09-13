@@ -31,13 +31,14 @@ export async function GET(request) {
         if (payload.role === 'lead') {
             try {
                 const [leadResult]: any = await pool.execute(
-                    'SELECT l.clubId, c.name as clubName FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
+                    'SELECT l.clubId, c.name as clubName, c.domain as clubDomain FROM leads l LEFT JOIN clubs c ON l.clubId = c.id WHERE l.username = ?',
                     [payload.username as string]
                 );
                 if (leadResult.length > 0) {
                     additionalData = {
                         clubId: leadResult[0].clubId,
-                        clubName: leadResult[0].clubName
+                        clubName: leadResult[0].clubName,
+                        clubDomain: leadResult[0].clubDomain
                     };
                 }
             } catch (error) {

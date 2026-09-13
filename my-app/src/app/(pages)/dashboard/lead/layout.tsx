@@ -31,7 +31,8 @@ export default function LeadDashboardLayout({ children }) {
                         username: user?.username || '',
                         name: user?.name || '',
                         clubName: user?.clubName || '',
-                        clubId: user?.clubId || ''
+                        clubId: user?.clubId || '',
+                        clubDomain: user?.clubDomain || ''
                     });
 
                     // Check if this is a proxy session
@@ -52,11 +53,13 @@ export default function LeadDashboardLayout({ children }) {
         fetchUserData();
     }, []);
 
+    const isDeptOrMhs = userData.clubDomain === 'DEPT. CLUBS' || userData.clubDomain === 'MHS. CLUBS';
+
     const navigation = [
         { name: 'Overview',            href: '/dashboard/lead',                  icon: FiHome     },
         { name: 'Profile',             href: '/dashboard/lead/profile',          icon: FiUser     },
         { name: 'Students',            href: '/dashboard/lead/students',         icon: FiUsers    },
-        { name: 'Attendance Records',  href: '/dashboard/lead/attendance',       icon: FiCheckSquare },
+        ...(!isDeptOrMhs ? [{ name: 'Attendance Records',  href: '/dashboard/lead/attendance',       icon: FiCheckSquare }] : []),
         { name: 'Passport Approvals',  href: '/dashboard/lead/passport-approvals', icon: FiAward    },
     ];
 
@@ -64,15 +67,11 @@ export default function LeadDashboardLayout({ children }) {
         navigation.push({ name: 'Music Choice', href: '/dashboard/lead/music-roster', icon: FiMusic });
     }
 
-    // SAMAM used to be one link to a page with 3 client-side tabs, plus a
-    // separate flat "Submissions" link that duplicated one of those tabs —
-    // refreshing on any tab but Overview reset back to it, since the tab was
-    // just useState, not a route. Each is its own page now, grouped together.
     const samamNavigation = [
         { name: 'Overview',         href: '/dashboard/lead/samam/overview',          icon: FiBarChart2 },
         { name: 'Activities',       href: '/dashboard/lead/samam/activities',        icon: FiActivity  },
         { name: 'Submissions',      href: '/dashboard/lead/samam/submissions',       icon: FiFileText  },
-        { name: 'Activity Reports', href: '/dashboard/lead/samam/activity-reports',  icon: FiClipboard },
+        ...(!isDeptOrMhs ? [{ name: 'Activity Reports', href: '/dashboard/lead/samam/activity-reports',  icon: FiClipboard }] : []),
     ];
 
     const handleLogout = async () => {
