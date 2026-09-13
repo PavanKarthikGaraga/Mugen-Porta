@@ -148,23 +148,30 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             if (d.clubName) setLeadClubName(d.clubName);
             if (d.clubDomain) {
                 setLeadClubDomain(d.clubDomain);
-                if (isNew && (d.clubDomain === 'DEPT. CLUBS' || d.clubDomain === 'MHS. CLUBS')) {
-                    const prefix = getClubPrefix(d.clubName, d.clubDomain);
-                    setFormData(prev => ({ ...prev, domain: d.clubDomain, category: d.clubName }));
-                    setSubCategory(prefix);
-                    setGeneratingCode(true);
-                    fetch(`/api/activities/next-code?prefix=${encodeURIComponent(prefix)}`)
-                      .then(rr => rr.json())
-                      .then(dd => {
-                        if (dd.code) setFormData(prev => ({ ...prev, domain: d.clubDomain, category: d.clubName, code: dd.code }));
-                      })
-                      .finally(() => setGeneratingCode(false));
+                if (isNew) {
+                    if (d.clubDomain === 'DEPT. CLUBS' || d.clubDomain === 'MHS. CLUBS') {
+                        // DEPT/MHS lead: lock domain + category to club, auto-gen code
+                        const prefix = getClubPrefix(d.clubName, d.clubDomain);
+                        setFormData(prev => ({ ...prev, domain: d.clubDomain, category: d.clubName }));
+                        setSubCategory(prefix);
+                        setGeneratingCode(true);
+                        fetch(`/api/activities/next-code?prefix=${encodeURIComponent(prefix)}`)
+                          .then(rr => rr.json())
+                          .then(dd => {
+                            if (dd.code) setFormData(prev => ({ ...prev, domain: d.clubDomain, category: d.clubName, code: dd.code }));
+                          })
+                          .finally(() => setGeneratingCode(false));
+                    } else {
+                        // SAC lead: lock domain to their club domain (TEC/LCH/etc)
+                        setFormData(prev => ({ ...prev, domain: d.clubDomain }));
+                    }
                 }
             }
         })
         .catch(console.error);
     }
   }, [role, isNew]);
+
 
   // Sub-category options are the real (category, code prefix) pairs already
   // in use for this domain -- not a hardcoded list -- so a new activity
@@ -431,31 +438,41 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h2 className="text-lg font-bold border-b pb-2">Basic Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Step 1: Domain */}
+          {/* Step 1: Domain — locked for leads, free for admin/council */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Domain <span className="text-red-500">*</span>
             </label>
-            <select value={formData.domain} onChange={handleDomainChange} disabled={leadClubDomain === 'DEPT. CLUBS' || leadClubDomain === 'MHS. CLUBS'} className="w-full border rounded-md px-3 py-2">
-              <option value="TEC">TEC — Technical</option>
-              <option value="LCH">LCH — Liberal Arts & Cultural</option>
-              <option value="ESO">ESO — Extension & Society</option>
-              <option value="IIE">IIE — Innovation & Entrepreneurship</option>
-              <option value="HWB">HWB — Health & Wellbeing</option>
-              <option value="DEPT. CLUBS">Engineering Dept.</option>
-              <option value="MHS. CLUBS">MHS Dept.</option>
-            </select>
+            {role === "lead" ? (
+              // Lead: domain is always locked to their club's domain
+              <div className="w-full border rounded-md px-3 py-2 bg-gray-50 text-gray-700 text-sm flex items-center justify-between">
+                <span className="font-medium">{formData.domain || leadClubDomain || "Loading…"}</span>
+                <span className="text-xs text-gray-400">Auto-set from your club</span>
+              </div>
+            ) : (
+              <select value={formData.domain} onChange={handleDomainChange} className="w-full border rounded-md px-3 py-2">
+                <option value="TEC">TEC — Technical</option>
+                <option value="LCH">LCH — Liberal Arts &amp; Cultural</option>
+                <option value="ESO">ESO — Extension &amp; Society</option>
+                <option value="IIE">IIE — Innovation &amp; Entrepreneurship</option>
+                <option value="HWB">HWB — Health &amp; Wellbeing</option>
+                <option value="DEPT. CLUBS">Engineering Dept.</option>
+                <option value="MHS. CLUBS">MHS Dept.</option>
+              </select>
+            )}
           </div>
 
-          {/* Step 2: Sub-category — real (category, code prefix) pairs already
-              in use for this domain, not a hardcoded list, so a new activity
-              always attaches to the club series it actually belongs to. */}
+          {/* Step 2: Sub-category */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Sub-category <span className="text-red-500">*</span>
             </label>
             {(leadClubDomain === 'DEPT. CLUBS' || leadClubDomain === 'MHS. CLUBS') ? (
-              <input type="text" readOnly className="w-full p-2 border rounded bg-gray-50 text-gray-600" value={formData.category} />
+              // DEPT/MHS lead: sub-category is locked to their club name
+              <div className="w-full border rounded-md px-3 py-2 bg-gray-50 text-gray-700 text-sm flex items-center justify-between">
+                <span className="font-medium">{formData.category || leadClubName || "Loading…"}</span>
+                <span className="text-xs text-gray-400">Auto-set from your club</span>
+              </div>
             ) : addingNewSubcategory ? (
               <div className="flex gap-2">
                 <input
@@ -487,12 +504,19 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
                 disabled={loadingSubcategories}
               >
                 <option value="">{loadingSubcategories ? "Loading…" : "Select sub-category…"}</option>
-                {dynamicSubcategories.map(s => (
-                  <option key={s.code_prefix} value={s.code_prefix}>
-                    {s.category} ({s.code_prefix}) · {s.activity_count} {s.activity_count === 1 ? "activity" : "activities"}
-                  </option>
-                ))}
-                <option value="__new__">+ Add new sub-category…</option>
+                {dynamicSubcategories
+                  // For leads with assigned categories, restrict to only their categories
+                  .filter(s => {
+                    if (role !== 'lead' || !assignedCategories || assignedCategories.length === 0) return true;
+                    return assignedCategories.includes(s.category);
+                  })
+                  .map(s => (
+                    <option key={s.code_prefix} value={s.code_prefix}>
+                      {s.category} ({s.code_prefix}) · {s.activity_count} {s.activity_count === 1 ? "activity" : "activities"}
+                    </option>
+                  ))
+                }
+                {role !== 'lead' && <option value="__new__">+ Add new sub-category…</option>}
               </select>
             )}
           </div>
