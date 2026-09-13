@@ -36,14 +36,16 @@ export async function GET(request: Request) {
             const clubDomain = clubRows[0]?.clubDomain;
             if (clubId) {
               studentClubId = clubId;
-              if (clubDomain === 'DEPT. CLUBS' || clubDomain === 'MHS. CLUBS') {
-                // For DEPT and MHS clubs, hard-filter by domain directly, skipping mapper logic
+              // Check club_activity_mappings first for ALL club types (DEPT, MHS, SAC)
+              // This prevents a Google club student from seeing RPA club activities
+              const [mapCount]: any = await pool.query(
+                `SELECT COUNT(*) as cnt FROM club_activity_mappings WHERE club_id = ?`, [clubId]
+              );
+              hasMappings = (mapCount[0]?.cnt || 0) > 0;
+
+              if (!hasMappings && (clubDomain === 'DEPT. CLUBS' || clubDomain === 'MHS. CLUBS')) {
+                // Fallback only if no mappings exist: restrict by domain to limit exposure
                 studentDeptDomain = clubDomain;
-              } else {
-                const [mapCount]: any = await pool.query(
-                  `SELECT COUNT(*) as cnt FROM club_activity_mappings WHERE club_id = ?`, [clubId]
-                );
-                hasMappings = (mapCount[0]?.cnt || 0) > 0;
               }
             }
           }

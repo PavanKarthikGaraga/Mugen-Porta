@@ -70,11 +70,10 @@ export async function GET(request: Request) {
         const params: any[] = [];
         let usedMappings = false;
 
-        // For DEPT and MHS leads, restrict to their domain and bypass mappings
-        if (leadData.clubDomain === 'DEPT. CLUBS' || leadData.clubDomain === 'MHS. CLUBS') {
-            conditions.push(`domain = ?`);
-            params.push(leadData.clubDomain);
-        } else if (clubIds.length > 0) {
+        // For all leads (DEPT, MHS, SAC), first try club_activity_mappings for their specific club.
+        // This ensures a Google club lead only sees Google club activities, not all DEPT activities.
+        let usedClubMappings = false;
+        if (clubIds.length > 0) {
             try {
                 const [mapRows]: any = await pool.execute(
                     `SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${clubIds.map(() => '?').join(',')})`,
@@ -85,8 +84,22 @@ export async function GET(request: Request) {
                     conditions.push(`code IN (${codes.map(() => '?').join(',')})`);
                     params.push(...codes);
                     usedMappings = true;
+                    usedClubMappings = true;
                 }
             } catch { /* table may not exist yet */ }
+        }
+
+        // Only fall back to domain-wide filter for DEPT/MHS if absolutely no mappings exist for this club.
+        // This prevents cross-club activity leakage.
+        if (!usedClubMappings && (leadData.clubDomain === 'DEPT. CLUBS' || leadData.clubDomain === 'MHS. CLUBS')) {
+            // Fallback: restrict to domain + their specific club category only
+            conditions.push(`domain = ?`);
+            params.push(leadData.clubDomain);
+            // Also restrict by category if it matches the club name to narrow scope
+            if (leadData.clubName) {
+                conditions.push(`category = ?`);
+                params.push(leadData.clubName);
+            }
         }
 
         // Fall back to per-lead assigned_categories if no admin mappings or domain restriction
