@@ -397,9 +397,9 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Interactive Dashboard Mockup — desktop only */}
-              <div className="relative hidden lg:flex h-[580px] w-full justify-center items-center">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] h-[550px] rounded-3xl bg-white/90 backdrop-blur-xl border border-slate-200 shadow-2xl z-20 overflow-hidden flex">
+              {/* Interactive Dashboard Mockup */}
+              <div className="relative flex h-[380px] min-[375px]:h-[400px] sm:h-[480px] lg:h-[580px] w-full justify-center items-center mt-8 lg:mt-0">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] h-[550px] rounded-3xl bg-white/90 backdrop-blur-xl border border-slate-200 shadow-2xl z-20 overflow-hidden flex origin-center scale-[0.55] min-[375px]:scale-[0.6] sm:scale-[0.8] lg:scale-100">
                   {/* Sidebar */}
                   <div className="w-[35%] border-r border-slate-100 bg-white flex flex-col shrink-0">
                     <div className="p-4 border-b border-slate-100 flex items-center gap-3">
