@@ -13,7 +13,7 @@ export default function LeadDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [samamDropdownOpen, setSamamDropdownOpen] = useState(false);
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-    const [userData, setUserData] = useState({ username: '', name: '', clubName: '', clubId: '' });
+    const [userData, setUserData] = useState({ username: '', name: '', clubName: '', clubId: '', clubDomain: '' });
     const [isProxySession, setIsProxySession] = useState(false);
     const [proxyStudentInfo, setProxyStudentInfo] = useState(null);
     const pathname = usePathname();
