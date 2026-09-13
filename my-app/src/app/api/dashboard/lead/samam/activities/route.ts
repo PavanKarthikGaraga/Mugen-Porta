@@ -112,7 +112,12 @@ export async function GET(request: Request) {
                 resolved = true;
             } else {
                 // Nothing mapped or assigned — return empty so lead knows to contact admin
-                return NextResponse.json({ activities: [], assigned_categories });
+                return NextResponse.json({ 
+                    activities: [], 
+                    assigned_categories,
+                    clubName: leadData.clubName,
+                    clubDomain: leadData.clubDomain
+                });
             }
         }
 
