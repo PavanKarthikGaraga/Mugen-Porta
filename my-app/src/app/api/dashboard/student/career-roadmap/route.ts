@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
-import { callOpenRouterJSON, OpenRouterConfigError } from '@/lib/openrouter';
+import { callGeminiJSON, GeminiConfigError } from '@/lib/gemini';
 import { ensureCareerRoadmapCacheTable, logAiUsage } from '@/lib/dbMigrate';
 
 export const dynamic = 'force-dynamic';
@@ -277,7 +277,7 @@ ${clubsList || 'No clubs data available'}
 
 Generate a highly personalized, INTERDISCIPLINARY career roadmap for this student. It must be specifically tailored to their academic field combined with their unique personal interests and career direction. Do NOT generate generic engineering roadmaps if they have distinct creative/niche hobbies; merge them instead.`;
 
-        const { result, usage, provider, model } = await callOpenRouterJSON({
+        const { result, usage, provider, model } = await callGeminiJSON({
             systemPrompt: SYSTEM_PROMPT,
             userPrompt,
             temperature: 0.6,
@@ -500,7 +500,7 @@ Generate a highly personalized, INTERDISCIPLINARY career roadmap for this studen
     } catch (error: any) {
         console.error('Career roadmap error:', error);
         const errMsg: string = error?.message || String(error);
-        if (error instanceof OpenRouterConfigError || errMsg.includes('All AI providers failed') || errMsg.includes('No OpenRouter keys')) {
+        if (error instanceof GeminiConfigError || errMsg.includes('All AI providers failed') || errMsg.includes('No OpenRouter keys')) {
             // For demo account surface the full provider error chain so the issue can be diagnosed
             const displayMsg = isDemo ? `AI unavailable — ${errMsg}` : 'AI service is unavailable. Please contact admin.';
             return NextResponse.json({ error: displayMsg }, { status: 503 });

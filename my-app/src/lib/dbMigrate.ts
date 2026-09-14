@@ -274,7 +274,7 @@ let _aiUsageLogDone = false;
  * student and per feature (see the AI Logs admin page at
  * /dashboard/admin/dev/ai-logs). "feature" values: 'career_roadmap',
  * 'role_matches', 'role_fit' -- the first two Career Dashboard panels plus
- * the separate Career Roadmap questionnaire, the only 3 callOpenRouterJSON call
+ * the separate Career Roadmap questionnaire, the only 3 callGeminiJSON call
  * sites in the app.
  */
 export async function ensureAiUsageLogTable() {

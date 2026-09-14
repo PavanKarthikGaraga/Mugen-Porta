@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { getStudentCareerContext } from '@/lib/careerContext';
-import { callOpenRouterJSON, OpenRouterConfigError } from '@/lib/openrouter';
+import { callGeminiJSON, GeminiConfigError } from '@/lib/gemini';
 import { logAiUsage } from '@/lib/dbMigrate';
 
 export const dynamic = 'force-dynamic';
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
         const context = await getStudentCareerContext(username);
         const userPrompt = `Here is the student's profile:\n\n${context.contextText}\n\nBased strictly on this evidence, identify my best-fit career roles across various domains and how strong a match each one is.`;
 
-        const { result, usage, provider, model } = await callOpenRouterJSON({ systemPrompt: SYSTEM_PROMPT, userPrompt, temperature: 0.5 });
+        const { result, usage, provider, model } = await callGeminiJSON({ systemPrompt: SYSTEM_PROMPT, userPrompt, temperature: 0.5 });
         logAiUsage({ username, feature: 'role_matches', provider, model, usage });
 
         const roles = Array.isArray(result?.roles)
@@ -167,7 +167,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, roles, generatedAt, fromCache: false, canRerun: isDemo });
     } catch (error: any) {
         console.error('Career role-matches error:', error);
-        if (error instanceof OpenRouterConfigError) {
+        if (error instanceof GeminiConfigError) {
             return NextResponse.json({ error: 'AI capabilities are currently unavailable' }, { status: 503 });
         }
         return NextResponse.json(
