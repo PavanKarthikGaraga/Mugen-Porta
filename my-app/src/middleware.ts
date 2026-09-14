@@ -5,7 +5,7 @@ export async function middleware(request, event) {
     const pathname = request.nextUrl.pathname;
 
     // --- API Logging Interceptor ---
-    if (pathname.startsWith('/api/') && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
+    if (pathname.startsWith('/api/')) {
         // Skip logging for the internal log route itself and auth routes
         if (!pathname.startsWith('/api/internal/log') && !pathname.startsWith('/api/auth/')) {
             const token = request.cookies.get('tck')?.value;
