@@ -20,8 +20,14 @@ export async function GET(request: Request) {
             'SELECT roadmap_result, generated_at, generation_count, extra_allowed FROM career_roadmap_cache WHERE username = ?',
             [username]
         );
+
+        const [avgRows]: any = await pool.execute(
+            'SELECT AVG(generation_time_ms) as avg_ms FROM career_roadmap_cache WHERE generation_time_ms IS NOT NULL'
+        );
+        const avgAnalysisTimeMs = (avgRows as any[])[0]?.avg_ms ? Math.round(Number((avgRows as any[])[0].avg_ms)) : null;
+
         if ((rows as any[]).length === 0) {
-            return NextResponse.json({ cached: false, remaining: isDemo ? null : 1 });
+            return NextResponse.json({ cached: false, remaining: isDemo ? null : 1, avgAnalysisTimeMs });
         }
 
         const { roadmap_result, generated_at, generation_count, extra_allowed } = (rows as any[])[0];
@@ -35,6 +41,7 @@ export async function GET(request: Request) {
             roadmap,
             generatedAt: generated_at,
             remaining,
+            avgAnalysisTimeMs,
         });
     } catch {
         return NextResponse.json({ cached: false });
@@ -216,6 +223,7 @@ export async function POST(request: Request) {
     const isDemo = DEMO_ACCOUNTS.has(username);
 
     try {
+        const startTime = Date.now();
         const body = await request.json().catch(() => ({}));
         const { answers } = body;
 
@@ -476,15 +484,17 @@ Generate a highly personalized, INTERDISCIPLINARY career roadmap for this studen
             })(),
         };
 
+        const durationMs = Date.now() - startTime;
+
         // Save to cache (upsert — overwrites on retake) and count this generation
         // against the student's allowance (skipped for the unmetered demo account).
         try {
             await pool.execute(`
-                INSERT INTO career_roadmap_cache (username, roadmap_result, generation_count)
-                VALUES (?, ?, ?)
+                INSERT INTO career_roadmap_cache (username, roadmap_result, generation_count, generation_time_ms)
+                VALUES (?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE roadmap_result = VALUES(roadmap_result), generated_at = CURRENT_TIMESTAMP,
-                    generation_count = generation_count + ?
-            `, [username, JSON.stringify(roadmap), isDemo ? 0 : 1, isDemo ? 0 : 1]);
+                    generation_count = generation_count + ?, generation_time_ms = VALUES(generation_time_ms)
+            `, [username, JSON.stringify(roadmap), isDemo ? 0 : 1, durationMs, isDemo ? 0 : 1]);
         } catch (cacheErr) {
             console.error('Roadmap cache save error:', cacheErr);
         }

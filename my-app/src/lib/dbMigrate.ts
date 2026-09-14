@@ -201,13 +201,15 @@ export async function ensureCareerRoadmapCacheTable() {
             roadmap_result   LONGTEXT     NOT NULL,
             generation_count INT          NOT NULL DEFAULT 0,
             extra_allowed    INT          NOT NULL DEFAULT 0,
-            generated_at     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            generated_at     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            generation_time_ms INT        DEFAULT NULL
         )
     `);
     // Installs that predate the usage-limit feature already have this table
     // without these columns.
     await addColumnIfMissing('career_roadmap_cache', 'generation_count', 'INT NOT NULL DEFAULT 0');
     await addColumnIfMissing('career_roadmap_cache', 'extra_allowed', 'INT NOT NULL DEFAULT 0');
+    await addColumnIfMissing('career_roadmap_cache', 'generation_time_ms', 'INT DEFAULT NULL');
     _roadmapCacheDone = true;
 }
 

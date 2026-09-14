@@ -452,17 +452,46 @@ export default function CareerRoadmapPage() {
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [analyzingTimer, setAnalyzingTimer] = useState(0);
+  const [avgAnalysisTimeMs, setAvgAnalysisTimeMs] = useState<number | null>(null);
   const otherRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+    let pollInterval: NodeJS.Timeout;
+
     if (step === "analyzing") {
-      setAnalyzingTimer(0);
+      const savedStart = localStorage.getItem('cr_startTime');
+      const startTime = savedStart ? parseInt(savedStart) : Date.now();
+      if (!savedStart) {
+        localStorage.setItem('cr_startTime', startTime.toString());
+      }
+
+      setAnalyzingTimer(Math.floor((Date.now() - startTime) / 1000));
       interval = setInterval(() => {
-        setAnalyzingTimer((prev) => prev + 1);
+        setAnalyzingTimer(Math.floor((Date.now() - startTime) / 1000));
       }, 1000);
+
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await fetch("/api/dashboard/student/career-roadmap");
+          const d = await res.json();
+          if (d.cached && d.roadmap) {
+            setRoadmap(d.roadmap);
+            setGeneratedAt(d.generatedAt);
+            if (typeof d.remaining !== "undefined") setRemaining(d.remaining);
+            setStep("results");
+            localStorage.removeItem('cr_startTime');
+          }
+        } catch (e) {}
+      }, 3000);
+    } else {
+      localStorage.removeItem('cr_startTime');
     }
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(pollInterval);
+    };
   }, [step]);
 
   // Check feature flag on mount
@@ -479,10 +508,17 @@ export default function CareerRoadmapPage() {
       .then(r => r.json())
       .then(d => {
         if (typeof d.remaining !== "undefined") setRemaining(d.remaining);
+        if (typeof d.avgAnalysisTimeMs !== "undefined") setAvgAnalysisTimeMs(d.avgAnalysisTimeMs);
+        
         if (d.cached && d.roadmap) {
           setRoadmap(d.roadmap);
           setGeneratedAt(d.generatedAt);
           setStep("results");
+          localStorage.removeItem('cr_startTime');
+        } else {
+          if (localStorage.getItem('cr_startTime')) {
+            setStep("analyzing");
+          }
         }
       })
       .catch(() => {})
@@ -638,6 +674,7 @@ export default function CareerRoadmapPage() {
     setRoadmap(null);
     setStudentInfo(null);
     setGeneratedAt(null);
+    localStorage.removeItem('cr_startTime');
     window.scrollTo({ top: 0 });
   };
 
@@ -756,6 +793,7 @@ export default function CareerRoadmapPage() {
             Our AI is analysing your responses and generating a personalised career pathway.
             <span className="font-medium text-gray-900 dark:text-gray-200 mt-1 block">
               Time elapsed: {analyzingTimer} seconds
+              {avgAnalysisTimeMs ? ` (Avg: ~${Math.round(avgAnalysisTimeMs / 1000)}s)` : ''}
             </span>
           </p>
         </div>
