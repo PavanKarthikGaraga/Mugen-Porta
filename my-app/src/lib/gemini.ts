@@ -3,7 +3,7 @@
  *
  * Upgraded to use Google Gemini API for extreme speed and a massive
  * 1 Million token context window on the free tier.
- * Includes fallback logic to cycle through models if one is overloaded (503).
+ * Includes fallback logic to cycle through models and multiple API keys.
  */
 
 export class GeminiConfigError extends Error {
@@ -32,11 +32,17 @@ export interface AiCallResult {
     model: string
 }
 
-function getGeminiKey(): string | null {
-    return process.env.GEMINI_API_KEY || null;
+function getGeminiKeys(): string[] {
+    const keys: string[] = [];
+    for (const [key, value] of Object.entries(process.env)) {
+        if (key.startsWith('GEMINI_API_KEY') && value && value.trim() !== '') {
+            keys.push(value.trim());
+        }
+    }
+    return Array.from(new Set(keys)); // Deduplicate
 }
 
-const ATTEMPT_TIMEOUT_MS = 60_000; // 60s timeout per model attempt
+const ATTEMPT_TIMEOUT_MS = 85_000; // 85s timeout per model attempt
 
 const FALLBACK_MODELS = [
     // 1. Primary: High reasoning, highly stable, avoids the 3.8 traffic spike
@@ -85,9 +91,9 @@ function safeParseJson(text: string): any | null {
  */
 export async function callGeminiJSON(options: CallAiOptions): Promise<AiCallResult> {
     const { systemPrompt, userPrompt, temperature = 0.5 } = options;
-    const apiKey = getGeminiKey();
+    const apiKeys = getGeminiKeys();
     
-    if (!apiKey) {
+    if (apiKeys.length === 0) {
         throw new GeminiConfigError();
     }
 
@@ -110,73 +116,83 @@ export async function callGeminiJSON(options: CallAiOptions): Promise<AiCallResu
         }
     };
 
-    let lastError: Error = new Error('All fallback models failed');
+    let lastError: Error = new Error('All fallback models and keys failed');
 
-    for (const model of FALLBACK_MODELS) {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    for (const apiKey of apiKeys) {
+        let keyFailed = false;
 
-        try {
-            const res = await fetchWithTimeout(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body)
-            }, ATTEMPT_TIMEOUT_MS);
+        for (const model of FALLBACK_MODELS) {
+            if (keyFailed) break; // Skip remaining models for this rate-limited/invalid key
 
-            if (!res.ok) {
-                const bodyText = await res.text().catch(() => '');
-                lastError = new Error(`Gemini request failed (${res.status}) for model ${model}: ${bodyText.slice(0, 300)}`);
-                
-                // If it's a 503 (Overloaded) or 429 (Rate Limit), try the next model.
-                // Otherwise (e.g. 400 Bad Request, 403 Invalid API Key), fail immediately.
-                if (res.status === 503 || res.status === 429) {
-                    continue;
-                } else {
-                    throw lastError; 
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+            try {
+                const res = await fetchWithTimeout(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body)
+                }, ATTEMPT_TIMEOUT_MS);
+
+                if (!res.ok) {
+                    const bodyText = await res.text().catch(() => '');
+                    lastError = new Error(`Gemini request failed (${res.status}) for model ${model}: ${bodyText.slice(0, 300)}`);
+                    
+                    if (res.status === 503) {
+                        // 503 Overloaded: Server issue. Try the next MODEL with the SAME KEY.
+                        continue;
+                    } else if (res.status === 429 || res.status === 403) {
+                        // 429 Rate Limit or 403 Invalid: Key issue. Break to try the NEXT KEY.
+                        keyFailed = true;
+                        break; 
+                    } else {
+                        // 400 Bad Request, etc. Prompt issue, fail immediately.
+                        throw lastError; 
+                    }
                 }
-            }
 
-            const data = await res.json();
-            const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-            
-            if (!content || typeof content !== 'string') {
-                lastError = new Error(`Gemini model ${model} returned an empty response`);
-                continue;
-            }
+                const data = await res.json();
+                const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (!content || typeof content !== 'string') {
+                    lastError = new Error(`Gemini model ${model} returned an empty response`);
+                    continue;
+                }
 
-            const parsed = safeParseJson(content);
-            if (!parsed) {
-                lastError = new Error(`Gemini model ${model} returned a response that was not valid JSON`);
-                continue;
-            }
+                const parsed = safeParseJson(content);
+                if (!parsed) {
+                    lastError = new Error(`Gemini model ${model} returned a response that was not valid JSON`);
+                    continue;
+                }
 
-            let usage: AiUsage | null = null;
-            if (data.usageMetadata) {
-                usage = {
-                    promptTokens: data.usageMetadata.promptTokenCount || 0,
-                    completionTokens: data.usageMetadata.candidatesTokenCount || 0,
-                    totalTokens: data.usageMetadata.totalTokenCount || 0,
+                let usage: AiUsage | null = null;
+                if (data.usageMetadata) {
+                    usage = {
+                        promptTokens: data.usageMetadata.promptTokenCount || 0,
+                        completionTokens: data.usageMetadata.candidatesTokenCount || 0,
+                        totalTokens: data.usageMetadata.totalTokenCount || 0,
+                    };
+                }
+
+                // Successfully got a response, return immediately!
+                return {
+                    result: parsed,
+                    usage,
+                    provider: 'gemini',
+                    model: model
                 };
-            }
-
-            // Successfully got a response, return immediately!
-            return {
-                result: parsed,
-                usage,
-                provider: 'gemini',
-                model: model
-            };
-            
-        } catch (err: any) {
-            lastError = err instanceof Error ? err : new Error(String(err));
-            // If the error was manually thrown above (e.g. invalid API key), break the loop
-            if (err.message && !err.message.includes('503') && !err.message.includes('429')) {
-                throw lastError;
+                
+            } catch (err: any) {
+                lastError = err instanceof Error ? err : new Error(String(err));
+                // If it's a hard error thrown manually above (like 400 Bad Request), break the entire pipeline
+                if (err.message && !err.message.includes('503') && !err.message.includes('429') && !err.message.includes('403')) {
+                    throw lastError;
+                }
             }
         }
     }
 
-    // If we exhaust the entire fallback list, throw the last error
+    // If we exhaust the entire fallback list for all keys, throw the last error
     throw lastError;
 }

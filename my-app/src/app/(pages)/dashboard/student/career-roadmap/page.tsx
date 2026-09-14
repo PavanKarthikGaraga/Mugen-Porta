@@ -451,7 +451,19 @@ export default function CareerRoadmapPage() {
   const [activeProjectTab, setActiveProjectTab] = useState<"software" | "hardware" | "management">("software");
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [analyzingTimer, setAnalyzingTimer] = useState(0);
   const otherRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (step === "analyzing") {
+      setAnalyzingTimer(0);
+      interval = setInterval(() => {
+        setAnalyzingTimer((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [step]);
 
   // Check feature flag on mount
   useEffect(() => {
@@ -741,7 +753,10 @@ export default function CareerRoadmapPage() {
         <div className="space-y-2">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">Building Your Roadmap</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs leading-relaxed">
-            Our AI is analysing your responses and generating a personalised career pathway. This takes approximately 10–20 seconds.
+            Our AI is analysing your responses and generating a personalised career pathway.
+            <span className="font-medium text-gray-900 dark:text-gray-200 mt-1 block">
+              Time elapsed: {analyzingTimer} seconds
+            </span>
           </p>
         </div>
         <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
@@ -1684,15 +1699,18 @@ export default function CareerRoadmapPage() {
         )}
 
         <div className="flex justify-center pb-2">
-          {remaining === null || remaining > 0 ? (
-            <button onClick={reset} className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-              <FiRefreshCw size={11} /> Retake the assessment
-            </button>
-          ) : (
-            <p className="text-xs text-gray-400 dark:text-gray-600">
-              You&apos;ve used your roadmap generation. Ask an admin for re-analyze access.
-            </p>
-          )}
+          <button 
+            onClick={() => {
+              if (remaining !== null && remaining === 0) {
+                toast.error("If you want to retake the Career Roadmap assessment again, reach out to SAC Hall.");
+              } else {
+                reset();
+              }
+            }} 
+            className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            <FiRefreshCw size={11} /> Retake the assessment
+          </button>
         </div>
       </div>
     );

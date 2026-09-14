@@ -25,7 +25,7 @@ identify which real-world job roles and career paths, across ANY domain, they ar
 
 Rules:
 - CRITICAL: If the student has unique creative or non-technical interests (e.g., dance, film, music, sports) alongside a technical or standard academic degree, you MUST cross-pollinate them. Find niche, highly specialized roles where their hobby and their degree intersect (e.g. CS + Dance = Motion Capture Developer; Law + Music = Entertainment Lawyer).
-- Return 5 to 10 roles. Do not limit yourself to standard conventional jobs or their stated career interest if their skills point to an exciting intersection.
+- Return EXACTLY 10 roles. Do not limit yourself to standard conventional jobs or their stated career interest if their skills point to an exciting intersection.
 - matchPercentage must be realistic and differentiated (not everything 85-95%). Base it strictly on the
   evidence given — a student with little demonstrated evidence for a role should score lower for it.
 - rationale must cite specific evidence from their profile (named skills, activities, projects, etc.), not
