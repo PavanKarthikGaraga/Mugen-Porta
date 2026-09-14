@@ -8,12 +8,13 @@ const DEMO_ACCOUNTS = new Set(['2400000000']);
 // GET /api/dashboard/admin/dev/cr-access?username=XXXX — look up a student's
 // career roadmap generation usage by ID number.
 export async function GET(request: Request) {
-    const auth = await verifyDevAccess(request);
-    if (!auth.success) return auth.response;
+    try {
+        const auth = await verifyDevAccess(request);
+        if (!auth.success) return auth.response;
 
-    const url = new URL(request.url);
-    const username = (url.searchParams.get('username') || '').trim();
-    if (!username) return NextResponse.json({ error: 'A student ID number is required' }, { status: 400 });
+        const url = new URL(request.url);
+        const username = (url.searchParams.get('username') || '').trim();
+        if (!username) return NextResponse.json({ error: 'A student ID number is required' }, { status: 400 });
 
     const [studentRows]: any = await pool.execute(
         `SELECT username, name, branch, student_year, program FROM students WHERE username = ? LIMIT 1`,
@@ -45,27 +46,32 @@ export async function GET(request: Request) {
     const extraAllowed = Number(cache.extra_allowed || 0);
     const allowed = 1 + extraAllowed;
 
-    return NextResponse.json({
-        success: true,
-        student,
-        isDemo: false,
-        generationCount,
-        extraAllowed,
-        allowed,
-        remaining: Math.max(0, allowed - generationCount),
-        lastGeneratedAt: cache.generated_at,
-    });
+        return NextResponse.json({
+            success: true,
+            student,
+            isDemo: false,
+            generationCount,
+            extraAllowed,
+            allowed,
+            remaining: Math.max(0, allowed - generationCount),
+            lastGeneratedAt: cache.generated_at,
+        });
+    } catch (e: any) {
+        console.error("GET cr-access error:", e);
+        return NextResponse.json({ error: String(e.message || e) }, { status: 500 });
+    }
 }
 
 // POST /api/dashboard/admin/dev/cr-access — grant one additional re-analyze
 // generation to a student. { username }
 export async function POST(request: Request) {
-    const auth = await verifyDevAccess(request);
-    if (!auth.success) return auth.response;
+    try {
+        const auth = await verifyDevAccess(request);
+        if (!auth.success) return auth.response;
 
-    const body = await request.json().catch(() => ({}));
-    const username = String(body.username || '').trim();
-    if (!username) return NextResponse.json({ error: 'A student ID number is required' }, { status: 400 });
+        const body = await request.json().catch(() => ({}));
+        const username = String(body.username || '').trim();
+        if (!username) return NextResponse.json({ error: 'A student ID number is required' }, { status: 400 });
 
     if (DEMO_ACCOUNTS.has(username)) {
         return NextResponse.json({ error: 'The demo account already has unlimited access' }, { status: 400 });
@@ -94,12 +100,16 @@ export async function POST(request: Request) {
     const generationCount = Number(cacheRows[0]?.generation_count || 0);
     const extraAllowed = Number(cacheRows[0]?.extra_allowed || 0);
 
-    return NextResponse.json({
-        success: true,
-        message: `Re-analyze access granted to ${username}`,
-        generationCount,
-        extraAllowed,
-        allowed: 1 + extraAllowed,
-        remaining: Math.max(0, 1 + extraAllowed - generationCount),
-    });
+        return NextResponse.json({
+            success: true,
+            message: `Re-analyze access granted to ${username}`,
+            generationCount,
+            extraAllowed,
+            allowed: 1 + extraAllowed,
+            remaining: Math.max(0, 1 + extraAllowed - generationCount),
+        });
+    } catch (e: any) {
+        console.error("POST cr-access error:", e);
+        return NextResponse.json({ error: String(e.message || e) }, { status: 500 });
+    }
 }
