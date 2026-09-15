@@ -16,6 +16,7 @@ export async function GET(request: Request) {
     // Resolve the calling student's club so we can filter by mappings
     let studentClubId: number | null = null;
     let studentDeptDomain: string | null = null;
+    let studentClubDomainRaw: string | null = null;
     let categoryMappedCats: string[] = [];   // from club_category_mappings (new system)
     let hasMappings = false;                 // from club_activity_mappings (legacy system)
     let isStudent = false;
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
             );
             const clubId = clubRows[0]?.clubId;
             const clubDomain = clubRows[0]?.clubDomain;
+            studentClubDomainRaw = clubDomain;
             if (clubId) {
               studentClubId = clubId;
 
@@ -78,23 +80,59 @@ export async function GET(request: Request) {
       params.push(domain);
     }
 
-    // Apply the club activity filter (demo sees all; others see only what their club is mapped to)
+    // Apply the club activity filter based on visibility and mappings
     if (!isDemoAccount) {
+      const isSacClub = studentClubDomainRaw && ['TEC', 'LCH', 'ESO', 'IIE', 'HWB'].includes(studentClubDomainRaw);
+      const isDeptClub = studentClubDomainRaw === 'DEPT. CLUBS';
+      const isMhsClub = studentClubDomainRaw === 'MHS. CLUBS';
+      
+      const visibilityConditions: string[] = [];
+      const visibilityParams: any[] = [];
+      
+      // 1. Open for all students
+      visibilityConditions.push(`ac.visibility = 'all_students'`);
+      
+      // 2. Open for all SAC
+      if (isSacClub) {
+        visibilityConditions.push(`ac.visibility = 'all_sac'`);
+      }
+      
+      // 3. Open for all Dept
+      if (isDeptClub) {
+        visibilityConditions.push(`ac.visibility = 'all_dept'`);
+      }
+      
+      // 4. Open for all MHS
+      if (isMhsClub) {
+        visibilityConditions.push(`ac.visibility = 'all_mhs'`);
+      }
+      
+      // 5. Club Members Only (Default) - requires mapping
+      let mappingCondition = '';
       if (categoryMappedCats.length > 0) {
-        // New system: filter by mapped categories (covers all current + future activities)
-        conditions.push(`ac.category IN (${categoryMappedCats.map(() => '?').join(',')})`);
-        params.push(...categoryMappedCats);
+        mappingCondition = `ac.category IN (${categoryMappedCats.map(() => '?').join(',')})`;
+        visibilityParams.push(...categoryMappedCats);
       } else if (studentDeptDomain) {
-        // Last-resort fallback: domain-wide filter (only if truly nothing is mapped for the club)
-        conditions.push(`ac.domain = ?`);
-        params.push(studentDeptDomain);
+        mappingCondition = `ac.domain = ?`;
+        visibilityParams.push(studentDeptDomain);
       } else if (studentClubId && hasMappings) {
-        // Legacy individual mapping system
-        conditions.push(`EXISTS (
+        mappingCondition = `EXISTS (
           SELECT 1 FROM club_activity_mappings cam
           WHERE cam.club_id = ? AND cam.activity_code = ac.code
-        )`);
-        params.push(studentClubId);
+        )`;
+        visibilityParams.push(studentClubId);
+      }
+      
+      if (mappingCondition) {
+        visibilityConditions.push(`((ac.visibility = 'club_members_only' OR ac.visibility IS NULL OR ac.visibility = '') AND (${mappingCondition}))`);
+      }
+      
+      if (visibilityConditions.length > 0) {
+        conditions.push(`(${visibilityConditions.join(' OR ')})`);
+        params.push(...visibilityParams);
+      } else {
+        // If they have no mappings and are not in any domains that match 'all_*', they see nothing but 'all_students'
+        conditions.push(`ac.visibility = 'all_students'`);
       }
     }
 

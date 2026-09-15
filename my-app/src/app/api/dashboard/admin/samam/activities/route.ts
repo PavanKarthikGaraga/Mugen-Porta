@@ -131,7 +131,7 @@ export async function POST(request: Request) {
             code, title, description, domain, category, points, max_participants, status,
             difficulty, activity_pack, faculty_name, sdgs, hours,
             purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
-            activity_date, start_time, end_time, venue, registration_open
+            activity_date, start_time, end_time, venue, registration_open, visibility
         } = body;
 
         if (!title || !domain || !points || !code) {
@@ -159,9 +159,9 @@ export async function POST(request: Request) {
             (code, title, description, domain, category, sdc_credits, max_seats, status,
              difficulty, activity_pack, faculty_name, sdgs, hours,
              purpose, outcomes, competencies, ga, resources, assignments, timeline,
-             activity_date, start_time, end_time, venue, registration_open,
+             activity_date, start_time, end_time, venue, registration_open, visibility,
              created_by, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         `, [
             code, title, description || '', domain, category || 'event', points, max_participants || null, status || 'upcoming',
             difficulty || 'Beginner', activity_pack || null, faculty_name || null,
@@ -170,6 +170,7 @@ export async function POST(request: Request) {
             safeJson(resources), safeJson(assignments), safeJson(timeline),
             blankToNull(activity_date), blankToNull(start_time), blankToNull(end_time),
             venue || null, registration_open === undefined ? 1 : Number(registration_open),
+            visibility || 'club_members_only',
             user.username || 'admin'
         ]);
 

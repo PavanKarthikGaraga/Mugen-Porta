@@ -87,6 +87,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
     sdgs: (initialData?.sdgs || []) as number[],
     level: initialData?.level || "explorer",
     timeline: (initialData?.timeline || []) as any[],
+    visibility: initialData?.visibility || "club_members_only",
   });
 
   useEffect(() => {
@@ -129,6 +130,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
               timeline: parseJson(d.timeline) || prev.timeline,
               registration_open: d.registration_open === undefined || d.registration_open === null
                 ? prev.registration_open : Number(d.registration_open),
+              visibility: d.visibility || prev.visibility,
             }));
           } else {
             toast.error("Failed to load activity");
@@ -631,6 +633,31 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
           </label>
         </div>
+        
+        {/* Visibility Setting (Admin Only) */}
+        {role === "admin" && (
+          <div className="flex flex-col gap-2 pt-4 border-t">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Visibility & Access</p>
+              <p className="text-xs text-gray-500 mt-1 max-w-2xl leading-relaxed">
+                Control who can see and enrol in this activity. By default, only students whose club is 
+                mapped to this activity can see it. You can open it up to larger domains or all students.
+              </p>
+            </div>
+            <select
+              name="visibility"
+              value={formData.visibility}
+              onChange={handleChange}
+              className="w-full max-w-md p-2 mt-1 border rounded-md text-sm bg-white"
+            >
+              <option value="club_members_only">Club Members Only (Default)</option>
+              <option value="all_sac">Open for all SAC Clubs (TEC, LCH, ESO, IIE, HWB)</option>
+              <option value="all_dept">Open for all Dept. Clubs</option>
+              <option value="all_mhs">Open for all MHS Clubs</option>
+              <option value="all_students">Open for all Students (Global)</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Timeline */}

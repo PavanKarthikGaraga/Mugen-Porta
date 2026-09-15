@@ -7,7 +7,7 @@ import { toast } from "sonner";
 const API = "/api/dashboard/admin/dev/cr-access";
 
 type Result = {
-    student: { username: string; name: string; branch: string; student_year: string; program: string };
+    student: { username: string; name: string; branch: string; student_year: string };
     isDemo: boolean;
     generationCount: number;
     extraAllowed: number;
@@ -145,7 +145,7 @@ export default function CRAccessPage() {
                         <div>
                             <p className="text-[14px] font-medium text-gray-900">{result.student.name}</p>
                             <p className="text-[12px] text-gray-500 mt-0.5">
-                                {result.student.username} • {result.student.branch} • {result.student.student_year} • {result.student.program}
+                                {result.student.username} • {result.student.branch} • {result.student.student_year}
                             </p>
                         </div>
 

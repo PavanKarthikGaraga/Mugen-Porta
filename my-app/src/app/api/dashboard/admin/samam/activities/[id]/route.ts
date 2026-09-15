@@ -87,7 +87,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const {
             code, title, description, domain, category, points, max_participants, status,
             difficulty, activity_pack, faculty_name, sdgs, hours,
-            purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline
+            purpose, learning_outcomes, competencies, graduate_attributes, resources, assignments, timeline,
+            activity_date, start_time, end_time, venue, registration_open, visibility
         } = body;
         
         if (user.role === 'council') {
@@ -106,7 +107,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 difficulty = ?, activity_pack = ?,
                 faculty_name = ?, sdgs = ?, hours = ?,
                 purpose = ?, learning_outcomes = ?, competencies = ?,
-                graduate_attributes = ?, resources = ?, assignments = ?, timeline = ?
+                graduate_attributes = ?, resources = ?, assignments = ?, timeline = ?,
+                activity_date = ?, start_time = ?, end_time = ?, venue = ?, registration_open = ?, visibility = ?
             WHERE code = ?
         `, [
             code, title, description, domain, category,
@@ -115,6 +117,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             faculty_name, safeJson(sdgs), hours,
             purpose, safeJson(learning_outcomes), safeJson(competencies),
             safeJson(graduate_attributes), safeJson(resources), safeJson(assignments), safeJson(timeline),
+            (activity_date === '' || activity_date === undefined) ? null : activity_date,
+            (start_time === '' || start_time === undefined) ? null : start_time,
+            (end_time === '' || end_time === undefined) ? null : end_time,
+            venue || null,
+            registration_open === undefined ? 1 : Number(registration_open),
+            visibility || 'club_members_only',
             id
         ]);
 

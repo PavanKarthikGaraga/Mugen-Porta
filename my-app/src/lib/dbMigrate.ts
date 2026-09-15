@@ -30,6 +30,9 @@ export async function ensureActivitySchema() {
     // current behaviour; when closed, the activity disappears from the
     // student catalogue and enrolment is refused server-side.
     await addColumnIfMissing('activity_catalogue', 'registration_open', 'TINYINT(1) NOT NULL DEFAULT 1');
+    
+    // Visibility setting for who can see the activity in the catalogue
+    await addColumnIfMissing('activity_catalogue', 'visibility', "VARCHAR(50) NOT NULL DEFAULT 'club_members_only'");
 
     // Table for admin → club → activity mappings
     // club_id is VARCHAR because clubs.id is a manually assigned code (not auto-increment INT)
