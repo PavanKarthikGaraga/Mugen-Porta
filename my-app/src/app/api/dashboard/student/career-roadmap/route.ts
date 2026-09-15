@@ -252,7 +252,7 @@ export async function POST(request: Request) {
 
         // Fetch student info
         const [studentRows]: any = await pool.execute(
-            `SELECT name, branch, student_year, program FROM students WHERE username = ? LIMIT 1`,
+            `SELECT name, branch, year as student_year, program FROM students WHERE username = ? LIMIT 1`,
             [username]
         ).catch(() => [[]]);
         const student = (studentRows as any[])[0] || {};

@@ -17,7 +17,7 @@ export async function GET(request: Request) {
         if (!username) return NextResponse.json({ error: 'A student ID number is required' }, { status: 400 });
 
     const [studentRows]: any = await pool.execute(
-        `SELECT username, name, branch, student_year, program FROM students WHERE username = ? LIMIT 1`,
+        `SELECT username, name, branch, year as student_year, program FROM students WHERE username = ? LIMIT 1`,
         [username]
     );
     if (!studentRows.length) return NextResponse.json({ error: 'No student found with that ID number' }, { status: 404 });
