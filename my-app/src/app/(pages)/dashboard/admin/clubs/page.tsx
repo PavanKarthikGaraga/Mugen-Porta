@@ -19,7 +19,8 @@ export default function ClubsPage() {
         description: '',
         domain: '',
         categories: [],
-        memberLimit: ''
+        memberLimit: '',
+        registration_open: true
     });
     const [newCategory, setNewCategory] = useState('');
 
@@ -123,7 +124,8 @@ export default function ClubsPage() {
             description: '',
             domain: '',
             categories: [],
-            memberLimit: ''
+            memberLimit: '',
+            registration_open: true
         });
         setEditingClub(null);
         setShowModal(false);
@@ -138,7 +140,8 @@ export default function ClubsPage() {
             description: club.description,
             domain: club.domain || '',
             categories: Array.isArray(club.categories) ? club.categories : JSON.parse(club.categories || '[]'),
-            memberLimit: club.memberLimit || ''
+            memberLimit: club.memberLimit || '',
+            registration_open: club.registration_open === undefined ? true : Boolean(club.registration_open)
         });
         setShowModal(true);
     };
@@ -294,6 +297,13 @@ export default function ClubsPage() {
                                                     </span>
                                                 ))}
                                             </div>
+                                            {!club.registration_open && (
+                                                <div className="mt-1">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                                        CLOSED
+                                                    </span>
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {club.memberLimit || '50'}
@@ -413,6 +423,31 @@ export default function ClubsPage() {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
                                 />
                             </div>
+
+                            <div className="flex items-center justify-between py-2">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Allow Registrations
+                                    </label>
+                                    <p className="text-xs text-gray-500">
+                                        Turn off to mark this club as FULL on the student registration page.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, registration_open: !prev.registration_open }))}
+                                    className={`${
+                                        formData.registration_open ? 'bg-green-500' : 'bg-gray-300'
+                                    } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2`}
+                                >
+                                    <span
+                                        className={`${
+                                            formData.registration_open ? 'translate-x-5' : 'translate-x-0'
+                                        } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                                    />
+                                </button>
+                            </div>
+
                             <div>
                                 <label htmlFor="categories" className="block text-sm font-medium text-gray-700 mb-1">
                                     Categories

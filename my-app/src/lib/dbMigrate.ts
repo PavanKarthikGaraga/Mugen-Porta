@@ -213,6 +213,14 @@ export async function ensureCareerRoadmapCacheTable() {
     _roadmapCacheDone = true;
 }
 
+let _clubsSchemaDone = false;
+export async function ensureClubsSchema() {
+    if (_clubsSchemaDone) return;
+    await addColumnIfMissing('clubs', 'registration_open', 'TINYINT(1) NOT NULL DEFAULT 1');
+    _clubsSchemaDone = true;
+}
+
+
 let _assignmentSubmissionStatusDone = false;
 
 /**

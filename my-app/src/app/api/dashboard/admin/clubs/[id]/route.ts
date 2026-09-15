@@ -12,8 +12,10 @@ export async function PUT(request, { params }) {
 
     try {
         const { id: oldId } = await params;
-        const { id: newId, name, description, domain, memberLimit } = await request.json();
+        const { id: newId, name, description, domain, memberLimit, registration_open } = await request.json();
         
+        const regOpen = registration_open === undefined ? 1 : (registration_open ? 1 : 0);
+
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
@@ -24,8 +26,8 @@ export async function PUT(request, { params }) {
             // Update the main club record
             const targetId = newId || oldId;
             const [result] = await connection.execute<ResultSetHeader>(
-                'UPDATE clubs SET id = ?, name = ?, description = ?, domain = ?, memberLimit = ? WHERE id = ?',
-                [targetId, name, description, domain, memberLimit || 50, oldId]
+                'UPDATE clubs SET id = ?, name = ?, description = ?, domain = ?, memberLimit = ?, registration_open = ? WHERE id = ?',
+                [targetId, name, description, domain, memberLimit || 50, regOpen, oldId]
             );
 
             // If the ID changed, update references manually

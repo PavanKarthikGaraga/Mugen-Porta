@@ -13,8 +13,11 @@ export const revalidate = 0;
  */
 
 
+import { ensureClubsSchema } from '@/lib/dbMigrate';
+
 export async function GET(request) {
     try {
+        await ensureClubsSchema();
         const { searchParams } = new URL(request.url);
         const clubId = searchParams.get('clubId');
 
@@ -70,13 +73,16 @@ export async function GET(request) {
         // Return clubs with member counts and availability status
         const enhancedClubs = clubs.map(club => {
             const memberCount = clubMemberCounts[club.id] || 0;
-            const isFull = memberCount >= club.memberLimit;
+            // Club is full if it reached limit OR if registrations are manually closed
+            const registrationOpen = club.registration_open === undefined ? true : Boolean(club.registration_open);
+            const isFull = !registrationOpen || memberCount >= club.memberLimit;
 
             return {
                 ...club,
+                registration_open: registrationOpen,
                 memberCount: memberCount,
                 isFull: isFull,
-                availableSpots: Math.max(0, club.memberLimit - memberCount)
+                availableSpots: registrationOpen ? Math.max(0, club.memberLimit - memberCount) : 0
             };
         });
 

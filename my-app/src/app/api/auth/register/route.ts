@@ -207,7 +207,7 @@ export async function POST(req) {
 
         // Check club member limits for all students
         const [clubInfo] = await pool.execute(
-            "SELECT memberLimit FROM clubs WHERE id = ?",
+            "SELECT memberLimit, registration_open FROM clubs WHERE id = ?",
             [selectedClub]
         );
 
@@ -218,6 +218,19 @@ export async function POST(req) {
 
         const currentMembers = clubMembers[0].currentMembers;
         const memberLimit = clubInfo[0]?.memberLimit || 50; // Default to 50 if not found
+        const registrationOpen = clubInfo[0]?.registration_open === undefined ? true : Boolean(clubInfo[0].registration_open);
+
+        if (!registrationOpen) {
+            return NextResponse.json(
+                {
+                    message: "Registrations for this club are currently closed.",
+                    errorType: "CLUB_CLOSED",
+                    clubId: selectedClub,
+                    suggestion: "Please select a different club."
+                },
+                { status: 400 }
+            );
+        }
 
         if (currentMembers >= memberLimit) {
             return NextResponse.json(

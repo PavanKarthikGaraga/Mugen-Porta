@@ -80,7 +80,11 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
         if (!selectedClubData) return;
 
         if (selectedClubData.isFull) {
-            toast.error(`This club is already full (${selectedClubData.memberCount}/${selectedClubData.memberLimit} members). Please select a different club.`);
+            if (selectedClubData.registration_open === false) {
+                toast.error(`Registrations for this club are currently closed. Please select a different club.`);
+            } else {
+                toast.error(`This club is already full (${selectedClubData.memberCount}/${selectedClubData.memberLimit} members). Please select a different club.`);
+            }
             return; // Don't proceed with selection
         }
 
@@ -264,6 +268,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                     {(() => {
                                         const renderOption = (club) => {
                                             const isFull = club.isFull;
+                                            const isClosed = club.registration_open === false;
                                             return (
                                                 <option
                                                     key={club.id}
@@ -271,7 +276,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                                     disabled={isFull}
                                                     className={isFull ? 'text-gray-400' : ''}
                                                 >
-                                                    {club.name} ({club.memberCount}/{club.memberLimit} members){isFull && ' - FULL'}
+                                                    {club.name} ({club.memberCount}/{club.memberLimit} members){isClosed ? ' - CLOSED' : (isFull ? ' - FULL' : '')}
                                                 </option>
                                             );
                                         };

@@ -2,6 +2,7 @@ import pool from '../../../../../lib/db';
 import { NextResponse } from 'next/server';
 import { ResultSetHeader } from 'mysql2';
 import { verifyAdminToken } from '../auth-helper';
+import { ensureClubsSchema } from '@/lib/dbMigrate';
 
 export async function GET(request) {
     // Verify admin token
@@ -11,6 +12,7 @@ export async function GET(request) {
     }
 
     try {
+        await ensureClubsSchema();
         const [rows] = await pool.execute('SELECT * FROM clubs ORDER BY id');
         return NextResponse.json(rows);
     } catch (error) {
@@ -27,11 +29,14 @@ export async function POST(request) {
     }
 
     try {
-    const { id, name, description, domain, memberLimit } = await request.json();
+        await ensureClubsSchema();
+        const { id, name, description, domain, memberLimit, registration_open } = await request.json();
+        
+        const regOpen = registration_open === undefined ? 1 : (registration_open ? 1 : 0);
         
         const [result] = await pool.execute<ResultSetHeader>(
-            'INSERT INTO clubs (id, name, description, domain, memberLimit) VALUES (?, ?, ?, ?, ?)',
-            [id, name, description, domain, memberLimit || 50]
+            'INSERT INTO clubs (id, name, description, domain, memberLimit, registration_open) VALUES (?, ?, ?, ?, ?, ?)',
+            [id, name, description, domain, memberLimit || 50, regOpen]
         );
         
         return NextResponse.json({ message: 'Club created successfully', id: result.insertId });
