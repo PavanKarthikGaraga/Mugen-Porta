@@ -450,14 +450,12 @@ export default function ActivityManager({
                                     >
                                       <FiUsers size={13} /> Registrations
                                     </Link>
-                                    {!(role === "lead" && (a.domain === 'DEPT. CLUBS' || a.domain === 'MHS. CLUBS')) && (
-                                      <Link
-                                        href={role === "admin" ? `/dashboard/admin/activities/${a.code}/attendance` : `/dashboard/${role}/samam/activities/${a.code}/attendance`}
-                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors whitespace-nowrap"
-                                      >
-                                        <FiUserCheck size={13} /> Attendance
-                                      </Link>
-                                    )}
+                                    <Link
+                                      href={role === "admin" ? `/dashboard/admin/activities/${a.code}/attendance` : `/dashboard/${role}/samam/activities/${a.code}/attendance`}
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors whitespace-nowrap"
+                                    >
+                                      <FiUserCheck size={13} /> Attendance
+                                    </Link>
                                     <Link
                                       href={`/dashboard/${role}/samam/activities/${a.code}/edit`}
                                       className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors whitespace-nowrap"

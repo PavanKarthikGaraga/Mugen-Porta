@@ -59,7 +59,7 @@ export default function LeadDashboardLayout({ children }) {
         { name: 'Overview',            href: '/dashboard/lead',                  icon: FiHome     },
         { name: 'Profile',             href: '/dashboard/lead/profile',          icon: FiUser     },
         { name: 'Students',            href: '/dashboard/lead/students',         icon: FiUsers    },
-        ...(!isDeptOrMhs ? [{ name: 'Attendance Records',  href: '/dashboard/lead/attendance',       icon: FiCheckSquare }] : []),
+        { name: 'Attendance Records',  href: '/dashboard/lead/attendance',       icon: FiCheckSquare },
         { name: 'Passport Approvals',  href: '/dashboard/lead/passport-approvals', icon: FiAward    },
     ];
 
@@ -71,7 +71,7 @@ export default function LeadDashboardLayout({ children }) {
         { name: 'Overview',         href: '/dashboard/lead/samam/overview',          icon: FiBarChart2 },
         { name: 'Activities',       href: '/dashboard/lead/samam/activities',        icon: FiActivity  },
         { name: 'Submissions',      href: '/dashboard/lead/samam/submissions',       icon: FiFileText  },
-        ...(!isDeptOrMhs ? [{ name: 'Activity Reports', href: '/dashboard/lead/samam/activity-reports',  icon: FiClipboard }] : []),
+        { name: 'Activity Reports', href: '/dashboard/lead/samam/activity-reports',  icon: FiClipboard },
     ];
 
     const handleLogout = async () => {
