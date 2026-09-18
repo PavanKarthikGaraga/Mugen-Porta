@@ -30,28 +30,50 @@ export async function GET(request: Request) {
     const [rows]: any = await pool.query(query, [decoded.username]);
 
     // Parse JSON columns back to objects for the frontend
-    const activities = rows.map((row: any) => ({
-      ...row,
-      outcomes: row.outcomes || [],
-      timeline: row.timeline || [],
-      resources: row.resources || [],
-      assignments: row.assignments || [],
-      competencies: row.competencies || [],
-      career: row.career || [],
-      sdgs: row.sdgs || [],
-      ga: row.ga || [],
-      enrolledCount: row.real_enrolled_count || 0,
-      isEnrolled: true,
-      // Map frontend fields expected by My Activities
-      name: row.title,
-      credits: row.sdc_credits,
-      credits_earned: row.enrollment_status === 'completed' ? row.sdc_credits : 0,
-    }));
+    const now = new Date();
+
+    const activities = rows.map((row: any) => {
+      let isPastAndLocked = false;
+      if (row.is_attendance_locked) {
+        try {
+          const dateStr = row.activity_date instanceof Date 
+            ? row.activity_date.toISOString().split('T')[0] 
+            : String(row.activity_date).split('T')[0];
+          const activityEndTime = new Date(`${dateStr}T${row.end_time}`);
+          if (now > activityEndTime) {
+            isPastAndLocked = true;
+          }
+        } catch (e) {
+          console.error("Error parsing date:", e);
+        }
+      }
+
+      const isEffectivelyCompleted = row.enrollment_status === 'completed' || isPastAndLocked;
+
+      return {
+        ...row,
+        outcomes: row.outcomes || [],
+        timeline: row.timeline || [],
+        resources: row.resources || [],
+        assignments: row.assignments || [],
+        competencies: row.competencies || [],
+        career: row.career || [],
+        sdgs: row.sdgs || [],
+        ga: row.ga || [],
+        enrolledCount: row.real_enrolled_count || 0,
+        isEnrolled: true,
+        // Map frontend fields expected by My Activities
+        name: row.title,
+        credits: row.sdc_credits,
+        credits_earned: row.enrollment_status === 'completed' ? row.sdc_credits : 0,
+        isEffectivelyCompleted
+      };
+    });
 
     // Group activities for the MyActivities tab logic
     const grouped = {
-      ongoing: activities.filter((a: any) => ['registered', 'active', 'ongoing', 'pending_review'].includes(a.enrollment_status)),
-      completed: activities.filter((a: any) => a.enrollment_status === 'completed'),
+      ongoing: activities.filter((a: any) => !a.isEffectivelyCompleted && ['registered', 'active', 'ongoing', 'pending_review'].includes(a.enrollment_status)),
+      completed: activities.filter((a: any) => a.isEffectivelyCompleted),
     };
 
     return NextResponse.json({ success: true, data: grouped });
