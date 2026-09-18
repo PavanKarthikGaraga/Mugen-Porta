@@ -67,7 +67,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             );
         }
 
-        for (const username of enrolled) {
+        // Find who already got points for this specific activity so we don't double-award
+        const [existing]: any = await pool.execute(
+            `SELECT username FROM sdc_transactions WHERE category = ? AND username IN (${placeholders})`,
+            [`Activity: ${activity.code}`, ...requested]
+        );
+        const alreadyAwarded: string[] = existing.map((r: any) => r.username);
+
+        const toAward = enrolled.filter((u) => !alreadyAwarded.includes(u));
+        const skippedCount = skipped.length + alreadyAwarded.length;
+
+        if (toAward.length === 0) {
+            return NextResponse.json(
+                { success: false, message: 'All selected students have either already been awarded points or are not enrolled.', awarded: 0, skipped: skippedCount },
+                { status: 400 }
+            );
+        }
+
+        for (const username of toAward) {
             await pool.execute(
                 `INSERT INTO sdc_transactions (username, credits, domain, category, description, granted_by, granted_at)
                  VALUES (?, ?, ?, ?, ?, ?, NOW())`,
@@ -77,9 +94,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
         return NextResponse.json({
             success: true,
-            awarded: enrolled.length,
-            skipped: skipped.length,
-            message: `Awarded ${credits} point${credits === 1 ? '' : 's'} to ${enrolled.length} student${enrolled.length === 1 ? '' : 's'}.`,
+            awarded: toAward.length,
+            skipped: skippedCount,
+            message: `Awarded ${credits} point${credits === 1 ? '' : 's'} to ${toAward.length} student${toAward.length === 1 ? '' : 's'}.`,
         });
     } catch (error: any) {
         console.error('Bulk points award error:', error);

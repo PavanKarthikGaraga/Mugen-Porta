@@ -20,7 +20,8 @@ export async function GET(request: Request) {
 
     const query = `
       SELECT ac.*, ae.status as enrollment_status, ae.enrolled_at,
-             (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count 
+             (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count,
+             (SELECT 1 FROM activity_enrollments ae2 WHERE ae2.activity_code = ac.code AND ae2.attendance_marked = TRUE LIMIT 1) as is_attendance_locked
       FROM activity_enrollments ae
       JOIN activity_catalogue ac ON ae.activity_code = ac.code
       WHERE ae.username = ?

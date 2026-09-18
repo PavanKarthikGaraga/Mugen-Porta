@@ -122,7 +122,13 @@ export default function ActivityManager({
 
   const displayActivities = useMemo(() => {
     return filteredActivities.filter((a: any) => {
-      if (selectedDomain && a.domain !== selectedDomain) return false;
+      if (selectedDomain) {
+        if (selectedDomain === "ALL_SAC") {
+          if (!["TEC", "LCH", "ESO", "IIE", "HWB"].includes(a.domain)) return false;
+        } else if (a.domain !== selectedDomain) {
+          return false;
+        }
+      }
       if (selectedCategory && (a.category || "General") !== selectedCategory) return false;
       if (selectedStatus) {
         const info = getActivityStatusInfo(a);

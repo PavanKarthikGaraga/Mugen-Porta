@@ -51,8 +51,7 @@ export async function GET() {
                 ac.registration_open,
                 ac.outcomes,
                 ac.competencies,
-                ac.ga,
-                ac.poster_url
+                ac.ga
                 ${hasSdgs ? ', ac.sdgs' : ''}
             FROM activity_catalogue ac
             WHERE ac.registration_open = 1
@@ -77,7 +76,6 @@ export async function GET() {
             start_time:       r.start_time,
             end_time:         r.end_time,
             venue:            r.venue,
-            poster_url:       r.poster_url || null,
             registration_open: r.registration_open === 1 || r.registration_open === true,
             outcomes:         parseJson(r.outcomes),
             competencies:     parseJson(r.competencies),
