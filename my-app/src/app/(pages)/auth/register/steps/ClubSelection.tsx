@@ -286,29 +286,8 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                         }
 
                                         if (isVaddeswaramCampus && clubType === 'DEPARTMENT') {
-                                            // Department Clubs split into two groups: general
-                                            // societies/associations (e.g. WDC, NSS) vs. the
-                                            // per-branch student bodies, which are always named
-                                            // "Name (BRANCH)" e.g. "Focus (CSE)", "Pulse (ECE)" --
-                                            // that trailing parenthetical is what tells the two apart.
                                             const deptClubs = availableClubs.filter(club => club.domain === 'DEPT. CLUBS' || club.id.startsWith('DEP'));
-                                            const isStudentBody = (club) => /\([A-Za-z .&/]+\)\s*$/.test(club.name);
-                                            const studentBodies = deptClubs.filter(isStudentBody);
-                                            const societies = deptClubs.filter(club => !isStudentBody(club));
-                                            return (
-                                                <>
-                                                    {societies.length > 0 && (
-                                                        <optgroup label="Dept. Clubs">
-                                                            {societies.map(renderOption)}
-                                                        </optgroup>
-                                                    )}
-                                                    {studentBodies.length > 0 && (
-                                                        <optgroup label="Dept Student Bodies">
-                                                            {studentBodies.map(renderOption)}
-                                                        </optgroup>
-                                                    )}
-                                                </>
-                                            );
+                                            return deptClubs.map(renderOption);
                                         }
 
                                         if (isVaddeswaramCampus && clubType === 'MHS_DEPARTMENT') {
