@@ -288,7 +288,45 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
 
                                         if (isVaddeswaramCampus && clubType === 'DEPARTMENT') {
                                             const deptClubs = availableClubs.filter(club => club.domain === 'DEPT. CLUBS' || club.id.startsWith('DEP'));
-                                            return deptClubs.map(renderOption);
+                                            const deptCategories = [
+                                                { label: 'CSE-1 Department', ids: ['DEP11', 'DEP12', 'DEP14'] },
+                                                { label: 'CSE-2 Department', ids: ['DEP15', 'DEP13', 'DEP17'] },
+                                                { label: 'CSE-3 Department', ids: ['DEP18', 'DEP19'] },
+                                                { label: 'CSE-4 Department', ids: ['DEP21', 'DEP22', 'DEP24'] },
+                                                { label: 'EL&GE Department (HTE)', ids: ['DEP42'] },
+                                                { label: 'MDI&E Department (HTI)', ids: ['DEP48'] },
+                                                { label: 'IRD Department (HTR)', ids: ['DEP43'] },
+                                                { label: 'CS&IT Department', ids: ['DEP25', 'DEP26'] },
+                                                { label: 'AI&DS Department', ids: ['DEP01', 'DEP02', 'DEP03', 'DEP04', 'DEP08'] },
+                                                { label: 'Biotechnology Department', ids: ['DEP09'] },
+                                                { label: 'ECE Department', ids: ['DEP32', 'DEP27', 'DEP28', 'DEP33', 'DEP29'] },
+                                                { label: 'EEE Department', ids: ['DEP35', 'DEP47'] },
+                                                { label: 'IoT Department', ids: ['DEP37'] },
+                                                { label: 'ME Department', ids: ['DEP41'] },
+                                                { label: 'CE Department', ids: ['DEP10'] },
+                                            ];
+                                            
+                                            const categorizedIds = new Set(deptCategories.flatMap(c => c.ids));
+                                            const others = deptClubs.filter(club => !categorizedIds.has(club.id));
+                                            
+                                            return (
+                                                <>
+                                                    {deptCategories.map(({ label, ids }) => {
+                                                        const group = deptClubs.filter(club => ids.includes(club.id));
+                                                        if (group.length === 0) return null;
+                                                        return (
+                                                            <optgroup key={label} label={label}>
+                                                                {group.map(renderOption)}
+                                                            </optgroup>
+                                                        );
+                                                    })}
+                                                    {others.length > 0 && (
+                                                        <optgroup key="Others" label="Others">
+                                                            {others.map(renderOption)}
+                                                        </optgroup>
+                                                    )}
+                                                </>
+                                            );
                                         }
 
                                         if (isVaddeswaramCampus && clubType === 'MHS_DEPARTMENT') {
