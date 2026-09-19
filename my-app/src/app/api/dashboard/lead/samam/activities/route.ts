@@ -220,17 +220,32 @@ export async function POST(request: Request) {
         }
         const insertId = result.insertId;
 
-        // Auto-map the activity for DEPT and MHS clubs
-        if (leadData.clubDomain === 'DEPT. CLUBS' || leadData.clubDomain === 'MHS. CLUBS') {
-            try {
-                await pool.execute(
-                    `INSERT IGNORE INTO club_activity_mappings (club_id, activity_code) VALUES (?, ?)`,
-                    [leadData.clubId, code]
-                );
-            } catch (mappingError) {
-                console.error("Auto-mapping error:", mappingError);
-                // We don't fail the entire request if mapping fails, but log it.
-            }
+        // Auto-map the activity and its category for the club
+        try {
+            await pool.execute(
+                `INSERT IGNORE INTO club_activity_mappings (club_id, activity_code) VALUES (?, ?)`,
+                [leadData.clubId, code]
+            );
+            
+            // Also ensure the club_category_mappings table exists if it doesn't already
+            await pool.execute(`
+                CREATE TABLE IF NOT EXISTS club_category_mappings (
+                    id         INT AUTO_INCREMENT PRIMARY KEY,
+                    club_id    VARCHAR(100) NOT NULL,
+                    category   VARCHAR(255) NOT NULL,
+                    created_by VARCHAR(100) DEFAULT NULL,
+                    created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY uq_club_category (club_id, category)
+                )
+            `);
+
+            await pool.execute(
+                `INSERT IGNORE INTO club_category_mappings (club_id, category, created_by) VALUES (?, ?, ?)`,
+                [leadData.clubId, category, leadData.decoded.username || 'lead']
+            );
+        } catch (mappingError) {
+            console.error("Auto-mapping error:", mappingError);
+            // We don't fail the entire request if mapping fails, but log it.
         }
 
         return NextResponse.json({ success: true, id: insertId, message: 'Activity created successfully' }, { status: 201 });
