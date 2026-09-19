@@ -13,7 +13,7 @@ export const revalidate = 0;
  */
 
 
-import { ensureClubsSchema } from '@/lib/dbMigrate';
+import { ensureClubsSchema, ensureClubGroupMappingsTable } from '@/lib/dbMigrate';
 
 export async function GET(request) {
     try {
@@ -98,11 +98,21 @@ export async function GET(request) {
         const registrationData = {
             clubs: enhancedClubs,
             domains: domains,
+            mappings: [], // Default empty array in case the table is missing
             metadata: {
                 clubsCount: enhancedClubs.length,
                 timestamp: new Date().toISOString()
             }
         };
+
+        // Attempt to fetch club group mappings
+        try {
+            await ensureClubGroupMappingsTable();
+            const [mappings] = await pool.execute('SELECT group_type, group_name, club_id FROM club_group_mappings ORDER BY group_type, group_name');
+            registrationData.mappings = mappings as any[];
+        } catch (err) {
+            console.error('Failed to fetch club group mappings:', err);
+        }
         
         const response = NextResponse.json(registrationData);
         

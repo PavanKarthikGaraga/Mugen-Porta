@@ -358,3 +358,19 @@ export async function ensureUserLogsTable() {
     `);
     _userLogsDone = true;
 }
+
+let _clubGroupMappingsDone = false;
+
+export async function ensureClubGroupMappingsTable() {
+    if (_clubGroupMappingsDone) return;
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS club_group_mappings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            group_type VARCHAR(50) NOT NULL,
+            group_name VARCHAR(100) NOT NULL,
+            club_id VARCHAR(50) NOT NULL,
+            UNIQUE KEY uq_group_club (group_type, group_name, club_id)
+        )
+    `);
+    _clubGroupMappingsDone = true;
+}

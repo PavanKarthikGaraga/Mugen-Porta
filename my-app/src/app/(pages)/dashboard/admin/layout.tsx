@@ -71,6 +71,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Award Badges/Points', href: '/dashboard/admin/samam/award', icon: FiStar },
         { name: 'Activity Awards',    href: '/dashboard/admin/samam/activity-awards', icon: FiAward },
         { name: 'Activity Mapper',   href: '/dashboard/admin/activity-mapper', icon: FiMap },
+        { name: 'Dept-Club Mapper',  href: '/dashboard/admin/dept-mapper',     icon: FiMap },
         { name: 'SAMAM Access',          href: '/dashboard/admin/samam-access',        icon: FiUnlock      },
         { name: 'Activity Approvals',    href: '/dashboard/admin/activity-approvals',     icon: FiCheckSquare },
         { name: 'Completed Activities', href: '/dashboard/admin/completed-activities',   icon: FiClipboard   },

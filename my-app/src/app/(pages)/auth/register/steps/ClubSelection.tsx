@@ -12,6 +12,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
     const [selectedDomain, setSelectedDomain] = useState(formData.selectedDomain || "");
     const [selectedClub, setSelectedClub] = useState(formData.selectedClub || "");
     const [availableClubs, setAvailableClubs] = useState([]);
+    const [clubMappings, setClubMappings] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Domain categories
@@ -38,6 +39,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                 if (response.ok) {
                     const data = await response.json();
                     setAvailableClubs(data.clubs || []);
+                    setClubMappings(data.mappings || []);
                 } else {
                     console.error('Failed to fetch registration data:', response.status);
                 }
@@ -288,23 +290,17 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
 
                                         if (isVaddeswaramCampus && clubType === 'DEPARTMENT') {
                                             const deptClubs = availableClubs.filter(club => club.domain === 'DEPT. CLUBS' || club.id.startsWith('DEP'));
-                                            const deptCategories = [
-                                                { label: 'CSE-1 Department', ids: ['DEP11', 'DEP12', 'DEP14'] },
-                                                { label: 'CSE-2 Department', ids: ['DEP15', 'DEP13', 'DEP17'] },
-                                                { label: 'CSE-3 Department', ids: ['DEP18', 'DEP19'] },
-                                                { label: 'CSE-4 Department', ids: ['DEP21', 'DEP22', 'DEP24'] },
-                                                { label: 'EL&GE Department (HTE)', ids: ['DEP42'] },
-                                                { label: 'MDI&E Department (HTI)', ids: ['DEP48'] },
-                                                { label: 'IRD Department (HTR)', ids: ['DEP43'] },
-                                                { label: 'CS&IT Department', ids: ['DEP25', 'DEP26'] },
-                                                { label: 'AI&DS Department', ids: ['DEP01', 'DEP02', 'DEP03', 'DEP04', 'DEP08'] },
-                                                { label: 'Biotechnology Department', ids: ['DEP09'] },
-                                                { label: 'ECE Department', ids: ['DEP32', 'DEP27', 'DEP28', 'DEP33', 'DEP29'] },
-                                                { label: 'EEE Department', ids: ['DEP35', 'DEP47'] },
-                                                { label: 'IoT Department', ids: ['DEP37'] },
-                                                { label: 'ME Department', ids: ['DEP41'] },
-                                                { label: 'CE Department', ids: ['DEP10'] },
-                                            ];
+                                            const deptCategories = clubMappings
+                                                .filter(m => m.group_type === 'DEPARTMENT')
+                                                .reduce((acc, curr) => {
+                                                    const existing = acc.find(c => c.label === curr.group_name);
+                                                    if (existing) {
+                                                        existing.ids.push(curr.club_id);
+                                                    } else {
+                                                        acc.push({ label: curr.group_name, ids: [curr.club_id] });
+                                                    }
+                                                    return acc;
+                                                }, []);
                                             
                                             const categorizedIds = new Set(deptCategories.flatMap(c => c.ids));
                                             const others = deptClubs.filter(club => !categorizedIds.has(club.id));
@@ -331,7 +327,23 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
 
                                         if (isVaddeswaramCampus && clubType === 'MHS_DEPARTMENT') {
                                             const mhsClubs = availableClubs.filter(club => club.domain === 'MHS. CLUBS');
-                                            const mhsCategories = [
+                                            const mappedMhsCategories = clubMappings
+                                                .filter(m => m.group_type === 'MHS_DEPARTMENT')
+                                                .reduce((acc, curr) => {
+                                                    const existing = acc.find(c => c.label === curr.group_name);
+                                                    if (existing) {
+                                                        existing.ids.push(curr.club_id);
+                                                    } else {
+                                                        acc.push({ label: curr.group_name, ids: [curr.club_id] });
+                                                    }
+                                                    return acc;
+                                                }, []);
+                                                
+                                            // Fallback prefix categories for unmapped MHS clubs
+                                            const mappedClubIds = new Set(clubMappings.filter(m => m.group_type === 'MHS_DEPARTMENT').map(m => m.club_id));
+                                            const unmappedMhsClubs = mhsClubs.filter(c => !mappedClubIds.has(c.id));
+                                            
+                                            const fallbackPrefixes = [
                                                 { label: 'Agriculture', prefix: 'AGR' },
                                                 { label: 'Architecture', prefix: 'ARC' },
                                                 { label: 'BBA', prefix: 'BBA' },
@@ -341,19 +353,34 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                                 { label: 'MBA', prefix: 'MBA' },
                                                 { label: 'Fine Arts', prefix: 'FIN' },
                                                 { label: 'Pharmacy', prefix: 'PHR' },
-
                                             ];
+
                                             return (
                                                 <>
-                                                    {mhsCategories.map(({ label, prefix }) => {
-                                                        const group = mhsClubs.filter(club => club.id.startsWith(prefix));
+                                                    {mappedMhsCategories.map(({ label, ids }) => {
+                                                        const group = mhsClubs.filter(club => ids.includes(club.id));
                                                         if (group.length === 0) return null;
                                                         return (
-                                                            <optgroup key={prefix} label={label}>
+                                                            <optgroup key={label} label={label}>
                                                                 {group.map(renderOption)}
                                                             </optgroup>
                                                         );
                                                     })}
+                                                    {fallbackPrefixes.map(({ label, prefix }) => {
+                                                        const group = unmappedMhsClubs.filter(club => club.id.startsWith(prefix));
+                                                        if (group.length === 0) return null;
+                                                        return (
+                                                            <optgroup key={`fallback-${prefix}`} label={label}>
+                                                                {group.map(renderOption)}
+                                                            </optgroup>
+                                                        );
+                                                    })}
+                                                    {/* Any other unmapped MHS clubs */}
+                                                    {unmappedMhsClubs.filter(c => !fallbackPrefixes.some(p => c.id.startsWith(p.prefix))).length > 0 && (
+                                                        <optgroup key="Other-MHS" label="Other MHS Clubs">
+                                                            {unmappedMhsClubs.filter(c => !fallbackPrefixes.some(p => c.id.startsWith(p.prefix))).map(renderOption)}
+                                                        </optgroup>
+                                                    )}
                                                 </>
                                             );
                                         }
