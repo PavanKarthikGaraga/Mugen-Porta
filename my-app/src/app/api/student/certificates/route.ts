@@ -2,6 +2,7 @@ import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { ensureCertificatesTable, formatIssuedOn } from '@/lib/certificateVerification';
+import { ensureClubGroupMappingsTable } from '@/lib/dbMigrate';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,12 +14,20 @@ export async function GET() {
 
     try {
         await ensureCertificatesTable();
+        
+        let cseClubIds = new Set();
+        try {
+            await ensureClubGroupMappingsTable();
+            const [cseMappings]: any = await pool.execute(`
+                SELECT club_id FROM club_group_mappings 
+                WHERE group_name IN ('CSE-1 Department', 'CSE-2 Department', 'CSE-3 Department', 'CSE-4 Department')
+            `);
+            cseClubIds = new Set(cseMappings.map((m: any) => m.club_id));
+        } catch (e) {
+            console.error("Failed to load CSE mappings for certificates:", e);
+        }
 
-        const [cseMappings]: any = await pool.execute(`
-            SELECT club_id FROM club_group_mappings 
-            WHERE group_name IN ('CSE-1 Department', 'CSE-2 Department', 'CSE-3 Department', 'CSE-4 Department')
-        `);
-        const cseClubIds = new Set(cseMappings.map((m: any) => m.club_id));
+
 
         const [rows]: any = await pool.execute(`
             SELECT
