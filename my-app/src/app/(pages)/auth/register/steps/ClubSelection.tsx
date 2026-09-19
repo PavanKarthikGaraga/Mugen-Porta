@@ -91,6 +91,7 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
         setSelectedClub(clubId);
         updateFormData({
             selectedClub: clubId,
+            selectedClubName: selectedClubData.name,
             selectedDomain: selectedClubData.domain, // Auto-set domain
             pathway: "" // reset pathway on club change
         });
