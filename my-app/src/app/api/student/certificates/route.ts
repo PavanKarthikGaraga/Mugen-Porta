@@ -2,7 +2,7 @@ import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { ensureCertificatesTable, formatIssuedOn } from '@/lib/certificateVerification';
-import { ensureClubGroupMappingsTable } from '@/lib/dbMigrate';
+import { ensureClubGroupMappingsTable, ensureActivitySchema } from '@/lib/dbMigrate';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +14,7 @@ export async function GET() {
 
     try {
         await ensureCertificatesTable();
+        await ensureActivitySchema();
         
         let cseClubIds = new Set();
         try {
@@ -38,7 +39,7 @@ export async function GET() {
             FROM student_certificates sc
             LEFT JOIN students s ON sc.username = s.username
             LEFT JOIN activity_catalogue ac ON sc.activity_code = ac.code
-            LEFT JOIN club_activity_mappings cam ON cam.activity_code = ac.code
+            LEFT JOIN club_activity_mappings cam ON cam.activity_code = sc.activity_code
             WHERE sc.username = ? AND sc.status = 'issued'
             ORDER BY sc.issued_on DESC
         `, [auth.user.username]);
@@ -65,7 +66,7 @@ export async function GET() {
     } catch (error: any) {
         console.error('Student certificates error:', error);
         return NextResponse.json(
-            { success: false, error: safeMessage(error, 'Could not load your certificates') },
+            { success: false, error: error.message || String(error) },
             { status: 500 }
         );
     }
