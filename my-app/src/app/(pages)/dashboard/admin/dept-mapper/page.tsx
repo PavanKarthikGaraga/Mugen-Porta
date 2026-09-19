@@ -183,7 +183,6 @@ export default function DeptMapperPage() {
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500"
                         >
                             <option value="DEPARTMENT">Engineering Dept. Clubs</option>
-                            <option value="MHS_DEPARTMENT">MHS Dept. Clubs</option>
                         </select>
                     </div>
                     
@@ -229,7 +228,7 @@ export default function DeptMapperPage() {
             </div>
 
             {/* Display Mappings */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
                 {/* Engineering Departments */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Engineering Dept. Categories</h2>
@@ -260,42 +259,6 @@ export default function DeptMapperPage() {
                         </div>
                     ) : (
                         <p className="text-gray-500 italic">No engineering department mappings found.</p>
-                    )}
-                </div>
-
-                {/* MHS Departments */}
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">MHS Dept. Categories</h2>
-                    <p className="text-sm text-gray-500 mb-4">
-                        Note: MHS Clubs currently use prefix auto-grouping (e.g., AGR prefix = Agriculture). You can override or create explicit groups here.
-                    </p>
-                    {groupedMappings['MHS_DEPARTMENT'] ? (
-                        <div className="space-y-6">
-                            {Object.entries(groupedMappings['MHS_DEPARTMENT']).map(([deptName, deptClubs]) => (
-                                <div key={deptName} className="bg-gray-50 p-4 rounded-md border border-gray-100">
-                                    <h3 className="font-semibold text-lg text-red-800 mb-3">{deptName}</h3>
-                                    <ul className="space-y-2">
-                                        {(deptClubs as any[]).map(mapping => (
-                                            <li key={mapping.id} className="flex justify-between items-center bg-white p-2 rounded border border-gray-200">
-                                                <div className="text-sm">
-                                                    <span className="font-mono text-gray-500 mr-2">{mapping.club_id}</span>
-                                                    <span className="font-medium">{mapping.club_name}</span>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleDeleteMapping(mapping.id)}
-                                                    className="text-red-500 hover:text-red-700 p-1"
-                                                    title="Delete mapping"
-                                                >
-                                                    <FiTrash size={16} />
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-gray-500 italic">No MHS department mappings found.</p>
                     )}
                 </div>
             </div>
