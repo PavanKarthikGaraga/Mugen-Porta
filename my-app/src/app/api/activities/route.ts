@@ -81,7 +81,7 @@ export async function GET(request: Request) {
     }
 
     // Apply the club activity filter based on visibility and mappings
-    if (!isDemoAccount) {
+    if (!isDemoAccount && isStudent) {
       const isSacClub = studentClubDomainRaw && ['TEC', 'LCH', 'ESO', 'IIE', 'HWB'].includes(studentClubDomainRaw);
       const isDeptClub = studentClubDomainRaw === 'DEPT. CLUBS';
       const isMhsClub = studentClubDomainRaw === 'MHS. CLUBS';
