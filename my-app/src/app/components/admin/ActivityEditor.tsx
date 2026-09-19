@@ -382,6 +382,25 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
   };
 
   const handleSave = async () => {
+    if (isNew) {
+      if (!formData.outcomes.filter(Boolean).length) {
+        toast.error("Please add at least one Learning Outcome.");
+        return;
+      }
+      if (!formData.competencies.filter(Boolean).length) {
+        toast.error("Please add at least one Competency.");
+        return;
+      }
+      if (!formData.ga.filter(Boolean).length) {
+        toast.error("Please add at least one Graduate Attribute.");
+        return;
+      }
+      if (!formData.sdgs.length) {
+        toast.error("Please select at least one Sustainable Development Goal (SDG).");
+        return;
+      }
+    }
+
     try {
       setSaving(true);
       const url = isNew ? apiPrefix : `${apiPrefix}/${activityId}`;
