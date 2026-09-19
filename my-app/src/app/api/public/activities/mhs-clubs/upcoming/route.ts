@@ -63,7 +63,7 @@ export async function GET() {
             code:             r.code,
             title:            r.title,
             description:      r.description,
-            domain:           r.club_name ? formatClubDomain(r.club_name) : r.domain,
+            domain:           r.domain,
             category:         r.category,
             difficulty:       r.difficulty ?? null,
             sdc_credits:      r.sdc_credits,
