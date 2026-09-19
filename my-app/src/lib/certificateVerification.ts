@@ -19,7 +19,7 @@ export async function ensureCertificatesTable() {
             \`username\` VARCHAR(10) NOT NULL,
             \`activity_code\` VARCHAR(50) NOT NULL,
             \`activity_title\` VARCHAR(255) DEFAULT NULL,
-            \`domain\` VARCHAR(10) DEFAULT NULL,
+            \`domain\` VARCHAR(50) DEFAULT NULL,
             \`credits\` INT DEFAULT NULL,
             \`verification_id\` VARCHAR(64) NOT NULL,
             \`issued_by\` VARCHAR(10) DEFAULT NULL,
@@ -31,6 +31,14 @@ export async function ensureCertificatesTable() {
             INDEX idx_cert_activity (\`activity_code\`)
         )
     `);
+
+    // Ensure domain column is wide enough for 'DEPT. CLUBS' and 'MHS. CLUBS'
+    try {
+        await pool.query('ALTER TABLE student_certificates MODIFY COLUMN domain VARCHAR(50)');
+    } catch (e) {
+        // Ignore if error
+    }
+
     tableReady = true;
 }
 

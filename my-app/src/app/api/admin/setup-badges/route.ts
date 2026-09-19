@@ -39,7 +39,7 @@ async function ensureSchema() {
             name          VARCHAR(190) NOT NULL,
             description   TEXT         DEFAULT NULL,
             icon          VARCHAR(16)  DEFAULT '🏆',
-            domain        VARCHAR(10)  DEFAULT 'TEC',
+            domain        VARCHAR(50)  DEFAULT 'TEC',
             rarity        VARCHAR(20)  DEFAULT 'Common',
             color         VARCHAR(20)  DEFAULT '#2563EB',
             bg_color      VARCHAR(20)  DEFAULT '#EFF6FF',
@@ -52,6 +52,13 @@ async function ensureSchema() {
             UNIQUE KEY uq_badge_code (code)
         )
     `);
+
+    // Ensure domain column is wide enough for 'DEPT. CLUBS' and 'MHS. CLUBS'
+    try {
+        await pool.query('ALTER TABLE badge_definitions MODIFY COLUMN domain VARCHAR(50)');
+    } catch (e) {
+        // Ignore if error (e.g. table locked or doesn't support modify in this dialect)
+    }
 
     // Older installs predate these columns.
     await addColumnIfMissing('badge_definitions', "type ENUM('activity','milestone') DEFAULT 'activity'");
