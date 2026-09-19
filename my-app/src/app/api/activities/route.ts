@@ -198,7 +198,7 @@ export async function POST(request: Request) {
     const {
       code, title, description, domain, category, sdc_credits, max_seats,
       outcomes, timeline, resources, assignments, competencies, career,
-      sdgs, ga, facultyFeedback, reflection, purpose, difficulty, level
+      sdgs, ga, facultyFeedback, reflection, purpose, difficulty, level, visibility
     } = data;
 
     if (auth.user.role === 'council') {
@@ -213,9 +213,9 @@ export async function POST(request: Request) {
       INSERT INTO activity_catalogue (
         code, title, description, domain, category, sdc_credits, max_seats, 
         outcomes, timeline, resources, assignments, competencies, career, 
-        sdgs, ga, facultyFeedback, reflection, purpose, difficulty, level, status, created_at
+        sdgs, ga, facultyFeedback, reflection, purpose, difficulty, level, status, visibility, created_at
       ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW()
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, NOW()
       )
     `;
 
@@ -234,7 +234,8 @@ export async function POST(request: Request) {
       reflection || null,
       purpose || null,
       difficulty || 'Beginner',
-      level || 'explorer'
+      level || 'explorer',
+      visibility || 'club_members_only'
     ]);
 
     return NextResponse.json({ success: true, insertId: result.insertId });

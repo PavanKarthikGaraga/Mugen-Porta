@@ -19,7 +19,7 @@ const EDITABLE_ACTIVITY_FIELDS = new Set([
     'sdc_credits', 'max_seats', 'maxEnrollment', 'outcomes', 'learning_outcomes', 'timeline', 'resources', 'assignments',
     'competencies', 'career', 'sdgs', 'ga', 'facultyFeedback', 'reflection',
     'national_mission', 'pack', 'status', 'activity_pack', 'faculty_name', 'hours', 'graduate_attributes',
-    'activity_date', 'start_time', 'end_time', 'venue', 'registration_open'
+    'activity_date', 'start_time', 'end_time', 'venue', 'registration_open', 'visibility'
 ]);
 
 // Empty strings from the date/time inputs must become NULL, not '' — MySQL
