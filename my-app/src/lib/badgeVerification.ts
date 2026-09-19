@@ -1,4 +1,5 @@
 import pool from '@/lib/db';
+import { formatClubDomain } from '@/lib/clubFormatting';
 
 const VERIFY_ORIGIN = 'https://sacactivities.kluniversity.in';
 const ISSUER_INSTITUTION = 'KL SAC (Student Activity Center)';
@@ -146,10 +147,14 @@ export async function getBadgeVerification(verificationId: string): Promise<Badg
             bd.bg_color,
             bd.description   AS badge_description,
             bd.competencies,
-            bd.requirement
+            bd.requirement,
+            c.name           AS club_name
         FROM student_badges sb
         LEFT JOIN students       s  ON sb.username  = s.username
         JOIN badge_definitions bd ON sb.badge_id = bd.id
+        LEFT JOIN activity_catalogue ac ON bd.id = ac.badge_id
+        LEFT JOIN club_activity_mappings cam ON ac.code = cam.activity_code
+        LEFT JOIN clubs c ON cam.club_id = c.id
         WHERE sb.verification_id = ?
     `, [verificationId]) as any[];
 
@@ -176,7 +181,7 @@ export async function getBadgeVerification(verificationId: string): Promise<Badg
             code: row.code,
             name: row.badge_name,
             icon: row.icon,
-            domain: row.domain,
+            domain: ['DEPT. CLUBS', 'MHS. CLUBS'].includes(row.domain) && row.club_name ? formatClubDomain(row.club_name) : row.domain,
             rarity: row.rarity,
             color: row.color,
             bgColor: row.bg_color,

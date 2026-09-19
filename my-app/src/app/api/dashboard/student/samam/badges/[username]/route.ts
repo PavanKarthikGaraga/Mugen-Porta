@@ -2,6 +2,7 @@ import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { getSessionUser, canAccessUsername, safeMessage } from '@/lib/apiSecurity';
 import { presentableRecognition } from '@/lib/badgeVerification';
+import { formatClubDomain } from '@/lib/clubFormatting';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,14 +19,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         }
 
+        const [studentRows]: any = await pool.execute('SELECT clubId FROM students WHERE username = ?', [username]);
+        const studentClubId = studentRows[0]?.clubId;
+
         // 1. Fetch earned badges
         const [earnedRows] = await pool.execute(`
             SELECT
                 sb.id as student_badge_id, sb.verification_id, sb.share_url, sb.earned_from, sb.issued_on,
                 bd.id as badge_id, bd.code, bd.name, bd.icon, bd.domain, bd.rarity,
-                bd.color, bd.bg_color, bd.description, bd.competencies, bd.requirement
+                bd.color, bd.bg_color, bd.description, bd.competencies, bd.requirement,
+                c.name as club_name
             FROM student_badges sb
             JOIN badge_definitions bd ON sb.badge_id = bd.id
+            LEFT JOIN activity_catalogue ac ON bd.id = ac.badge_id
+            LEFT JOIN club_activity_mappings cam ON ac.code = cam.activity_code
+            LEFT JOIN clubs c ON cam.club_id = c.id
             WHERE sb.username = ?
             ORDER BY sb.issued_on DESC
         `, [username]) as any[];
@@ -38,7 +46,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
             // (see my-app/src/lib/badgeIcons.tsx), falling back to the
             // badge's domain when it's empty or a legacy emoji.
             icon: row.icon || null,
-            domain: row.domain,
+            domain: ['DEPT. CLUBS', 'MHS. CLUBS'].includes(row.domain) && row.club_name ? formatClubDomain(row.club_name) : row.domain,
             rarity: row.rarity,
             color: row.color,
             bg: row.bg_color,
@@ -64,14 +72,31 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
         if (earnedBadgeIds.length > 0) {
             const placeholders = earnedBadgeIds.map(() => '?').join(',');
             const [rows] = await pool.execute(`
-                SELECT * FROM badge_definitions 
-                WHERE is_active = 1 AND id NOT IN (${placeholders})
+                SELECT bd.*, c.name as club_name, cam.club_id
+                FROM badge_definitions bd
+                LEFT JOIN activity_catalogue ac ON bd.id = ac.badge_id
+                LEFT JOIN club_activity_mappings cam ON ac.code = cam.activity_code
+                LEFT JOIN clubs c ON cam.club_id = c.id
+                WHERE bd.is_active = 1 AND bd.id NOT IN (${placeholders})
             `, earnedBadgeIds) as any[];
             lockedRows = rows;
         } else {
-            const [rows] = await pool.execute(`SELECT * FROM badge_definitions WHERE is_active = 1`) as any[];
+            const [rows] = await pool.execute(`
+                SELECT bd.*, c.name as club_name, cam.club_id
+                FROM badge_definitions bd
+                LEFT JOIN activity_catalogue ac ON bd.id = ac.badge_id
+                LEFT JOIN club_activity_mappings cam ON ac.code = cam.activity_code
+                LEFT JOIN clubs c ON cam.club_id = c.id
+                WHERE bd.is_active = 1
+            `) as any[];
             lockedRows = rows;
         }
+
+        lockedRows = lockedRows.filter(row => {
+            if (row.type === 'milestone') return true;
+            if (!['DEPT. CLUBS', 'MHS. CLUBS'].includes(row.domain)) return true;
+            return row.club_id === studentClubId;
+        });
 
         // 3. Pre-compute user stats to calculate progress
         const [statsRows] = await pool.execute(`
@@ -134,6 +159,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
                 id: row.id,
                 name: row.name,
                 icon: row.icon || null,
+                domain: ['DEPT. CLUBS', 'MHS. CLUBS'].includes(row.domain) && row.club_name ? formatClubDomain(row.club_name) : row.domain,
                 rarity: row.rarity,
                 type: type,
                 requirement: row.requirement || `Complete requirements for ${row.name}`,

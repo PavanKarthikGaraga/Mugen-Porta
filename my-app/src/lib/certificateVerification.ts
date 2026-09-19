@@ -1,4 +1,5 @@
 import pool from '@/lib/db';
+import { formatClubDomain } from '@/lib/clubFormatting';
 import crypto from 'crypto';
 
 const VERIFY_ORIGIN = 'https://sacactivities.kluniversity.in';
@@ -88,10 +89,13 @@ export async function getCertificateVerification(verificationId: string): Promis
                 sc.id, sc.username, sc.activity_code, sc.activity_title, sc.domain,
                 sc.credits, sc.verification_id, sc.issued_by_name, sc.issued_on, sc.status,
                 s.name AS student_name, s.branch AS student_branch, s.year AS student_year,
-                ac.title AS catalogue_title, ac.category AS catalogue_category
+                ac.title AS catalogue_title, ac.category AS catalogue_category,
+                c.name AS club_name
             FROM student_certificates sc
             LEFT JOIN students s ON sc.username = s.username
             LEFT JOIN activity_catalogue ac ON sc.activity_code = ac.code
+            LEFT JOIN club_activity_mappings cam ON ac.code = cam.activity_code
+            LEFT JOIN clubs c ON cam.club_id = c.id
             WHERE sc.verification_id = ?
             LIMIT 1
         `, [verificationId]);
@@ -113,7 +117,7 @@ export async function getCertificateVerification(verificationId: string): Promis
                 shareUrl: certificateVerifyUrl(row.verification_id),
                 activityCode: row.activity_code,
                 activityTitle: row.activity_title || row.catalogue_title || row.activity_code,
-                domain: row.domain || row.catalogue_category || null,
+                domain: ['DEPT. CLUBS', 'MHS. CLUBS'].includes(row.domain) && row.club_name ? formatClubDomain(row.club_name) : (row.domain || row.catalogue_category || null),
                 credits: row.credits,
                 issuedOn: formatIssuedOn(row.issued_on),
                 // Always shown as the institutional title, never the actual

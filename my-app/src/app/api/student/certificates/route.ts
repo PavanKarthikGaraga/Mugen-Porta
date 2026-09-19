@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 import { ensureCertificatesTable, formatIssuedOn } from '@/lib/certificateVerification';
 import { ensureClubGroupMappingsTable, ensureActivitySchema } from '@/lib/dbMigrate';
+import { formatClubDomain } from '@/lib/clubFormatting';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,11 +36,13 @@ export async function GET() {
                 sc.id, sc.activity_code, sc.activity_title, sc.domain, sc.credits,
                 sc.verification_id, sc.issued_by_name, sc.issued_on,
                 s.name AS student_name, s.branch AS student_branch,
-                ac.title AS catalogue_title, cam.club_id AS clubId
+                ac.title AS catalogue_title, cam.club_id AS clubId,
+                c.name AS club_name
             FROM student_certificates sc
             LEFT JOIN students s ON sc.username = s.username
             LEFT JOIN activity_catalogue ac ON sc.activity_code = ac.code
             LEFT JOIN club_activity_mappings cam ON cam.activity_code = sc.activity_code
+            LEFT JOIN clubs c ON cam.club_id = c.id
             WHERE sc.username = ? AND sc.status = 'issued'
             ORDER BY sc.issued_on DESC
         `, [auth.user.username]);
@@ -51,7 +54,7 @@ export async function GET() {
                 verificationId: r.verification_id,
                 activityCode: r.activity_code,
                 activityTitle: r.activity_title || r.catalogue_title || r.activity_code,
-                domain: r.domain,
+                domain: ['DEPT. CLUBS', 'MHS. CLUBS'].includes(r.domain) && r.club_name ? formatClubDomain(r.club_name) : r.domain,
                 credits: r.credits,
                 issuedOn: formatIssuedOn(r.issued_on),
                 // Institutional title only, never the issuing staff member's
