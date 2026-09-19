@@ -64,7 +64,7 @@ export async function GET() {
             title:            r.title,
             description:      r.description,
             domain:           r.domain,
-            category:         r.category,
+            category:         r.club_name || r.category,
             difficulty:       r.difficulty ?? null,
             sdc_credits:      r.sdc_credits,
             max_seats:        r.max_seats,
