@@ -44,6 +44,7 @@ export interface ActivityReportInput {
   gallery: GalleryItem[];
   attendanceSheets: string[];
   isCse?: boolean;
+  isDeptOrMhs?: boolean;
 }
 
 interface LoadedImage { dataUrl: string; ratio: number }
@@ -261,16 +262,19 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
 
     doc.setDrawColor(150, 150, 150);
     doc.setLineWidth(0.75);
-    doc.line(MARGIN, blockY, MARGIN + lineW, blockY);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(20, 20, 20);
-    doc.text(DIRECTOR_NAME, MARGIN, blockY + 16);
-    doc.setFont("helvetica", "normal");
-    doc.text(DIRECTOR_TITLE, MARGIN, blockY + 30);
-    doc.text(UNIVERSITY_NAME, MARGIN, blockY + 44);
 
-    const rightX = PAGE_W - MARGIN - lineW;
+    if (!input.isDeptOrMhs) {
+      doc.line(MARGIN, blockY, MARGIN + lineW, blockY);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.setTextColor(20, 20, 20);
+      doc.text(DIRECTOR_NAME, MARGIN, blockY + 16);
+      doc.setFont("helvetica", "normal");
+      doc.text(DIRECTOR_TITLE, MARGIN, blockY + 30);
+      doc.text(UNIVERSITY_NAME, MARGIN, blockY + 44);
+    }
+
+    const rightX = input.isDeptOrMhs ? MARGIN : PAGE_W - MARGIN - lineW;
     doc.line(rightX, blockY, rightX + lineW, blockY);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);
@@ -446,6 +450,7 @@ export interface IqacActivityReportInput {
   gallery: GalleryItem[];
   attendanceSheets: string[];
   isCse?: boolean;
+  isDeptOrMhs?: boolean;
 }
 
 export async function generateIqacActivityReportPdf(input: IqacActivityReportInput) {
@@ -609,16 +614,19 @@ export async function generateIqacActivityReportPdf(input: IqacActivityReportInp
 
     doc.setDrawColor(150, 150, 150);
     doc.setLineWidth(0.75);
-    doc.line(MARGIN, blockY, MARGIN + lineW, blockY);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(20, 20, 20);
-    doc.text(input.directorName || "Director Name", MARGIN, blockY + 16);
-    doc.setFont("helvetica", "normal");
-    doc.text(input.directorTitle || "Director Title", MARGIN, blockY + 30);
-    doc.text(UNIVERSITY_NAME, MARGIN, blockY + 44);
 
-    const rightX = PAGE_W - MARGIN - lineW;
+    if (!input.isDeptOrMhs) {
+      doc.line(MARGIN, blockY, MARGIN + lineW, blockY);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.setTextColor(20, 20, 20);
+      doc.text(input.directorName || "Director Name", MARGIN, blockY + 16);
+      doc.setFont("helvetica", "normal");
+      doc.text(input.directorTitle || "Director Title", MARGIN, blockY + 30);
+      doc.text(UNIVERSITY_NAME, MARGIN, blockY + 44);
+    }
+
+    const rightX = input.isDeptOrMhs ? MARGIN : PAGE_W - MARGIN - lineW;
     doc.line(rightX, blockY, rightX + lineW, blockY);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);

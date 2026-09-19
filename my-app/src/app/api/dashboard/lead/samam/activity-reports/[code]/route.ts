@@ -46,12 +46,12 @@ async function resolveOrganizingClub(clubIds: string[], assignedCategories: stri
     if (clubIds.length > 0) {
         const placeholders = clubIds.map(() => '?').join(',');
         const [rows]: any = await pool.execute(
-            `SELECT c.id, c.name FROM club_activity_mappings cam
+            `SELECT c.id, c.name, c.domain FROM club_activity_mappings cam
              JOIN clubs c ON c.id = cam.club_id
              WHERE cam.activity_code = ? AND cam.club_id IN (${placeholders}) LIMIT 1`,
             [activityCode, ...clubIds]
         );
-        if (rows[0]) return { id: rows[0].id, name: rows[0].name };
+        if (rows[0]) return { id: rows[0].id, name: rows[0].name, domain: rows[0].domain };
     }
 
     if (assignedCategories.length > 0) {
@@ -61,8 +61,8 @@ async function resolveOrganizingClub(clubIds: string[], assignedCategories: stri
             [activityCode, ...assignedCategories]
         );
         if (catRows[0]?.clubId) {
-            const [fallback]: any = await pool.execute('SELECT id, name FROM clubs WHERE id = ? LIMIT 1', [catRows[0].clubId]);
-            return fallback[0] ? { id: fallback[0].id, name: fallback[0].name } : null;
+            const [fallback]: any = await pool.execute('SELECT id, name, domain FROM clubs WHERE id = ? LIMIT 1', [catRows[0].clubId]);
+            return fallback[0] ? { id: fallback[0].id, name: fallback[0].name, domain: fallback[0].domain } : null;
         }
     }
 

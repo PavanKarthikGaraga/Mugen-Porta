@@ -326,6 +326,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
       await saveDraft(true);
       await generateActivityReportPdf({
         isCse: club && 'isCse' in club ? (club as any).isCse : false,
+        isDeptOrMhs: club && 'domain' in club ? (club as any).domain === 'DEPT. CLUBS' || (club as any).domain === 'MHS. CLUBS' : false,
         clubName: club?.name || "",
         activityTitle: activity?.title || "",
         activityDate: formatActivityDate(activity?.activity_date),
