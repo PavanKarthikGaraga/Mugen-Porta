@@ -105,12 +105,13 @@ export async function GET(request) {
             }
         }
 
-        // Check if this is a proxy session
         const isProxy = payload.isProxy || false;
         const proxyInfo = isProxy ? {
             isProxy: true,
             proxyAdminUsername: payload.proxyAdminUsername,
-            proxyAdminName: payload.proxyAdminName
+            proxyAdminName: payload.proxyAdminName,
+            proxyLeadUsername: payload.proxyLeadUsername,
+            proxyLeadName: payload.proxyLeadName
         } : {};
 
         return NextResponse.json({

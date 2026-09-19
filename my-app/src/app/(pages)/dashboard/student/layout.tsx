@@ -65,6 +65,10 @@ export default function SAMAMStudentDashboardLayout({ children }) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  const [isProxySession, setIsProxySession] = useState(false);
+  const [proxyType, setProxyType] = useState<"admin" | "lead" | null>(null);
+  const [proxyName, setProxyName] = useState<string>("");
+
   // ── Fetch user data ──────────────────────────────────────────────────────
   useEffect(() => {
     const fetchUserData = async () => {
@@ -78,6 +82,17 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             samam_access: data.user?.samam_access ?? 1,
             clubId:       data.user?.clubId      || "",
           });
+
+          if (data.user?.isProxy) {
+            setIsProxySession(true);
+            if (data.user?.proxyAdminUsername) {
+              setProxyType("admin");
+              setProxyName(data.user?.proxyAdminName || "Admin");
+            } else if (data.user?.proxyLeadUsername) {
+              setProxyType("lead");
+              setProxyName(data.user?.proxyLeadName || "Lead");
+            }
+          }
           if (data.user?.username) {
             const profileRes = await fetch(`/api/dashboard/student/profile/${data.user.username}`);
             if (profileRes.ok) {
@@ -143,6 +158,24 @@ export default function SAMAMStudentDashboardLayout({ children }) {
 
   // ── Logout ───────────────────────────────────────────────────────────────
   const handleLogout = async () => {
+    if (isProxySession) {
+      try {
+        const response = await fetch('/api/auth/proxy-logout', { method: 'POST' });
+        if (response.ok) {
+          toast.success('Exited student dashboard successfully');
+          if (proxyType === 'admin') router.push('/dashboard/admin');
+          else if (proxyType === 'lead') router.push('/dashboard/lead');
+          else window.location.reload();
+          return;
+        } else {
+          const error = await response.json();
+          toast.error(`Proxy logout failed: ${error.error}`);
+        }
+      } catch {
+        toast.error('Proxy logout failed. Please try again.');
+      }
+    }
+
     try {
       document.cookie = "tck=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       await fetch("/api/auth/logout", { method: "POST" });
@@ -276,6 +309,16 @@ export default function SAMAMStudentDashboardLayout({ children }) {
             {/* Right — notifications + user */}
             <div className="flex items-center gap-2 flex-shrink-0">
 
+              {isProxySession && (
+                <button
+                  onClick={handleLogout}
+                  className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold bg-white text-red-700 hover:bg-red-50 transition-colors shadow-sm mr-2"
+                >
+                  <FiLogOut size={14} />
+                  {proxyType === 'admin' ? 'Exit Student Mode (Admin)' : 'Exit Student Mode (Lead)'}
+                </button>
+              )}
+
               {/* Notification bell */}
               <div className="relative" ref={notifRef}>
                 <button
@@ -394,7 +437,7 @@ export default function SAMAMStudentDashboardLayout({ children }) {
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
                       >
-                        <FiLogOut size={14} /> Logout
+                        <FiLogOut size={14} /> {isProxySession ? 'Exit Student Mode' : 'Logout'}
                       </button>
                     </div>
                   </div>

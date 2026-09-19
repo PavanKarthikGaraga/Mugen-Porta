@@ -82,7 +82,7 @@ export default function LeadDashboardLayout({ children }) {
                     method: 'POST',
                 });
                 if (response.ok) {
-                    toast.success('Exited student dashboard successfully');
+                    toast.success('Exited lead dashboard successfully');
                     // Refresh the page to return to lead session
                     window.location.reload();
                     return;
@@ -192,7 +192,7 @@ export default function LeadDashboardLayout({ children }) {
                                 onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
                             >
                                 <FiLogOut size={16} />
-                                <span>{isProxySession ? 'Exit Student Mode' : 'Logout'}</span>
+                                <span>{isProxySession ? 'Exit Lead Mode' : 'Logout'}</span>
                             </button>
                         </div>
                     </div>
