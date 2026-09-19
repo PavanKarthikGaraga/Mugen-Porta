@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { FiTrash2, FiPlus, FiRefreshCw } from 'react-icons/flex'; // wait, it's react-icons/fi
 import { FiTrash, FiPlusCircle } from 'react-icons/fi';
 
 export default function DeptMapperPage() {
@@ -16,6 +15,30 @@ export default function DeptMapperPage() {
     const [groupName, setGroupName] = useState('');
     const [clubId, setClubId] = useState('');
 
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const mappingsRes = await fetch('/api/dashboard/admin/dept-mapper');
+            if (mappingsRes.ok) {
+                const mappingData = await mappingsRes.json();
+                setMappings(mappingData);
+            }
+        } catch (error) {
+            console.error('Failed to fetch mappings', error);
+        }
+        
+        try {
+            const clubsRes = await fetch('/api/dashboard/admin/clubs');
+            if (clubsRes.ok) {
+                const clubData = await clubsRes.json();
+                setClubs(clubData);
+            }
+        } catch (error) {
+            console.error('Failed to fetch clubs', error);
+        }
+        setLoading(false);
+    };
+
     const fetchMappings = async () => {
         try {
             const res = await fetch('/api/dashboard/admin/dept-mapper');
@@ -28,26 +51,34 @@ export default function DeptMapperPage() {
         }
     };
 
-    const fetchClubs = async () => {
-        try {
-            const res = await fetch('/api/dashboard/admin/clubs');
-            if (res.ok) {
-                const data = await res.json();
-                setClubs(data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch clubs', error);
-        }
-    };
-
-    const loadData = async () => {
-        setLoading(true);
-        await Promise.all([fetchMappings(), fetchClubs()]);
-        setLoading(false);
-    };
-
     useEffect(() => {
-        loadData();
+        let isMounted = true;
+        const initialLoad = async () => {
+            setLoading(true);
+            try {
+                const [mappingsRes, clubsRes] = await Promise.all([
+                    fetch('/api/dashboard/admin/dept-mapper'),
+                    fetch('/api/dashboard/admin/clubs')
+                ]);
+                
+                if (mappingsRes.ok && isMounted) {
+                    const mappingData = await mappingsRes.json();
+                    setMappings(mappingData);
+                }
+                
+                if (clubsRes.ok && isMounted) {
+                    const clubData = await clubsRes.json();
+                    setClubs(clubData);
+                }
+            } catch (error) {
+                console.error('Failed to fetch initial data', error);
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        };
+        
+        initialLoad();
+        return () => { isMounted = false; };
     }, []);
 
     const handleAddMapping = async (e) => {
@@ -135,7 +166,7 @@ export default function DeptMapperPage() {
             
             <p className="text-gray-600">
                 Manage which clubs belong to which department. This dynamically updates the registration page categories.
-                Any Engineering Club (starting with DEP) not mapped here will automatically be placed in an "Others" category.
+                Any Engineering Club (starting with DEP) not mapped here will automatically be placed in an &quot;Others&quot; category.
             </p>
 
             {/* Add New Mapping Form */}
