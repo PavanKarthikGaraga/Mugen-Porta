@@ -92,6 +92,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
             return NextResponse.json({ message: 'Activity is not assigned to your club' }, { status: 403 });
         }
 
+        const [cseMappings]: any = await pool.execute(
+            `SELECT 1 FROM club_group_mappings 
+             WHERE club_id = ? AND group_name IN ('CSE-1 Department', 'CSE-2 Department', 'CSE-3 Department', 'CSE-4 Department')`,
+            [club.id]
+        );
+        const isCse = cseMappings.length > 0;
+
         const [leadRows]: any = await pool.execute('SELECT name, username FROM leads WHERE username = ?', [lead.decoded.username as string]);
 
         const [reportRows]: any = await pool.execute('SELECT * FROM activity_reports WHERE activity_code = ?', [code]);
@@ -100,7 +107,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
         return NextResponse.json({
             success: true,
             activity,
-            club,
+            club: { ...club, isCse },
             studentLead: leadRows[0] ? { name: leadRows[0].name, id: leadRows[0].username } : null,
             report: report ? {
                 ...report,

@@ -41,6 +41,7 @@ export function xmlEscape(str: unknown): string {
 
 // The logo and signature are fetched once per page load and reused.
 let logoPromise: Promise<string | null> | null = null;
+let cseLogoPromise: Promise<string | null> | null = null;
 let signPromise: Promise<string | null> | null = null;
 
 /**
@@ -48,8 +49,30 @@ let signPromise: Promise<string | null> | null = null;
  * a standalone SVG/PDF. Returns null if it can't be loaded, and callers are
  * expected to degrade gracefully rather than fail the whole download.
  */
-export function loadLogoDataUrl(): Promise<string | null> {
+export function loadLogoDataUrl(isCse = false): Promise<string | null> {
+    if (isCse) {
+        if (cseLogoPromise) return cseLogoPromise;
+        if (typeof window === "undefined") return Promise.resolve(null);
+        cseLogoPromise = (async () => {
+            try {
+                const res = await fetch("/KL CSE DEPT LOGO.PNG");
+                if (!res.ok) return null;
+                const blob = await res.blob();
+                return await new Promise<string | null>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(typeof reader.result === "string" ? reader.result : null);
+                    reader.onerror = () => resolve(null);
+                    reader.readAsDataURL(blob);
+                });
+            } catch {
+                return null;
+            }
+        })();
+        return cseLogoPromise;
+    }
+
     if (logoPromise) return logoPromise;
+    if (typeof window === "undefined") return Promise.resolve(null);
     logoPromise = (async () => {
         try {
             const res = await fetch(LOGO_PATH);

@@ -14,12 +14,18 @@ export async function GET() {
     try {
         await ensureCertificatesTable();
 
+        const [cseMappings]: any = await pool.execute(`
+            SELECT club_id FROM club_group_mappings 
+            WHERE group_name IN ('CSE-1 Department', 'CSE-2 Department', 'CSE-3 Department', 'CSE-4 Department')
+        `);
+        const cseClubIds = new Set(cseMappings.map((m: any) => m.club_id));
+
         const [rows]: any = await pool.execute(`
             SELECT
                 sc.id, sc.activity_code, sc.activity_title, sc.domain, sc.credits,
                 sc.verification_id, sc.issued_by_name, sc.issued_on,
                 s.name AS student_name, s.branch AS student_branch,
-                ac.title AS catalogue_title
+                ac.title AS catalogue_title, ac.clubId
             FROM student_certificates sc
             LEFT JOIN students s ON sc.username = s.username
             LEFT JOIN activity_catalogue ac ON sc.activity_code = ac.code
@@ -43,6 +49,7 @@ export async function GET() {
                 studentName: r.student_name || auth.user.username,
                 studentUsername: auth.user.username,
                 branch: r.student_branch || null,
+                isCse: r.clubId ? cseClubIds.has(r.clubId) : false,
             })),
         });
     } catch (error: any) {

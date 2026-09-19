@@ -43,6 +43,7 @@ export interface ActivityReportInput {
   conclusion: string;
   gallery: GalleryItem[];
   attendanceSheets: string[];
+  isCse?: boolean;
 }
 
 interface LoadedImage { dataUrl: string; ratio: number }
@@ -89,7 +90,7 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
 
   const [letterhead, sacLogo] = await Promise.all([
     loadImage(LETTERHEAD_PATH),
-    loadImage(SAC_LOGO_PATH),
+    loadImage(input.isCse ? "/KL CSE DEPT LOGO.PNG" : SAC_LOGO_PATH),
   ]);
 
   let pageCount = 0;
@@ -219,7 +220,7 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
   newPage();
   {
     const logoW = 220;
-    const logoH = logoW / SAC_LOGO_ASPECT;
+    const logoH = sacLogo ? logoW / sacLogo.ratio : logoW / SAC_LOGO_ASPECT;
     if (sacLogo) doc.addImage(sacLogo.dataUrl, "JPEG", (PAGE_W - logoW) / 2, y + 20, logoW, logoH);
     y += logoH + 70;
 
@@ -386,7 +387,7 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
       const footerY = cellTop + photoH;
       if (sacLogo) {
         const logoW = 60;
-        const logoH = logoW / SAC_LOGO_ASPECT;
+        const logoH = logoW / sacLogo.ratio;
         doc.addImage(sacLogo.dataUrl, "JPEG", cellX, footerY + 4, logoW, logoH);
       }
       doc.setFont("helvetica", "bold");
@@ -444,6 +445,7 @@ export interface IqacActivityReportInput {
   conclusion: string;
   gallery: GalleryItem[];
   attendanceSheets: string[];
+  isCse?: boolean;
 }
 
 export async function generateIqacActivityReportPdf(input: IqacActivityReportInput) {
@@ -452,7 +454,7 @@ export async function generateIqacActivityReportPdf(input: IqacActivityReportInp
 
   const [letterhead, sacLogo] = await Promise.all([
     loadImage(LETTERHEAD_PATH),
-    loadImage(SAC_LOGO_PATH),
+    loadImage(input.isCse ? "/KL CSE DEPT LOGO.PNG" : SAC_LOGO_PATH),
   ]);
 
   let pageCount = 0;
@@ -569,7 +571,7 @@ export async function generateIqacActivityReportPdf(input: IqacActivityReportInp
   newPage();
   {
     const logoW = 220;
-    const logoH = logoW / SAC_LOGO_ASPECT;
+    const logoH = sacLogo ? logoW / sacLogo.ratio : logoW / SAC_LOGO_ASPECT;
     if (sacLogo) doc.addImage(sacLogo.dataUrl, "JPEG", (PAGE_W - logoW) / 2, y + 20, logoW, logoH);
     y += logoH + 70;
 
@@ -727,7 +729,7 @@ export async function generateIqacActivityReportPdf(input: IqacActivityReportInp
       const footerY = cellTop + photoH;
       if (sacLogo) {
         const logoW = 60;
-        const logoH = logoW / SAC_LOGO_ASPECT;
+        const logoH = logoW / sacLogo.ratio;
         // Move to center instead of left? Or just left with no text
         doc.addImage(sacLogo.dataUrl, "JPEG", cellX, footerY + 4, logoW, logoH);
       }

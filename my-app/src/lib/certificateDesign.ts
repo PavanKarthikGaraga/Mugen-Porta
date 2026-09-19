@@ -21,6 +21,7 @@ export interface CertificateData {
     issuedOn: string;        // pre-formatted display date
     issuedByName?: string | null;
     credits?: number | null;
+    isCse?: boolean;
 }
 
 const W = 1414;   // A4 landscape at ~120dpi — 1.414 ratio
@@ -270,7 +271,7 @@ export function buildCertificateSvg(
 /** Builds the artwork and saves it as a landscape PDF. */
 export async function downloadCertificatePdf(cert: CertificateData): Promise<void> {
     const [logoDataUrl, qrDataUrl, signatureDataUrl] = await Promise.all([
-        loadLogoDataUrl(),
+        loadLogoDataUrl(cert.isCse),
         generateVerifyQrDataUrl(certificateVerifyUrl(cert.verificationId), 340),
         loadSignatureDataUrl(),
     ]);
