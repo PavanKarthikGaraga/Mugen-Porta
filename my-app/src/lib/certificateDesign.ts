@@ -271,7 +271,7 @@ export function buildCertificateSvg(
 /** Builds the artwork and saves it as a landscape PDF. */
 export async function downloadCertificatePdf(cert: CertificateData): Promise<void> {
     const [logoDataUrl, qrDataUrl, signatureDataUrl] = await Promise.all([
-        loadLogoDataUrl(cert.isCse),
+        loadLogoDataUrl(),
         generateVerifyQrDataUrl(certificateVerifyUrl(cert.verificationId), 340),
         loadSignatureDataUrl(),
     ]);
