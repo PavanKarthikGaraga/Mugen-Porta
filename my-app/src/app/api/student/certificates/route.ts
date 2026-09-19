@@ -34,10 +34,11 @@ export async function GET() {
                 sc.id, sc.activity_code, sc.activity_title, sc.domain, sc.credits,
                 sc.verification_id, sc.issued_by_name, sc.issued_on,
                 s.name AS student_name, s.branch AS student_branch,
-                ac.title AS catalogue_title, ac.clubId
+                ac.title AS catalogue_title, cam.club_id AS clubId
             FROM student_certificates sc
             LEFT JOIN students s ON sc.username = s.username
             LEFT JOIN activity_catalogue ac ON sc.activity_code = ac.code
+            LEFT JOIN club_activity_mappings cam ON cam.activity_code = ac.code
             WHERE sc.username = ? AND sc.status = 'issued'
             ORDER BY sc.issued_on DESC
         `, [auth.user.username]);
