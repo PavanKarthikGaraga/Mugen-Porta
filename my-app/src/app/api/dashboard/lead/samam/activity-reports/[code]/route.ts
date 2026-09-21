@@ -135,7 +135,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
 
     } catch (error: any) {
         console.error('Activity report GET error:', error);
-        return NextResponse.json({ error: safeMessage(error, 'Something went wrong. Please try again later.') }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Something went wrong', stack: error.stack }, { status: 500 });
     }
 }
 
