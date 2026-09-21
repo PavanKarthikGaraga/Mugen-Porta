@@ -44,12 +44,12 @@ const parseJson = (val: any, fallback: any) => {
  * could read/forge the report of any activity in the catalogue. */
 async function resolveOrganizingClub(clubIds: string[], assignedCategories: string[], activityCode: string) {
     const [actRows]: any = await pool.execute(
-        `SELECT category, clubId FROM activity_catalogue WHERE code = ? LIMIT 1`,
+        `SELECT category FROM activity_catalogue WHERE code = ? LIMIT 1`,
         [activityCode]
     );
     if (!actRows[0]) return null;
     const category = actRows[0].category;
-    const legacyClubId = actRows[0].clubId;
+    const legacyClubId = clubIds.length > 0 ? clubIds[0] : null;
 
     if (clubIds.length > 0) {
         const placeholders = clubIds.map(() => '?').join(',');
