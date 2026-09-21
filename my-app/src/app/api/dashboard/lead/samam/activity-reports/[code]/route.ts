@@ -76,7 +76,7 @@ async function resolveOrganizingClub(clubIds: string[], assignedCategories: stri
     }
 
     // ── Priority 3: Check legacy assignedCategories ──
-    if (assignedCategories.length > 0 && assignedCategories.includes(category)) {
+    if (assignedCategories && Array.isArray(assignedCategories) && assignedCategories.length > 0 && assignedCategories.includes(category)) {
         if (legacyClubId) {
             const [fallback]: any = await pool.execute('SELECT id, name, domain FROM clubs WHERE id = ? LIMIT 1', [legacyClubId]);
             return fallback[0] ? { id: fallback[0].id, name: fallback[0].name, domain: fallback[0].domain } : null;
@@ -135,7 +135,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
 
     } catch (error: any) {
         console.error('Activity report GET error:', error);
-        return NextResponse.json({ error: error.message || 'Something went wrong', stack: error.stack }, { status: 500 });
+        return NextResponse.json({ message: error.message || 'Something went wrong', stack: error.stack }, { status: 500 });
     }
 }
 
