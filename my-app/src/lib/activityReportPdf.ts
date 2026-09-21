@@ -5,7 +5,7 @@ const LETTERHEAD_ASPECT = 1830 / 420;
 const SAC_LOGO_PATH = "/sac-logo.png";
 const SAC_LOGO_ASPECT = 1600 / 408;
 
-const DIRECTOR_NAME = "Er. P Sai Vijay Pisni";
+const DIRECTOR_NAME = "Er. P Sai Vijay";
 const DIRECTOR_TITLE = "Director-SAC";
 const UNIVERSITY_NAME = "KL University";
 const FOOTER_TEXT = "Koneru Lakshmaiah Education Foundation";

@@ -86,7 +86,7 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
                 status = VALUES(status)
         `, [
             code, user.username, data.organizing_entity || 'SAC (Student Activity Center)',
-            data.director_name || 'Er. P Sai Vijay Pisni', data.director_title || 'Director-SAC',
+            data.director_name || 'Er. P Sai Vijay', data.director_title || 'Director-SAC',
             data.faculty_name || '', data.faculty_id || null, data.faculty_title || 'Faculty Mentor',
             data.student_lead_name || null, data.academic_year || null, data.time_slot || null, data.venue || null,
             data.students_participated || null, data.poster_url || null, data.permission_letter_url || null,

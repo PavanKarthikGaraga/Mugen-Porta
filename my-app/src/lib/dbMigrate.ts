@@ -165,7 +165,7 @@ export async function ensureIqacTables() {
             activity_code         VARCHAR(50) NOT NULL UNIQUE,
             submitted_by          VARCHAR(10) NOT NULL,
             organizing_entity     VARCHAR(200) DEFAULT 'SAC (Student Activity Center)',
-            director_name         VARCHAR(200) DEFAULT 'Er. P Sai Vijay Pisni',
+            director_name         VARCHAR(200) DEFAULT 'Er. P Sai Vijay',
             director_title        VARCHAR(200) DEFAULT 'Director-SAC',
             faculty_name          VARCHAR(200) DEFAULT '',
             faculty_id            VARCHAR(50) DEFAULT NULL,

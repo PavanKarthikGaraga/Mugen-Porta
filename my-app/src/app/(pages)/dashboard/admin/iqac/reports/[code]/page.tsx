@@ -179,7 +179,7 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
 
   const [form, setForm] = useState({
     organizingEntity: "SAC (Student Activity Center)",
-    directorName: "Er. P Sai Vijay Pisni",
+    directorName: "Er. P Sai Vijay",
     directorTitle: "Director-SAC",
     facultyName: "",
     facultyId: "",
@@ -213,7 +213,7 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
         setReportStatus(repData.report.status);
         setForm({
           organizingEntity: repData.report.organizing_entity || "SAC (Student Activity Center)",
-          directorName: repData.report.director_name || "Er. P Sai Vijay Pisni",
+          directorName: repData.report.director_name || "Er. P Sai Vijay",
           directorTitle: repData.report.director_title || "Director-SAC",
           facultyName: repData.report.faculty_name || "",
           facultyId: repData.report.faculty_id || "",
