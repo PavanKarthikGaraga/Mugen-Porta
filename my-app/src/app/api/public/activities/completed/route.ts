@@ -57,10 +57,7 @@ export async function GET() {
                 ar.permission_letter_url
             FROM activity_catalogue ac
             LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
-        WHERE EXISTS (
-            SELECT 1 FROM activity_enrollments ae
-            WHERE ae.activity_code = ac.code AND ae.attendance_marked = TRUE
-        )
+        WHERE ar.status = 'generated'
           AND ac.domain NOT IN ('DEPT. CLUBS', 'MHS. CLUBS')
             ORDER BY ac.activity_date DESC, ac.code ASC
         `);

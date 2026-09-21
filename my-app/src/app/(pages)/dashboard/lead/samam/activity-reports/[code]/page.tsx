@@ -193,6 +193,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
   const [showAttendanceSlot, setShowAttendanceSlot] = useState(true);
 
   const [form, setForm] = useState({
+    hodName: "", hodDesignation: "",
     facultyName: "", facultyId: "",
     academicYear: currentAcademicYear(), timeSlot: "", venue: "", studentsParticipated: "",
     posterUrl: "", permissionLetterUrl: "",
@@ -218,6 +219,8 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
         if (d.report) {
           setReportStatus(d.report.status);
           setForm({
+            hodName: d.report.hod_name || "",
+            hodDesignation: d.report.hod_designation || "",
             facultyName: d.report.faculty_name || "",
             facultyId: d.report.faculty_id || "",
             academicYear: d.report.academic_year || currentAcademicYear(),
@@ -330,6 +333,8 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
         clubName: club?.name || "",
         activityTitle: activity?.title || "",
         activityDate: formatActivityDate(activity?.activity_date),
+        hodName: form.hodName,
+        hodDesignation: form.hodDesignation,
         facultyName: form.facultyName,
         posterUrl: form.posterUrl,
         permissionLetterUrl: form.permissionLetterUrl,
@@ -390,6 +395,28 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
       <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h2 className="text-sm font-bold text-gray-900">Event Particulars</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {club && ('domain' in club) && ((club as any).domain === 'DEPT. CLUBS' || (club as any).domain === 'MHS. CLUBS') && (
+            <>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">HoD Name</label>
+                <input
+                  value={form.hodName}
+                  onChange={(e) => setForm({ ...form, hodName: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:border-gray-400"
+                  placeholder="HoD Name"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">HoD Designation & Department</label>
+                <input
+                  value={form.hodDesignation}
+                  onChange={(e) => setForm({ ...form, hodDesignation: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:border-gray-400"
+                  placeholder="e.g. HoD- CSE-1"
+                />
+              </div>
+            </>
+          )}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Faculty Name</label>
             <input

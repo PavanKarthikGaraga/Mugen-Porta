@@ -45,6 +45,8 @@ export interface ActivityReportInput {
   attendanceSheets: string[];
   isCse?: boolean;
   isDeptOrMhs?: boolean;
+  hodName?: string;
+  hodDesignation?: string;
 }
 
 interface LoadedImage { dataUrl: string; ratio: number }
@@ -272,9 +274,18 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
       doc.setFont("helvetica", "normal");
       doc.text(DIRECTOR_TITLE, MARGIN, blockY + 30);
       doc.text(UNIVERSITY_NAME, MARGIN, blockY + 44);
+    } else {
+      doc.line(MARGIN, blockY, MARGIN + lineW, blockY);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.setTextColor(20, 20, 20);
+      doc.text(input.hodName || "HoD Name", MARGIN, blockY + 16);
+      doc.setFont("helvetica", "normal");
+      doc.text(input.hodDesignation || "HoD Designation", MARGIN, blockY + 30);
+      doc.text(UNIVERSITY_NAME, MARGIN, blockY + 44);
     }
 
-    const rightX = input.isDeptOrMhs ? MARGIN : PAGE_W - MARGIN - lineW;
+    const rightX = PAGE_W - MARGIN - lineW;
     doc.line(rightX, blockY, rightX + lineW, blockY);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);

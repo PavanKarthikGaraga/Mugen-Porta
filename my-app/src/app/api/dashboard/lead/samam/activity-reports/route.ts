@@ -42,8 +42,30 @@ export async function GET() {
         const conditions: string[] = [];
         const params: any[] = [];
 
-        let usedMappings = false;
+        let resolved = false;
+
+        // ── Priority 1: club_category_mappings (subcategory-based, covers current + future activities) ──
         if (lead.clubIds.length > 0) {
+            try {
+                const [catMapRows]: any = await pool.execute(
+                    `SELECT category FROM club_category_mappings WHERE club_id IN (${lead.clubIds.map(() => '?').join(',')})`,
+                    lead.clubIds
+                );
+                if (catMapRows.length > 0) {
+                    const mappedCategories: string[] = (catMapRows as any[]).map((r: any) => r.category);
+                    
+                    // Merge these so they act as assigned categories down the line if needed
+                    lead.assigned_categories = [...new Set([...(lead.assigned_categories || []), ...mappedCategories])];
+
+                    conditions.push(`ac.category IN (${mappedCategories.map(() => '?').join(',')})`);
+                    params.push(...mappedCategories);
+                    resolved = true;
+                }
+            } catch { /* table may not exist yet — continue to fallbacks */ }
+        }
+
+        // ── Priority 2: club_activity_mappings (individual activity mappings — legacy/manual) ──
+        if (!resolved && lead.clubIds.length > 0) {
             try {
                 const [mapRows]: any = await pool.execute(
                     `SELECT activity_code FROM club_activity_mappings WHERE club_id IN (${lead.clubIds.map(() => '?').join(',')})`,
@@ -53,15 +75,17 @@ export async function GET() {
                     const codes: string[] = (mapRows as any[]).map((r: any) => r.activity_code);
                     conditions.push(`ac.code IN (${codes.map(() => '?').join(',')})`);
                     params.push(...codes);
-                    usedMappings = true;
+                    resolved = true;
                 }
             } catch { /* table may not exist yet */ }
         }
 
-        if (!usedMappings) {
+        // ── Priority 3: per-lead assigned_categories (legacy direct assignment) ──
+        if (!resolved) {
             if (lead.assigned_categories.length > 0) {
                 conditions.push(`ac.category IN (${lead.assigned_categories.map(() => '?').join(',')})`);
                 params.push(...lead.assigned_categories);
+                resolved = true;
             } else {
                 return NextResponse.json({ success: true, activities: [] });
             }

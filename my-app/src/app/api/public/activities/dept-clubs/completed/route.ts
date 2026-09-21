@@ -56,10 +56,7 @@ export async function GET() {
             LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
             LEFT JOIN club_activity_mappings cam ON ac.code = cam.activity_code
             LEFT JOIN clubs c ON cam.club_id = c.id
-        WHERE EXISTS (
-            SELECT 1 FROM activity_enrollments ae
-            WHERE ae.activity_code = ac.code AND ae.attendance_marked = TRUE
-        )
+        WHERE ar.status = 'generated'
           AND ac.domain = 'DEPT. CLUBS'
             ORDER BY ac.activity_date DESC, ac.code ASC
         `);

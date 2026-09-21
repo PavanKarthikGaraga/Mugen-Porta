@@ -43,8 +43,29 @@ const parseJson = (val: any, fallback: any) => {
  * neither a mapping nor a matching category is DENIED — otherwise any lead
  * could read/forge the report of any activity in the catalogue. */
 async function resolveOrganizingClub(clubIds: string[], assignedCategories: string[], activityCode: string) {
+    const [actRows]: any = await pool.execute(
+        `SELECT category, clubId FROM activity_catalogue WHERE code = ? LIMIT 1`,
+        [activityCode]
+    );
+    if (!actRows[0]) return null;
+    const category = actRows[0].category;
+    const legacyClubId = actRows[0].clubId;
+
     if (clubIds.length > 0) {
         const placeholders = clubIds.map(() => '?').join(',');
+
+        // ── Priority 1: Check club_category_mappings ──
+        try {
+            const [catMapRows]: any = await pool.execute(
+                `SELECT c.id, c.name, c.domain FROM club_category_mappings ccm
+                 JOIN clubs c ON c.id = ccm.club_id
+                 WHERE ccm.category = ? AND ccm.club_id IN (${placeholders}) LIMIT 1`,
+                [category, ...clubIds]
+            );
+            if (catMapRows[0]) return { id: catMapRows[0].id, name: catMapRows[0].name, domain: catMapRows[0].domain };
+        } catch { /* table may not exist yet */ }
+
+        // ── Priority 2: Check club_activity_mappings ──
         const [rows]: any = await pool.execute(
             `SELECT c.id, c.name, c.domain FROM club_activity_mappings cam
              JOIN clubs c ON c.id = cam.club_id
@@ -54,14 +75,10 @@ async function resolveOrganizingClub(clubIds: string[], assignedCategories: stri
         if (rows[0]) return { id: rows[0].id, name: rows[0].name, domain: rows[0].domain };
     }
 
-    if (assignedCategories.length > 0) {
-        const placeholders = assignedCategories.map(() => '?').join(',');
-        const [catRows]: any = await pool.execute(
-            `SELECT clubId FROM activity_catalogue WHERE code = ? AND category IN (${placeholders}) LIMIT 1`,
-            [activityCode, ...assignedCategories]
-        );
-        if (catRows[0]?.clubId) {
-            const [fallback]: any = await pool.execute('SELECT id, name, domain FROM clubs WHERE id = ? LIMIT 1', [catRows[0].clubId]);
+    // ── Priority 3: Check legacy assignedCategories ──
+    if (assignedCategories.length > 0 && assignedCategories.includes(category)) {
+        if (legacyClubId) {
+            const [fallback]: any = await pool.execute('SELECT id, name, domain FROM clubs WHERE id = ? LIMIT 1', [legacyClubId]);
             return fallback[0] ? { id: fallback[0].id, name: fallback[0].name, domain: fallback[0].domain } : null;
         }
     }
@@ -138,6 +155,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
 
         const body = await request.json();
         const {
+            hodName, hodDesignation,
             facultyName, facultyId, studentLeadName, studentLeadId, academicYear,
             timeSlot, venue, studentsParticipated, posterUrl, permissionLetterUrl,
             overview, objectives, proceedings, keyHighlights, learningOutcomes, conclusion,
@@ -146,13 +164,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
 
         await pool.execute(`
             INSERT INTO activity_reports (
-                activity_code, club_id, submitted_by, faculty_name, faculty_id,
+                activity_code, club_id, submitted_by, hod_name, hod_designation, faculty_name, faculty_id,
                 student_lead_name, student_lead_id, academic_year, time_slot, venue,
                 students_participated, poster_url, permission_letter_url,
                 overview, objectives, proceedings, key_highlights, learning_outcomes, conclusion,
                 gallery, attendance_sheets, status, generated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
+                hod_name = VALUES(hod_name),
+                hod_designation = VALUES(hod_designation),
                 faculty_name = VALUES(faculty_name),
                 faculty_id = VALUES(faculty_id),
                 student_lead_name = VALUES(student_lead_name),
@@ -174,7 +194,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
                 status = VALUES(status),
                 generated_at = VALUES(generated_at)
         `, [
-            code, club.id, lead.decoded.username, facultyName || null, facultyId || null,
+            code, club.id, lead.decoded.username, hodName || null, hodDesignation || null, facultyName || null, facultyId || null,
             studentLeadName || null, studentLeadId || null, academicYear || null, timeSlot || null, venue || null,
             studentsParticipated || null, posterUrl || null, permissionLetterUrl || null,
             overview || null, objectives || null, proceedings || null, keyHighlights || null, learningOutcomes || null, conclusion || null,

@@ -103,6 +103,8 @@ export async function ensureActivityReportsTable() {
             activity_code         VARCHAR(50) NOT NULL,
             club_id               VARCHAR(20) NOT NULL,
             submitted_by          VARCHAR(10) NOT NULL,
+            hod_name              VARCHAR(200) DEFAULT NULL,
+            hod_designation       VARCHAR(200) DEFAULT NULL,
             faculty_name          VARCHAR(200) DEFAULT NULL,
             faculty_id            VARCHAR(50) DEFAULT NULL,
             student_lead_name     VARCHAR(200) DEFAULT NULL,
@@ -128,6 +130,13 @@ export async function ensureActivityReportsTable() {
             UNIQUE KEY uq_activity_report (activity_code)
         )
     `);
+
+    try {
+        await pool.query(`ALTER TABLE activity_reports ADD COLUMN hod_name VARCHAR(200) DEFAULT NULL, ADD COLUMN hod_designation VARCHAR(200) DEFAULT NULL;`);
+    } catch (e: any) {
+        if (e.code !== 'ER_DUP_FIELDNAME') console.error('Failed to add hod columns to activity_reports:', e);
+    }
+
     _activityReportsDone = true;
 }
 
