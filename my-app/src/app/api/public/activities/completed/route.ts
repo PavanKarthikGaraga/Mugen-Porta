@@ -1,6 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { ensureActivityReportsTable } from '@/lib/dbMigrate';
+import { ensureActivityReportsTable, getTableColumns } from '@/lib/dbMigrate';
 
 function parseJson(val: any): any {
     if (!val) return [];
@@ -27,6 +27,8 @@ export async function OPTIONS() {
 export async function GET() {
     try {
         await ensureActivityReportsTable();
+        const columns = await getTableColumns('activity_reports');
+        const hasPdf = columns.has('report_pdf_url');
 
         const [rows]: any = await pool.execute(`
             SELECT
@@ -55,7 +57,7 @@ export async function GET() {
                 ar.attendance_sheets,
                 ar.poster_url     AS report_poster_url,
                 ar.permission_letter_url,
-                ar.report_pdf_url
+                ${hasPdf ? 'ar.report_pdf_url' : 'NULL AS report_pdf_url'}
             FROM activity_catalogue ac
             LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
         WHERE ar.status = 'generated'
