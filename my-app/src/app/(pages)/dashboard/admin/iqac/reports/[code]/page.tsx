@@ -263,7 +263,7 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
     }
   };
 
-  const buildPayload = (markGenerated: boolean) => ({
+  const buildPayload = (markGenerated: boolean, reportPdfUrl?: string) => ({
     organizing_entity: form.organizingEntity,
     director_name: form.directorName,
     director_title: form.directorTitle,
@@ -286,13 +286,14 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
     gallery: form.gallery,
     attendance_sheets: form.attendanceSheets,
     status: markGenerated ? 'generated' : 'draft',
+    report_pdf_url: reportPdfUrl,
   });
 
-  const saveDraft = async (markGenerated = false) => {
+  const saveDraft = async (markGenerated = false, reportPdfUrl?: string) => {
     const res = await fetch(`/api/dashboard/iqac/reports/${code}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(buildPayload(markGenerated)),
+      body: JSON.stringify(buildPayload(markGenerated, reportPdfUrl)),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || data.message || "Failed to save");
@@ -336,8 +337,7 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
 
     setGenerating(true);
     try {
-      await saveDraft(true);
-      await generateIqacActivityReportPdf({
+      const pdfBlob = await generateIqacActivityReportPdf({
         activityTitle: activity?.title || "",
         activityDate: formatActivityDate(activity?.activity_date),
         organizingEntity: form.organizingEntity,
@@ -366,6 +366,17 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
         gallery: form.gallery,
         attendanceSheets: form.attendanceSheets,
       });
+
+      let reportPdfUrl = undefined;
+      if (pdfBlob) {
+        const file = new File([pdfBlob], "report.pdf", { type: "application/pdf" });
+        const url = await uploadFile(file, "report-pdf");
+        if (url) {
+           reportPdfUrl = url;
+        }
+      }
+
+      await saveDraft(true, reportPdfUrl);
       setReportStatus("generated");
       toast.success("Report generated — check your downloads");
     } catch (err: any) {

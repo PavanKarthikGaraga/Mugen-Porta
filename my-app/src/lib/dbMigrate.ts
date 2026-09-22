@@ -132,7 +132,7 @@ export async function ensureActivityReportsTable() {
     `);
 
     try {
-        await pool.query(`ALTER TABLE activity_reports ADD COLUMN hod_name VARCHAR(200) DEFAULT NULL, ADD COLUMN hod_designation VARCHAR(200) DEFAULT NULL;`);
+        await pool.query(`ALTER TABLE activity_reports ADD COLUMN hod_name VARCHAR(200) DEFAULT NULL, ADD COLUMN hod_designation VARCHAR(200) DEFAULT NULL, ADD COLUMN report_pdf_url VARCHAR(500) DEFAULT NULL;`);
     } catch (e: any) {
         if (e.code !== 'ER_DUP_FIELDNAME') console.error('Failed to add hod columns to activity_reports:', e);
     }
@@ -191,6 +191,12 @@ export async function ensureIqacTables() {
             updated_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )
     `);
+
+    try {
+        await pool.query(`ALTER TABLE iqac_activity_reports ADD COLUMN report_pdf_url VARCHAR(500) DEFAULT NULL;`);
+    } catch (e: any) {
+        if (e.code !== 'ER_DUP_FIELDNAME') console.error('Failed to add report_pdf_url to iqac_activity_reports:', e);
+    }
 
     _iqacDone = true;
 }

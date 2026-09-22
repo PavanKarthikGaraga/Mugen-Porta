@@ -166,7 +166,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
             facultyName, facultyId, studentLeadName, studentLeadId, academicYear,
             timeSlot, venue, studentsParticipated, posterUrl, permissionLetterUrl,
             overview, objectives, proceedings, keyHighlights, learningOutcomes, conclusion,
-            gallery, attendanceSheets, markGenerated,
+            gallery, attendanceSheets, markGenerated, reportPdfUrl,
         } = body;
 
         await pool.execute(`
@@ -175,8 +175,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
                 student_lead_name, student_lead_id, academic_year, time_slot, venue,
                 students_participated, poster_url, permission_letter_url,
                 overview, objectives, proceedings, key_highlights, learning_outcomes, conclusion,
-                gallery, attendance_sheets, status, generated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                gallery, attendance_sheets, status, generated_at, report_pdf_url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 hod_name = VALUES(hod_name),
                 hod_designation = VALUES(hod_designation),
@@ -199,14 +199,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
                 gallery = VALUES(gallery),
                 attendance_sheets = VALUES(attendance_sheets),
                 status = VALUES(status),
-                generated_at = VALUES(generated_at)
+                generated_at = VALUES(generated_at),
+                report_pdf_url = COALESCE(VALUES(report_pdf_url), report_pdf_url)
         `, [
             code, club.id, lead.decoded.username, hodName || null, hodDesignation || null, facultyName || null, facultyId || null,
             studentLeadName || null, studentLeadId || null, academicYear || null, timeSlot || null, venue || null,
             studentsParticipated || null, posterUrl || null, permissionLetterUrl || null,
             overview || null, objectives || null, proceedings || null, keyHighlights || null, learningOutcomes || null, conclusion || null,
             JSON.stringify(gallery || []), JSON.stringify(attendanceSheets || []),
-            markGenerated ? 'generated' : 'draft', markGenerated ? new Date() : null,
+            markGenerated ? 'generated' : 'draft', markGenerated ? new Date() : null, reportPdfUrl || null,
         ]);
 
         return NextResponse.json({ success: true, message: 'Report saved' });

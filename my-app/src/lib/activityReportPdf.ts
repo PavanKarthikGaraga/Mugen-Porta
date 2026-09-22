@@ -431,6 +431,7 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
 
   const safeTitle = (input.activityTitle || "Activity_Report").replace(/[^a-zA-Z0-9]+/g, "_");
   doc.save(`${safeTitle}_Report.pdf`);
+  return new Blob([doc.output("blob")], { type: "application/pdf" });
 }
 
 export interface IqacActivityReportInput {
@@ -773,4 +774,5 @@ export async function generateIqacActivityReportPdf(input: IqacActivityReportInp
 
   const safeTitle = (input.activityTitle || "Activity_Report").replace(/[^a-zA-Z0-9]+/g, "_");
   doc.save(`${safeTitle}_IQAC_Report.pdf`);
+  return new Blob([doc.output("blob")], { type: "application/pdf" });
 }

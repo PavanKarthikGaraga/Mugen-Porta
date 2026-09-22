@@ -51,6 +51,7 @@ export async function GET() {
                 ar.attendance_sheets,
                 ar.poster_url     AS report_poster_url,
                 ar.permission_letter_url,
+                ar.report_pdf_url,
                 c.name            AS club_name
             FROM activity_catalogue ac
             LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
@@ -75,6 +76,7 @@ export async function GET() {
                 attendance_sheets:    parseJson(r.attendance_sheets),
                 poster_url:           r.report_poster_url,
                 permission_letter_url: r.permission_letter_url,
+                report_pdf_url:       r.report_pdf_url,
             } : null;
 
             return {

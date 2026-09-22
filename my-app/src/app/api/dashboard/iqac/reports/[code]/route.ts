@@ -58,9 +58,9 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
                 student_lead_name, academic_year, time_slot, venue, students_participated,
                 poster_url, permission_letter_url,
                 overview, objectives, proceedings, key_highlights,
-                learning_outcomes, conclusion, gallery, attendance_sheets, status
+                learning_outcomes, conclusion, gallery, attendance_sheets, status, report_pdf_url
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             ) ON DUPLICATE KEY UPDATE
                 organizing_entity = VALUES(organizing_entity),
                 director_name = VALUES(director_name),
@@ -83,7 +83,8 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
                 conclusion = VALUES(conclusion),
                 gallery = VALUES(gallery),
                 attendance_sheets = VALUES(attendance_sheets),
-                status = VALUES(status)
+                status = VALUES(status),
+                report_pdf_url = COALESCE(VALUES(report_pdf_url), report_pdf_url)
         `, [
             code, user.username, data.organizing_entity || 'SAC (Student Activity Center)',
             data.director_name || 'Er. P Sai Vijay', data.director_title || 'Director-SAC',
@@ -92,7 +93,7 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
             data.students_participated || null, data.poster_url || null, data.permission_letter_url || null,
             data.overview || null, data.objectives || null, data.proceedings || null,
             data.key_highlights || null, data.learning_outcomes || null, data.conclusion || null,
-            safeJson(data.gallery), safeJson(data.attendance_sheets), data.status || 'draft'
+            safeJson(data.gallery), safeJson(data.attendance_sheets), data.status || 'draft', data.report_pdf_url || null
         ]);
 
         return NextResponse.json({ success: true, message: 'Report saved successfully' });
