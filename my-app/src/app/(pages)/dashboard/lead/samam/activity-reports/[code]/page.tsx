@@ -184,7 +184,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
 
   const [activity, setActivity] = useState<any>(null);
-  const [club, setClub] = useState<{ id: string; name: string } | null>(null);
+  const [club, setClub] = useState<{ id: string; name: string; domain?: string; logo_url?: string } | null>(null);
   const [studentLead, setStudentLead] = useState<{ name: string; id: string } | null>(null);
   const [reportStatus, setReportStatus] = useState<string | null>(null);
   // Attendance sheets show one upload slot at a time -- "Add another" reveals
@@ -356,6 +356,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
         conclusion: form.conclusion,
         gallery: form.gallery,
         attendanceSheets: form.attendanceSheets,
+        clubLogoUrl: club?.logo_url,
       });
       setReportStatus("generated");
       toast.success("Report generated — check your downloads");
@@ -364,6 +365,45 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
       toast.error(err.message || "Failed to generate report");
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleLogoUpload = async (file: File) => {
+    if (!club) return;
+    const url = await uploadFile(file, 'club-logo');
+    if (!url) return;
+    try {
+      const res = await fetch('/api/dashboard/lead/samam/club-logo', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clubId: club.id, logoUrl: url })
+      });
+      if (res.ok) {
+        setClub({ ...club, logo_url: url });
+        toast.success("Club logo updated successfully");
+      } else {
+        const d = await res.json();
+        toast.error(d.error || "Failed to update club logo");
+      }
+    } catch (e) {
+      toast.error("Error saving logo");
+    }
+  };
+
+  const handleLogoRemove = async () => {
+    if (!club) return;
+    if (!confirm("Are you sure you want to remove the club logo?")) return;
+    try {
+      const res = await fetch(`/api/dashboard/lead/samam/club-logo?clubId=${club.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setClub({ ...club, logo_url: undefined });
+        toast.success("Club logo removed");
+      } else {
+        const d = await res.json();
+        toast.error(d.error || "Failed to remove club logo");
+      }
+    } catch (e) {
+      toast.error("Error removing logo");
     }
   };
 
@@ -395,8 +435,20 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
       <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h2 className="text-sm font-bold text-gray-900">Event Particulars</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {club && ('domain' in club) && ((club as any).domain === 'DEPT. CLUBS' || (club as any).domain === 'MHS. CLUBS') && (
+          {club && club.domain && (club.domain === 'DEPT. CLUBS' || club.domain === 'MHS. CLUBS') && (
             <>
+              <div className="sm:col-span-2 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-800 mb-2">Department Logo Settings (Global)</h3>
+                <UploadSlot
+                  label="Department Logo"
+                  url={club.logo_url || ""}
+                  uploading={uploadingKey === 'club-logo'}
+                  onUpload={handleLogoUpload}
+                  onRemove={handleLogoRemove}
+                  aspect="w-48 object-contain bg-white p-2"
+                  hint="IMPORTANT: Please upload your Department logo here, NOT your club logo. This logo appears in the top-right of your activity reports. Please upload an image with a transparent background. Recommended: ~200px width."
+                />
+              </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">HoD Name</label>
                 <input

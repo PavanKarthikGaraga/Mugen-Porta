@@ -109,6 +109,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
             return NextResponse.json({ message: 'Activity is not assigned to your club' }, { status: 403 });
         }
 
+        try {
+            const [logoRows]: any = await pool.execute('SELECT logo_url FROM clubs WHERE id = ? LIMIT 1', [club.id]);
+            if (logoRows[0] && logoRows[0].logo_url) {
+                (club as any).logo_url = logoRows[0].logo_url;
+            }
+        } catch(e) {}
+
         const [cseMappings]: any = await pool.execute(
             `SELECT 1 FROM club_group_mappings 
              WHERE club_id = ? AND group_name IN ('CSE-1 Department', 'CSE-2 Department', 'CSE-3 Department', 'CSE-4 Department')`,

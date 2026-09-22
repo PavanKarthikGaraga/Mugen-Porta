@@ -47,6 +47,7 @@ export interface ActivityReportInput {
   isDeptOrMhs?: boolean;
   hodName?: string;
   hodDesignation?: string;
+  clubLogoUrl?: string | null;
 }
 
 interface LoadedImage { dataUrl: string; ratio: number }
@@ -93,7 +94,7 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
 
   const [letterhead, sacLogo] = await Promise.all([
     loadImage(LETTERHEAD_PATH),
-    loadImage(input.isCse ? "/KL CSE DEPT LOGO.PNG" : SAC_LOGO_PATH),
+    loadImage((input.isDeptOrMhs && input.clubLogoUrl) ? input.clubLogoUrl : (input.isCse ? "/KL CSE DEPT LOGO.PNG" : SAC_LOGO_PATH)),
   ]);
 
   let pageCount = 0;
