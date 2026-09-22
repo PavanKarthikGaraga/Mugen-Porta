@@ -40,7 +40,8 @@ export default function AdminResetPasswordPage() {
             // Client-side hint only — the API route enforces the real gate
             // (verifyDevAccess). No hardcoded usernames here by design.
             const envUsers = process.env.NEXT_PUBLIC_DEV_USERNAME ? process.env.NEXT_PUBLIC_DEV_USERNAME.split(',') : [];
-            const devUsernames = [...new Set(envUsers)].map((u) => u.trim());
+            const defaultUsers = ['2300032048', '2400030188', '240030188'];
+            const devUsernames = [...new Set([...envUsers, ...defaultUsers])].map((u) => u.trim());
             const devOk = devUsernames.includes(data.user.username);
             setHasAccess(devOk);
             if (!devOk) router.push('/dashboard/admin');
