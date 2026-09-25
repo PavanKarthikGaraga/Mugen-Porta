@@ -354,6 +354,8 @@ export default function ClubSelection({ formData, updateFormData, onValidationCh
                                                 { label: 'Fine Arts', prefix: 'FIN' },
                                                 { label: 'Pharmacy', prefix: 'PHR' },
                                                 { label: 'BA IAS', prefix: 'BA' },
+                                                { label: 'Food Technology', prefix: 'FOT' },
+                                                
                                                 
                                             ];
 

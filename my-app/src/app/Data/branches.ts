@@ -21,8 +21,8 @@ export const branchNames = [
   { id: 17, name: "B.Sc - VC" },
   { id: 18, name: "B.Sc (Animation & Gaming)" },
   { id: 19, name: "B.Sc (Hons.) Agriculture" },
-  { id: 50, name: "B.SC Food Tech" },
-  { id: 51, name: "B.SC Food Tech (Honors)" },
+  { id: 50, name: "B.Sc Food Tech" },
+  { id: 51, name: "B.Sc Food Tech (Honors)" },
 
   // ---------------- M.TECH ----------------
   { id: 20, name: "M.Tech - EVT" },
