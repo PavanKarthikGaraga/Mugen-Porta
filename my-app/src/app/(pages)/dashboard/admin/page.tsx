@@ -5,7 +5,7 @@ import {
   FiUsers, FiFolder, FiCalendar, FiFilter, FiChevronRight,
   FiRefreshCw, FiTrendingUp, FiBookOpen, FiGrid, FiCheckCircle,
   FiXCircle, FiClock, FiHome, FiCpu, FiPenTool, FiGlobe, FiZap, FiHeart, FiUser,
-  FiAward, FiStar, FiBarChart2
+  FiAward, FiStar, FiBarChart2, FiPieChart
 } from "react-icons/fi";
 import { handleApiError } from "@/lib/apiErrorHandler";
 import { branchNames } from "@/app/Data/branches";
@@ -632,6 +632,7 @@ export default function AdminOverviewPage() {
       {/* ═══ Quick actions ══════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
+          { label: "Super Analytics",  icon: <FiPieChart   size={18} />, href: "/dashboard/admin/super-analytics", color: "#E11D48" },
           { label: "Manage Students",  icon: <FiUsers      size={18} />, href: "/dashboard/admin/students", color: "#2563EB" },
           { label: "Manage Clubs",     icon: <FiFolder     size={18} />, href: "/dashboard/admin/clubs",    color: "#7C3AED" },
           { label: "Controls",         icon: <FiTrendingUp size={18} />, href: "/dashboard/admin/controls", color: BRAND    },

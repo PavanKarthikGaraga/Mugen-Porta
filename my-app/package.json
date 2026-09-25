@@ -39,6 +39,7 @@
     "ioredis": "^5.8.2",
     "jose": "^6.0.12",
     "jspdf": "^2.5.2",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.546.0",
     "mysql2": "^3.14.3",
     "next": "16.0.10",
