@@ -9,8 +9,8 @@ async function checkSuperAdmin() {
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
     const decoded = await verifyToken(token) as { role: string; username: string } | null;
-    // Only allow admin
-    if (!decoded || decoded.role !== 'admin') return null;
+    // Allow admin or analytics role
+    if (!decoded || (decoded.role !== 'admin' && decoded.role !== 'analytics')) return null;
     return decoded;
 }
 

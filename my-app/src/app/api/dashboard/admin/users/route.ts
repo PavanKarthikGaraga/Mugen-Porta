@@ -15,7 +15,7 @@ async function ensureCouncilTable() {
         `);
         // Ensure 'council' is a valid role value — add it if the column is an ENUM
         try {
-            await pool.execute(`ALTER TABLE users MODIFY COLUMN role ENUM('admin','lead','faculty','student','council') NOT NULL DEFAULT 'student'`);
+            await pool.execute(`ALTER TABLE users MODIFY COLUMN role ENUM('admin','lead','faculty','student','council','analytics') NOT NULL DEFAULT 'student'`);
         } catch {}
 
         // Council users can now be assigned multiple domains — assignedDomains
@@ -82,7 +82,7 @@ export async function GET(request) {
                 LEFT JOIN faculty f ON u.username = f.username AND u.role = 'faculty'
                 LEFT JOIN clubs c ON l.clubId = c.id
                 LEFT JOIN council co ON u.username = co.username AND u.role = 'council'
-                WHERE u.role IN ('admin', 'lead', 'faculty', 'council')
+                WHERE u.role IN ('admin', 'lead', 'faculty', 'council', 'analytics')
                 ORDER BY u.created_at DESC
             `;
             params = [];
@@ -151,11 +151,11 @@ export async function POST(request) {
             ? assignedDomains.filter((d: any) => typeof d === 'string' && VALID_DOMAINS.includes(d))
             : [];
 
-        if (role === 'council') {
+        if (role === 'council' || role === 'analytics') {
             if (!suppliedPassword || suppliedPassword.length < 6) {
-                return NextResponse.json({ error: 'Password (min 6 chars) is required for council' }, { status: 400 });
+                return NextResponse.json({ error: `Password (min 6 chars) is required for ${role}` }, { status: 400 });
             }
-            if (domainList.length === 0) {
+            if (role === 'council' && domainList.length === 0) {
                 return NextResponse.json({ error: 'At least one domain must be assigned for council' }, { status: 400 });
             }
         } else {
@@ -231,26 +231,28 @@ export async function POST(request) {
                     clubId
                 ]);
 
-            } else if (role === 'council') {
+            } else if (role === 'council' || role === 'analytics') {
                 await connection.execute(
                     'INSERT INTO users (username, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
-                    [username, username, `${username}@council.kluniversity.in`, hashedPassword, 'council']
+                    [username, username, `${username}@${role}.kluniversity.in`, hashedPassword, role]
                 );
-                try {
-                    await connection.execute(
-                        'INSERT INTO council (username, assignedDomain, assignedDomains) VALUES (?, ?, ?)',
-                        [username, domainList[0], JSON.stringify(domainList)]
-                    );
-                } catch (councilInsertError) {
-                    // Belt-and-suspenders: if `users` is a non-transactional
-                    // (e.g. MyISAM) table, connection.rollback() below is a
-                    // no-op on it and the users row would otherwise be left
-                    // behind as an orphan (no matching council row), causing
-                    // ER_DUP_ENTRY on every future attempt to create this
-                    // username. Explicitly undo the users insert so the
-                    // admin can simply retry.
-                    await connection.execute('DELETE FROM users WHERE username = ? AND role = ?', [username, 'council']);
-                    throw councilInsertError;
+                if (role === 'council') {
+                    try {
+                        await connection.execute(
+                            'INSERT INTO council (username, assignedDomain, assignedDomains) VALUES (?, ?, ?)',
+                            [username, domainList[0], JSON.stringify(domainList)]
+                        );
+                    } catch (councilInsertError) {
+                        // Belt-and-suspenders: if `users` is a non-transactional
+                        // (e.g. MyISAM) table, connection.rollback() below is a
+                        // no-op on it and the users row would otherwise be left
+                        // behind as an orphan (no matching council row), causing
+                        // ER_DUP_ENTRY on every future attempt to create this
+                        // username. Explicitly undo the users insert so the
+                        // admin can simply retry.
+                        await connection.execute('DELETE FROM users WHERE username = ? AND role = ?', [username, 'council']);
+                        throw councilInsertError;
+                    }
                 }
             } else {
                 // For faculty and admin, create new user

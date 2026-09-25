@@ -106,6 +106,12 @@ export async function middleware(request, event) {
                 }
             }
 
+            if (pathname.startsWith('/dashboard/analytics')) {
+                if (payload.role !== 'analytics' && payload.role !== 'admin') {
+                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
+                }
+            }
+
             // Allow access if token is valid
             return NextResponse.next();
         } catch (error) {
