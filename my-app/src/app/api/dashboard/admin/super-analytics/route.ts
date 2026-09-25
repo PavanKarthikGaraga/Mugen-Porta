@@ -34,7 +34,7 @@ export async function GET(request: Request) {
         const [overallRows]: any = await pool.execute(`
             SELECT 
                 COUNT(*) as total,
-                SUM(CASE WHEN domain LIKE '%SAC%' THEN 1 ELSE 0 END) as sac_total,
+                SUM(CASE WHEN domain IN ('TEC', 'LCH', 'IIE', 'HWB', 'ESO') THEN 1 ELSE 0 END) as sac_total,
                 SUM(CASE WHEN domain LIKE '%DEPT%' THEN 1 ELSE 0 END) as dept_total,
                 SUM(CASE WHEN domain LIKE '%MHS%' THEN 1 ELSE 0 END) as mhs_total
             FROM activity_catalogue
@@ -102,9 +102,15 @@ export async function GET(request: Request) {
             }
             
             let deptName = row.domain || 'UNKNOWN';
-            if (row.domain === 'DEPT. CLUBS') {
+            let formattedDomain = row.domain || 'UNKNOWN';
+            
+            const sacDomains = ['TEC', 'LCH', 'IIE', 'HWB', 'ESO'];
+            if (sacDomains.includes(formattedDomain.toUpperCase())) {
+                deptName = formattedDomain;
+                formattedDomain = 'SAC';
+            } else if (formattedDomain === 'DEPT. CLUBS') {
                 if (row.dept_mapping) deptName = row.dept_mapping;
-            } else if (row.domain === 'MHS. CLUBS') {
+            } else if (formattedDomain === 'MHS. CLUBS') {
                 const clubId = row.real_club_id || '';
                 const prefixMatch = fallbackPrefixes.find(p => clubId.startsWith(p.prefix));
                 if (prefixMatch) deptName = prefixMatch.label;
@@ -113,7 +119,7 @@ export async function GET(request: Request) {
             return {
                 code: row.code,
                 title: row.title,
-                domain: row.domain || 'UNKNOWN',
+                domain: formattedDomain,
                 dept_name: deptName,
                 dept_club: row.club_name || row.category || 'N/A',
                 venue: row.venue || 'TBA',
@@ -130,7 +136,7 @@ export async function GET(request: Request) {
             pending: todayActivities.filter(a => a.status === 'pending').length,
             upcoming: todayActivities.filter(a => a.status === 'upcoming').length,
             ongoing: todayActivities.filter(a => a.status === 'ongoing').length,
-            sac_count: todayActivities.filter(a => (a.domain || '').toUpperCase().includes('SAC')).length,
+            sac_count: todayActivities.filter(a => (a.domain || '').toUpperCase() === 'SAC').length,
             dept_count: todayActivities.filter(a => (a.domain || '').toUpperCase().includes('DEPT')).length,
             mhs_count: todayActivities.filter(a => (a.domain || '').toUpperCase().includes('MHS')).length,
         };
