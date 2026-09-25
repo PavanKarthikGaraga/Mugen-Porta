@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { ensureActivityReportsTable, getTableColumns } from '@/lib/dbMigrate';
 import { formatClubDomain } from '@/lib/clubFormatting';
 
+export const dynamic = 'force-dynamic';
+
 function parseJson(val: any): any {
     if (!val) return [];
     if (typeof val !== 'string') return val;
