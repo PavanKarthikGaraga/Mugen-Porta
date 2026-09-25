@@ -41,6 +41,7 @@ export async function GET() {
                 ac.description,
                 ac.domain,
                 ac.category,
+                c.name AS club_name,
                 ${hasDifficulty ? 'ac.difficulty,' : ''}
                 ac.sdc_credits,
                 ac.max_seats,
@@ -54,6 +55,8 @@ export async function GET() {
                 ac.ga
                 ${hasSdgs ? ', ac.sdgs' : ''}
             FROM activity_catalogue ac
+            LEFT JOIN club_activity_mappings cam ON ac.code = cam.activity_code
+            LEFT JOIN clubs c ON cam.club_id = c.id
             WHERE ac.registration_open = 1
               AND ac.activity_date IS NOT NULL
               AND ac.start_time IS NOT NULL
@@ -68,7 +71,7 @@ export async function GET() {
             title:            r.title,
             description:      r.description,
             domain:           r.domain,
-            category:         r.category,
+            category:         r.club_name || r.category,
             difficulty:       r.difficulty ?? null,
             sdc_credits:      r.sdc_credits,
             max_seats:        r.max_seats,

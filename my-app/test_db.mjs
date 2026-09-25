@@ -1,0 +1,1 @@
+import pool from "./src/lib/db"; async function run() { const [rows] = await pool.execute("SELECT code, title, domain, category, venue, registration_open FROM activity_catalogue WHERE category LIKE \"%Quantum%\" OR category LIKE \"%Ed Tech%\" OR title LIKE \"%Quantum%\" OR title LIKE \"%Ed Tech%\""); console.log(rows); process.exit(0); } run();

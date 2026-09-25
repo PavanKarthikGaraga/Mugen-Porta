@@ -46,16 +46,19 @@ export async function GET(request: Request) {
                 ac.code,
                 ac.title,
                 ac.domain,
+                c.id AS real_club_id,
                 c.name AS club_name,
                 ac.category,
                 ac.venue,
                 ac.start_time,
                 ac.end_time,
                 ac.status,
-                ac.activity_date
+                ac.activity_date,
+                cgm.group_name as dept_mapping
             FROM activity_catalogue ac
             LEFT JOIN club_activity_mappings cam ON ac.code = cam.activity_code
             LEFT JOIN clubs c ON cam.club_id = c.id
+            LEFT JOIN club_group_mappings cgm ON c.id = cgm.club_id AND cgm.group_type = 'DEPARTMENT'
             WHERE ac.activity_date = ?
             ORDER BY ac.start_time ASC
         `, [targetDate]);
@@ -63,6 +66,19 @@ export async function GET(request: Request) {
         // Process today's activities to calculate derived status
         const todayStr = new Date().toISOString().split('T')[0];
         const nowTime = new Date().toLocaleTimeString('en-GB', { hour12: false }); // HH:MM:SS format
+        
+        const fallbackPrefixes = [
+            { label: 'Agriculture', prefix: 'AGR' },
+            { label: 'Architecture', prefix: 'ARC' },
+            { label: 'BBA', prefix: 'BBA' },
+            { label: 'BCA & MCA', prefix: 'BCA' },
+            { label: 'Commerce', prefix: 'COM' },
+            { label: 'Law', prefix: 'LAW' },
+            { label: 'MBA', prefix: 'MBA' },
+            { label: 'Fine Arts', prefix: 'FIN' },
+            { label: 'Pharmacy', prefix: 'PHR' },
+            { label: 'BA IAS', prefix: 'BA' },
+        ];
 
         let todayActivities = (todayRows as any[]).map(row => {
             const isToday = targetDate === todayStr;
@@ -84,11 +100,21 @@ export async function GET(request: Request) {
                     }
                 }
             }
+            
+            let deptName = row.domain || 'UNKNOWN';
+            if (row.domain === 'DEPT. CLUBS') {
+                if (row.dept_mapping) deptName = row.dept_mapping;
+            } else if (row.domain === 'MHS. CLUBS') {
+                const clubId = row.real_club_id || '';
+                const prefixMatch = fallbackPrefixes.find(p => clubId.startsWith(p.prefix));
+                if (prefixMatch) deptName = prefixMatch.label;
+            }
 
             return {
                 code: row.code,
                 title: row.title,
                 domain: row.domain || 'UNKNOWN',
+                dept_name: deptName,
                 dept_club: row.club_name || row.category || 'N/A',
                 venue: row.venue || 'TBA',
                 start_time: row.start_time,

@@ -37,6 +37,7 @@ export async function GET() {
                 ac.description,
                 ac.domain,
                 ac.category,
+                c.name AS club_name,
                 ac.difficulty,
                 ac.sdc_credits,
                 ac.activity_date,
@@ -60,6 +61,8 @@ export async function GET() {
                 ${hasPdf ? 'ar.report_pdf_url' : 'NULL AS report_pdf_url'}
             FROM activity_catalogue ac
             LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
+            LEFT JOIN club_activity_mappings cam ON ac.code = cam.activity_code
+            LEFT JOIN clubs c ON cam.club_id = c.id
         WHERE ar.status = 'generated'
           AND ac.domain NOT IN ('DEPT. CLUBS', 'MHS. CLUBS')
             ORDER BY ac.activity_date DESC, ac.code ASC
@@ -87,7 +90,7 @@ export async function GET() {
                 title:          r.title,
                 description:    r.description,
                 domain:         r.domain,
-                category:       r.category,
+                category:       r.club_name || r.category,
                 difficulty:     r.difficulty,
                 sdc_credits:    r.sdc_credits,
                 activity_date:  r.activity_date,
