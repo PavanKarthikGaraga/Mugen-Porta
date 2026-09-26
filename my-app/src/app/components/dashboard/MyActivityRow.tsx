@@ -98,10 +98,16 @@ export default function MyActivityRow({ activity, tabKey }: any) {
 
           {/* Stats row */}
           <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 flex-wrap">
-            <span className="flex items-center gap-1 font-bold" style={{ color: BRAND }}>
-              <FiStar size={11} />
-              {activity?.credits_earned ?? activity?.credits ?? 0} pts
-            </span>
+            {activity?.points_pending ? (
+              <span className="flex items-center gap-1 font-medium text-amber-600">
+                <FiClock size={11} /> Pending Approval
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 font-bold" style={{ color: BRAND }}>
+                <FiStar size={11} />
+                {activity?.credits_earned ?? activity?.credits ?? 0} pts
+              </span>
+            )}
             {(activity?.userAttendance ?? 0) > 0 && (
               <span className="flex items-center gap-1 text-emerald-600 font-medium">
                 <FiCheckCircle size={11} />

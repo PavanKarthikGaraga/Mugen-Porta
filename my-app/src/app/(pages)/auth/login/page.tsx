@@ -45,7 +45,7 @@ export default function Login() {
 
         const handleLogin  = async (e) => {
             e?.preventDefault();
-            if(captcha!=captchaInput){
+            if(captcha.toLowerCase() !== captchaInput.toLowerCase()){
                 setCaptchaInput("");
                 toast.error("Invalid Captcha");
                 return;

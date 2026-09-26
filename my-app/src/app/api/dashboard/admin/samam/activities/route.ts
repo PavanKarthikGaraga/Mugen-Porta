@@ -175,6 +175,55 @@ export async function POST(request: Request) {
         ]);
 
         const insertId = (result as any).insertId;
+
+        // Auto-map the activity to a club based on category so club leads can manage it
+        try {
+            if (category) {
+                const [clubRows] = await pool.execute(
+                    `SELECT club_id FROM club_category_mappings WHERE category = ? LIMIT 1`,
+                    [category]
+                ) as any[];
+                
+                let targetClubId = clubRows.length > 0 ? clubRows[0].club_id : null;
+                
+                // Fallback: Check if category matches a club name directly
+                if (!targetClubId) {
+                    const [directClubRows] = await pool.execute(
+                        `SELECT id FROM clubs WHERE name = ? LIMIT 1`,
+                        [category]
+                    ) as any[];
+                    if (directClubRows.length > 0) {
+                        targetClubId = directClubRows[0].id;
+                    }
+                }
+
+                if (targetClubId) {
+                    await pool.execute(
+                        `INSERT IGNORE INTO club_activity_mappings (club_id, activity_code) VALUES (?, ?)`,
+                        [targetClubId, code]
+                    );
+                    
+                    // Ensure it's in club_category_mappings too if it wasn't already
+                    await pool.execute(`
+                        CREATE TABLE IF NOT EXISTS club_category_mappings (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            club_id VARCHAR(100) NOT NULL,
+                            category VARCHAR(255) NOT NULL,
+                            created_by VARCHAR(100) NOT NULL,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            UNIQUE KEY uq_club_category (club_id, category)
+                        )
+                    `);
+                    await pool.execute(
+                        `INSERT IGNORE INTO club_category_mappings (club_id, category, created_by) VALUES (?, ?, ?)`,
+                        [targetClubId, category, user.username || 'admin']
+                    );
+                }
+            }
+        } catch (mapError) {
+            console.error('Failed to auto-map admin activity to club:', mapError);
+        }
+
         return NextResponse.json({ success: true, id: insertId, message: 'Activity created successfully' }, { status: 201 });
 
     } catch (error: any) {

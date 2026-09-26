@@ -21,7 +21,8 @@ export async function GET(request: Request) {
     const query = `
       SELECT ac.*, ae.status as enrollment_status, ae.enrolled_at,
              (SELECT COUNT(*) FROM activity_enrollments ar WHERE ar.activity_code = ac.code) as real_enrolled_count,
-             (SELECT 1 FROM activity_enrollments ae2 WHERE ae2.activity_code = ac.code AND ae2.attendance_marked = TRUE LIMIT 1) as is_attendance_locked
+             (SELECT 1 FROM activity_enrollments ae2 WHERE ae2.activity_code = ac.code AND ae2.attendance_marked = TRUE LIMIT 1) as is_attendance_locked,
+             (SELECT SUM(credits) FROM sdc_transactions st WHERE st.username = ae.username AND st.category = CONCAT('Activity: ', ac.code)) as points_awarded
       FROM activity_enrollments ae
       JOIN activity_catalogue ac ON ae.activity_code = ac.code
       WHERE ae.username = ?
@@ -66,7 +67,8 @@ export async function GET(request: Request) {
         // Map frontend fields expected by My Activities
         name: row.title,
         credits: row.sdc_credits,
-        credits_earned: row.enrollment_status === 'completed' ? row.sdc_credits : 0,
+        credits_earned: row.points_awarded || 0,
+        points_pending: isEffectivelyCompleted && !row.points_awarded,
         isEffectivelyCompleted
       };
     });
