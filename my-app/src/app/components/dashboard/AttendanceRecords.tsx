@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   FiDownload, FiExternalLink, FiRefreshCw, FiCheckCircle,
   FiXCircle, FiClock, FiSearch, FiFilter, FiActivity, FiChevronDown, FiChevronRight,
+  FiStar, FiAward, FiFileText, FiInfo
 } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -401,6 +402,12 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
   const [reviewingCode,setReviewingCode] = useState<string | null>(null);
   const [rejectNotes,  setRejectNotes ] = useState<Record<string, string>>({});
   const [showNotesFor, setShowNotesFor] = useState<string | null>(null);
+  
+  // Allotment Preview Modal State
+  const [showPreviewFor, setShowPreviewFor] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [allotting, setAllotting] = useState(false);
 
   const fetchRecords = async () => {
     setLoading(true);
@@ -494,6 +501,27 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
   };
 
   const handleReview = async (code: string, status: "verified" | "rejected") => {
+    if (status === "verified") {
+      setShowPreviewFor(code);
+      setPreviewLoading(true);
+      try {
+        const res = await fetch(`/api/attendance-records/${encodeURIComponent(code)}/preview-allotment`);
+        const data = await res.json();
+        if (data.success) {
+           setPreviewData(data);
+        } else {
+           toast.error(data.error || "Failed to load preview");
+           setShowPreviewFor(null);
+        }
+      } catch {
+        toast.error("Network error loading preview");
+        setShowPreviewFor(null);
+      } finally {
+        setPreviewLoading(false);
+      }
+      return;
+    }
+
     setReviewingCode(code);
     try {
       const notes = rejectNotes[code] ?? "";
@@ -504,7 +532,7 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
       });
       const d = await res.json();
       if (!res.ok) { toast.error(d.error ?? "Failed to update"); return; }
-      toast.success(status === "verified" ? "Attendance approved" : "Attendance rejected");
+      toast.success("Attendance rejected");
       setShowNotesFor(null);
       setRejectNotes(prev => { const n = { ...prev }; delete n[code]; return n; });
       setRecords(prev => prev.map(r =>
@@ -514,6 +542,34 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
       toast.error("Network error");
     } finally {
       setReviewingCode(null);
+    }
+  };
+
+  const confirmApproveAndAllot = async () => {
+    if (!showPreviewFor) return;
+    setAllotting(true);
+    try {
+      const code = showPreviewFor;
+      const notes = rejectNotes[code] ?? "";
+      const res = await fetch(`/api/attendance-records/${encodeURIComponent(code)}/approve-and-allot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: notes || undefined }),
+      });
+      const d = await res.json();
+      if (!res.ok) { toast.error(d.error ?? "Failed to allot"); return; }
+      toast.success(d.message || "Attendance approved & rewards allotted!");
+      setShowNotesFor(null);
+      setShowPreviewFor(null);
+      setPreviewData(null);
+      setRejectNotes(prev => { const n = { ...prev }; delete n[code]; return n; });
+      setRecords(prev => prev.map(r =>
+        r.activity_code === code ? { ...r, status: "verified" } : r
+      ));
+    } catch {
+      toast.error("Network error");
+    } finally {
+      setAllotting(false);
     }
   };
 
@@ -653,6 +709,107 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
           ))}
         </div>
       )}
+
+      {/* Allotment Preview Modal */}
+      {showPreviewFor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 pb-4 border-b border-gray-100 flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <FiCheckCircle className="text-emerald-500" /> Approve & Allot
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">Review the rewards that will be distributed to present students.</p>
+              </div>
+              {!allotting && (
+                <button onClick={() => { setShowPreviewFor(null); setPreviewData(null); }} className="text-gray-400 hover:bg-gray-100 p-1.5 rounded-xl transition-colors">
+                  <FiXCircle size={18} />
+                </button>
+              )}
+            </div>
+
+            <div className="p-6 bg-gray-50 flex-1 overflow-y-auto">
+              {previewLoading ? (
+                <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                  <FiRefreshCw className="animate-spin text-gray-400" size={24} />
+                  <p className="text-sm text-gray-500">Loading preview data...</p>
+                </div>
+              ) : previewData ? (
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                           <FiStar size={18} />
+                        </div>
+                        <div>
+                           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">SAMAM Points</p>
+                           <p className="text-sm font-bold text-gray-900">{previewData.points} Points per student</p>
+                        </div>
+                     </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                           <FiAward size={18} />
+                        </div>
+                        <div>
+                           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Badge</p>
+                           <p className="text-sm font-bold text-gray-900 line-clamp-1">{previewData.badgeName}</p>
+                           {previewData.willGenerateBadge && (
+                               <p className="text-[10px] text-emerald-600 font-semibold mt-0.5 flex items-center gap-1">
+                                  <FiInfo size={10} /> Auto-generating new badge
+                               </p>
+                           )}
+                        </div>
+                     </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                           <FiFileText size={18} />
+                        </div>
+                        <div>
+                           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Certificate</p>
+                           <p className="text-sm font-bold text-gray-900">Certificate of Participation</p>
+                        </div>
+                     </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg flex gap-2">
+                     <FiInfo className="text-blue-500 shrink-0 mt-0.5" />
+                     <p className="text-xs text-blue-700">
+                        This will automatically process and award these benefits to <strong>{previewData.studentsCount} present students</strong> immediately.
+                     </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6 text-sm text-red-500">Failed to load preview data.</div>
+              )}
+            </div>
+
+            <div className="p-5 border-t border-gray-100 bg-white flex gap-3 justify-end">
+               <button 
+                  disabled={allotting || previewLoading}
+                  onClick={() => { setShowPreviewFor(null); setPreviewData(null); }}
+                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+               >
+                  Cancel
+               </button>
+               <button 
+                  disabled={allotting || previewLoading || !previewData}
+                  onClick={confirmApproveAndAllot}
+                  className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm shadow-emerald-200 hover:shadow-md disabled:opacity-50"
+               >
+                  {allotting ? (
+                      <><FiRefreshCw className="animate-spin" /> Processing Queue...</>
+                  ) : (
+                      <><FiCheckCircle /> Proceed & Allot</>
+                  )}
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
