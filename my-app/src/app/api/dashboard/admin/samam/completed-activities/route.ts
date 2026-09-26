@@ -102,7 +102,7 @@ export async function GET(request: Request) {
             SELECT ac.code, ac.title, ac.domain, ac.category, ac.activity_date, ac.venue,
                    (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ac.code) as enrolledCount,
                    (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ac.code AND ae.status = 'completed') as completedCount,
-                   (SELECT COALESCE(SUM(st.credits), 0) FROM sdc_transactions st WHERE st.category = CONCAT('Activity: ', ac.code)) as totalPointsAllotted,
+                   (SELECT COALESCE(SUM(st.credits), 0) FROM sdc_transactions st WHERE st.category = CONCAT('Activity: ', ac.code) OR (st.category = 'Activity Completion' AND st.description = ac.title)) as totalPointsAllotted,
                    ar.status as report_status, ar.generated_at
             FROM activity_catalogue ac
             LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
