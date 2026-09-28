@@ -70,7 +70,7 @@ export default function MyActivitiesPage() {
     !q || a.name?.toLowerCase().includes(q) || a.code?.toLowerCase().includes(q),
   );
 
-  const totalCreditsEarned = completed.reduce((s, a) => s + (a.credits_earned || 0), 0);
+  const totalCreditsEarned = completed.reduce((s, a) => s + Number(a.credits_earned || 0), 0);
 
   const stats = [
     { label: "Ongoing",       value: ongoing.length,   icon: FiClock,        color: "#D97706", bg: "#FFFBEB" },

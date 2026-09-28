@@ -66,9 +66,9 @@ export async function GET(request: Request) {
         isEnrolled: true,
         // Map frontend fields expected by My Activities
         name: row.title,
-        credits: row.sdc_credits,
-        credits_earned: row.points_awarded || 0,
-        points_pending: isEffectivelyCompleted && !row.points_awarded,
+        credits: Number(row.sdc_credits || 0),
+        credits_earned: Number(row.points_awarded || 0),
+        points_pending: isEffectivelyCompleted && !Number(row.points_awarded || 0),
         isEffectivelyCompleted
       };
     });
