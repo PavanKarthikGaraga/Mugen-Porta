@@ -4,14 +4,14 @@ import { FiX, FiZoomIn, FiZoomOut, FiCheck, FiRotateCw } from "react-icons/fi";
 
 interface Props {
   src: string;
-  type: "avatar" | "banner";
+  type: "avatar" | "banner" | "logo";
   onConfirm: (blob: Blob) => void;
   onCancel: () => void;
 }
 
 // Canvas aspect ratios match output exactly so scale-x === scale-y always
-const CANVAS = { avatar: { w: 480, h: 480 }, banner: { w: 480, h: 160 } };
-const OUTPUT = { avatar: { w: 400, h: 400 }, banner: { w: 1200, h: 400 } };
+const CANVAS = { avatar: { w: 480, h: 480 }, banner: { w: 480, h: 160 }, logo: { w: 480, h: 240 } };
+const OUTPUT = { avatar: { w: 400, h: 400 }, banner: { w: 1200, h: 400 }, logo: { w: 600, h: 300 } };
 // Corner radius on the 480-px canvas; scaled proportionally to output
 const CROP_R = 28;
 
@@ -90,8 +90,8 @@ export default function ImageCropper({ src, type, onConfirm, onCancel }: Props) 
       ctx.lineWidth = 1.5;
       ctx.stroke();
       ctx.restore();
-    } else {
-      // Banner: rule-of-thirds grid + border
+    } else if (type === "banner" || type === "logo") {
+      // Banner or Logo: rule-of-thirds grid + border
       ctx.save();
       ctx.strokeStyle = "rgba(255,255,255,0.18)";
       ctx.lineWidth = 1;
@@ -195,8 +195,8 @@ export default function ImageCropper({ src, type, onConfirm, onCancel }: Props) 
           alert("Could not process image — please try a different photo.");
         }
       },
-      "image/jpeg",
-      0.92
+      type === "logo" ? "image/png" : "image/jpeg",
+      type === "logo" ? undefined : 0.92
     );
   };
 
@@ -208,7 +208,7 @@ export default function ImageCropper({ src, type, onConfirm, onCancel }: Props) 
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
           <div>
             <p className="font-bold text-gray-900 text-sm">
-              {type === "avatar" ? "Crop Photo" : "Crop Banner"}
+              {type === "avatar" ? "Crop Photo" : type === "banner" ? "Crop Banner" : "Crop Logo"}
             </p>
             <p className="text-[11px] text-gray-400 mt-0.5">
               Drag to reposition · Scroll or pinch to zoom

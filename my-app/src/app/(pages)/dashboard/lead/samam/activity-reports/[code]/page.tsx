@@ -7,6 +7,7 @@ import {
   FiArrowLeft, FiUpload, FiX, FiSave, FiDownload, FiPlus, FiImage, FiFileText,
 } from "react-icons/fi";
 import { generateActivityReportPdf } from "@/lib/activityReportPdf";
+import ImageCropper from "@/app/components/ImageCropper";
 
 const BRAND = "rgb(151,0,3)";
 const MAX_GALLERY = 4;
@@ -30,22 +31,45 @@ function formatActivityDate(dateStr?: string) {
 
 /** Small labeled upload tile shared by poster/permission-letter/gallery/attendance uploads. */
 function UploadSlot({
-  label, url, onUpload, onRemove, uploading, aspect, hint,
+  label, url, onUpload, onRemove, uploading, aspect, hint, cropType
 }: {
   label: string; url: string; onUpload: (file: File) => void; onRemove?: () => void;
-  uploading: boolean; aspect?: string; hint?: string;
+  uploading: boolean; aspect?: string; hint?: string; cropType?: "avatar" | "banner" | "logo";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const dragCounter = useRef(0);
 
   const handleFiles = (files: FileList | null) => {
     const file = files?.[0];
-    if (file && file.type.startsWith("image/")) onUpload(file);
+    if (file && file.type.startsWith("image/")) {
+      if (cropType) {
+        const reader = new FileReader();
+        reader.onload = (e) => setCropSrc(e.target?.result as string);
+        reader.readAsDataURL(file);
+      } else {
+        onUpload(file);
+      }
+    }
   };
 
   return (
     <div>
+      {cropSrc && cropType && (
+        <ImageCropper
+          src={cropSrc}
+          type={cropType}
+          onConfirm={(blob) => {
+            setCropSrc(null);
+            const ext = cropType === "logo" ? "png" : "jpg";
+            const mime = cropType === "logo" ? "image/png" : "image/jpeg";
+            const croppedFile = new File([blob], `cropped-${Date.now()}.${ext}`, { type: mime });
+            onUpload(croppedFile);
+          }}
+          onCancel={() => setCropSrc(null)}
+        />
+      )}
       <p className="text-xs font-semibold text-gray-700 mb-1.5">{label}</p>
       {hint && <p className="text-[11px] text-gray-400 mb-2">{hint}</p>}
       <input
@@ -458,6 +482,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
                   onRemove={handleLogoRemove}
                   aspect="w-48 object-contain bg-white p-2"
                   hint="IMPORTANT: Please upload your Department logo here, NOT your club logo. This logo appears in the top-right of your activity reports. Please upload an image with a transparent background. Recommended: ~200px width."
+                  cropType="logo"
                 />
               </div>
               <div>
