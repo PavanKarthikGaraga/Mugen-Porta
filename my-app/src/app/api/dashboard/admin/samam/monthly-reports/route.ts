@@ -25,37 +25,57 @@ export async function GET(request: Request) {
             return NextResponse.json({ message: 'Month and year are required' }, { status: 400 });
         }
 
-        const allowedClubs = [
-            'ZeroOne Code Club', 'CyberSecurity', 'Electric Vehicle', 
-            'Quantum Computing', 'WebApps', 'Automation', 
-            'Force Vega Racing', 'EdTech',
-            'Music Club', 'KL eSports Club', 'Short Film Makers', 
-            'Adventure', 'Literature', 'Dance', 'DANCE',
-            'Fashion', 'Handicrafts', 'Art Club', 
-            'Photography',
-            'SVR', 'Spiritual Sciences', 'Yuva Tourism', 'KL Youth Policy LAB',
-            'IE', 'IE Club', 'Innovation & Entrepreneurship',
-            'Yoga', 'SafeLife'
+        // 1. Define substring identifiers for the exactly 25 allowed clubs
+        const allowedSubstrings = [
+            // TEC (8)
+            'zeroone', 'cyber', 'electric', 'quantum', 'webapps', 'automation', 'vega', 'edtech', 'ed tech',
+            // LCH (10)
+            'music', 'esport', 'short film', 'adventure', 'literature', 'dance', 'fashion', 'handicraft', 'art', 'photography',
+            // ESO (4)
+            'svr', 'spiritual', 'yuva', 'policy',
+            // IIE (1)
+            'ie', 'innovation', 'incubation',
+            // HWB (2)
+            'yoga', 'safelife'
         ];
 
-        // 1. Fetch Clubs (only the 25 allowed)
-        const placeholders = allowedClubs.map(() => '?').join(',');
-        const [clubsRows]: any = await pool.execute(`
+        const isAllowedClub = (name: string) => {
+            if (!name) return false;
+            const lowerName = name.toLowerCase();
+            return allowedSubstrings.some(sub => lowerName.includes(sub));
+        };
+
+        // 2. Fetch ALL Clubs in domains and filter in JS using substrings + Deduplicate
+        const [rawClubsRows]: any = await pool.execute(`
             SELECT id, name, domain FROM clubs 
             WHERE domain IN ('TEC', 'LCH', 'ESO', 'IIE', 'HWB')
-            AND name IN (${placeholders})
-        `, [...allowedClubs]);
+        `);
+
+        const clubsRows: any[] = [];
+        const seenClubNames = new Set();
+        
+        for (const c of rawClubsRows) {
+            if (isAllowedClub(c.name)) {
+                // Deduplicate by name (case-insensitive) to prevent >25 clubs total
+                const normalizedName = c.name.trim().toLowerCase();
+                if (!seenClubNames.has(normalizedName)) {
+                    seenClubNames.add(normalizedName);
+                    clubsRows.push(c);
+                }
+            }
+        }
 
         const allowedClubIds = new Set(clubsRows.map((c: any) => c.id));
-        const allowedClubNamesSet = new Set(allowedClubs);
+        const allowedClubNamesSet = new Set(clubsRows.map((c: any) => c.name));
 
-        // 2. Fetch Activities in the month
+        // 3. Fetch Activities in the month
         // We use LEFT JOIN to find the club, either through explicit mapping or category mapping
         const [activitiesRows]: any = await pool.execute(`
             SELECT a.code, a.title, a.domain, a.category, a.activity_date, a.venue,
                    COALESCE(cam.club_id, ccm.club_id, c_direct.id) as club_id,
                    COALESCE(c_mapped.name, c_cat.name, c_direct.name) as club_name,
-                   (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = a.code AND ae.attendance_marked = TRUE) as participants
+                   (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = a.code AND ae.attendance_marked = TRUE) as present,
+                   (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = a.code) as enrolled
             FROM activity_catalogue a
             LEFT JOIN club_activity_mappings cam ON cam.activity_code = a.code
             LEFT JOIN clubs c_mapped ON c_mapped.id = cam.club_id
@@ -72,9 +92,11 @@ export async function GET(request: Request) {
         const seenCodes = new Set();
         for (const row of activitiesRows) {
             // Only include activities mapped to the allowed 25 clubs
-            if (row.club_name && allowedClubNamesSet.has(row.club_name)) {
+            if (row.club_name && isAllowedClub(row.club_name)) {
                 if (!seenCodes.has(row.code)) {
                     seenCodes.add(row.code);
+                    // Use total enrolled if attendance not taken (present == 0)
+                    row.participants = row.present > 0 ? row.present : row.enrolled;
                     uniqueActivities.push(row);
                 }
             }

@@ -199,7 +199,7 @@ export default function MonthlyReportsPage() {
         activities.forEach((a: any, i: number) => {
             const domainName = a.domain || 'Technology';
             const domCode = Object.keys(domainMap).find(k => domainMap[k] === domainName) || 'TEC';
-            const row = `<tr><td class="n">${i+1}</td><td>${a.title}</td><td class="club t-${domCode}">${a.club_name || '-'}</td><td class="n">${a.participants}</td><td class="venue">${a.venue || '-'}</td><td class="date">${a.activity_date ? new Date(a.activity_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}) : '-'}</td></tr>`;
+            const row = `<tr><td class="n">${i+1}</td><td>${a.title}</td><td class="club t-${domCode}">${a.club_name || '-'}</td><td class="n">${a.enrolled || a.participants || 0}</td><td class="n">${a.present || a.participants || 0}</td><td class="venue">${a.venue || '-'}</td><td class="date">${a.activity_date ? new Date(a.activity_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}) : '-'}</td></tr>`;
             if (i < 22) acts1 += row;
             else acts2 += row;
         });
@@ -463,7 +463,7 @@ ${clubTableBody2 ? `<section class="page">
     <div class="subbar" style="margin-top:16px">Domain-wise Activity Details</div>
     <div class="table-scroll">
       <table class="acts">
-        <thead><tr><th class="c">S.No</th><th>Activity Name</th><th>Club</th><th class="c">Students</th><th>Venue</th><th class="c">Date</th></tr></thead>
+        <thead><tr><th class="c">S.No</th><th>Activity Name</th><th>Club</th><th class="c">Enrolled</th><th class="c">Present</th><th>Venue</th><th class="c">Date</th></tr></thead>
         <tbody>${acts1}</tbody>
       </table>
     </div>
@@ -477,7 +477,7 @@ ${acts2 ? `<section class="page">
   <div class="content">
     <div class="table-scroll">
       <table class="acts">
-        <thead><tr><th class="c">S.No</th><th>Activity Name</th><th>Club</th><th class="c">Students</th><th>Venue</th><th class="c">Date</th></tr></thead>
+        <thead><tr><th class="c">S.No</th><th>Activity Name</th><th>Club</th><th class="c">Enrolled</th><th class="c">Present</th><th>Venue</th><th class="c">Date</th></tr></thead>
         <tbody>${acts2}</tbody>
       </table>
     </div>
@@ -501,73 +501,29 @@ ${acts2 ? `<section class="page">
 
     const downloadWord = async () => {
         if (!reportData) return;
-        const { monthStr, totalClubs, totalActivities, totalParticipants, totalRegistered, domainStats, clubStatsList, activities } = reportData;
+        
+        const wordHtml = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <meta charset='utf-8'>
+          <title>KL SAC Monthly Report</title>
+        </head>
+        <body>
+          ${htmlContent}
+        </body>
+        </html>
+        `;
 
-        const doc = new Document({
-            sections: [{
-                properties: {},
-                children: [
-                    new Paragraph({
-                        text: monthStr.toUpperCase(),
-                        alignment: AlignmentType.CENTER,
-                        heading: HeadingLevel.HEADING_2,
-                    }),
-                    new Paragraph({
-                        text: "KL SAC MONTHLY REPORT",
-                        alignment: AlignmentType.CENTER,
-                        heading: HeadingLevel.HEADING_1,
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({ text: "Student Activity Center", italics: true })
-                        ],
-                        alignment: AlignmentType.CENTER,
-                    }),
-                    new Paragraph({ text: "", spacing: { after: 400 } }),
-                    
-                    new Paragraph({ text: `Total Clubs: ${totalClubs}` }),
-                    new Paragraph({ text: `Activities Conducted: ${totalActivities}` }),
-                    new Paragraph({ text: `Total Participants: ${totalParticipants}` }),
-                    new Paragraph({ text: `Registered Students: ${totalRegistered}` }),
-                    new Paragraph({ text: "", spacing: { after: 400 } }),
-                    
-                    new Paragraph({ text: "Domain-wise Summary", heading: HeadingLevel.HEADING_3 }),
-                    new Table({
-                        width: { size: 100, type: WidthType.PERCENTAGE },
-                        rows: [
-                            new TableRow({
-                                children: ['Domain Name', 'Clubs', 'Activities', 'Participants', 'Reg. Students'].map(t => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: t, bold: true })] })] }))
-                            }),
-                            ...domainStats.map((d: any) => new TableRow({
-                                children: [
-                                    new TableCell({ children: [new Paragraph(d.name)] }),
-                                    new TableCell({ children: [new Paragraph(d.clubs.toString())] }),
-                                    new TableCell({ children: [new Paragraph(d.activities.toString())] }),
-                                    new TableCell({ children: [new Paragraph(d.participants.toString())] }),
-                                    new TableCell({ children: [new Paragraph(d.regStudents.toString())] }),
-                                ]
-                            }))
-                        ]
-                    }),
-                    new Paragraph({ text: "", spacing: { after: 400 } }),
-                    
-                    new Paragraph({ text: "Key Highlights", heading: HeadingLevel.HEADING_3 }),
-                    ...activities.map((a: any) => new Paragraph({
-                        text: `• ${a.club_name || 'Club'} conducted ${a.title} with ${a.participants} participants.`,
-                        spacing: { after: 100 }
-                    })),
-                ],
-            }],
+        const blob = new Blob(['\ufeff', wordHtml], {
+            type: 'application/msword'
         });
-
-        Packer.toBlob(doc).then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `KL_SAC_Monthly_Report_${monthStr.replace(' ', '_')}.docx`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `KL_SAC_Monthly_Report_${reportData.monthStr.replace(' ', '_')}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     return (
