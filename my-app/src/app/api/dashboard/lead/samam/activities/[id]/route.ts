@@ -74,11 +74,43 @@ async function isAuthorized(leadData: any, activityCode: string, activityCategor
     // Check club_activity_mappings first (new system)
     if (leadData.clubIds?.length > 0) {
         const placeholders = leadData.clubIds.map(() => '?').join(',');
+        
+        // Explicit activity mapping
         const [mapRows]: any = await pool.execute(
             `SELECT 1 FROM club_activity_mappings WHERE club_id IN (${placeholders}) AND activity_code = ?`,
             [...leadData.clubIds, activityCode]
         );
         if ((mapRows as any[]).length > 0) return true;
+
+        // Auto-fix missing mappings if category is mapped to their club
+        const [catRows]: any = await pool.execute(
+            `SELECT club_id FROM club_category_mappings WHERE category = ? AND club_id IN (${placeholders}) LIMIT 1`,
+            [activityCategory, ...leadData.clubIds]
+        );
+        if ((catRows as any[]).length > 0) {
+            try {
+                await pool.execute(
+                    'INSERT IGNORE INTO club_activity_mappings (club_id, activity_code) VALUES (?, ?)',
+                    [catRows[0].club_id, activityCode]
+                );
+            } catch (e) {}
+            return true;
+        }
+
+        // Auto-fix if category matches their club name
+        const [directClubRows]: any = await pool.execute(
+            `SELECT id FROM clubs WHERE name = ? AND id IN (${placeholders}) LIMIT 1`,
+            [activityCategory, ...leadData.clubIds]
+        );
+        if ((directClubRows as any[]).length > 0) {
+            try {
+                await pool.execute(
+                    'INSERT IGNORE INTO club_activity_mappings (club_id, activity_code) VALUES (?, ?)',
+                    [directClubRows[0].id, activityCode]
+                );
+            } catch (e) {}
+            return true;
+        }
 
         // If mappings exist for these clubs but activity isn't in them — deny
         const [anyMaps]: any = await pool.execute(

@@ -59,11 +59,43 @@ async function resolveAccessibleActivity(lead: any, code: string) {
 
     if (lead.clubIds?.length > 0) {
         const placeholders = lead.clubIds.map(() => '?').join(',');
+        
+        // Explicit activity mapping
         const [mapRows]: any = await pool.execute(
             `SELECT 1 FROM club_activity_mappings WHERE club_id IN (${placeholders}) AND activity_code = ?`,
             [...lead.clubIds, code]
         );
         if ((mapRows as any[]).length > 0) return activity;
+        
+        // Auto-fix missing mappings if category matches
+        const [catRows]: any = await pool.execute(
+            `SELECT club_id FROM club_category_mappings WHERE category = ? AND club_id IN (${placeholders}) LIMIT 1`,
+            [activity.category, ...lead.clubIds]
+        );
+        if ((catRows as any[]).length > 0) {
+            try {
+                await pool.execute(
+                    'INSERT IGNORE INTO club_activity_mappings (club_id, activity_code) VALUES (?, ?)',
+                    [catRows[0].club_id, code]
+                );
+            } catch (e) {}
+            return activity;
+        }
+
+        // Auto-fix if category matches club name
+        const [directClubRows]: any = await pool.execute(
+            `SELECT id FROM clubs WHERE name = ? AND id IN (${placeholders}) LIMIT 1`,
+            [activity.category, ...lead.clubIds]
+        );
+        if ((directClubRows as any[]).length > 0) {
+            try {
+                await pool.execute(
+                    'INSERT IGNORE INTO club_activity_mappings (club_id, activity_code) VALUES (?, ?)',
+                    [directClubRows[0].id, code]
+                );
+            } catch (e) {}
+            return activity;
+        }
     }
 
     if (lead.assigned_categories?.length && lead.assigned_categories.includes(activity.category)) {

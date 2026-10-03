@@ -154,6 +154,30 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             if ((mapRows as any[]).length > 0) {
                 realClubId   = mapRows[0].club_id;
                 realClubName = mapRows[0].club_name || mapRows[0].club_id;
+            } else {
+                // Try finding by category if explicit activity mapping is missing
+                const [actRows]: any = await pool.execute('SELECT category FROM activity_catalogue WHERE code = ?', [id]);
+                if ((actRows as any[]).length > 0) {
+                    const category = actRows[0].category;
+                    const [catRows]: any = await pool.execute(
+                        'SELECT ccm.club_id, c.name as club_name FROM club_category_mappings ccm LEFT JOIN clubs c ON c.id = ccm.club_id WHERE ccm.category = ? LIMIT 1', 
+                        [category]
+                    );
+                    if ((catRows as any[]).length > 0) {
+                        realClubId = catRows[0].club_id;
+                        realClubName = catRows[0].club_name || catRows[0].club_id;
+                        // Auto-fix the missing mapping
+                        await pool.execute('INSERT IGNORE INTO club_activity_mappings (club_id, activity_code) VALUES (?, ?)', [realClubId, id]);
+                    } else {
+                        // Fallback: Check if category matches a club name directly
+                        const [directClubRows]: any = await pool.execute('SELECT id as club_id, name as club_name FROM clubs WHERE name = ? LIMIT 1', [category]);
+                        if ((directClubRows as any[]).length > 0) {
+                            realClubId = directClubRows[0].club_id;
+                            realClubName = directClubRows[0].club_name;
+                            await pool.execute('INSERT IGNORE INTO club_activity_mappings (club_id, activity_code) VALUES (?, ?)', [realClubId, id]);
+                        }
+                    }
+                }
             }
         } catch { /* non-fatal */ }
 
