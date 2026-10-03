@@ -201,7 +201,7 @@ export default function MonthlyReportsPage() {
         });
         clubRows.push(`<tr class="grand"><td></td><td>GRAND TOTAL</td><td></td><td>${grandTotal[0]}</td><td>${grandTotal[1]}</td><td>${grandTotal[2]}</td><td>${grandTotal[3]}</td><td>${grandTotal[4]}</td><td>${grandTotal[5]}</td><td>${grandTotal[6]}</td></tr>`);
 
-        const MAX_CLUB_ROWS_PAGE = 30;
+        const MAX_CLUB_ROWS_PAGE = 25;
         const clubPages = [];
         for (let i = 0; i < clubRows.length; i += MAX_CLUB_ROWS_PAGE) {
             clubPages.push(clubRows.slice(i, i + MAX_CLUB_ROWS_PAGE).join(''));
@@ -216,10 +216,10 @@ export default function MonthlyReportsPage() {
 
         const actPages = [];
         if (actRows.length > 0) {
-            const firstPageCount = Math.min(22, actRows.length);
+            const firstPageCount = Math.min(16, actRows.length);
             actPages.push(actRows.slice(0, firstPageCount).join(''));
-            for (let i = firstPageCount; i < actRows.length; i += 35) {
-                actPages.push(actRows.slice(i, i + 35).join(''));
+            for (let i = firstPageCount; i < actRows.length; i += 25) {
+                actPages.push(actRows.slice(i, i + 25).join(''));
             }
         }
         
