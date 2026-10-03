@@ -26,16 +26,16 @@ export async function GET(request: Request) {
         }
 
         const allowedClubs = [
-            'ZeroOne Code Club', 'Cyber Security Club', 'Electric Vehicle Club', 
-            'Quantum Computing Club', 'WebApps Club', 'Automation Club', 
-            'Force Vega Racing', 'Ed Tech Club',
-            'Music Club', 'KL eSports Club', 'Short Film Makers Club', 
-            'Adventure Club', 'Literature Club', 'Dance Club', 
-            'Vastraa (Fashion) Club', 'Handicrafts Club', 'Arts & Painting Club', 
-            'Photography Club',
-            'SVR Club', 'Spiritual Sciences Club', 'Yuva Tourism Club', 'KL Youth Policy LAB',
-            'IE Club',
-            'Yoga Club', 'SafeLife Club'
+            'ZeroOne Code Club', 'CyberSecurity', 'Electric Vehicle', 
+            'Quantum Computing', 'WebApps', 'Automation', 
+            'Force Vega Racing', 'EdTech',
+            'Music Club', 'KL eSports Club', 'Short Film Makers', 
+            'Adventure', 'Literature', 'Dance', 'DANCE',
+            'Fashion', 'Handicrafts', 'Art Club', 
+            'Photography',
+            'SVR', 'Spiritual Sciences', 'Yuva Tourism', 'KL Youth Policy LAB',
+            'IE', 'IE Club', 'Innovation & Entrepreneurship',
+            'Yoga', 'SafeLife'
         ];
 
         // 1. Fetch Clubs (only the 25 allowed)
