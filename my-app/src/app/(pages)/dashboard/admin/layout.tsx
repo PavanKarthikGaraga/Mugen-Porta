@@ -91,6 +91,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Submissions',   href: '/dashboard/admin/samam/submissions',   icon: FiFileText  },
         { name: 'Completed',     href: '/dashboard/admin/samam/completed',     icon: FiCheckSquare },
         { name: 'Notifications', href: '/dashboard/admin/samam/notifications', icon: FiBell      },
+        { name: 'Monthly Reports', href: '/dashboard/admin/samam/reports',     icon: FiFileText  },
         { name: 'Settings',      href: '/dashboard/admin/samam/settings',      icon: FiSettings  },
     ];
 
