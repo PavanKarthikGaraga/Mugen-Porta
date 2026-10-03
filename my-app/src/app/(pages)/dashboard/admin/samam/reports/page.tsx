@@ -177,8 +177,7 @@ export default function MonthlyReportsPage() {
         }).join('');
 
         // Club Stats HTML
-        let clubTableBody1 = '';
-        let clubTableBody2 = '';
+        let clubRows: string[] = [];
         let sn = 1;
         let grandTotal = [0, 0, 0, 0, 0, 0, 0];
         
@@ -193,26 +192,38 @@ export default function MonthlyReportsPage() {
 
         Object.keys(groupedClubs).forEach((domCode) => {
             const domName = domainMap[domCode] || domCode;
-            const headerHtml = `<tr class="grp ${domCode}"><td colspan="10">${domName}</td></tr>`;
-            if (sn <= 25) clubTableBody1 += headerHtml; else clubTableBody2 += headerHtml;
+            clubRows.push(`<tr class="grp ${domCode}"><td colspan="10">${domName}</td></tr>`);
             
             groupedClubs[domCode].forEach((c: any) => {
-                const rowHtml = `<tr><td class="n">${sn}</td><td>${c.name}</td><td class="dom ${domCode}">${domCode}</td><td class="n">${c.yr1}</td><td class="n">${c.yr2}</td><td class="n">${c.yr3}</td><td class="n">${c.yr4}</td><td class="n">${c.dayScholar}</td><td class="n">${c.hosteler}</td><td class="tot t-${domCode}">${c.total}</td></tr>`;
-                if (sn <= 25) clubTableBody1 += rowHtml; else clubTableBody2 += rowHtml;
+                clubRows.push(`<tr><td class="n">${sn}</td><td>${c.name}</td><td class="dom ${domCode}">${domCode}</td><td class="n">${c.yr1}</td><td class="n">${c.yr2}</td><td class="n">${c.yr3}</td><td class="n">${c.yr4}</td><td class="n">${c.dayScholar}</td><td class="n">${c.hosteler}</td><td class="tot t-${domCode}">${c.total}</td></tr>`);
                 sn++;
             });
         });
+        clubRows.push(`<tr class="grand"><td></td><td>GRAND TOTAL</td><td></td><td>${grandTotal[0]}</td><td>${grandTotal[1]}</td><td>${grandTotal[2]}</td><td>${grandTotal[3]}</td><td>${grandTotal[4]}</td><td>${grandTotal[5]}</td><td>${grandTotal[6]}</td></tr>`);
 
-        clubTableBody2 += `<tr class="grand"><td></td><td>GRAND TOTAL</td><td></td><td>${grandTotal[0]}</td><td>${grandTotal[1]}</td><td>${grandTotal[2]}</td><td>${grandTotal[3]}</td><td>${grandTotal[4]}</td><td>${grandTotal[5]}</td><td>${grandTotal[6]}</td></tr>`;
+        const MAX_CLUB_ROWS_PAGE = 30;
+        const clubPages = [];
+        for (let i = 0; i < clubRows.length; i += MAX_CLUB_ROWS_PAGE) {
+            clubPages.push(clubRows.slice(i, i + MAX_CLUB_ROWS_PAGE).join(''));
+        }
 
         // Activities HTML
-        let acts1 = ''; let acts2 = '';
+        let actRows: string[] = [];
         activities.forEach((a: any, i: number) => {
             const domCode = domainMap[a.domain] ? a.domain : 'TEC';
-            const row = `<tr><td class="n">${i+1}</td><td>${a.title}</td><td class="club t-${domCode}">${a.club_name || '-'}</td><td class="n">${a.enrolled || a.participants || 0}</td><td class="n">${a.present || a.participants || 0}</td><td class="venue">${a.venue || '-'}</td><td class="date">${a.activity_date ? new Date(a.activity_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}) : '-'}</td></tr>`;
-            if (i < 22) acts1 += row;
-            else acts2 += row;
+            actRows.push(`<tr><td class="n">${i+1}</td><td>${a.title}</td><td class="club t-${domCode}">${a.club_name || '-'}</td><td class="n">${a.enrolled || a.participants || 0}</td><td class="n">${a.present || a.participants || 0}</td><td class="venue">${a.venue || '-'}</td><td class="date">${a.activity_date ? new Date(a.activity_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}) : '-'}</td></tr>`);
         });
+
+        const actPages = [];
+        if (actRows.length > 0) {
+            const firstPageCount = Math.min(22, actRows.length);
+            actPages.push(actRows.slice(0, firstPageCount).join(''));
+            for (let i = firstPageCount; i < actRows.length; i += 35) {
+                actPages.push(actRows.slice(i, i + 35).join(''));
+            }
+        }
+        
+        let pageNum = 3;
 
         // Calendar Grid
         let calHtml = "<tr>";
@@ -419,35 +430,32 @@ export default function MonthlyReportsPage() {
 </section>
 
 <!-- ================= PAGE 3 : CLUB STATS (1/2) ================= -->
+${clubPages.map((pageHtml, index) => {
+  const isFirstClubPage = index === 0;
+  const p = pageNum++;
+  return `<section class="page">
+  <img class="letterhead" src="${letterheadUrl}" alt="">
+  <div class="content">
+    ${isFirstClubPage ? `<div class="bar">REGISTERED STUDENT DATA — CLUB-WISE STATISTICS</div>
+    <p class="intro-small">Total registered student membership across all <b>${totalClubs} SAC clubs</b> in ${activeDomains.length} domains, broken down by academic year and residential status (Day Scholar / Hosteler). Data reflects registrations as of ${monthStr}.</p>` : ''}
+    <div class="table-scroll">
+      <table class="clubs">
+        <thead><tr><th class="c">S.No</th><th>Club</th><th class="c">Domain</th><th class="c">1st Yr</th><th class="c">2nd Yr</th><th class="c">3rd Yr</th><th class="c">4th Yr</th><th class="c">Day Scholar</th><th class="c">Hosteler</th><th class="c">Total</th></tr></thead>
+        <tbody>${pageHtml}</tbody>
+      </table>
+    </div>
+    ${(!isFirstClubPage && index === clubPages.length - 1) ? `<p class="note" style="margin-top:8px; font-size:8pt; color:#666;">Domains — TEC: Technology | LCH: Liberal Arts &amp; Culture | ESO: Extension &amp; Social Outreach | HWB: Health &amp; Wellbeing | IIE: Innovation, Incubation &amp; Entrepreneurship</p>` : ''}
+  </div>
+  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page ${p}</span></div>
+</section>`;
+}).join('\n')}
+
+<!-- Demographic Distribution Overview Dedicated Page -->
 <section class="page">
   <img class="letterhead" src="${letterheadUrl}" alt="">
   <div class="content">
-    <div class="bar">REGISTERED STUDENT DATA — CLUB-WISE STATISTICS</div>
-    <p class="intro-small">Total registered student membership across all <b>${totalClubs} SAC clubs</b> in ${activeDomains.length} domains, broken down by academic year and residential status (Day Scholar / Hosteler). Data reflects registrations as of ${monthStr}.</p>
-    <div class="table-scroll">
-      <table class="clubs">
-        <thead><tr><th class="c">S.No</th><th>Club</th><th class="c">Domain</th><th class="c">1st Yr</th><th class="c">2nd Yr</th><th class="c">3rd Yr</th><th class="c">4th Yr</th><th class="c">Day Scholar</th><th class="c">Hosteler</th><th class="c">Total</th></tr></thead>
-        <tbody>${clubTableBody1}</tbody>
-      </table>
-    </div>
-  </div>
-  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 3</span></div>
-</section>
-
-<!-- ================= PAGE 4 : CLUB STATS (2/2) ================= -->
-${clubTableBody2 ? `<section class="page">
-  <img class="letterhead" src="${letterheadUrl}" alt="">
-  <div class="content">
-    <div class="table-scroll">
-      <table class="clubs">
-        <thead><tr><th class="c">S.No</th><th>Club</th><th class="c">Domain</th><th class="c">1st Yr</th><th class="c">2nd Yr</th><th class="c">3rd Yr</th><th class="c">4th Yr</th><th class="c">Day Scholar</th><th class="c">Hosteler</th><th class="c">Total</th></tr></thead>
-        <tbody>${clubTableBody2}</tbody>
-      </table>
-    </div>
-    <p class="note" style="margin-top:8px; font-size:8pt; color:#666;">Domains — TEC: Technology | LCH: Liberal Arts &amp; Culture | ESO: Extension &amp; Social Outreach | HWB: Health &amp; Wellbeing | IIE: Innovation, Incubation &amp; Entrepreneurship</p>
-    
-    <div class="subbar" style="margin-top:24px; background:#800000; color:#fff; font-weight:bold; font-size:10.5pt; padding:6px 8px;">Demographic Distribution Overview</div>
-    <table style="width:100%; border:none; margin-top:16px;">
+    <div class="bar" style="margin-bottom:16px;">DEMOGRAPHIC DISTRIBUTION OVERVIEW</div>
+    <table style="width:100%; border:none; margin-top:24px;">
       <tr>
         <td style="width:50%; padding-right:12px; vertical-align:top; border:none;">
           <div style="border:1px solid #d9d9d9; padding:16px; background:#f9f9f9; text-align:center;">
@@ -490,13 +498,16 @@ ${clubTableBody2 ? `<section class="page">
       </tr>
     </table>
   </div>
-  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 4</span></div>
-</section>` : ''}
+  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page ${pageNum++}</span></div>
+</section>
 
-<!-- ================= PAGE 5 : CALENDAR + ACTIVITIES (1/2) ================= -->
-<section class="page">
+${actPages.map((pageHtml, index) => {
+  const isFirstActPage = index === 0;
+  const p = pageNum++;
+  return `<section class="page">
   <img class="letterhead" src="${letterheadUrl}" alt="">
   <div class="content">
+    ${isFirstActPage ? `
     <div class="bar">CALENDAR OF EVENTS — ${monthStr.toUpperCase()}</div>
     <div class="cal-wrap">
       <div class="cal">
@@ -513,31 +524,18 @@ ${clubTableBody2 ? `<section class="page">
       </div>
     </div>
     <div class="legend"><i></i>Event Day — ${eventDays.size} days with activities in ${monthStr}</div>
-
     <div class="subbar" style="margin-top:16px">Domain-wise Activity Details</div>
+    ` : ''}
     <div class="table-scroll">
       <table class="acts">
         <thead><tr><th class="c">S.No</th><th>Activity Name</th><th>Club</th><th class="c">Enrolled</th><th class="c">Present</th><th>Venue</th><th class="c">Date</th></tr></thead>
-        <tbody>${acts1}</tbody>
+        <tbody>${pageHtml}</tbody>
       </table>
     </div>
   </div>
-  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page ${clubTableBody2 ? '5' : '4'}</span></div>
-</section>
-
-<!-- ================= PAGE 6 : ACTIVITIES (2/2) ================= -->
-${acts2 ? `<section class="page">
-  <img class="letterhead" src="${letterheadUrl}" alt="">
-  <div class="content">
-    <div class="table-scroll">
-      <table class="acts">
-        <thead><tr><th class="c">S.No</th><th>Activity Name</th><th>Club</th><th class="c">Enrolled</th><th class="c">Present</th><th>Venue</th><th class="c">Date</th></tr></thead>
-        <tbody>${acts2}</tbody>
-      </table>
-    </div>
-  </div>
-  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page ${clubTableBody2 ? '6' : '5'}</span></div>
-</section>` : ''}
+  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page ${p}</span></div>
+</section>`;
+}).join('\n')}
 
 </body>
 </html>
