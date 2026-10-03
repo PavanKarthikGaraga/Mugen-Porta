@@ -129,91 +129,434 @@ export default function MonthlyReportsPage() {
     const downloadPDF = () => {
         if (!reportData) return;
         const doc = new jsPDF();
-        const { monthStr, totalClubs, totalActivities, totalParticipants, totalRegistered, domainStats, clubStatsList, activities, activeClubsCount, eventDaysCount } = reportData;
+        const { monthStr, monthName, year, totalClubs, totalActivities, totalParticipants, totalRegistered, domainStats, clubStatsList, activities, activeClubsCount, eventDaysCount } = reportData;
 
-        // Title Page
-        doc.setFontSize(16);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(151, 0, 3); // KL Red
-        doc.text(monthStr.toUpperCase(), 105, 30, { align: 'center' });
-        doc.setFontSize(24);
-        doc.text("KL SAC MONTHLY REPORT", 105, 45, { align: 'center' });
+        // Ensure domainStats has code
+        const activeDomains = domainStats.map((d: any) => ({
+            ...d,
+            code: Object.keys(domainMap).find(k => domainMap[k] === d.name) || d.name.substring(0, 3).toUpperCase()
+        }));
+        
+        const eventDaysSet = new Set();
+        activities.forEach((act: any) => {
+            if (act.activity_date) eventDaysSet.add(act.activity_date.substring(0, 10));
+        });
+
+        // ---------------- PAGE 1: COVER ----------------
+        // Green box "AUGUST 2026"
+        doc.setFillColor(0, 100, 0);
+        doc.rect(75, 45, 60, 8, 'F');
+        doc.setTextColor(255, 255, 255);
         doc.setFontSize(12);
-        doc.setFont("helvetica", "italic");
+        doc.setFont("helvetica", "bold");
+        doc.text(monthStr.toUpperCase(), 105, 50, { align: 'center' });
+
+        // KL SAC MONTHLY REPORT
+        doc.setFontSize(26);
+        doc.setTextColor(151, 0, 3);
+        doc.text("KL SAC MONTHLY REPORT", 105, 65, { align: 'center' });
+
+        // Red line under it
+        doc.setDrawColor(151, 0, 3);
+        doc.setLineWidth(0.5);
+        doc.line(30, 68, 180, 68);
+
+        // Subtitle
+        doc.setFontSize(12);
         doc.setTextColor(100, 100, 100);
-        doc.text("Student Activity Center", 105, 55, { align: 'center' });
-        doc.text("Koneru Lakshmaiah Education Foundation", 105, 62, { align: 'center' });
+        doc.setFont("helvetica", "italic");
+        doc.text("Student Activity Center", 105, 75, { align: 'center' });
+        doc.text("Koneru Lakshmaiah Education Foundation", 105, 80, { align: 'center' });
 
-        // Stats Boxes (Simple representation for PDF)
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(0, 0, 0);
+        // 4 Stats Boxes
+        const drawStatBox = (x: number, y: number, w: number, h: number, borderColor: number[], numColor: number[], numStr: string, textStr: string) => {
+            doc.setDrawColor(borderColor[0], borderColor[1], borderColor[2]);
+            doc.setFillColor(250, 250, 250);
+            doc.setLineWidth(0.5);
+            doc.rect(x, y, w, h, 'FD');
+            doc.setFontSize(22);
+            doc.setTextColor(numColor[0], numColor[1], numColor[2]);
+            doc.setFont("helvetica", "bold");
+            doc.text(numStr, x + w/2, y + 12, { align: 'center' });
+            doc.setFontSize(9);
+            doc.setTextColor(50, 50, 50);
+            doc.setFont("helvetica", "normal");
+            doc.text(textStr, x + w/2, y + 18, { align: 'center' });
+        };
+
+        drawStatBox(15, 95, 40, 22, [151, 0, 3], [151, 0, 3], totalClubs.toString(), "Number of Clubs");
+        drawStatBox(60, 95, 40, 22, [0, 128, 0], [0, 128, 0], totalActivities.toString(), "Activities Conducted");
+        drawStatBox(105, 95, 40, 22, [0, 80, 160], [0, 80, 160], totalParticipants.toString(), "Total Participants");
+        drawStatBox(150, 95, 40, 22, [139, 69, 19], [139, 69, 19], totalRegistered.toString(), "Registered Students");
+
+        // Domains Covered
         doc.setFontSize(11);
-        
-        doc.text(`Total Clubs: ${totalClubs}`, 20, 85);
-        doc.text(`Activities Conducted: ${totalActivities}`, 80, 85);
-        doc.text(`Total Participants: ${totalParticipants}`, 140, 85);
-        doc.text(`Registered Students: ${totalRegistered}`, 80, 95);
-        
-        doc.text(`Active Clubs: ${activeClubsCount}`, 20, 105);
-        doc.text(`Event Days: ${eventDaysCount}`, 80, 105);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Domains Covered", 105, 130, { align: 'center' });
 
-        // Domain Summary Table
-        doc.text("Domain-wise Summary", 14, 125);
-        const domainRows = domainStats.map((d: any) => [d.name, d.clubs, d.activities, d.participants, d.regStudents]);
+        const boxWidth = 34;
+        const gap = 2.5;
+        // Center the domain boxes block
+        const totalBlockWidth = activeDomains.length * boxWidth + (activeDomains.length - 1) * gap;
+        const startX = 105 - (totalBlockWidth / 2);
+
+        activeDomains.forEach((dom: any, i: number) => {
+            const x = startX + i * (boxWidth + gap);
+            let color = [0,0,0];
+            if (dom.code === 'LCH') color = [151, 0, 3];
+            else if (dom.code === 'TEC') color = [0, 80, 160];
+            else if (dom.code === 'HWB') color = [0, 128, 0];
+            else if (dom.code === 'ESO') color = [139, 69, 19];
+            else color = [128, 0, 128]; // IIE
+            
+            doc.setDrawColor(color[0], color[1], color[2]);
+            doc.rect(x, 135, boxWidth, 18);
+            
+            doc.setFontSize(14);
+            doc.setTextColor(color[0], color[1], color[2]);
+            doc.setFont("helvetica", "bold");
+            doc.text(dom.code, x + boxWidth/2, 142, { align: 'center' });
+            
+            doc.setFontSize(6.5);
+            doc.setTextColor(50, 50, 50);
+            doc.setFont("helvetica", "normal");
+            const nameLines = doc.splitTextToSize(dom.name, boxWidth - 2);
+            doc.text(nameLines, x + boxWidth/2, 147, { align: 'center' });
+        });
+
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.5);
+        doc.line(15, 165, 195, 165);
+        doc.setFontSize(9);
+        doc.setTextColor(150, 150, 150);
+        doc.setFont("helvetica", "italic");
+        doc.text(`Report Period: ${monthName} 1 – ${monthName} 31, ${year} | Prepared by: Student Activity Center, KL University`, 105, 172, { align: 'center' });
+
+        // ---------------- PAGE 2: OVERVIEW & HIGHLIGHTS ----------------
+        doc.addPage();
+        
+        doc.setFillColor(151, 0, 3);
+        doc.rect(10, 45, 190, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("OVERVIEW", 105, 52, { align: 'center' });
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        const overviewText = `The Student Activity Center (SAC) of Koneru Lakshmaiah Education Foundation successfully conducted a series of enriching activities during ${monthStr}. Across ${activeClubsCount} active clubs spanning ${activeDomains.length} domains — ${activeDomains.map((d: any)=>d.name).join(', ')} — a total of ${totalActivities} activities were organised, engaging ${totalParticipants} student participants. The SAC has a total registered strength of ${totalRegistered} students across all ${totalClubs} clubs.`;
+        const lines = doc.splitTextToSize(overviewText, 190);
+        doc.text(lines, 10, 62);
+        let yPos = 62 + (lines.length * 5) + 5;
+
+        doc.setFillColor(151, 0, 3);
+        doc.rect(10, yPos, 190, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("Domain-wise Summary", 12, yPos + 5.5);
+
+        yPos += 8;
+
         (doc as any).autoTable({
-            startY: 130,
-            head: [['Domain Name', 'Clubs', 'Activities', 'Participants', 'Reg. Students']],
-            body: domainRows,
+            startY: yPos,
+            margin: { left: 10, right: 10 },
+            head: [['Domain', 'Domain Name', 'Clubs', 'Activities', 'Participants', 'Reg. Students']],
+            body: activeDomains.map((d: any) => [d.code, d.name, d.clubs, d.activities, d.participants, d.regStudents]),
             theme: 'grid',
-            headStyles: { fillColor: [151, 0, 3] },
-        });
-
-        // Highlights (Activities)
-        doc.addPage();
-        doc.text("Key Highlights", 14, 20);
-        
-        const activityHighlights = activities.map((a: any) => `• ${a.club_name || ''} conducted ${a.title} with ${a.participants} participants.`);
-        let yPos = 30;
-        activityHighlights.forEach((text: string) => {
-            const lines = doc.splitTextToSize(text, 180);
-            if (yPos + lines.length * 7 > 280) {
-                doc.addPage();
-                yPos = 20;
+            headStyles: { fillColor: [151, 0, 3], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+            columnStyles: {
+                0: { halign: 'center', fontStyle: 'bold' },
+                2: { halign: 'center' },
+                3: { halign: 'center' },
+                4: { halign: 'center' },
+                5: { halign: 'center', fontStyle: 'bold' }
+            },
+            didParseCell: function(data: any) {
+                if (data.section === 'body') {
+                    const domainCode = data.row.raw[0];
+                    let color = [0,0,0]; let bgColor = [255, 255, 255];
+                    if (domainCode === 'LCH') { color = [151, 0, 3]; bgColor = [255, 235, 235]; }
+                    else if (domainCode === 'TEC') { color = [0, 80, 160]; bgColor = [235, 245, 255]; }
+                    else if (domainCode === 'HWB') { color = [0, 128, 0]; bgColor = [235, 255, 235]; }
+                    else if (domainCode === 'ESO') { color = [139, 69, 19]; bgColor = [255, 245, 235]; }
+                    else { color = [128, 0, 128]; bgColor = [250, 235, 250]; }
+                    
+                    if (data.column.index === 0) {
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fillColor = color;
+                    } else {
+                        data.cell.styles.fillColor = bgColor;
+                    }
+                    if (data.column.index === 5) {
+                        data.cell.styles.textColor = color;
+                    }
+                }
             }
-            doc.text(lines, 14, yPos);
-            yPos += lines.length * 7;
         });
 
-        // Club-wise stats
+        yPos = (doc as any).lastAutoTable.finalY + 10;
+
+        doc.setFillColor(0, 128, 0); // Green box
+        doc.rect(10, yPos, 190, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Key Highlights of ${monthStr}`, 12, yPos + 5.5);
+
+        yPos += 12;
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        const topActivities = activities.slice(0, 15);
+        topActivities.forEach((a: any) => {
+            const text = `  ${a.club_name || 'Club'} conducted ${a.title} attracting ${a.participants} participants.`;
+            const alines = doc.splitTextToSize(text, 185);
+            if (yPos + alines.length * 5 > 270) {
+                doc.addPage();
+                yPos = 45;
+            }
+            doc.setFillColor(0, 128, 0);
+            doc.circle(13, yPos - 1.5, 1, 'F');
+            doc.text(alines, 15, yPos);
+            yPos += alines.length * 5 + 3;
+        });
+
+        // ---------------- PAGE 3: CLUB-WISE STATISTICS ----------------
         doc.addPage();
-        doc.text("REGISTERED STUDENT DATA — CLUB-WISE STATISTICS", 14, 20);
-        const clubRows = clubStatsList.map((c: any, i: number) => [
-            i + 1, c.name, c.domain, c.yr1, c.yr2, c.yr3, c.yr4, c.dayScholar, c.hosteler, c.total
+
+        doc.setFillColor(151, 0, 3);
+        doc.rect(10, 45, 190, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("REGISTERED STUDENT DATA — CLUB-WISE STATISTICS", 105, 52, { align: 'center' });
+
+        doc.setTextColor(50, 50, 50);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        const p3Text = `Total registered student membership across all ${totalClubs} SAC clubs in ${activeDomains.length} domains, broken down by academic year and residential status (Day Scholar / Hosteler). Data reflects registrations as of ${monthStr}.`;
+        const p3lines = doc.splitTextToSize(p3Text, 190);
+        doc.text(p3lines, 10, 62);
+
+        let y3 = 62 + (p3lines.length * 5) + 5;
+
+        const clubTableBody: any[] = [];
+        let sNo = 1;
+        const groupedClubs: any = {};
+        clubStatsList.forEach((c: any) => {
+            if (!groupedClubs[c.domain]) groupedClubs[c.domain] = [];
+            groupedClubs[c.domain].push(c);
+        });
+
+        Object.keys(groupedClubs).forEach((domCode) => {
+            const domName = domainMap[domCode] || domCode;
+            let bgColor = [0, 80, 160];
+            if (domCode === 'LCH') bgColor = [151, 0, 3];
+            else if (domCode === 'HWB') bgColor = [0, 128, 0];
+            else if (domCode === 'ESO') bgColor = [139, 69, 19];
+            else if (domCode === 'IIE') bgColor = [128, 0, 128];
+
+            clubTableBody.push([{ content: domName, colSpan: 10, styles: { fillColor: bgColor, textColor: [255,255,255], fontStyle: 'bold' } }]);
+            groupedClubs[domCode].forEach((c: any) => {
+                clubTableBody.push([ sNo++, c.name, c.domain, c.yr1, c.yr2, c.yr3, c.yr4, c.dayScholar, c.hosteler, c.total ]);
+            });
+        });
+
+        clubTableBody.push([ 
+            { content: 'GRAND TOTAL', colSpan: 3, styles: { fillColor: [0, 128, 0], textColor: [255,255,255], halign: 'center', fontStyle: 'bold' } },
+            { content: clubStatsList.reduce((acc, s) => acc + s.yr1, 0).toString(), styles: { fillColor: [0, 128, 0], textColor: [255,255,255], fontStyle: 'bold' } },
+            { content: clubStatsList.reduce((acc, s) => acc + s.yr2, 0).toString(), styles: { fillColor: [0, 128, 0], textColor: [255,255,255], fontStyle: 'bold' } },
+            { content: clubStatsList.reduce((acc, s) => acc + s.yr3, 0).toString(), styles: { fillColor: [0, 128, 0], textColor: [255,255,255], fontStyle: 'bold' } },
+            { content: clubStatsList.reduce((acc, s) => acc + s.yr4, 0).toString(), styles: { fillColor: [0, 128, 0], textColor: [255,255,255], fontStyle: 'bold' } },
+            { content: clubStatsList.reduce((acc, s) => acc + s.dayScholar, 0).toString(), styles: { fillColor: [0, 128, 0], textColor: [255,255,255], fontStyle: 'bold' } },
+            { content: clubStatsList.reduce((acc, s) => acc + s.hosteler, 0).toString(), styles: { fillColor: [0, 128, 0], textColor: [255,255,255], fontStyle: 'bold' } },
+            { content: totalRegistered.toString(), styles: { fillColor: [0, 128, 0], textColor: [255,255,255], fontStyle: 'bold' } },
         ]);
+
         (doc as any).autoTable({
-            startY: 25,
+            startY: y3,
+            margin: { left: 10, right: 10, bottom: 20 },
             head: [['S.No', 'Club', 'Domain', '1st Yr', '2nd Yr', '3rd Yr', '4th Yr', 'Day Scholar', 'Hosteler', 'Total']],
-            body: clubRows,
+            body: clubTableBody,
             theme: 'grid',
             styles: { fontSize: 8 },
-            headStyles: { fillColor: [151, 0, 3] },
+            headStyles: { fillColor: [151, 0, 3], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+            columnStyles: {
+                0: { halign: 'center' },
+                2: { halign: 'center', fontStyle: 'bold', textColor: [151, 0, 3] },
+                3: { halign: 'center' },
+                4: { halign: 'center' },
+                5: { halign: 'center' },
+                6: { halign: 'center' },
+                7: { halign: 'center' },
+                8: { halign: 'center' },
+                9: { halign: 'center', fontStyle: 'bold', textColor: [151, 0, 3] },
+            }
         });
 
-        // Activity Details
+        // ---------------- PAGE 4: CALENDAR & ACTIVITY DETAILS ----------------
         doc.addPage();
-        doc.setFontSize(11);
-        doc.text("Domain-wise Activity Details", 14, 20);
+        doc.setFillColor(151, 0, 3);
+        doc.rect(10, 45, 190, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text(`CALENDAR OF EVENTS — ${monthStr.toUpperCase()}`, 105, 52, { align: 'center' });
+
+        // Calendar Grid
+        const startX = 10;
+        let startY = 60;
+        const cellW = 14;
+        const cellH = 12;
+
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        doc.setFillColor(151, 0, 3);
+        doc.rect(startX, startY, cellW * 7, cellH, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "bold");
+        days.forEach((d, i) => {
+            doc.text(d, startX + i*cellW + cellW/2, startY + cellH/2 + 3, { align: 'center' });
+        });
+
+        startY += cellH;
+        
+        // Ensure month parsing avoids off-by-one errors (0-indexed in Date object)
+        const monthIndex = new Date(`${monthName} 1, ${year}`).getMonth();
+        const daysInMonth = new Date(parseInt(year), monthIndex + 1, 0).getDate();
+        const firstDay = new Date(parseInt(year), monthIndex, 1).getDay();
+
+        let currentDay = 1;
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.1);
+        for (let row = 0; row < 6; row++) {
+            for (let col = 0; col < 7; col++) {
+                if (row === 0 && col < firstDay) {
+                    doc.rect(startX + col*cellW, startY + row*cellH, cellW, cellH);
+                } else if (currentDay <= daysInMonth) {
+                    const dateStr = `${year}-${(monthIndex + 1).toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
+                    if (eventDaysSet.has(dateStr)) {
+                        doc.setFillColor(230, 255, 230);
+                        doc.rect(startX + col*cellW, startY + row*cellH, cellW, cellH, 'F');
+                        doc.setTextColor(0, 128, 0);
+                        doc.setFont("helvetica", "bold");
+                    } else {
+                        doc.setTextColor(100, 100, 100);
+                        doc.setFont("helvetica", "normal");
+                    }
+                    doc.rect(startX + col*cellW, startY + row*cellH, cellW, cellH);
+                    doc.text(currentDay.toString(), startX + col*cellW + cellW/2, startY + row*cellH + cellH/2 + 3, { align: 'center' });
+                    currentDay++;
+                } else {
+                    doc.rect(startX + col*cellW, startY + row*cellH, cellW, cellH);
+                }
+            }
+        }
+
+        // Right side stats boxes next to calendar
+        const boxX = startX + (cellW * 7) + 5;
+        const boxW = 190 - (cellW * 7) - 5;
+        const rBoxH = 19;
+        let rY = 60;
+
+        const drawRBox = (y: number, num: number, text: string, color: number[]) => {
+            doc.setDrawColor(color[0], color[1], color[2]);
+            doc.setFillColor(250, 250, 250);
+            doc.setLineWidth(0.5);
+            doc.rect(boxX, y, boxW, rBoxH, 'FD');
+            doc.setTextColor(color[0], color[1], color[2]);
+            doc.setFontSize(18);
+            doc.setFont("helvetica", "bold");
+            doc.text(num.toString(), boxX + boxW/2, y + 10, { align: 'center' });
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.text(text, boxX + boxW/2, y + 15, { align: 'center' });
+        };
+
+        drawRBox(rY, totalActivities, "Activities", [151, 0, 3]); rY += rBoxH + 2.5;
+        drawRBox(rY, totalParticipants, "Participants", [0, 128, 0]); rY += rBoxH + 2.5;
+        drawRBox(rY, activeClubsCount, "Clubs Active", [0, 80, 160]); rY += rBoxH + 2.5;
+        drawRBox(rY, eventDaysCount, "Event Days", [139, 69, 19]);
+
+        doc.setFillColor(0, 128, 0);
+        doc.rect(10, 60 + (6*cellH) + 8, 3, 3, 'F');
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Event Day — ${eventDaysCount} days with activities in ${monthStr}`, 15, 60 + (6*cellH) + 10.5);
+
+        let y4 = 60 + (6*cellH) + 18;
+        doc.setFillColor(151, 0, 3);
+        doc.rect(10, y4, 190, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("Domain-wise Activity Details", 12, y4 + 5.5);
+
+        y4 += 8;
+
         const actRows = activities.map((a: any, i: number) => [
-            i + 1, a.title, a.club_name || '-', a.participants, a.venue || '-', a.activity_date ? new Date(a.activity_date).toLocaleDateString() : '-'
+            i + 1, a.title, a.club_name || '-', a.participants, a.venue || '-', a.activity_date ? new Date(a.activity_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'
         ]);
+
         (doc as any).autoTable({
-            startY: 25,
+            startY: y4,
+            margin: { left: 10, right: 10, bottom: 20 },
             head: [['S.No', 'Activity Name', 'Club', 'Students', 'Venue', 'Date']],
             body: actRows,
             theme: 'grid',
             styles: { fontSize: 8 },
-            headStyles: { fillColor: [151, 0, 3] },
+            headStyles: { fillColor: [151, 0, 3], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+            columnStyles: {
+                0: { halign: 'center' },
+                2: { fontStyle: 'bold', textColor: [151, 0, 3] },
+                3: { halign: 'center' },
+                4: { halign: 'center' },
+                5: { halign: 'center' }
+            }
         });
+
+        // ---------------- GLOBALLY APPLY HEADERS & FOOTERS ----------------
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            
+            // Header
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.rect(10, 10, 190, 25);
+            doc.setFontSize(22);
+            doc.setTextColor(151, 0, 3);
+            doc.setFont("helvetica", "bold");
+            doc.text("Koneru Lakshmaiah Education Foundation", 105, 19, { align: 'center' });
+            doc.setFontSize(9);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont("helvetica", "bold");
+            doc.text("(Deemed to be University estd. u/s. 3 of the UGC Act, 1956)", 105, 24, { align: 'center' });
+            doc.setFontSize(7.5);
+            doc.setTextColor(50, 50, 50);
+            doc.setFont("helvetica", "normal");
+            doc.text("Campus: Green Fields, Vaddeswaram - 522 302, Guntur District, Andhra Pradesh, INDIA.", 105, 29, { align: 'center' });
+            doc.text("Admin Off: 29-36-38, Museum Road, Governorpet, Vijayawada - 520 002.", 105, 33, { align: 'center' });
+            doc.setDrawColor(0, 100, 0);
+            doc.setLineWidth(1.5);
+            doc.line(10, 36, 200, 36);
+            
+            // Footer
+            doc.setFillColor(151, 0, 3);
+            doc.rect(0, 285, 210, 12, 'F');
+            doc.setFontSize(8);
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "normal");
+            doc.text(`KL SAC | ${monthStr} Monthly Report`, 15, 292);
+            doc.text("Koneru Lakshmaiah Education Foundation", 105, 292, { align: 'center' });
+            doc.text(`Page ${i}`, 195, 292, { align: 'right' });
+        }
 
         doc.save(`KL_SAC_Monthly_Report_${monthStr.replace(' ', '_')}.pdf`);
     };
