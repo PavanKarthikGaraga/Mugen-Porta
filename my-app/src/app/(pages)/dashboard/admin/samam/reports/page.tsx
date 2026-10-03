@@ -216,10 +216,10 @@ export default function MonthlyReportsPage() {
 
         const actPages = [];
         if (actRows.length > 0) {
-            const firstPageCount = Math.min(16, actRows.length);
+            const firstPageCount = Math.min(11, actRows.length);
             actPages.push(actRows.slice(0, firstPageCount).join(''));
-            for (let i = firstPageCount; i < actRows.length; i += 25) {
-                actPages.push(actRows.slice(i, i + 25).join(''));
+            for (let i = firstPageCount; i < actRows.length; i += 24) {
+                actPages.push(actRows.slice(i, i + 24).join(''));
             }
         }
         
@@ -311,8 +311,8 @@ export default function MonthlyReportsPage() {
   .summary td.dom{color:#fff;font-weight:bold;text-align:center}
   .summary td.reg{font-weight:bold;text-align:center}
   .summary td.n{text-align:center}
-  .bg-LCH{background:#800000} .bg-TEC{background:#0a4a8c}
-  .bg-HWB{background:#0b6b0b} .bg-ESO{background:#8b4a0b} .bg-IIE{background:#6a0dad}
+  .bg-LCH{background:#800000!important} .bg-TEC{background:#0a4a8c!important}
+  .bg-HWB{background:#0b6b0b!important} .bg-ESO{background:#8b4a0b!important} .bg-IIE{background:#6a0dad!important}
   .tint-LCH td.name{background:#f5e8e8!important} .tint-TEC td.name{background:#e8eef6!important}
   .tint-HWB td.name{background:#e8f3e8!important} .tint-ESO td.name{background:#fff3e6!important}
   .tint-IIE td.name{background:#f3e8f8!important}
