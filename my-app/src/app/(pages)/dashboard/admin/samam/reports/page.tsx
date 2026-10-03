@@ -218,13 +218,13 @@ export default function MonthlyReportsPage() {
         calHtml += "</tr>";
 
         const letterheadUrl = window.location.origin + '/klef-letterhead.png';
-        const htmlContent = \`
+        const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KL SAC Monthly Report – \${monthStr}</title>
+<title>KL SAC Monthly Report – ${monthStr}</title>
 <style>
   :root{
     --maroon:#800000; --green:#0b6b0b; --blue:#0a4a8c; --brown:#8b4a0b; --purple:#6a0dad;
@@ -357,137 +357,137 @@ export default function MonthlyReportsPage() {
 
 <!-- ================= PAGE 1 : COVER ================= -->
 <section class="page">
-  <img class="letterhead" src="\${letterheadUrl}" alt="Koneru Lakshmaiah Education Foundation">
+  <img class="letterhead" src="${letterheadUrl}" alt="Koneru Lakshmaiah Education Foundation">
   <div class="content cover">
-    <span class="month-badge">\${monthStr.toUpperCase()}</span>
+    <span class="month-badge">${monthStr.toUpperCase()}</span>
     <h1>KL SAC MONTHLY REPORT</h1>
     <div class="sub1">Student Activity Center</div>
     <div class="sub2">Koneru Lakshmaiah Education Foundation</div>
 
     <div class="stat-row">
-      <div class="stat c-maroon"><div class="num">\${totalClubs}</div><div class="lbl">Number of Clubs</div></div>
-      <div class="stat c-green"><div class="num">\${totalActivities}</div><div class="lbl">Activities Conducted</div></div>
-      <div class="stat c-blue"><div class="num">\${totalParticipants}</div><div class="lbl">Total Participants</div></div>
-      <div class="stat c-brown"><div class="num">\${totalRegistered}</div><div class="lbl">Registered Students</div></div>
+      <div class="stat c-maroon"><div class="num">${totalClubs}</div><div class="lbl">Number of Clubs</div></div>
+      <div class="stat c-green"><div class="num">${totalActivities}</div><div class="lbl">Activities Conducted</div></div>
+      <div class="stat c-blue"><div class="num">${totalParticipants}</div><div class="lbl">Total Participants</div></div>
+      <div class="stat c-brown"><div class="num">${totalRegistered}</div><div class="lbl">Registered Students</div></div>
     </div>
 
     <div class="domains-title">Domains Covered</div>
-    <div class="stat-row" style="margin-top:0; grid-template-columns:repeat(\${activeDomains.length},1fr)">
-      \${domainCardsHtml}
+    <div class="stat-row" style="margin-top:0; grid-template-columns:repeat(${activeDomains.length},1fr)">
+      ${domainCardsHtml}
     </div>
 
-    <div class="report-meta">Report Period: \${monthName} 1 – \${monthName} \${daysInMonth}, \${year} | Prepared by: Student Activity Center, KL University</div>
+    <div class="report-meta">Report Period: ${monthName} 1 – ${monthName} ${daysInMonth}, ${year} | Prepared by: Student Activity Center, KL University</div>
   </div>
-  <div class="footer"><span>KL SAC | \${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 1</span></div>
+  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 1</span></div>
 </section>
 
 <!-- ================= PAGE 2 : OVERVIEW ================= -->
 <section class="page">
-  <img class="letterhead" src="\${letterheadUrl}" alt="">
+  <img class="letterhead" src="${letterheadUrl}" alt="">
   <div class="content">
     <div class="bar">OVERVIEW</div>
     <p class="overview-text">
       The Student Activity Center (SAC) of Koneru Lakshmaiah Education Foundation successfully conducted a series of enriching
-      activities during \${monthStr}. Across <b>\${activeClubsCount} active clubs</b> spanning \${activeDomains.length} domains — \${activeDomains.map((d: any) => d.name).join(', ')} — a total of <b>\${totalActivities} activities</b> were organised, engaging
-      <b>\${totalParticipants} student participants</b>. The SAC has a total registered strength of <b>\${totalRegistered} students</b> across all \${totalClubs} clubs.
+      activities during ${monthStr}. Across <b>${activeClubsCount} active clubs</b> spanning ${activeDomains.length} domains — ${activeDomains.map((d: any) => d.name).join(', ')} — a total of <b>${totalActivities} activities</b> were organised, engaging
+      <b>${totalParticipants} student participants</b>. The SAC has a total registered strength of <b>${totalRegistered} students</b> across all ${totalClubs} clubs.
     </p>
 
     <div class="subbar">Domain-wise Summary</div>
     <table class="summary">
       <thead><tr><th>Domain</th><th>Domain Name</th><th>Clubs</th><th>Activities</th><th>Participants</th><th>Reg. Students</th></tr></thead>
       <tbody>
-        \${domainTableHtml}
+        ${domainTableHtml}
       </tbody>
     </table>
 
-    <div class="subbar green">Key Highlights of \${monthStr}</div>
+    <div class="subbar green">Key Highlights of ${monthStr}</div>
     <ul class="highlights">
-      \${highlightsHtml}
+      ${highlightsHtml}
     </ul>
   </div>
-  <div class="footer"><span>KL SAC | \${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 2</span></div>
+  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 2</span></div>
 </section>
 
 <!-- ================= PAGE 3 : CLUB STATS (1/2) ================= -->
 <section class="page">
-  <img class="letterhead" src="\${letterheadUrl}" alt="">
+  <img class="letterhead" src="${letterheadUrl}" alt="">
   <div class="content">
     <div class="bar">REGISTERED STUDENT DATA — CLUB-WISE STATISTICS</div>
-    <p class="intro-small">Total registered student membership across all <b>\${totalClubs} SAC clubs</b> in \${activeDomains.length} domains, broken down by academic year and residential status (Day Scholar / Hosteler). Data reflects registrations as of \${monthStr}.</p>
+    <p class="intro-small">Total registered student membership across all <b>${totalClubs} SAC clubs</b> in ${activeDomains.length} domains, broken down by academic year and residential status (Day Scholar / Hosteler). Data reflects registrations as of ${monthStr}.</p>
     <div class="table-scroll">
       <table class="clubs">
         <thead><tr><th class="c">S.No</th><th>Club</th><th class="c">Domain</th><th class="c">1st Yr</th><th class="c">2nd Yr</th><th class="c">3rd Yr</th><th class="c">4th Yr</th><th class="c">Day Scholar</th><th class="c">Hosteler</th><th class="c">Total</th></tr></thead>
-        <tbody>\${clubTableBody1}</tbody>
+        <tbody>${clubTableBody1}</tbody>
       </table>
     </div>
   </div>
-  <div class="footer"><span>KL SAC | \${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 3</span></div>
+  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 3</span></div>
 </section>
 
 <!-- ================= PAGE 4 : CLUB STATS (2/2) ================= -->
-\${clubTableBody2 ? \`<section class="page">
-  <img class="letterhead" src="\${letterheadUrl}" alt="">
+${clubTableBody2 ? `<section class="page">
+  <img class="letterhead" src="${letterheadUrl}" alt="">
   <div class="content">
     <div class="table-scroll">
       <table class="clubs">
         <thead><tr><th class="c">S.No</th><th>Club</th><th class="c">Domain</th><th class="c">1st Yr</th><th class="c">2nd Yr</th><th class="c">3rd Yr</th><th class="c">4th Yr</th><th class="c">Day Scholar</th><th class="c">Hosteler</th><th class="c">Total</th></tr></thead>
-        <tbody>\${clubTableBody2}</tbody>
+        <tbody>${clubTableBody2}</tbody>
       </table>
     </div>
     <p class="note">Domains — LCH: Liberal Arts &amp; Culture | TEC: Technology | HWB: Health &amp; Wellbeing | ESO: Extension &amp; Social Outreach | IIE: Innovation, Incubation &amp; Entrepreneurship</p>
   </div>
-  <div class="footer"><span>KL SAC | \${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 4</span></div>
-</section>\` : ''}
+  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 4</span></div>
+</section>` : ''}
 
 <!-- ================= PAGE 5 : CALENDAR + ACTIVITIES (1/2) ================= -->
 <section class="page">
-  <img class="letterhead" src="\${letterheadUrl}" alt="">
+  <img class="letterhead" src="${letterheadUrl}" alt="">
   <div class="content">
-    <div class="bar">CALENDAR OF EVENTS — \${monthStr.toUpperCase()}</div>
+    <div class="bar">CALENDAR OF EVENTS — ${monthStr.toUpperCase()}</div>
     <div class="cal-wrap">
       <div class="cal">
         <table>
           <thead><tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr></thead>
-          <tbody>\${calHtml}</tbody>
+          <tbody>${calHtml}</tbody>
         </table>
       </div>
       <div class="side-stats">
-        <div class="stat c-maroon"><div class="num">\${totalActivities}</div><div class="lbl">Activities</div></div>
-        <div class="stat c-green"><div class="num">\${totalParticipants}</div><div class="lbl">Participants</div></div>
-        <div class="stat c-blue"><div class="num">\${activeClubsCount}</div><div class="lbl">Clubs Active</div></div>
-        <div class="stat c-brown"><div class="num">\${eventDays.size}</div><div class="lbl">Event Days</div></div>
+        <div class="stat c-maroon"><div class="num">${totalActivities}</div><div class="lbl">Activities</div></div>
+        <div class="stat c-green"><div class="num">${totalParticipants}</div><div class="lbl">Participants</div></div>
+        <div class="stat c-blue"><div class="num">${activeClubsCount}</div><div class="lbl">Clubs Active</div></div>
+        <div class="stat c-brown"><div class="num">${eventDays.size}</div><div class="lbl">Event Days</div></div>
       </div>
     </div>
-    <div class="legend"><i></i>Event Day — \${eventDays.size} days with activities in \${monthStr}</div>
+    <div class="legend"><i></i>Event Day — ${eventDays.size} days with activities in ${monthStr}</div>
 
     <div class="subbar" style="margin-top:16px">Domain-wise Activity Details</div>
     <div class="table-scroll">
       <table class="acts">
         <thead><tr><th class="c">S.No</th><th>Activity Name</th><th>Club</th><th class="c">Students</th><th>Venue</th><th class="c">Date</th></tr></thead>
-        <tbody>\${acts1}</tbody>
+        <tbody>${acts1}</tbody>
       </table>
     </div>
   </div>
-  <div class="footer"><span>KL SAC | \${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page \${clubTableBody2 ? '5' : '4'}</span></div>
+  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page ${clubTableBody2 ? '5' : '4'}</span></div>
 </section>
 
 <!-- ================= PAGE 6 : ACTIVITIES (2/2) ================= -->
-\${acts2 ? \`<section class="page">
-  <img class="letterhead" src="\${letterheadUrl}" alt="">
+${acts2 ? `<section class="page">
+  <img class="letterhead" src="${letterheadUrl}" alt="">
   <div class="content">
     <div class="table-scroll">
       <table class="acts">
         <thead><tr><th class="c">S.No</th><th>Activity Name</th><th>Club</th><th class="c">Students</th><th>Venue</th><th class="c">Date</th></tr></thead>
-        <tbody>\${acts2}</tbody>
+        <tbody>${acts2}</tbody>
       </table>
     </div>
   </div>
-  <div class="footer"><span>KL SAC | \${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page \${clubTableBody2 ? '6' : '5'}</span></div>
-</section>\` : ''}
+  <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page ${clubTableBody2 ? '6' : '5'}</span></div>
+</section>` : ''}
 
 </body>
 </html>
-        \`;
+        `;
 
         const printWindow = window.open('', '_blank');
         if (printWindow) {
