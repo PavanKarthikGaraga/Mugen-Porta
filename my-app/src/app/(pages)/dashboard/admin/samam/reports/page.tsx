@@ -124,7 +124,7 @@ export default function MonthlyReportsPage() {
         };
     };
 
-    const downloadPDF = () => {
+    const getReportHtml = () => {
         if (!reportData) return;
         const { monthStr, monthName, year, totalClubs, totalActivities, totalParticipants, totalRegistered, domainStats, clubStatsList, activities, activeClubsCount, eventDaysCount } = reportData;
 
@@ -489,6 +489,14 @@ ${acts2 ? `<section class="page">
 </html>
         `;
 
+        return htmlContent;
+    };
+
+    const downloadPDF = () => {
+        if (!reportData) return;
+        const htmlContent = getReportHtml();
+        if (!htmlContent) return;
+
         const printWindow = window.open('', '_blank');
         if (printWindow) {
             printWindow.document.write(htmlContent);
@@ -501,6 +509,8 @@ ${acts2 ? `<section class="page">
 
     const downloadWord = async () => {
         if (!reportData) return;
+        const htmlContent = getReportHtml();
+        if (!htmlContent) return;
         
         const wordHtml = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
