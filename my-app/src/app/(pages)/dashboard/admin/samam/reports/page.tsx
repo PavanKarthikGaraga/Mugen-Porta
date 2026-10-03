@@ -51,12 +51,14 @@ export default function MonthlyReportsPage() {
         let totalParticipants = 0;
         let totalRegistered = 0;
 
+        const domainOrder: Record<string, number> = { 'TEC': 1, 'LCH': 2, 'ESO': 3, 'HWB': 4, 'IIE': 5 };
+
         // Group by domains
         const domainStats: any = {
-            LCH: { name: domainMap.LCH, clubs: 0, activities: 0, participants: 0, regStudents: 0 },
             TEC: { name: domainMap.TEC, clubs: 0, activities: 0, participants: 0, regStudents: 0 },
-            HWB: { name: domainMap.HWB, clubs: 0, activities: 0, participants: 0, regStudents: 0 },
+            LCH: { name: domainMap.LCH, clubs: 0, activities: 0, participants: 0, regStudents: 0 },
             ESO: { name: domainMap.ESO, clubs: 0, activities: 0, participants: 0, regStudents: 0 },
+            HWB: { name: domainMap.HWB, clubs: 0, activities: 0, participants: 0, regStudents: 0 },
             IIE: { name: domainMap.IIE, clubs: 0, activities: 0, participants: 0, regStudents: 0 },
         };
 
@@ -102,8 +104,16 @@ export default function MonthlyReportsPage() {
         
         // Sort club stats by domain then name
         clubStatsList.sort((a, b) => {
-            if (a.domain !== b.domain) return a.domain.localeCompare(b.domain);
+            if (a.domain !== b.domain) return (domainOrder[a.domain] || 99) - (domainOrder[b.domain] || 99);
             return a.name.localeCompare(b.name);
+        });
+
+        // Sort activities by domain then date
+        activities.sort((a: any, b: any) => {
+            const doA = domainOrder[a.domain || 'TEC'] || 99;
+            const doB = domainOrder[b.domain || 'TEC'] || 99;
+            if (doA !== doB) return doA - doB;
+            return new Date(a.activity_date).getTime() - new Date(b.activity_date).getTime();
         });
 
         const date = new Date(parseInt(year), parseInt(month) - 1);
@@ -128,11 +138,12 @@ export default function MonthlyReportsPage() {
         if (!reportData) return;
         const { monthStr, monthName, year, totalClubs, totalActivities, totalParticipants, totalRegistered, domainStats, clubStatsList, activities, activeClubsCount, eventDaysCount } = reportData;
 
-        // Ensure domainStats has code
+        const domainOrder: Record<string, number> = { 'TEC': 1, 'LCH': 2, 'ESO': 3, 'HWB': 4, 'IIE': 5 };
+        // Ensure domainStats has code and is sorted
         const activeDomains = domainStats.map((d: any) => ({
             ...d,
             code: Object.keys(domainMap).find(k => domainMap[k] === d.name) || d.name.substring(0, 3).toUpperCase()
-        }));
+        })).sort((a: any, b: any) => (domainOrder[a.code] || 99) - (domainOrder[b.code] || 99));
 
         const eventDays = new Set();
         activities.forEach((act: any) => {
@@ -197,8 +208,7 @@ export default function MonthlyReportsPage() {
         // Activities HTML
         let acts1 = ''; let acts2 = '';
         activities.forEach((a: any, i: number) => {
-            const domainName = a.domain || 'Technology';
-            const domCode = Object.keys(domainMap).find(k => domainMap[k] === domainName) || 'TEC';
+            const domCode = domainMap[a.domain] ? a.domain : 'TEC';
             const row = `<tr><td class="n">${i+1}</td><td>${a.title}</td><td class="club t-${domCode}">${a.club_name || '-'}</td><td class="n">${a.enrolled || a.participants || 0}</td><td class="n">${a.present || a.participants || 0}</td><td class="venue">${a.venue || '-'}</td><td class="date">${a.activity_date ? new Date(a.activity_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}) : '-'}</td></tr>`;
             if (i < 22) acts1 += row;
             else acts2 += row;
@@ -249,10 +259,10 @@ export default function MonthlyReportsPage() {
 
   /* ---------- Cover ---------- */
   .cover{text-align:center;padding-top:14mm}
-  .month-badge{display:inline-block;background:var(--green);color:#fff;font-weight:bold;
+  .month-badge{display:inline-block;background:#0b6b0b;color:#fff;font-weight:bold;
     font-size:15pt;padding:5px 56px;letter-spacing:.5px}
-  .cover h1{color:var(--maroon);font-size:44pt;margin:14px auto 6px;line-height:1.1;
-    border-bottom:2px solid var(--maroon);padding-bottom:6px;width:90%}
+  .cover h1{color:#800000;font-size:44pt;margin:14px auto 6px;line-height:1.1;
+    border-bottom:2px solid #800000;padding-bottom:6px;width:90%}
   .cover .sub1{font-style:italic;font-size:15pt;color:#333;margin-top:4px}
   .cover .sub2{font-style:italic;font-size:12pt;color:#666;margin-top:2px}
 
@@ -260,42 +270,42 @@ export default function MonthlyReportsPage() {
   .stat{border:1px solid;padding:10px 6px 8px;text-align:center}
   .stat .num{font-size:30pt;font-weight:bold;line-height:1}
   .stat .lbl{font-size:8.5pt;color:#444;margin-top:2px}
-  .c-maroon{border-color:var(--maroon);background:var(--maroon-bg)} .c-maroon .num{color:var(--maroon)}
-  .c-green{border-color:var(--green);background:var(--green-bg)}    .c-green .num{color:var(--green)}
-  .c-blue{border-color:var(--blue);background:var(--blue-bg)}       .c-blue .num{color:var(--blue)}
-  .c-brown{border-color:var(--brown);background:var(--brown-bg)}    .c-brown .num{color:var(--brown)}
-  .c-purple{border-color:var(--purple);background:var(--purple-bg)}    .c-purple .num{color:var(--purple)}
+  .c-maroon{border-color:#800000;background:#f5e8e8} .c-maroon .num{color:#800000}
+  .c-green{border-color:#0b6b0b;background:#e8f3e8}    .c-green .num{color:#0b6b0b}
+  .c-blue{border-color:#0a4a8c;background:#e8eef6}       .c-blue .num{color:#0a4a8c}
+  .c-brown{border-color:#8b4a0b;background:#fff3e6}    .c-brown .num{color:#8b4a0b}
+  .c-purple{border-color:#6a0dad;background:#f3e8f8}    .c-purple .num{color:#6a0dad}
 
   .domains-title{font-weight:bold;font-size:11pt;margin:24px 0 8px;color:#333}
   .domain-card{border:1px solid;padding:10px 6px;text-align:center}
   .domain-card .code{font-weight:bold;font-size:14pt}
   .domain-card .name{font-size:8.5pt;color:#444;margin-top:6px}
-  .report-meta{border-top:1px solid var(--line);margin-top:22px;padding-top:8px;text-align:center;
+  .report-meta{border-top:1px solid #d9d9d9;margin-top:22px;padding-top:8px;text-align:center;
     font-style:italic;font-size:9pt;color:#666}
 
   /* ---------- Section bars ---------- */
-  .bar{background:var(--maroon);color:#fff;font-weight:bold;text-align:center;
+  .bar{background:#800000;color:#fff;font-weight:bold;text-align:center;
     font-size:14pt;padding:9px 10px;letter-spacing:.3px}
-  .subbar{background:var(--maroon);color:#fff;font-weight:bold;font-size:10.5pt;padding:6px 8px;margin-top:14px}
-  .subbar.green{background:var(--green)}
+  .subbar{background:#800000;color:#fff;font-weight:bold;font-size:10.5pt;padding:6px 8px;margin-top:14px}
+  .subbar.green{background:#0b6b0b}
   .overview-text{font-size:10.5pt;line-height:1.75;text-align:justify;margin:14px 0 4px}
 
   /* ---------- Tables ---------- */
   table{width:100%;border-collapse:collapse;font-size:8.5pt}
-  th{background:var(--maroon);color:#fff;padding:6px 4px;border:1px solid #fff;font-size:8.5pt}
-  td{padding:5px 6px;border:1px solid var(--line)}
+  th{background:#800000;color:#fff;padding:6px 4px;border:1px solid #fff;font-size:8.5pt}
+  td{padding:5px 6px;border:1px solid #d9d9d9}
   td.c,th.c{text-align:center}
   tbody tr:nth-child(even) td{background:#f4f4f4}
 
   .summary td.dom{color:#fff;font-weight:bold;text-align:center}
   .summary td.reg{font-weight:bold;text-align:center}
   .summary td.n{text-align:center}
-  .bg-LCH{background:var(--maroon)} .bg-TEC{background:var(--blue)}
-  .bg-HWB{background:var(--green)} .bg-ESO{background:var(--brown)} .bg-IIE{background:var(--purple)}
-  .tint-LCH td.name{background:var(--maroon-bg)!important} .tint-TEC td.name{background:var(--blue-bg)!important}
-  .tint-HWB td.name{background:var(--green-bg)!important} .tint-ESO td.name{background:var(--brown-bg)!important}
-  .tint-IIE td.name{background:var(--purple-bg)!important}
-  .t-LCH{color:var(--maroon)} .t-TEC{color:var(--blue)} .t-HWB{color:var(--green)} .t-ESO{color:var(--brown)} .t-IIE{color:var(--purple)}
+  .bg-LCH{background:#800000} .bg-TEC{background:#0a4a8c}
+  .bg-HWB{background:#0b6b0b} .bg-ESO{background:#8b4a0b} .bg-IIE{background:#6a0dad}
+  .tint-LCH td.name{background:#f5e8e8!important} .tint-TEC td.name{background:#e8eef6!important}
+  .tint-HWB td.name{background:#e8f3e8!important} .tint-ESO td.name{background:#fff3e6!important}
+  .tint-IIE td.name{background:#f3e8f8!important}
+  .t-LCH{color:#800000} .t-TEC{color:#0a4a8c} .t-HWB{color:#0b6b0b} .t-ESO{color:#8b4a0b} .t-IIE{color:#6a0dad}
 
   .highlights{list-style:none;margin-top:4px}
   .highlights li{font-size:9.5pt;padding:6px 4px 6px 16px;border-bottom:1px solid #e3e3e3;position:relative;line-height:1.4}
@@ -434,7 +444,51 @@ ${clubTableBody2 ? `<section class="page">
         <tbody>${clubTableBody2}</tbody>
       </table>
     </div>
-    <p class="note">Domains — LCH: Liberal Arts &amp; Culture | TEC: Technology | HWB: Health &amp; Wellbeing | ESO: Extension &amp; Social Outreach | IIE: Innovation, Incubation &amp; Entrepreneurship</p>
+    <p class="note" style="margin-top:8px; font-size:8pt; color:#666;">Domains — TEC: Technology | LCH: Liberal Arts &amp; Culture | ESO: Extension &amp; Social Outreach | HWB: Health &amp; Wellbeing | IIE: Innovation, Incubation &amp; Entrepreneurship</p>
+    
+    <div class="subbar" style="margin-top:24px; background:#800000; color:#fff; font-weight:bold; font-size:10.5pt; padding:6px 8px;">Demographic Distribution Overview</div>
+    <table style="width:100%; border:none; margin-top:16px;">
+      <tr>
+        <td style="width:50%; padding-right:12px; vertical-align:top; border:none;">
+          <div style="border:1px solid #d9d9d9; padding:16px; background:#f9f9f9; text-align:center;">
+            <h3 style="font-size:11pt; color:#800000; margin-bottom:16px; border-bottom:1px solid #e3e3e3; padding-bottom:8px; margin-top:0;">Academic Year Distribution</h3>
+            <table style="width:100%; border:none; margin-bottom:10px;">
+              <tr><td style="border:none; padding:2px 0; text-align:left; font-size:9.5pt;">1st Year</td><td style="border:none; padding:2px 0; text-align:right; font-size:9.5pt;"><b>${grandTotal[0]}</b></td></tr>
+              <tr><td colspan="2" style="border:none; padding:0"><div style="background:#e3e3e3; height:8px;"><div style="background:#0a4a8c; height:8px; width:${grandTotal[6] ? (grandTotal[0]/grandTotal[6]*100) : 0}%;"></div></div></td></tr>
+            </table>
+            <table style="width:100%; border:none; margin-bottom:10px;">
+              <tr><td style="border:none; padding:2px 0; text-align:left; font-size:9.5pt;">2nd Year</td><td style="border:none; padding:2px 0; text-align:right; font-size:9.5pt;"><b>${grandTotal[1]}</b></td></tr>
+              <tr><td colspan="2" style="border:none; padding:0"><div style="background:#e3e3e3; height:8px;"><div style="background:#0a4a8c; height:8px; width:${grandTotal[6] ? (grandTotal[1]/grandTotal[6]*100) : 0}%;"></div></div></td></tr>
+            </table>
+            <table style="width:100%; border:none; margin-bottom:10px;">
+              <tr><td style="border:none; padding:2px 0; text-align:left; font-size:9.5pt;">3rd Year</td><td style="border:none; padding:2px 0; text-align:right; font-size:9.5pt;"><b>${grandTotal[2]}</b></td></tr>
+              <tr><td colspan="2" style="border:none; padding:0"><div style="background:#e3e3e3; height:8px;"><div style="background:#0a4a8c; height:8px; width:${grandTotal[6] ? (grandTotal[2]/grandTotal[6]*100) : 0}%;"></div></div></td></tr>
+            </table>
+            <table style="width:100%; border:none; margin-bottom:10px;">
+              <tr><td style="border:none; padding:2px 0; text-align:left; font-size:9.5pt;">4th Year</td><td style="border:none; padding:2px 0; text-align:right; font-size:9.5pt;"><b>${grandTotal[3]}</b></td></tr>
+              <tr><td colspan="2" style="border:none; padding:0"><div style="background:#e3e3e3; height:8px;"><div style="background:#0a4a8c; height:8px; width:${grandTotal[6] ? (grandTotal[3]/grandTotal[6]*100) : 0}%;"></div></div></td></tr>
+            </table>
+          </div>
+        </td>
+        <td style="width:50%; padding-left:12px; vertical-align:top; border:none;">
+          <div style="border:1px solid #d9d9d9; padding:16px; background:#f9f9f9; text-align:center;">
+            <h3 style="font-size:11pt; color:#800000; margin-bottom:16px; border-bottom:1px solid #e3e3e3; padding-bottom:8px; margin-top:0;">Residential Status</h3>
+            <table style="width:100%; border:none; margin-bottom:16px;">
+              <tr><td style="border:none; padding:2px 0; text-align:left; font-size:9.5pt;">Day Scholar</td><td style="border:none; padding:2px 0; text-align:right; font-size:9.5pt;"><b>${grandTotal[4]}</b></td></tr>
+              <tr><td colspan="2" style="border:none; padding:0"><div style="background:#e3e3e3; height:8px;"><div style="background:#8b4a0b; height:8px; width:${grandTotal[6] ? (grandTotal[4]/grandTotal[6]*100) : 0}%;"></div></div></td></tr>
+            </table>
+            <table style="width:100%; border:none; margin-bottom:16px;">
+              <tr><td style="border:none; padding:2px 0; text-align:left; font-size:9.5pt;">Hosteler</td><td style="border:none; padding:2px 0; text-align:right; font-size:9.5pt;"><b>${grandTotal[5]}</b></td></tr>
+              <tr><td colspan="2" style="border:none; padding:0"><div style="background:#e3e3e3; height:8px;"><div style="background:#8b4a0b; height:8px; width:${grandTotal[6] ? (grandTotal[5]/grandTotal[6]*100) : 0}%;"></div></div></td></tr>
+            </table>
+            <div style="margin-top:28px; padding:12px; background:#0b6b0b; color:#fff;">
+              <div style="font-size:9pt; margin-bottom:4px;">Total Registered Strength</div>
+              <div style="font-size:20pt; font-weight:bold;">${grandTotal[6]}</div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
   </div>
   <div class="footer"><span>KL SAC | ${monthStr} Monthly Report</span><b>Koneru Lakshmaiah Education Foundation</b><span>Page 4</span></div>
 </section>` : ''}
