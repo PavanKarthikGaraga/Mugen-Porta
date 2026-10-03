@@ -25,11 +25,29 @@ export async function GET(request: Request) {
             return NextResponse.json({ message: 'Month and year are required' }, { status: 400 });
         }
 
-        // 1. Fetch Clubs
+        const allowedClubs = [
+            'ZeroOne Code Club', 'Cyber Security Club', 'Electric Vehicle Club', 
+            'Quantum Computing Club', 'WebApps Club', 'Automation Club', 
+            'Force Vega Racing', 'Ed Tech Club',
+            'Music Club', 'KL eSports Club', 'Short Film Makers Club', 
+            'Adventure Club', 'Literature Club', 'Dance Club', 
+            'Vastraa (Fashion) Club', 'Handicrafts Club', 'Arts & Painting Club', 
+            'Photography Club',
+            'SVR Club', 'Spiritual Sciences Club', 'Yuva Tourism Club', 'KL Youth Policy LAB',
+            'IE Club',
+            'Yoga Club', 'SafeLife Club'
+        ];
+
+        // 1. Fetch Clubs (only the 25 allowed)
+        const placeholders = allowedClubs.map(() => '?').join(',');
         const [clubsRows]: any = await pool.execute(`
             SELECT id, name, domain FROM clubs 
             WHERE domain IN ('TEC', 'LCH', 'ESO', 'IIE', 'HWB')
-        `);
+            AND name IN (${placeholders})
+        `, [...allowedClubs]);
+
+        const allowedClubIds = new Set(clubsRows.map((c: any) => c.id));
+        const allowedClubNamesSet = new Set(allowedClubs);
 
         // 2. Fetch Activities in the month
         // We use LEFT JOIN to find the club, either through explicit mapping or category mapping
@@ -53,9 +71,12 @@ export async function GET(request: Request) {
         const uniqueActivities = [];
         const seenCodes = new Set();
         for (const row of activitiesRows) {
-            if (!seenCodes.has(row.code)) {
-                seenCodes.add(row.code);
-                uniqueActivities.push(row);
+            // Only include activities mapped to the allowed 25 clubs
+            if (row.club_name && allowedClubNamesSet.has(row.club_name)) {
+                if (!seenCodes.has(row.code)) {
+                    seenCodes.add(row.code);
+                    uniqueActivities.push(row);
+                }
             }
         }
 
@@ -79,7 +100,7 @@ export async function GET(request: Request) {
             success: true,
             clubs: clubsRows,
             activities: uniqueActivities,
-            studentStats: studentsRows
+            studentStats: studentsRows.filter((s: any) => allowedClubIds.has(s.clubId))
         });
     } catch (error: any) {
         console.error('Monthly reports error:', error);
