@@ -46,9 +46,18 @@ export async function GET(request: Request) {
             LEFT JOIN clubs c_direct ON c_direct.name = a.category
             WHERE YEAR(a.activity_date) = ? AND MONTH(a.activity_date) = ?
               AND a.domain IN ('TEC', 'LCH', 'ESO', 'IIE', 'HWB')
-            GROUP BY a.code
             ORDER BY a.activity_date ASC
         `, [year, month]);
+
+        // Deduplicate activities in JS to avoid ONLY_FULL_GROUP_BY SQL errors
+        const uniqueActivities = [];
+        const seenCodes = new Set();
+        for (const row of activitiesRows) {
+            if (!seenCodes.has(row.code)) {
+                seenCodes.add(row.code);
+                uniqueActivities.push(row);
+            }
+        }
 
         // 3. Fetch Student Stats
         const [studentsRows]: any = await pool.execute(`
@@ -69,7 +78,7 @@ export async function GET(request: Request) {
         return NextResponse.json({
             success: true,
             clubs: clubsRows,
-            activities: activitiesRows,
+            activities: uniqueActivities,
             studentStats: studentsRows
         });
     } catch (error: any) {
