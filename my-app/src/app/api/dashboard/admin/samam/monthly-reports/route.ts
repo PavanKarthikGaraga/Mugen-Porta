@@ -25,51 +25,81 @@ export async function GET(request: Request) {
             return NextResponse.json({ message: 'Month and year are required' }, { status: 400 });
         }
 
-        // 1. Define substring identifiers for the exactly 25 allowed clubs
-        const allowedSubstrings = [
-            // TEC (8)
-            'zeroone', 'cyber', 'electric', 'quantum', 'webapps', 'automation', 'vega', 'edtech', 'ed tech',
-            // LCH (10)
-            'music', 'esport', 'short film', 'adventure', 'literature', 'dance', 'fashion', 'handicraft', 'art', 'photography',
-            // ESO (4)
-            'svr', 'spiritual', 'yuva', 'policy',
-            // IIE (1)
-            'ie', 'innovation', 'incubation',
-            // HWB (2)
-            'yoga', 'safelife'
+        // 1. Define exactly 25 Canonical Clubs with safe matchers per domain
+        const canonicalClubs = [
+            // TEC
+            { canonical: 'ZeroOne Code Club', domain: 'TEC', matchers: ['zeroone', 'zero one'] },
+            { canonical: 'Cyber Security Club', domain: 'TEC', matchers: ['cyber'] },
+            { canonical: 'Electric Vehicle Club', domain: 'TEC', matchers: ['electric vehicle', 'ev club', 'electric'] },
+            { canonical: 'Quantum Computing Club', domain: 'TEC', matchers: ['quantum'] },
+            { canonical: 'WebApps Club', domain: 'TEC', matchers: ['webapp'] },
+            { canonical: 'Automation Club', domain: 'TEC', matchers: ['automation'] },
+            { canonical: 'Force Vega Racing', domain: 'TEC', matchers: ['vega', 'force vega'] },
+            { canonical: 'Ed Tech Club', domain: 'TEC', matchers: ['edtech', 'ed tech'] },
+            // LCH
+            { canonical: 'Music Club', domain: 'LCH', matchers: ['music'] },
+            { canonical: 'KL eSports Club', domain: 'LCH', matchers: ['esport', 'e-sport'] },
+            { canonical: 'Short Film Makers Club', domain: 'LCH', matchers: ['short film'] },
+            { canonical: 'Adventure Club', domain: 'LCH', matchers: ['adventure'] },
+            { canonical: 'Literature Club', domain: 'LCH', matchers: ['literature'] },
+            { canonical: 'Dance Club', domain: 'LCH', matchers: ['dance'] },
+            { canonical: 'Vastraa (Fashion) Club', domain: 'LCH', matchers: ['fashion', 'vastraa'] },
+            { canonical: 'Handicrafts Club', domain: 'LCH', matchers: ['handicraft'] },
+            { canonical: 'Arts & Painting Club', domain: 'LCH', matchers: ['arts', 'painting', 'art club'] },
+            { canonical: 'Photography Club', domain: 'LCH', matchers: ['photography'] },
+            // ESO
+            { canonical: 'SVR Club', domain: 'ESO', matchers: ['svr'] },
+            { canonical: 'Spiritual Sciences Club', domain: 'ESO', matchers: ['spiritual'] },
+            { canonical: 'Yuva Tourism Club', domain: 'ESO', matchers: ['yuva'] },
+            { canonical: 'KL Youth Policy LAB', domain: 'ESO', matchers: ['policy'] },
+            // IIE
+            { canonical: 'IE Club', domain: 'IIE', matchers: ['ie club', 'innovation', 'incubation'] },
+            // HWB
+            { canonical: 'Yoga Club', domain: 'HWB', matchers: ['yoga'] },
+            { canonical: 'SafeLife Club', domain: 'HWB', matchers: ['safelife', 'safe life'] }
         ];
 
-        const isAllowedClub = (name: string) => {
-            if (!name) return false;
+        const getCanonicalMatch = (name: string, domain: string) => {
+            if (!name || !domain) return null;
             const lowerName = name.toLowerCase();
-            return allowedSubstrings.some(sub => lowerName.includes(sub));
+            for (const c of canonicalClubs) {
+                if (c.domain === domain) {
+                    // Match if any substring is present. Because we also filter by domain,
+                    // false positives (like "Smart" matching "art" in TEC) are prevented.
+                    if (c.matchers.some(m => lowerName.includes(m))) {
+                        return c.canonical;
+                    }
+                }
+            }
+            return null;
         };
 
-        // 2. Fetch ALL Clubs in domains and filter in JS using substrings + Deduplicate
+        // 2. Fetch ALL Clubs in domains and group them into the Canonical 25
         const [rawClubsRows]: any = await pool.execute(`
             SELECT id, name, domain FROM clubs 
             WHERE domain IN ('TEC', 'LCH', 'ESO', 'IIE', 'HWB')
         `);
 
-        const clubsRows: any[] = [];
-        const seenClubNames = new Set();
-        
-        for (const c of rawClubsRows) {
-            if (isAllowedClub(c.name)) {
-                // Deduplicate by name (case-insensitive) to prevent >25 clubs total
-                const normalizedName = c.name.trim().toLowerCase();
-                if (!seenClubNames.has(normalizedName)) {
-                    seenClubNames.add(normalizedName);
-                    clubsRows.push(c);
+        const canonicalToClubMap = new Map();
+        const dbIdToCanonical = new Map();
+
+        for (const dbClub of rawClubsRows) {
+            const canonName = getCanonicalMatch(dbClub.name, dbClub.domain);
+            if (canonName) {
+                dbIdToCanonical.set(dbClub.id, canonName);
+                if (!canonicalToClubMap.has(canonName)) {
+                    canonicalToClubMap.set(canonName, {
+                        id: canonName, // Use canonical string as virtual ID
+                        name: canonName,
+                        domain: dbClub.domain
+                    });
                 }
             }
         }
+        
+        const finalClubsList = Array.from(canonicalToClubMap.values());
 
-        const allowedClubIds = new Set(clubsRows.map((c: any) => c.id));
-        const allowedClubNamesSet = new Set(clubsRows.map((c: any) => c.name));
-
-        // 3. Fetch Activities in the month
-        // We use LEFT JOIN to find the club, either through explicit mapping or category mapping
+        // 3. Fetch and Merge Activities
         const [activitiesRows]: any = await pool.execute(`
             SELECT a.code, a.title, a.domain, a.category, a.activity_date, a.venue,
                    COALESCE(cam.club_id, ccm.club_id, c_direct.id) as club_id,
@@ -87,23 +117,22 @@ export async function GET(request: Request) {
             ORDER BY a.activity_date ASC
         `, [year, month]);
 
-        // Deduplicate activities in JS to avoid ONLY_FULL_GROUP_BY SQL errors
         const uniqueActivities = [];
         const seenCodes = new Set();
         for (const row of activitiesRows) {
-            // Only include activities mapped to the allowed 25 clubs
-            if (row.club_name && isAllowedClub(row.club_name)) {
+            const canonName = dbIdToCanonical.get(row.club_id) || getCanonicalMatch(row.club_name, row.domain);
+            if (canonName) {
+                row.club_name = canonName;
                 if (!seenCodes.has(row.code)) {
                     seenCodes.add(row.code);
-                    // Use total enrolled if attendance not taken (present == 0)
                     row.participants = row.present > 0 ? row.present : row.enrolled;
                     uniqueActivities.push(row);
                 }
             }
         }
 
-        // 3. Fetch Student Stats
-        const [studentsRows]: any = await pool.execute(`
+        // 4. Fetch and Merge Student Stats
+        const [rawStudentsRows]: any = await pool.execute(`
             SELECT 
                 clubId,
                 SUM(CASE WHEN year = '1st' THEN 1 ELSE 0 END) as yr1,
@@ -118,11 +147,34 @@ export async function GET(request: Request) {
             GROUP BY clubId
         `);
 
+        const mergedStudentStats = new Map();
+        for (const s of rawStudentsRows) {
+            const canonName = dbIdToCanonical.get(s.clubId);
+            if (canonName) {
+                if (!mergedStudentStats.has(canonName)) {
+                    mergedStudentStats.set(canonName, {
+                        clubId: canonName,
+                        yr1: 0, yr2: 0, yr3: 0, yr4: 0, dayScholar: 0, hosteler: 0, total: 0
+                    });
+                }
+                const merged = mergedStudentStats.get(canonName);
+                merged.yr1 += Number(s.yr1) || 0;
+                merged.yr2 += Number(s.yr2) || 0;
+                merged.yr3 += Number(s.yr3) || 0;
+                merged.yr4 += Number(s.yr4) || 0;
+                merged.dayScholar += Number(s.dayScholar) || 0;
+                merged.hosteler += Number(s.hosteler) || 0;
+                merged.total += Number(s.total) || 0;
+            }
+        }
+        
+        const finalStudentStats = Array.from(mergedStudentStats.values());
+
         return NextResponse.json({
             success: true,
-            clubs: clubsRows,
+            clubs: finalClubsList,
             activities: uniqueActivities,
-            studentStats: studentsRows.filter((s: any) => allowedClubIds.has(s.clubId))
+            studentStats: finalStudentStats
         });
     } catch (error: any) {
         console.error('Monthly reports error:', error);
