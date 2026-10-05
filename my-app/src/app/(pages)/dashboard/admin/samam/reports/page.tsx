@@ -155,8 +155,20 @@ export default function MonthlyReportsPage() {
         const firstDay = new Date(parseInt(year), monthIndex, 1).getDay();
 
         // Highlights
-        const topActivities = activities.slice(0, 15);
-        const highlightsHtml = topActivities.map((a: any) => `<li><b>${a.club_name || 'Club'}</b> conducted ${a.title} with ${a.participants} participants.</li>`).join('');
+        const sortedForHighlights = [...activities].sort((a: any, b: any) => (parseInt(b.participants) || 0) - (parseInt(a.participants) || 0));
+        const uniqueClubActivities: any[] = [];
+        const seenClubsForHighlights = new Set();
+        
+        for (const act of sortedForHighlights) {
+            const clubIdentifier = act.club_name || act.club_id || 'Unknown Club';
+            if (clubIdentifier !== 'Unknown Club' && !seenClubsForHighlights.has(clubIdentifier)) {
+                seenClubsForHighlights.add(clubIdentifier);
+                uniqueClubActivities.push(act);
+            }
+            if (uniqueClubActivities.length >= 15) break;
+        }
+
+        const highlightsHtml = uniqueClubActivities.map((a: any) => `<li><b>${a.club_name || 'Club'}</b> conducted ${a.title} with ${a.participants} participants.</li>`).join('');
 
         // Domains Covered HTML
         const domainCardsHtml = activeDomains.map((d: any) => {
