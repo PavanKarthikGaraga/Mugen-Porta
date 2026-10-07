@@ -20,23 +20,27 @@ export async function GET(request: Request) {
         }
 
         const query = `
-            SELECT 
+            SELECT DISTINCT
+                s.username AS student_id,
+                s.name AS student_name,
+                c.name AS club_name,
                 s.district AS city,
-                s.busRoute AS city_bus_route,
-                COUNT(DISTINCT s.username) as student_count
+                s.busRoute AS city_bus_route
             FROM 
                 students s
             JOIN 
                 activity_enrollments ae ON s.username = ae.username
             JOIN 
                 activity_catalogue ac ON ae.activity_code = ac.code
+            LEFT JOIN 
+                clubs c ON s.clubId = c.id
             WHERE 
                 s.residenceType = 'Day Scholar'
+                AND s.busRoute IS NOT NULL
+                AND s.busRoute != 'Own Transport'
                 AND DATE(ac.activity_date) = ?
-            GROUP BY 
-                s.district, s.busRoute
             ORDER BY 
-                s.district, s.busRoute
+                s.district, s.busRoute, s.name
         `;
 
         const [rows]: any = await pool.query(query, [targetDate]);

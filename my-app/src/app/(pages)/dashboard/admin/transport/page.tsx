@@ -33,7 +33,7 @@ export default function TransportDetailsPage() {
         fetchTransportDetails();
     }, [date]);
 
-    const totalStudents = data.reduce((sum, item) => sum + item.student_count, 0);
+    const totalStudents = data.length;
 
     return (
         <div className="space-y-6">
@@ -89,13 +89,19 @@ export default function TransportDetailsPage() {
                                 <thead className="bg-gray-50">
                                     <tr>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Student ID
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Student Name
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Club
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             City / District
                                         </th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Bus Route
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Student Count
                                         </th>
                                     </tr>
                                 </thead>
@@ -103,15 +109,21 @@ export default function TransportDetailsPage() {
                                     {data.map((item, index) => (
                                         <tr key={index} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                {item.student_id}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {item.student_name}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {item.club_name || 'N/A'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {item.city || 'Not Specified'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md font-medium bg-gray-100 text-gray-800">
                                                     {item.city_bus_route || 'Not Specified'}
                                                 </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                                {item.student_count}
                                             </td>
                                         </tr>
                                     ))}
