@@ -48,6 +48,11 @@ export async function middleware(request, event) {
 
                 if (payload) {
                     // Redirect logged-in users to their respective dashboards
+                    if (['admin', 'analytics'].includes(payload.role)) {
+                        return NextResponse.redirect(new URL('/dashboard/admin', request.url));
+                    } else if (payload.role === 'transport') {
+                        return NextResponse.redirect(new URL('/dashboard/admin/transport', request.url));
+                    }
                     return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
                 }
             } catch (error) {
@@ -76,7 +81,7 @@ export async function middleware(request, event) {
 
             // Check if accessing admin routes
             if (pathname.startsWith('/dashboard/admin')) {
-                if (payload.role !== 'admin') {
+                if (!['admin', 'analytics', 'transport'].includes(payload.role)) {
                     // Redirect to regular dashboard if not admin
                     return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
                 }

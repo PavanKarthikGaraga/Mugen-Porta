@@ -82,9 +82,12 @@ export default function Login() {
 
                         // Use setTimeout to ensure redirect happens after state updates
                         setTimeout(() => {
-                            if (role === 'admin'){
+                            if (role === 'admin' || role === 'analytics'){
                                 console.log("Redirecting to admin dashboard");
                                 router.push("/dashboard/admin");
+                            } else if (role === 'transport'){
+                                console.log("Redirecting to transport dashboard");
+                                router.push("/dashboard/admin/transport");
                             } else if (role === 'lead'){
                                 console.log("Redirecting to lead dashboard");
                                 router.push("/dashboard/lead");
