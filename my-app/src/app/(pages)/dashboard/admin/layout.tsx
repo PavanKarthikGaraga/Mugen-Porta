@@ -77,6 +77,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Completed Activities', href: '/dashboard/admin/completed-activities',   icon: FiClipboard   },
         { name: 'Attendance Records',   href: '/dashboard/admin/attendance-records',     icon: FiActivity    },
         { name: 'Passport Approvals',   href: '/dashboard/admin/passport-approvals',  icon: FiFileText    },
+        { name: 'Transport Details',    href: '/dashboard/admin/transport',           icon: FiMap         },
         { name: 'Controls',             href: '/dashboard/admin/controls',            icon: FiSettings    }
     ];
 
