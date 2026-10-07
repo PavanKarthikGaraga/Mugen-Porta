@@ -29,10 +29,10 @@ export async function GET(request) {
             );
         }
 
-        // Check if user is admin
-        if (decoded.role !== 'admin') {
+        // Check if user is admin or analytics
+        if (!['admin', 'analytics'].includes(decoded.role)) {
             return NextResponse.json(
-                { message: 'Access denied. Admin role required.' },
+                { message: 'Access denied. Admin or Analytics role required.' },
                 { status: 403 }
             );
         }

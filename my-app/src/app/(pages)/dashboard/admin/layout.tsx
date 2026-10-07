@@ -112,6 +112,15 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'IQAC Reports', href: '/dashboard/admin/iqac/reports', icon: FiFileText }
     ];
 
+    const analyticsNavigation = [
+        { name: 'Overview',             href: '/dashboard/admin',                     icon: FiHome        },
+        { name: 'Students',             href: '/dashboard/admin/students',            icon: FiFolder      },
+        { name: 'Completed Activities', href: '/dashboard/admin/completed-activities',icon: FiClipboard   },
+        { name: 'Attendance Records',   href: '/dashboard/admin/attendance-records',  icon: FiActivity    },
+        { name: 'Transport Details',    href: '/dashboard/admin/transport',           icon: FiMap         },
+        { name: 'Controls',             href: '/dashboard/admin/controls',            icon: FiSettings    }
+    ];
+
     const handleLogout = async () => {
         if (isProxySession) {
             // If in proxy session, logout from proxy first
@@ -223,6 +232,29 @@ export default function AdminDashboardLayout({ children }) {
                                         }`} />
                                         Transport Details
                                     </Link>
+                                ) : userData.role === 'analytics' ? (
+                                    <>
+                                        {analyticsNavigation.map((item) => {
+                                            const isActive = pathname === item.href;
+                                            return (
+                                                <Link
+                                                    key={item.name}
+                                                    href={item.href}
+                                                    className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
+                                                        isActive
+                                                            ? 'bg-red-700 text-white shadow-lg'
+                                                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                    }`}
+                                                    onClick={() => setSidebarOpen(false)}
+                                                >
+                                                    <item.icon className={`mr-3 h-5 w-5 ${
+                                                        isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                                    }`} />
+                                                    {item.name}
+                                                </Link>
+                                            );
+                                        })}
+                                    </>
                                 ) : userData.username === 'iqac' ? (
                                     <>
                                         {iqacNavigation.map((item) => {

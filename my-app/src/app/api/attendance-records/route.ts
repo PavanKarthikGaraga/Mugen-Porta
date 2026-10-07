@@ -84,7 +84,7 @@ export async function GET(request: Request) {
         whereClause = `WHERE (ats.club_id IN (${ph}) OR (ats.club_id IN ('ADMIN_TAKEN','ROLE_TAKEN') AND EXISTS (SELECT 1 FROM club_activity_mappings cam WHERE cam.activity_code = ats.activity_code AND cam.club_id IN (${ph}))))`;
         queryParams = [...clubs, ...clubs];
       }
-    } else if (role === 'admin') {
+    } else if (role === 'admin' || role === 'analytics') {
       if (clubFilter) {
         whereClause = 'WHERE ats.club_id = ?';
         queryParams = [clubFilter];

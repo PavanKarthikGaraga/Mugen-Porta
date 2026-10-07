@@ -41,7 +41,7 @@ export async function GET() {
 
 // PUT - Update controls
 export async function PUT(request) {
-    const auth = await requireAuth(['admin']);
+    const auth = await requireAuth(['admin', 'analytics']);
     if (auth.response) return auth.response;
 
     let db;

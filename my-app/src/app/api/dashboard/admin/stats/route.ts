@@ -18,8 +18,8 @@ export async function GET(request) {
             return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 });
         }
 
-        if (decoded.role !== 'admin') {
-            return NextResponse.json({ message: 'Access denied. Admin role required.' }, { status: 403 });
+        if (!['admin', 'analytics'].includes(decoded.role)) {
+            return NextResponse.json({ message: 'Access denied. Admin or Analytics role required.' }, { status: 403 });
         }
 
         // ── Filters ───────────────────────────────────────────────────────────

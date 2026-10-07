@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/apiSecurity';
 import { ensureActivityReportsTable } from '@/lib/dbMigrate';
 
 export async function GET() {
-    const auth = await requireAuth(['admin']);
+    const auth = await requireAuth(['admin', 'analytics']);
     if (auth.response) return auth.response;
 
     try {
