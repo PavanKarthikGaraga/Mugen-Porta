@@ -69,6 +69,8 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Users',             href: '/dashboard/admin/users',    icon: FiUsers   },
         { name: 'Clubs',             href: '/dashboard/admin/clubs',    icon: FiFolder  },
         { name: 'Students',          href: '/dashboard/admin/students', icon: FiFolder  },
+        { name: 'Super Analytics',   href: '/dashboard/admin/super-analytics', icon: FiBarChart2 },
+        { name: 'Transport Details', href: '/dashboard/admin/transport', icon: FiMap },
         { name: 'Award Badges/Points', href: '/dashboard/admin/samam/award', icon: FiStar },
         { name: 'Activity Awards',    href: '/dashboard/admin/samam/activity-awards', icon: FiAward },
         { name: 'Activity Mapper',   href: '/dashboard/admin/activity-mapper', icon: FiMap },
@@ -78,7 +80,6 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Completed Activities', href: '/dashboard/admin/completed-activities',   icon: FiClipboard   },
         { name: 'Attendance Records',   href: '/dashboard/admin/attendance-records',     icon: FiActivity    },
         { name: 'Passport Approvals',   href: '/dashboard/admin/passport-approvals',  icon: FiFileText    },
-        { name: 'Transport Details',    href: '/dashboard/admin/transport',           icon: FiMap         },
         { name: 'Controls',             href: '/dashboard/admin/controls',            icon: FiSettings    }
     ];
 
