@@ -3,7 +3,7 @@ import pool from '@/lib/db';
 import { requireAuth, safeMessage } from '@/lib/apiSecurity';
 
 export async function GET(request: Request) {
-    const auth = await requireAuth(['admin']);
+    const auth = await requireAuth(['admin', 'transport']);
     if (auth.response) return auth.response;
 
     try {

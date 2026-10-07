@@ -15,7 +15,7 @@ async function ensureCouncilTable() {
         `);
         // Ensure 'council' is a valid role value — add it if the column is an ENUM
         try {
-            await pool.execute(`ALTER TABLE users MODIFY COLUMN role ENUM('admin','lead','faculty','student','council','analytics') NOT NULL DEFAULT 'student'`);
+            await pool.execute(`ALTER TABLE users MODIFY COLUMN role ENUM('admin','lead','faculty','student','council','analytics','transport') NOT NULL DEFAULT 'student'`);
         } catch {}
 
         // Council users can now be assigned multiple domains — assignedDomains
@@ -82,7 +82,7 @@ export async function GET(request) {
                 LEFT JOIN faculty f ON u.username = f.username AND u.role = 'faculty'
                 LEFT JOIN clubs c ON l.clubId = c.id
                 LEFT JOIN council co ON u.username = co.username AND u.role = 'council'
-                WHERE u.role IN ('admin', 'lead', 'faculty', 'council', 'analytics')
+                WHERE u.role IN ('admin', 'lead', 'faculty', 'council', 'analytics', 'transport')
                 ORDER BY u.created_at DESC
             `;
             params = [];
@@ -151,7 +151,7 @@ export async function POST(request) {
             ? assignedDomains.filter((d: any) => typeof d === 'string' && VALID_DOMAINS.includes(d))
             : [];
 
-        if (role === 'council' || role === 'analytics') {
+        if (role === 'council' || role === 'analytics' || role === 'transport') {
             if (!suppliedPassword || suppliedPassword.length < 6) {
                 return NextResponse.json({ error: `Password (min 6 chars) is required for ${role}` }, { status: 400 });
             }
@@ -231,7 +231,7 @@ export async function POST(request) {
                     clubId
                 ]);
 
-            } else if (role === 'council' || role === 'analytics') {
+            } else if (role === 'council' || role === 'analytics' || role === 'transport') {
                 await connection.execute(
                     'INSERT INTO users (username, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
                     [username, username, `${username}@${role}.kluniversity.in`, hashedPassword, role]

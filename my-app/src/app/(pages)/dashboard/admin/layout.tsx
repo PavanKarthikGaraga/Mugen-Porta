@@ -17,7 +17,7 @@ export default function AdminDashboardLayout({ children }) {
     const [devDropdownOpen, setDevDropdownOpen] = useState(false);
     const [samamDropdownOpen, setSamamDropdownOpen] = useState(false);
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-    const [userData, setUserData] = useState({ username: '', name: '' });
+    const [userData, setUserData] = useState({ username: '', name: '', role: '' });
     const [hasDevAccess, setHasDevAccess] = useState(false);
     const [isProxySession, setIsProxySession] = useState(false);
     const [proxyAdminInfo, setProxyAdminInfo] = useState(null);
@@ -36,7 +36,8 @@ export default function AdminDashboardLayout({ children }) {
 
                     setUserData({
                         username,
-                        name: user.name
+                        name: user.name,
+                        role: user.role
                     });
 
                     // Check if this is a proxy session
@@ -206,7 +207,22 @@ export default function AdminDashboardLayout({ children }) {
                     <div className="flex flex-col h-full">
                         <div className="flex-1 px-0 py-1 overflow-y-auto">
                             <nav className="space-y-1">
-                                {userData.username === 'iqac' ? (
+                                {userData.role === 'transport' ? (
+                                    <Link
+                                        href="/dashboard/admin/transport"
+                                        className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
+                                            pathname === '/dashboard/admin/transport'
+                                                ? 'bg-red-700 text-white shadow-lg'
+                                                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                        }`}
+                                        onClick={() => setSidebarOpen(false)}
+                                    >
+                                        <FiMap className={`mr-3 h-5 w-5 ${
+                                            pathname === '/dashboard/admin/transport' ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                        }`} />
+                                        Transport Details
+                                    </Link>
+                                ) : userData.username === 'iqac' ? (
                                     <>
                                         {iqacNavigation.map((item) => {
                                             const isActive = pathname === item.href;
