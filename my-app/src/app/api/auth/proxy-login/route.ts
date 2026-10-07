@@ -20,8 +20,8 @@ export async function POST(req) {
         }
 
         const adminPayload = await verifyToken(token);
-        if (!adminPayload || adminPayload.role !== 'admin') {
-            return new Response(JSON.stringify({ error: "Admin access required" }), {
+        if (!adminPayload || (adminPayload.role !== 'admin' && adminPayload.role !== 'analytics')) {
+            return new Response(JSON.stringify({ error: "Admin or Analytics access required" }), {
                 status: 403,
                 headers: { "Content-Type": "application/json" }
             });

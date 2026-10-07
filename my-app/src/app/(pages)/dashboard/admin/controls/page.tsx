@@ -18,6 +18,7 @@ export default function ControlsPage() {
     const [proxyLoading, setProxyLoading] = useState(false);
     const [testEmail, setTestEmail] = useState('');
     const [emailLoading, setEmailLoading] = useState(false);
+    const [userRole, setUserRole] = useState('');
 
     useEffect(() => {
         fetchControls();
@@ -35,6 +36,13 @@ export default function ControlsPage() {
             if (response.ok) {
                 const data = await response.json();
                 setRegistrationsEnabled(data.registrationsEnabled);
+            }
+
+            // Fetch user role to conditionally hide cards
+            const userRes = await fetch('/api/auth/me');
+            if (userRes.ok) {
+                const userData = await userRes.json();
+                setUserRole(userData?.user?.role || '');
             }
         } catch (error) {
             console.error('Error fetching controls:', error);
@@ -157,6 +165,7 @@ export default function ControlsPage() {
 
     return (
         <div className="max-w-md mx-auto space-y-6">
+            {userRole !== 'analytics' && (
             <Card className="bg-white shadow-sm">
                 <CardHeader>
                     <CardTitle className="text-center">Registration Control</CardTitle>
@@ -213,6 +222,7 @@ export default function ControlsPage() {
                 )}
                 </CardContent>
             </Card>
+            )}
 
             {/* Proxy Login Card */}
             <Card className="bg-white shadow-sm">
@@ -257,6 +267,7 @@ export default function ControlsPage() {
             </Card>
 
             {/* Test Email Card */}
+            {userRole !== 'analytics' && (
             <Card className="bg-white shadow-sm">
                 <CardHeader>
                     <CardTitle className="flex items-center justify-center">
@@ -291,6 +302,7 @@ export default function ControlsPage() {
                     </div>
                 </CardContent>
             </Card>
+            )}
         </div>
     );
 }
