@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { FiCalendar, FiMapPin, FiTruck, FiUsers, FiChevronDown, FiChevronRight } from "react-icons/fi";
+import { FiCalendar, FiMapPin, FiTruck, FiUsers, FiChevronDown, FiChevronRight, FiDownload } from "react-icons/fi";
 import { toast } from "sonner";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
 
@@ -64,6 +64,68 @@ export default function TransportDetailsPage() {
         setExpandedCity(expandedCity === city ? null : city);
     };
 
+    const exportToExcel = async () => {
+        try {
+            const ExcelJS = (await import('exceljs')).default;
+            const workbook = new ExcelJS.Workbook();
+            
+            // Sheet 1: Analytics
+            const analyticsSheet = workbook.addWorksheet('Analytics');
+            analyticsSheet.columns = [
+                { header: 'District / City', key: 'city', width: 25 },
+                { header: 'Bus Route', key: 'route', width: 30 },
+                { header: 'Student Count', key: 'count', width: 15 }
+            ];
+            
+            Object.entries(groupedData).forEach(([city, routes]) => {
+                Object.entries(routes).forEach(([route, students]) => {
+                    analyticsSheet.addRow({
+                        city,
+                        route,
+                        count: students.length
+                    });
+                });
+            });
+            
+            analyticsSheet.getRow(1).font = { bold: true };
+
+            // Sheet 2: Student Details
+            const detailsSheet = workbook.addWorksheet('Student Details');
+            detailsSheet.columns = [
+                { header: 'Student ID', key: 'id', width: 15 },
+                { header: 'Student Name', key: 'name', width: 30 },
+                { header: 'Club', key: 'club', width: 25 },
+                { header: 'City / District', key: 'city', width: 20 },
+                { header: 'Bus Route', key: 'route', width: 25 }
+            ];
+
+            data.forEach(student => {
+                detailsSheet.addRow({
+                    id: student.student_id,
+                    name: student.student_name,
+                    club: student.club_name || 'N/A',
+                    city: student.city || 'Not Specified',
+                    route: student.city_bus_route || 'Not Specified'
+                });
+            });
+            
+            detailsSheet.getRow(1).font = { bold: true };
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Transport_Details_${date}.xlsx`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            toast.success("Excel exported successfully!");
+        } catch (error) {
+            console.error("Export error", error);
+            toast.error("Failed to export Excel file");
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -74,7 +136,14 @@ export default function TransportDetailsPage() {
                     </p>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={exportToExcel}
+                        disabled={data.length === 0}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg shadow-sm hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                        <FiDownload /> Export Excel
+                    </button>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <FiCalendar className="text-gray-400" />
