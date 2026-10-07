@@ -30,7 +30,7 @@ export async function GET(request) {
         }
 
         // Check if user is admin or analytics
-        if (!['admin', 'analytics'].includes(decoded.role)) {
+        if (!['admin', 'analytics'].includes(decoded.role as string)) {
             return NextResponse.json(
                 { message: 'Access denied. Admin or Analytics role required.' },
                 { status: 403 }
