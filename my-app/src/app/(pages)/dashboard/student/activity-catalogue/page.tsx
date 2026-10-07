@@ -177,19 +177,23 @@ export default function ActivityCataloguePage() {
   }, [search, activeFilters, activities, sort, savedOnly, bookmarks]);
 
   const shown = useMemo(() => filtered.slice(0, visible), [filtered, visible]);
-  // Grouped by category/pack (e.g. "ZeroOne Code Club Activities") rather
-  // than the broad domain (e.g. "Technology & Emerging Tech") -- domain is
-  // still used for filtering and for each section's icon/color, but it's too
-  // coarse a label on its own since many differently-focused activity packs
-  // share the same domain.
-  const grouped = useMemo(() =>
-    shown.reduce((acc: any, curr: any) => {
+  // Grouped by category/pack, split into upcoming and completed
+  const { upcomingGrouped, completedGrouped } = useMemo(() => {
+    const upcoming: any = {};
+    const completed: any = {};
+    shown.forEach((curr: any) => {
       const c = curr.category || "General";
-      if (!acc[c]) acc[c] = [];
-      acc[c].push(curr);
-      return acc;
-    }, {}),
-  [shown]);
+      const isCompleted = curr.status === 'completed' || curr.approval_status === 'completed' || !!curr.is_attendance_locked;
+      if (isCompleted) {
+        if (!completed[c]) completed[c] = [];
+        completed[c].push(curr);
+      } else {
+        if (!upcoming[c]) upcoming[c] = [];
+        upcoming[c].push(curr);
+      }
+    });
+    return { upcomingGrouped: upcoming, completedGrouped: completed };
+  }, [shown]);
 
   const availableDomains = useMemo(
     () => Array.from(new Set(activities.map((a: any) => a.domain || "Other"))) as string[],
@@ -487,63 +491,95 @@ export default function ActivityCataloguePage() {
           </div>
         ) : (
           <div className="space-y-8">
-            {Object.entries(grouped).map(([category, items]: [string, any]) => {
-              const groupDomain = items[0]?.domain;
-              const d = (DOMAINS as any)[groupDomain];
-              const meta = DOMAIN_META[groupDomain];
-              const DomainIcon = meta?.Icon;
-              const color = d?.color || BRAND;
-              return (
-                <section key={category}>
-                  {/* Section header */}
-                  <div className="flex items-center gap-3 mb-4">
-                    {DomainIcon && (
-                      <div
-                        className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: d?.bg || "#F9FAFB" }}
-                      >
-                        <DomainIcon size={15} style={{ color }} />
-                      </div>
-                    )}
-                    <h2 className="text-sm font-bold text-gray-900">{category}</h2>
-                    <span
-                      className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
-                      style={{ backgroundColor: d?.bg || "#F3F4F6", color }}
-                    >
-                      {items.length}
-                    </span>
-                    <div className="flex-1 h-px bg-gray-100" />
-                  </div>
+            {Object.keys(upcomingGrouped).length > 0 && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-2">Upcoming Activities</h2>
+                <div className="space-y-8">
+                  {Object.entries(upcomingGrouped).map(([category, items]: [string, any]) => {
+                    const groupDomain = items[0]?.domain;
+                    const d = (DOMAINS as any)[groupDomain];
+                    const meta = DOMAIN_META[groupDomain];
+                    const DomainIcon = meta?.Icon;
+                    const color = d?.color || BRAND;
+                    return (
+                      <section key={category}>
+                        <div className="flex items-center gap-3 mb-4">
+                          {DomainIcon && (
+                            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: d?.bg || "#F9FAFB" }}>
+                              <DomainIcon size={15} style={{ color }} />
+                            </div>
+                          )}
+                          <h3 className="text-sm font-bold text-gray-900">{category}</h3>
+                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full" style={{ backgroundColor: d?.bg || "#F3F4F6", color }}>
+                            {items.length}
+                          </span>
+                          <div className="flex-1 h-px bg-gray-100" />
+                        </div>
 
-                  {view === "grid" ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {items.map((a: any) => (
-                        <CatalogueCard
-                          key={a.id}
-                          activity={a}
-                          isEnrolled={a.isEnrolled}
-                          bookmarked={bookmarks.has(a.code)}
-                          onBookmark={toggleBookmark}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {items.map((a: any) => (
-                        <CatalogueCard
-                          key={a.id}
-                          activity={a}
-                          isEnrolled={a.isEnrolled}
-                          bookmarked={bookmarks.has(a.code)}
-                          onBookmark={toggleBookmark}
-                          listMode
-                        />
-                      ))}
-                    </div>
-                  )}
-                </section>
-              );
-            })}
+                        {view === "grid" ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {items.map((a: any) => (
+                              <CatalogueCard key={a.id || a.code} activity={a} isEnrolled={a.isEnrolled} bookmarked={bookmarks.has(a.code)} onBookmark={toggleBookmark} />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {items.map((a: any) => (
+                              <CatalogueCard key={a.id || a.code} activity={a} isEnrolled={a.isEnrolled} bookmarked={bookmarks.has(a.code)} onBookmark={toggleBookmark} listMode />
+                            ))}
+                          </div>
+                        )}
+                      </section>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {Object.keys(completedGrouped).length > 0 && (
+              <div className="space-y-6 mt-12">
+                <h2 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-2">Completed Activities</h2>
+                <div className="space-y-8">
+                  {Object.entries(completedGrouped).map(([category, items]: [string, any]) => {
+                    const groupDomain = items[0]?.domain;
+                    const d = (DOMAINS as any)[groupDomain];
+                    const meta = DOMAIN_META[groupDomain];
+                    const DomainIcon = meta?.Icon;
+                    const color = d?.color || BRAND;
+                    return (
+                      <section key={category}>
+                        <div className="flex items-center gap-3 mb-4">
+                          {DomainIcon && (
+                            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: d?.bg || "#F9FAFB" }}>
+                              <DomainIcon size={15} style={{ color }} />
+                            </div>
+                          )}
+                          <h3 className="text-sm font-bold text-gray-900">{category}</h3>
+                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full" style={{ backgroundColor: d?.bg || "#F3F4F6", color }}>
+                            {items.length}
+                          </span>
+                          <div className="flex-1 h-px bg-gray-100" />
+                        </div>
+
+                        {view === "grid" ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {items.map((a: any) => (
+                              <CatalogueCard key={a.id || a.code} activity={a} isEnrolled={a.isEnrolled} bookmarked={bookmarks.has(a.code)} onBookmark={toggleBookmark} />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {items.map((a: any) => (
+                              <CatalogueCard key={a.id || a.code} activity={a} isEnrolled={a.isEnrolled} bookmarked={bookmarks.has(a.code)} onBookmark={toggleBookmark} listMode />
+                            ))}
+                          </div>
+                        )}
+                      </section>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Load more */}
             {filtered.length > shown.length && (

@@ -87,6 +87,9 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
             <h3 className="text-sm font-bold text-gray-900 leading-tight group-hover:text-red-800 transition-colors truncate">
               {activity.name}
             </h3>
+            <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">
+              {activity.description || activity.purpose}
+            </p>
             {hasSchedule && (
               <div className="flex items-center gap-3 mt-1 flex-wrap text-[11px] text-gray-500">
                 {dateLabel && <span className="flex items-center gap-1"><FiCalendar size={10} className="text-gray-400" /> {dateLabel}</span>}
@@ -210,7 +213,7 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
 
         {/* Description */}
         <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
-          {activity.purpose}
+          {activity.description || activity.purpose}
         </p>
 
         {/* Schedule & venue — only rendered when the activity has any set */}
