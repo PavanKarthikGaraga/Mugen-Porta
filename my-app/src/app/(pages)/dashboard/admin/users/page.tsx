@@ -18,6 +18,7 @@ const DOMAIN_OPTIONS = [
     { value: 'HWB', label: 'HWB – Health & Wellbeing' },
     { value: 'ESO', label: 'ESO – Environment & Social' },
     { value: 'DEPT. CLUBS', label: 'Dept. Clubs' },
+    { value: 'MHS. CLUBS', label: 'MHS Clubs' },
 ];
 const DOMAIN_LABEL = Object.fromEntries(DOMAIN_OPTIONS.map(d => [d.value, d.label]));
 
@@ -126,7 +127,8 @@ export default function UsersPage() {
             filtered = filtered.filter(user =>
                 (user.name || '').toLowerCase().includes(searchTerm) ||
                 (user.username || '').toLowerCase().includes(searchTerm) ||
-                (user.email || '').toLowerCase().includes(searchTerm)
+                (user.email || '').toLowerCase().includes(searchTerm) ||
+                (user.clubName || '').toLowerCase().includes(searchTerm)
             );
         }
 
@@ -431,7 +433,6 @@ export default function UsersPage() {
                         year: '',
                         branch: ''
                     }));
-                    handleApiError({ status: 404, message: 'Student not found' });
                 }
             }
         } catch (error) {

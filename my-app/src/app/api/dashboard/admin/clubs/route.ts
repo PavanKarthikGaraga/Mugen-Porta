@@ -1,14 +1,13 @@
 import pool from '../../../../../lib/db';
 import { NextResponse } from 'next/server';
 import { ResultSetHeader } from 'mysql2';
-import { verifyAdminToken } from '../auth-helper';
+import { requireAuth } from '@/lib/apiSecurity';
 import { ensureClubsSchema } from '@/lib/dbMigrate';
 
 export async function GET(request) {
-    // Verify admin token
-    const authResult = await verifyAdminToken(request);
-    if (!authResult.success) {
-        return authResult.response;
+    const auth = await requireAuth(['admin', 'analytics']);
+    if (auth.response) {
+        return auth.response;
     }
 
     try {
@@ -22,10 +21,9 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-    // Verify admin token
-    const authResult = await verifyAdminToken(request);
-    if (!authResult.success) {
-        return authResult.response;
+    const auth = await requireAuth(['admin']);
+    if (auth.response) {
+        return auth.response;
     }
 
     try {

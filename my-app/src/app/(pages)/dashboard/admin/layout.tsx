@@ -116,6 +116,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Overview',             href: '/dashboard/admin',                     icon: FiHome        },
         { name: 'Super Analytics',      href: '/dashboard/admin/super-analytics',     icon: FiBarChart2   },
         { name: 'Students',             href: '/dashboard/admin/students',            icon: FiFolder      },
+        { name: 'Clubs',                href: '/dashboard/admin/clubs',               icon: FiFolder      },
         { name: 'Completed Activities', href: '/dashboard/admin/completed-activities',icon: FiClipboard   },
         { name: 'Attendance Records',   href: '/dashboard/admin/attendance-records',  icon: FiActivity    },
         { name: 'Transport Details',    href: '/dashboard/admin/transport',           icon: FiMap         },

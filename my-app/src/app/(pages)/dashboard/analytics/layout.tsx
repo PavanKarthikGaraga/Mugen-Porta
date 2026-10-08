@@ -32,7 +32,8 @@ export default function AnalyticsDashboardLayout({ children }) {
     }, []);
 
     const navigation = [
-        { name: 'Analytics', href: '/dashboard/analytics', icon: FiBarChart2 }
+        { name: 'Analytics', href: '/dashboard/analytics', icon: FiBarChart2 },
+        { name: 'Clubs', href: '/dashboard/admin/clubs', icon: FiMenu }
     ];
 
     const handleLogout = async () => {
