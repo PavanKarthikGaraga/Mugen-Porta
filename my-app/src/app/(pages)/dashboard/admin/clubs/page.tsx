@@ -33,7 +33,12 @@ export default function ClubsPage() {
         let filtered = clubs;
 
         if (filters.domain) {
-            filtered = filtered.filter(club => club.domain === filters.domain);
+            if (filters.domain === 'ALL_SAC') {
+                const sacDomains = ['TEC', 'LCH', 'ESO', 'IIE', 'HWB'];
+                filtered = filtered.filter(club => sacDomains.includes(club.domain));
+            } else {
+                filtered = filtered.filter(club => club.domain === filters.domain);
+            }
         }
 
         if (filters.search) {
