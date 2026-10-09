@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FiCheckCircle, FiXCircle, FiTarget, FiFilter, FiActivity, FiX, FiBarChart2 } from "react-icons/fi";
+import { FiCheckCircle, FiXCircle, FiTarget, FiFilter, FiActivity, FiX, FiBarChart2, FiUsers, FiMapPin, FiCalendar } from "react-icons/fi";
 import { SDG_MAP } from "@/app/Data/activities-mock";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -247,6 +247,37 @@ export default function SDGsMapper({ role }: { role: "admin" | "analytics" }) {
                                                     {act.category}
                                                 </span>
                                             </div>
+
+                                            <div className="flex flex-col gap-1 mb-3 text-xs text-gray-600">
+                                                {act.activity_date && (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <FiCalendar className="text-gray-400 flex-shrink-0" size={12} />
+                                                        <span>
+                                                            {new Date(act.activity_date).toLocaleDateString('en-GB', {
+                                                                day: '2-digit', month: 'short', year: 'numeric'
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {act.venue && (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <FiMapPin className="text-gray-400 flex-shrink-0" size={12} />
+                                                        <span className="truncate">{act.venue}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center justify-between mb-3 bg-gray-50 rounded-lg p-2 border border-gray-100">
+                                                <div className="flex flex-col items-center flex-1 border-r border-gray-200 last:border-0">
+                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Enrolled</span>
+                                                    <span className="text-sm font-black text-gray-900">{act.total_enrolled || 0}</span>
+                                                </div>
+                                                <div className="flex flex-col items-center flex-1">
+                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Present</span>
+                                                    <span className="text-sm font-black text-emerald-600">{act.students_present || 0}</span>
+                                                </div>
+                                            </div>
+
                                             <div className="flex items-center justify-between border-t border-gray-100 pt-3 mt-1">
                                                 {act.report_status ? (
                                                     <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600">

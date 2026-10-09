@@ -13,11 +13,22 @@ export async function GET() {
                 ac.title,
                 ac.domain,
                 ac.category,
+                ac.activity_date,
+                ac.venue,
                 ac.sdgs,
-                ar.status AS report_status
+                COUNT(ae.username)                                              AS total_enrolled,
+                SUM(CASE WHEN ae.attendance_percentage > 0 THEN 1 ELSE 0 END)  AS students_present,
+                MAX(ae.enrolled_at)                                             AS locked_at,
+                ar.status                                                       AS report_status,
+                ar.generated_at                                                 AS report_generated_at
             FROM activity_catalogue ac
+            JOIN activity_enrollments ae
+                ON ae.activity_code = ac.code AND ae.attendance_marked = TRUE
             LEFT JOIN activity_reports ar ON ar.activity_code = ac.code
-            ORDER BY ac.code ASC
+            GROUP BY ac.code, ac.title, ac.domain, ac.category, ac.activity_date, ac.venue, ac.sdgs, ar.status, ar.generated_at
+            ORDER BY ac.domain ASC,
+                     COALESCE(ac.activity_date, '9999-12-31') DESC,
+                     ac.code ASC
         `);
 
         // Parse sdgs from string to array
