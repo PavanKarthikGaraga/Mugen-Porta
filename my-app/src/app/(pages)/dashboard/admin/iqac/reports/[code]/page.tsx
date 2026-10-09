@@ -357,7 +357,7 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
           timeSlot: form.timeSlot,
           venue: form.venue,
           studentsParticipated: form.studentsParticipated ? String(form.studentsParticipated) : "",
-          sdgsMapped: (activity?.sdgs || []).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
+          sdgsMapped: (typeof activity?.sdgs === 'string' ? JSON.parse(activity.sdgs || '[]') : (activity?.sdgs || [])).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
         },
         overview: form.overview,
         objectives: form.objectives,

@@ -95,13 +95,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
         const { code } = await params;
 
         const [actRows]: any = await pool.execute(
-            'SELECT code, title, domain, category, activity_date, start_time, end_time, venue FROM activity_catalogue WHERE code = ?',
+            'SELECT code, title, domain, category, activity_date, start_time, end_time, venue, sdgs FROM activity_catalogue WHERE code = ?',
             [code]
         );
         if (actRows.length === 0) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
         }
-        const activity = actRows[0];
+        const activity = {
+            ...actRows[0],
+            sdgs: parseJson(actRows[0].sdgs, [])
+        };
 
         const clubIds = await getLeadClubIds(lead.decoded.username as string);
         const club = await resolveOrganizingClub(clubIds, lead.assigned_categories, code);

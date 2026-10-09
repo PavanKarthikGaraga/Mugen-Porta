@@ -77,7 +77,7 @@ export default function CompletedActivitiesPage() {
           timeSlot: r.time_slot || "",
           venue: r.venue || "",
           studentsParticipated: r.students_participated ? String(r.students_participated) : "",
-          sdgsMapped: (activity?.sdgs || []).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
+          sdgsMapped: (typeof activity?.sdgs === 'string' ? JSON.parse(activity.sdgs || '[]') : (activity?.sdgs || [])).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
         },
         overview: r.overview || "",
         objectives: r.objectives || "",

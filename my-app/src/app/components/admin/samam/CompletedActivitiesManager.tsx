@@ -94,7 +94,7 @@ export default function CompletedActivitiesManager({ role = "admin" }: { role?: 
           timeSlot: r.time_slot || "",
           venue: r.venue || "",
           studentsParticipated: r.students_participated ? String(r.students_participated) : "",
-          sdgsMapped: (detail.activity?.sdgs || []).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
+          sdgsMapped: (typeof detail.activity?.sdgs === 'string' ? JSON.parse(detail.activity.sdgs || '[]') : (detail.activity?.sdgs || [])).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
         },
         overview: r.overview || "",
         objectives: r.objectives || "",

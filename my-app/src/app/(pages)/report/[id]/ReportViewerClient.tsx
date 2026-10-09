@@ -32,7 +32,7 @@ export default function ReportViewerClient({ activity, report, clubName }: { act
           timeSlot: report.time_slot || "",
           venue: report.venue || "",
           studentsParticipated: report.students_participated ? String(report.students_participated) : "",
-          sdgsMapped: (activity?.sdgs || []).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
+          sdgsMapped: (typeof activity?.sdgs === 'string' ? JSON.parse(activity.sdgs || '[]') : (activity?.sdgs || [])).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
         },
         overview: report.overview || "",
         objectives: report.objectives || "",
