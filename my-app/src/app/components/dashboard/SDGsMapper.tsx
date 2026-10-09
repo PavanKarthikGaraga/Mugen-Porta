@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FiCheckCircle, FiXCircle, FiTarget, FiFilter, FiActivity, FiX, FiBarChart2, FiUsers, FiMapPin, FiCalendar } from "react-icons/fi";
+import { FiCheckCircle, FiXCircle, FiTarget, FiFilter, FiActivity, FiX, FiBarChart2, FiUsers, FiMapPin, FiCalendar, FiArrowLeft, FiDownload, FiRefreshCw } from "react-icons/fi";
 import { SDG_MAP } from "@/app/Data/activities-mock";
 import { toast } from "sonner";
-import Link from "next/link";
+import { generateActivityReportPdf } from "@/lib/activityReportPdf";
 
 const SAC_DOMAINS = ['TEC', 'LCH', 'ESO', 'IIE', 'HWB'];
 const DEPT_DOMAIN = 'DEPT. CLUBS';
@@ -34,6 +34,12 @@ export default function SDGsMapper({ role }: { role: "admin" | "analytics" }) {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"ALL" | "SAC" | "DEPT" | "MHS">("ALL");
     const [selectedSDG, setSelectedSDG] = useState<number | null>(null);
+
+    // Detail View State
+    const [selectedDetailCode, setSelectedDetailCode] = useState<string | null>(null);
+    const [detail, setDetail] = useState<{ activity: any; students: any[]; report: any } | null>(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         fetch("/api/dashboard/admin/sdgs-mapper")
@@ -81,10 +87,182 @@ export default function SDGsMapper({ role }: { role: "admin" | "analytics" }) {
         return filteredActivities.filter(a => Array.isArray(a.sdgs) && a.sdgs.includes(sdg));
     };
 
+    const fetchDetail = async (code: string) => {
+        setSelectedDetailCode(code);
+        setDetailLoading(true);
+        try {
+            const res = await fetch(`/api/dashboard/admin/samam/completed-activities?activity=${encodeURIComponent(code)}`);
+            const data = await res.json();
+            if (res.ok) setDetail(data);
+            else toast.error(data.message || "Failed to load activity details");
+        } catch {
+            toast.error("Failed to load activity details");
+        } finally {
+            setDetailLoading(false);
+        }
+    };
+
+    const downloadReport = async () => {
+        if (!detail?.report || !detail.activity) return;
+        setDownloading(true);
+        try {
+            const r = detail.report;
+            const formatDateStr = (d: string | null) => {
+                if (!d) return "—";
+                const dt = new Date(d);
+                if (isNaN(dt.getTime())) return "—";
+                return dt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+            };
+            await generateActivityReportPdf({
+                clubName: detail.activity.club_name || "",
+                activityTitle: detail.activity.title || "",
+                activityDate: formatDateStr(detail.activity.activity_date),
+                facultyName: r.faculty_name || "",
+                posterUrl: r.poster_url || "",
+                permissionLetterUrl: r.permission_letter_url || "",
+                eventParticulars: {
+                    activityName: detail.activity.title || "",
+                    organizingClub: detail.activity.club_name || "",
+                    academicYear: r.academic_year || "",
+                    facultyIncharge: [r.faculty_name, r.faculty_id].filter(Boolean).join(" - "),
+                    studentLead: [r.student_lead_name, r.student_lead_id].filter(Boolean).join(" - "),
+                    timeSlot: r.time_slot || "",
+                    venue: r.venue || "",
+                    studentsParticipated: r.students_participated ? String(r.students_participated) : "",
+                    sdgsMapped: (typeof detail.activity?.sdgs === 'string' ? JSON.parse(detail.activity.sdgs || '[]') : (detail.activity?.sdgs || [])).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
+                },
+                overview: r.overview || "",
+                objectives: r.objectives || "",
+                proceedings: r.proceedings || "",
+                keyHighlights: r.key_highlights || "",
+                learningOutcomes: r.learning_outcomes || "",
+                conclusion: r.conclusion || "",
+                gallery: r.gallery || [],
+                attendanceSheets: r.attendance_sheets || [],
+            });
+            toast.success("Report downloaded");
+        } catch (err: any) {
+            toast.error(err?.message || "Failed to generate report PDF");
+        } finally {
+            setDownloading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="w-8 h-8 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    if (selectedDetailCode) {
+        return (
+            <div className="max-w-7xl mx-auto space-y-4 pb-20">
+                <button
+                    onClick={() => { setSelectedDetailCode(null); setDetail(null); }}
+                    className="flex items-center gap-1.5 text-[13px] font-medium text-gray-600 hover:text-gray-900"
+                >
+                    <FiArrowLeft size={14} /> Back to SDGs Mapper
+                </button>
+
+                {detailLoading ? (
+                    <div className="p-5 text-center text-gray-500 text-[13px]">Loading...</div>
+                ) : detail ? (
+                    <>
+                        <div className="bg-white rounded-md border border-gray-200 p-5 shadow-sm">
+                            <h3 className="text-[15px] font-semibold text-gray-900">{detail.activity.title}</h3>
+                            <div className="flex flex-wrap gap-4 mt-2 text-[12px] text-gray-500">
+                                <span className="flex items-center gap-1"><FiCalendar size={12} /> {detail.activity.activity_date ? new Date(detail.activity.activity_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}</span>
+                                <span className="flex items-center gap-1"><FiMapPin size={12} /> {detail.activity.venue || "—"}</span>
+                                <span className="flex items-center gap-1"><FiUsers size={12} /> {detail.students.length} enrolled · {detail.students.filter((s: any) => s.status === "completed").length} verified completed</span>
+                                <span className="font-medium text-gray-700">{detail.students.reduce((sum: number, s: any) => sum + Number(s.pointsAwarded || 0), 0)} points allotted</span>
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                                {detail.report ? (
+                                    <div className="flex items-center gap-2">
+                                        <span className="inline-flex items-center gap-1 text-[12px] font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <FiCheckCircle size={12} /> Report generated
+                                        </span>
+                                        {detail.report.generated_at && (
+                                            <span className="text-[11px] text-gray-400">on {new Date(detail.report.generated_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1 text-[12px] font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
+                                        <FiXCircle size={12} /> Report not generated yet
+                                    </span>
+                                )}
+                                {detail.report && (
+                                    <button
+                                        onClick={downloadReport}
+                                        disabled={downloading}
+                                        className="flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-lg text-white disabled:opacity-50 bg-blue-600 hover:bg-blue-700 transition-colors"
+                                    >
+                                        {downloading ? <FiRefreshCw size={12} className="animate-spin" /> : <FiDownload size={12} />}
+                                        Download Report
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-md border border-gray-200 overflow-hidden shadow-sm">
+                            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/50">
+                                <h4 className="text-[13px] font-semibold text-gray-900">Students Participated</h4>
+                            </div>
+                            {detail.students.length === 0 ? (
+                                <div className="p-8 text-center text-gray-500 text-[13px]">No enrollment records for this activity.</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-[13px] text-left">
+                                        <thead className="bg-white border-b border-gray-100">
+                                            <tr>
+                                                <th className="px-5 py-3 font-semibold text-gray-600">Student</th>
+                                                <th className="px-5 py-3 font-semibold text-gray-600">Branch</th>
+                                                <th className="px-5 py-3 font-semibold text-gray-600">Year</th>
+                                                <th className="px-5 py-3 font-semibold text-gray-600">Attendance</th>
+                                                <th className="px-5 py-3 font-semibold text-gray-600">Verification</th>
+                                                <th className="px-5 py-3 font-semibold text-gray-600 text-right">Points</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {detail.students.map((s: any) => (
+                                                <tr key={s.username} className="hover:bg-gray-50/50">
+                                                    <td className="px-5 py-3">
+                                                        <p className="font-medium text-gray-900">{s.name}</p>
+                                                        <p className="text-[11px] text-gray-500">{s.username}</p>
+                                                    </td>
+                                                    <td className="px-5 py-3 text-gray-600">{s.branch}</td>
+                                                    <td className="px-5 py-3 text-gray-600">{s.year}</td>
+                                                    <td className="px-5 py-3">
+                                                        <span className={`text-[11px] font-semibold px-2 py-1 rounded-full border ${
+                                                            Number(s.attendance_percentage) > 0
+                                                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                                : "bg-red-50 text-red-700 border-red-200"
+                                                        }`}>
+                                                            {Number(s.attendance_percentage) > 0 ? "Present" : "Absent"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-5 py-3">
+                                                        <span className={`text-[11px] font-semibold px-2 py-1 rounded-full border ${
+                                                            s.status === "completed"
+                                                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                                : "bg-amber-50 text-amber-700 border-amber-200"
+                                                        }`}>
+                                                            {s.status === "completed" ? "Verified" : "Pending verification"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-5 py-3 text-right font-medium text-gray-900">{Number(s.pointsAwarded || 0)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    </>
+                ) : null}
             </div>
         );
     }
@@ -290,12 +468,12 @@ export default function SDGsMapper({ role }: { role: "admin" | "analytics" }) {
                                                 )}
                                                 
                                                 {/* Link to view report if it exists, or activity view */}
-                                                <Link 
-                                                    href={`/dashboard/${role}/samam/activities/${act.code}`}
+                                                <button 
+                                                    onClick={() => fetchDetail(act.code)}
                                                     className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
                                                 >
                                                     View Details
-                                                </Link>
+                                                </button>
                                             </div>
                                         </div>
                                     ))

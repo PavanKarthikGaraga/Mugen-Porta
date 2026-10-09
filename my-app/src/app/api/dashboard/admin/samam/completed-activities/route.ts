@@ -13,7 +13,7 @@ async function checkAdmin() {
     const token = cookieStore.get('tck')?.value;
     if (!token) return null;
     const decoded = await verifyToken(token);
-    if (!decoded || !['admin', 'faculty', 'council', 'lead'].includes(decoded.role as string)) return null;
+    if (!decoded || !['admin', 'faculty', 'council', 'lead', 'analytics'].includes(decoded.role as string)) return null;
     return decoded;
 }
 
