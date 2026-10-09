@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
     FiTool, FiChevronDown, FiChevronUp, FiLock, FiUnlock, FiSettings, FiUsers, FiAward, FiStar, FiKey, FiMap, FiCheckSquare,
-    FiActivity, FiFileText, FiBarChart2, FiBell, FiClipboard, FiUserCheck, FiCpu,
+    FiActivity, FiFileText, FiBarChart2, FiBell, FiClipboard, FiUserCheck, FiCpu, FiTarget
 } from "react-icons/fi";
 import { BsPeopleFill } from "react-icons/bs";
 import { toast } from "sonner";
@@ -74,6 +74,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Award Badges/Points', href: '/dashboard/admin/samam/award', icon: FiStar },
         { name: 'Activity Awards',    href: '/dashboard/admin/samam/activity-awards', icon: FiAward },
         { name: 'Activity Mapper',   href: '/dashboard/admin/activity-mapper', icon: FiMap },
+        { name: 'SDGs Mapper',       href: '/dashboard/admin/sdgs-mapper',     icon: FiTarget },
         { name: 'Dept-Club Mapper',  href: '/dashboard/admin/dept-mapper',     icon: FiMap },
         { name: 'SAMAM Access',          href: '/dashboard/admin/samam-access',        icon: FiUnlock      },
         { name: 'Activity Approvals',    href: '/dashboard/admin/activity-approvals',     icon: FiCheckSquare },
@@ -117,6 +118,7 @@ export default function AdminDashboardLayout({ children }) {
         { name: 'Super Analytics',      href: '/dashboard/admin/super-analytics',     icon: FiBarChart2   },
         { name: 'Students',             href: '/dashboard/admin/students',            icon: FiFolder      },
         { name: 'Clubs',                href: '/dashboard/admin/clubs',               icon: FiFolder      },
+        { name: 'SDGs Mapper',          href: '/dashboard/admin/sdgs-mapper',         icon: FiTarget      },
         { name: 'Completed Activities', href: '/dashboard/admin/completed-activities',icon: FiClipboard   },
         { name: 'Attendance Records',   href: '/dashboard/admin/attendance-records',  icon: FiActivity    },
         { name: 'Transport Details',    href: '/dashboard/admin/transport',           icon: FiMap         },

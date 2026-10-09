@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FiLogOut, FiMenu, FiX, FiLock, FiBarChart2 } from "react-icons/fi";
+import { FiLogOut, FiMenu, FiX, FiLock, FiBarChart2, FiTarget } from "react-icons/fi";
 import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
 
@@ -33,6 +33,7 @@ export default function AnalyticsDashboardLayout({ children }) {
 
     const navigation = [
         { name: 'Analytics', href: '/dashboard/analytics', icon: FiBarChart2 },
+        { name: 'SDGs Mapper', href: '/dashboard/analytics/sdgs-mapper', icon: FiTarget },
         { name: 'Clubs', href: '/dashboard/admin/clubs', icon: FiMenu }
     ];
 

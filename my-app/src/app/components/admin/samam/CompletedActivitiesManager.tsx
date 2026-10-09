@@ -4,6 +4,7 @@ import { FiArrowLeft, FiCheckCircle, FiXCircle, FiDownload, FiRefreshCw, FiUsers
 import { toast } from "sonner";
 import { BRAND, DOMAIN_COLORS, DOMAIN_ICONS } from "./SharedUI";
 import { generateActivityReportPdf } from "@/lib/activityReportPdf";
+import { SDG_MAP } from "@/app/Data/activities-mock";
 
 
 type ActivityRow = {
@@ -93,6 +94,7 @@ export default function CompletedActivitiesManager({ role = "admin" }: { role?: 
           timeSlot: r.time_slot || "",
           venue: r.venue || "",
           studentsParticipated: r.students_participated ? String(r.students_participated) : "",
+          sdgsMapped: (detail.activity?.sdgs || []).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
         },
         overview: r.overview || "",
         objectives: r.objectives || "",

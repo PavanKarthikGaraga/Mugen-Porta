@@ -7,6 +7,7 @@ import {
   FiArrowLeft, FiUpload, FiX, FiSave, FiDownload, FiPlus, FiImage, FiFileText,
 } from "react-icons/fi";
 import { generateIqacActivityReportPdf } from "@/lib/activityReportPdf";
+import { SDG_MAP } from "@/app/Data/activities-mock";
 
 const BRAND = "rgb(151,0,3)";
 const MAX_GALLERY = 4;
@@ -356,6 +357,7 @@ export default function IqacActivityReportFormPage({ params }: { params: Promise
           timeSlot: form.timeSlot,
           venue: form.venue,
           studentsParticipated: form.studentsParticipated ? String(form.studentsParticipated) : "",
+          sdgsMapped: (activity?.sdgs || []).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
         },
         overview: form.overview,
         objectives: form.objectives,

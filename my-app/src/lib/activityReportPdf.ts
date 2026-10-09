@@ -34,6 +34,7 @@ export interface ActivityReportInput {
     timeSlot: string;
     venue: string;
     studentsParticipated: string;
+    sdgsMapped?: string;
   };
   overview: string;
   objectives: string;
@@ -336,6 +337,7 @@ export async function generateActivityReportPdf(input: ActivityReportInput) {
       ["Time slot", ep.timeSlot],
       ["Venue", ep.venue],
       ["Students Participated", ep.studentsParticipated],
+      ["SDGs Mapped", ep.sdgsMapped || "-"],
     ];
     const labelW = 160;
     doc.setFont("helvetica", "normal");
@@ -453,6 +455,7 @@ export interface IqacActivityReportInput {
     timeSlot: string;
     venue: string;
     studentsParticipated: string;
+    sdgsMapped?: string;
   };
   overview: string;
   objectives: string;
@@ -686,6 +689,7 @@ export async function generateIqacActivityReportPdf(input: IqacActivityReportInp
       ["Time slot", ep.timeSlot],
       ["Venue", ep.venue],
       ["Students Participated", ep.studentsParticipated],
+      ["SDGs Mapped", ep.sdgsMapped || "-"],
     ];
     const labelW = 160;
     doc.setFont("helvetica", "normal");

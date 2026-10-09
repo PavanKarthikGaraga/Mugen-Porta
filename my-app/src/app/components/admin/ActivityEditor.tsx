@@ -382,23 +382,55 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
   };
 
   const handleSave = async () => {
-    if (isNew) {
-      if (!formData.outcomes.filter(Boolean).length) {
-        toast.error("Please add at least one Learning Outcome.");
+    if (!formData.description.trim()) {
+      toast.error("Description is mandatory.");
+      return;
+    }
+
+    if (!formData.activity_date || !formData.start_time || !formData.end_time || !formData.venue.trim()) {
+      toast.error("All Schedule & Venue fields (Date, Venue, Start Time, End Time) are mandatory.");
+      return;
+    }
+
+    const validOutcomes = formData.outcomes.filter(o => o.trim() !== "");
+    if (validOutcomes.length < 2) {
+      toast.error("Please add at least 2 Learning Outcomes.");
+      return;
+    }
+    for (const o of validOutcomes) {
+      if (o.trim().split(/\s+/).length > 10) {
+        toast.error("Each Learning Outcome must be 10 words or less.");
         return;
       }
-      if (!formData.competencies.filter(Boolean).length) {
-        toast.error("Please add at least one Competency.");
+    }
+
+    const validCompetencies = formData.competencies.filter(c => c.trim() !== "");
+    if (validCompetencies.length < 2) {
+      toast.error("Please add at least 2 Competencies.");
+      return;
+    }
+    for (const c of validCompetencies) {
+      if (c.trim().split(/\s+/).length > 2) {
+        toast.error("Each Competency must be 1 or 2 words only.");
         return;
       }
-      if (!formData.ga.filter(Boolean).length) {
-        toast.error("Please add at least one Graduate Attribute.");
+    }
+
+    const validGa = formData.ga.filter(g => g.trim() !== "");
+    if (validGa.length < 2) {
+      toast.error("Please add at least 2 Graduate Attributes.");
+      return;
+    }
+    for (const g of validGa) {
+      if (g.trim().split(/\s+/).length > 2) {
+        toast.error("Each Graduate Attribute must be 1 or 2 words only.");
         return;
       }
-      if (!formData.sdgs.length) {
-        toast.error("Please select at least one Sustainable Development Goal (SDG).");
-        return;
-      }
+    }
+
+    if (formData.sdgs.length < 2) {
+      toast.error("Please select at least 2 Sustainable Development Goals (SDGs).");
+      return;
     }
 
     try {
@@ -596,7 +628,7 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description <span className="text-red-500">*</span></label>
             <textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-2 border rounded" rows={3} />
           </div>
           <div>
@@ -615,19 +647,19 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
         <h2 className="text-lg font-bold border-b pb-2">Schedule &amp; Venue</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
             <input type="date" name="activity_date" value={formData.activity_date} onChange={handleChange} className="w-full p-2 border rounded" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Venue</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Venue <span className="text-red-500">*</span></label>
             <input type="text" name="venue" value={formData.venue} onChange={handleChange} className="w-full p-2 border rounded" placeholder="e.g. Seminar Hall, C-Block" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Start Time <span className="text-red-500">*</span></label>
             <input type="time" name="start_time" value={formData.start_time} onChange={handleChange} className="w-full p-2 border rounded" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">End Time <span className="text-red-500">*</span></label>
             <input type="time" name="end_time" value={formData.end_time} onChange={handleChange} className="w-full p-2 border rounded" />
           </div>
         </div>
@@ -842,47 +874,84 @@ export default function ActivityEditor({ activityId, initialData, role = "admin"
         <h2 className="text-lg font-bold border-b pb-2">Outcomes & Competencies</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <div className="flex justify-between mb-2">
-              <span className="font-semibold text-sm">Learning Outcomes</span>
+            <div className="flex justify-between mb-1">
+              <span className="font-semibold text-sm">Learning Outcomes <span className="text-red-500">*</span></span>
               <button onClick={() => addStringArrayItem("outcomes")} className="text-blue-600 text-sm">+ Add</button>
             </div>
-            {formData.outcomes.map((item, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
-                <input type="text" value={item} onChange={e => handleStringArrayChange("outcomes", idx, e.target.value)} className="flex-1 p-1.5 border rounded text-sm" />
-                <button onClick={() => removeStringArrayItem("outcomes", idx)} className="text-red-500"><FiTrash2 size={14} /></button>
-              </div>
-            ))}
+            <p className="text-xs text-gray-500 mb-3">Min 2 outcomes. Max 10 words each.</p>
+            {formData.outcomes.map((item, idx) => {
+              const wordCount = item.trim() ? item.trim().split(/\s+/).length : 0;
+              const isOverLimit = wordCount > 10;
+              return (
+                <div key={idx} className="mb-3">
+                  <div className="flex gap-2">
+                    <input type="text" value={item} onChange={e => handleStringArrayChange("outcomes", idx, e.target.value)} className={`flex-1 p-1.5 border rounded text-sm ${isOverLimit ? 'border-red-500 focus:ring-red-500' : ''}`} placeholder="e.g. Understand basic networking models" />
+                    <button onClick={() => removeStringArrayItem("outcomes", idx)} className="text-red-500"><FiTrash2 size={14} /></button>
+                  </div>
+                  {item.trim() !== "" && (
+                    <p className={`text-[10px] mt-1 ${isOverLimit ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+                      {wordCount} / 10 words {isOverLimit && "(Too long)"}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div>
-            <div className="flex justify-between mb-2">
-              <span className="font-semibold text-sm">Competencies</span>
+            <div className="flex justify-between mb-1">
+              <span className="font-semibold text-sm">Competencies <span className="text-red-500">*</span></span>
               <button onClick={() => addStringArrayItem("competencies")} className="text-blue-600 text-sm">+ Add</button>
             </div>
-            {formData.competencies.map((item, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
-                <input type="text" value={item} onChange={e => handleStringArrayChange("competencies", idx, e.target.value)} className="flex-1 p-1.5 border rounded text-sm" />
-                <button onClick={() => removeStringArrayItem("competencies", idx)} className="text-red-500"><FiTrash2 size={14} /></button>
-              </div>
-            ))}
+            <p className="text-xs text-gray-500 mb-3">Min 2 items. Max 2 words each.<br/><span className="italic">e.g. Leadership, Teamwork, Problem Solving</span></p>
+            {formData.competencies.map((item, idx) => {
+              const wordCount = item.trim() ? item.trim().split(/\s+/).length : 0;
+              const isOverLimit = wordCount > 2;
+              return (
+                <div key={idx} className="mb-3">
+                  <div className="flex gap-2">
+                    <input type="text" value={item} onChange={e => handleStringArrayChange("competencies", idx, e.target.value)} className={`flex-1 p-1.5 border rounded text-sm ${isOverLimit ? 'border-red-500 focus:ring-red-500' : ''}`} placeholder="e.g. Leadership" />
+                    <button onClick={() => removeStringArrayItem("competencies", idx)} className="text-red-500"><FiTrash2 size={14} /></button>
+                  </div>
+                  {item.trim() !== "" && (
+                    <p className={`text-[10px] mt-1 ${isOverLimit ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+                      {wordCount} / 2 words {isOverLimit && "(Too long)"}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div>
-            <div className="flex justify-between mb-2">
-              <span className="font-semibold text-sm">Graduate Attributes</span>
+            <div className="flex justify-between mb-1">
+              <span className="font-semibold text-sm">Graduate Attributes <span className="text-red-500">*</span></span>
               <button onClick={() => addStringArrayItem("ga")} className="text-blue-600 text-sm">+ Add</button>
             </div>
-            {formData.ga.map((item, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
-                <input type="text" value={item} onChange={e => handleStringArrayChange("ga", idx, e.target.value)} className="flex-1 p-1.5 border rounded text-sm" />
-                <button onClick={() => removeStringArrayItem("ga", idx)} className="text-red-500"><FiTrash2 size={14} /></button>
-              </div>
-            ))}
+            <p className="text-xs text-gray-500 mb-3">Min 2 items. Max 2 words each.<br/><span className="italic">e.g. Critical Thinking, Communication</span></p>
+            {formData.ga.map((item, idx) => {
+              const wordCount = item.trim() ? item.trim().split(/\s+/).length : 0;
+              const isOverLimit = wordCount > 2;
+              return (
+                <div key={idx} className="mb-3">
+                  <div className="flex gap-2">
+                    <input type="text" value={item} onChange={e => handleStringArrayChange("ga", idx, e.target.value)} className={`flex-1 p-1.5 border rounded text-sm ${isOverLimit ? 'border-red-500 focus:ring-red-500' : ''}`} placeholder="e.g. Critical Thinking" />
+                    <button onClick={() => removeStringArrayItem("ga", idx)} className="text-red-500"><FiTrash2 size={14} /></button>
+                  </div>
+                  {item.trim() !== "" && (
+                    <p className={`text-[10px] mt-1 ${isOverLimit ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+                      {wordCount} / 2 words {isOverLimit && "(Too long)"}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
 
       {/* SDGs */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
-        <h2 className="text-lg font-bold border-b pb-2">Sustainable Development Goals</h2>
+        <h2 className="text-lg font-bold border-b pb-1">Sustainable Development Goals <span className="text-red-500">*</span></h2>
+        <p className="text-xs text-gray-500 mb-3">Please select at least 2 Sustainable Development Goals.</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
           {Object.entries(SDG_MAP).map(([num, name]) => {
             const n = Number(num);

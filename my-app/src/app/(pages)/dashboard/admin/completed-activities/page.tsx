@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { FiCheckCircle, FiXCircle, FiUsers, FiCalendar, FiMapPin, FiFilter, FiRefreshCw, FiDownload } from "react-icons/fi";
 import { toast } from "sonner";
 import { generateActivityReportPdf } from "@/lib/activityReportPdf";
+import { SDG_MAP } from "@/app/Data/activities-mock";
 
 const DOMAIN_COLORS: Record<string, string> = {
   TEC: "#0284c7", LCH: "#7c3aed", ESO: "#ea580c", IIE: "#059669", HWB: "#e11d48",
@@ -76,6 +77,7 @@ export default function CompletedActivitiesPage() {
           timeSlot: r.time_slot || "",
           venue: r.venue || "",
           studentsParticipated: r.students_participated ? String(r.students_participated) : "",
+          sdgsMapped: (activity?.sdgs || []).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
         },
         overview: r.overview || "",
         objectives: r.objectives || "",

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { generateActivityReportPdf } from "@/lib/activityReportPdf";
 import { FiDownload, FiCheckCircle, FiFileText, FiMapPin, FiClock, FiCalendar, FiUser } from "react-icons/fi";
+import { SDG_MAP } from "@/app/Data/activities-mock";
 
 export default function ReportViewerClient({ activity, report, clubName }: { activity: any; report: any; clubName: string }) {
   const [downloading, setDownloading] = useState(false);
@@ -31,6 +32,7 @@ export default function ReportViewerClient({ activity, report, clubName }: { act
           timeSlot: report.time_slot || "",
           venue: report.venue || "",
           studentsParticipated: report.students_participated ? String(report.students_participated) : "",
+          sdgsMapped: (activity?.sdgs || []).map((num: number) => `SDG ${num}: ${SDG_MAP[num]}`).join(", "),
         },
         overview: report.overview || "",
         objectives: report.objectives || "",
