@@ -58,7 +58,7 @@ export async function GET(request: Request) {
 
         if (activityCode) {
             const [actRows]: any = await pool.execute(
-                `SELECT ac.code, ac.title, ac.domain, ac.category, ac.activity_date, ac.venue, ac.faculty_name,
+                `SELECT ac.code, ac.title, ac.domain, ac.category, ac.activity_date, ac.venue, ac.faculty_name, ac.sdgs,
                         c.name as club_name
                  FROM activity_catalogue ac
                  LEFT JOIN club_activity_mappings m ON m.activity_code = ac.code
