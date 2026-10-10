@@ -1,9 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FiCheckCircle, FiXCircle, FiTarget, FiFilter, FiActivity, FiX, FiBarChart2, FiUsers, FiMapPin, FiCalendar, FiArrowLeft, FiDownload, FiRefreshCw } from "react-icons/fi";
 import { SDG_MAP } from "@/app/Data/activities-mock";
 import { toast } from "sonner";
 import { generateActivityReportPdf } from "@/lib/activityReportPdf";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const SAC_DOMAINS = ['TEC', 'LCH', 'ESO', 'IIE', 'HWB'];
 const DEPT_DOMAIN = 'DEPT. CLUBS';
@@ -32,7 +33,7 @@ const SDG_COLORS: Record<number, { bg: string, text: string, border: string }> =
 export default function SDGsMapper({ role }: { role: "admin" | "analytics" }) {
     const [activities, setActivities] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState<"ALL" | "SAC" | "DEPT" | "MHS">("ALL");
+    const [filter, setFilter] = useState<"ANALYTICS" | "ALL" | "SAC" | "DEPT" | "MHS">("ANALYTICS");
     const [selectedSDG, setSelectedSDG] = useState<number | null>(null);
 
     // Detail View State
@@ -60,7 +61,7 @@ export default function SDGsMapper({ role }: { role: "admin" | "analytics" }) {
     const isMHS = (domain: string) => domain === MHS_DOMAIN;
 
     const filteredActivities = activities.filter(a => {
-        if (filter === "ALL") return true;
+        if (filter === "ALL" || filter === "ANALYTICS") return true;
         if (filter === "SAC") return isSAC(a.domain);
         if (filter === "DEPT") return isDept(a.domain);
         if (filter === "MHS") return isMHS(a.domain);
@@ -308,7 +309,7 @@ export default function SDGsMapper({ role }: { role: "admin" | "analytics" }) {
 
             {/* Filter */}
             <div className="flex items-center gap-2 p-1.5 bg-gray-100/80 rounded-xl w-fit border border-gray-200">
-                {(["ALL", "SAC", "DEPT", "MHS"] as const).map(f => (
+                {(["ANALYTICS", "ALL", "SAC", "DEPT", "MHS"] as const).map(f => (
                     <button
                         key={f}
                         onClick={() => {
@@ -321,12 +322,164 @@ export default function SDGsMapper({ role }: { role: "admin" | "analytics" }) {
                             : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
                         }`}
                     >
-                        {f === "ALL" ? "All Domains" : f === "SAC" ? "SAC Clubs" : f === "DEPT" ? "Dept. Clubs" : "MHS Clubs"}
+                        {f === "ANALYTICS" ? "Analytics" : f === "ALL" ? "All Domains" : f === "SAC" ? "SAC Clubs" : f === "DEPT" ? "Dept. Clubs" : "MHS Clubs"}
                     </button>
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {filter === "ANALYTICS" ? (
+                <div className="space-y-6">
+                    {/* Charts Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Domain Distribution Pie Chart */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="text-sm font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                Activities by Domain
+                            </h3>
+                            <div className="h-[300px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={[
+                                                { name: 'SAC Clubs', value: analytics.sacCount, color: '#ef4444' }, // red-500
+                                                { name: 'Dept. Clubs', value: analytics.deptCount, color: '#10b981' }, // emerald-500
+                                                { name: 'MHS Clubs', value: analytics.mhsCount, color: '#3b82f6' }, // blue-500
+                                            ].filter(d => d.value > 0)}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={100}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        >
+                                            {[
+                                                { name: 'SAC Clubs', value: analytics.sacCount, color: '#ef4444' },
+                                                { name: 'Dept. Clubs', value: analytics.deptCount, color: '#10b981' },
+                                                { name: 'MHS Clubs', value: analytics.mhsCount, color: '#3b82f6' },
+                                            ].filter(d => d.value > 0).map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <RechartsTooltip 
+                                            formatter={(value) => [`${value} Activities`, 'Count']}
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        />
+                                        <Legend verticalAlign="bottom" height={36} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Top SDGs Bar Chart */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="text-sm font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                Most Targeted SDGs
+                            </h3>
+                            <div className="h-[300px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                        data={Array.from({ length: 17 }, (_, i) => i + 1)
+                                            .map(sdgNum => ({
+                                                name: `SDG ${sdgNum}`,
+                                                fullName: SDG_MAP[sdgNum],
+                                                count: sdgCounts.get(sdgNum) || 0,
+                                                fill: SDG_COLORS[sdgNum]?.bg || '#374151'
+                                            }))
+                                            .filter(d => d.count > 0)
+                                            .sort((a, b) => b.count - a.count)
+                                            .slice(0, 7) // Top 7
+                                        }
+                                        layout="vertical"
+                                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#4b5563' }} width={60} />
+                                        <RechartsTooltip
+                                            cursor={{ fill: '#f9fafb' }}
+                                            content={({ active, payload }) => {
+                                                if (active && payload && payload.length) {
+                                                    const data = payload[0].payload;
+                                                    return (
+                                                        <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-100">
+                                                            <p className="font-bold text-gray-900">{data.name}: {data.fullName}</p>
+                                                            <p className="text-blue-600 font-medium">{data.count} Activities</p>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                        <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                                            {Array.from({ length: 17 }, (_, i) => i + 1)
+                                                .map(sdgNum => ({ count: sdgCounts.get(sdgNum) || 0, fill: SDG_COLORS[sdgNum]?.bg || '#374151' }))
+                                                .filter(d => d.count > 0)
+                                                .sort((a, b) => b.count - a.count)
+                                                .slice(0, 7)
+                                                .map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Overall SDGs Distribution (All 17) */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h3 className="text-sm font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                            Overall SDG Distribution (All 17 Goals)
+                        </h3>
+                        <div className="h-[350px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={Array.from({ length: 17 }, (_, i) => i + 1).map(sdgNum => ({
+                                        name: `SDG ${sdgNum}`,
+                                        fullName: SDG_MAP[sdgNum],
+                                        count: sdgCounts.get(sdgNum) || 0,
+                                        fill: SDG_COLORS[sdgNum]?.bg || '#374151'
+                                    }))}
+                                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} angle={-45} textAnchor="end" height={60} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
+                                    <RechartsTooltip
+                                        cursor={{ fill: '#f9fafb' }}
+                                        content={({ active, payload }) => {
+                                            if (active && payload && payload.length) {
+                                                const data = payload[0].payload;
+                                                return (
+                                                    <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-100 max-w-[200px]">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: data.fill }}></div>
+                                                            <p className="font-bold text-gray-900 text-sm">{data.name}</p>
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 mb-2 leading-tight">{data.fullName}</p>
+                                                        <p className="font-medium text-gray-900 bg-gray-50 px-2 py-1 rounded inline-block text-xs">{data.count} Activities</p>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
+                                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                                        {Array.from({ length: 17 }, (_, i) => i + 1).map((sdgNum, index) => (
+                                            <Cell key={`cell-${index}`} fill={SDG_COLORS[sdgNum]?.bg || '#374151'} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* SDGs Grid */}
                 <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
@@ -483,6 +636,7 @@ export default function SDGsMapper({ role }: { role: "admin" | "analytics" }) {
                     )}
                 </div>
             </div>
+            )}
         </div>
     );
 }
