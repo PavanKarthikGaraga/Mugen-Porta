@@ -345,34 +345,40 @@ export async function DELETE(request) {
 
             const role = userResult[0].role;
 
-            // Delete from all related tables first (due to foreign key constraints)
-            // Delete from submission and marks tables first (they reference users)
-            await connection.execute('DELETE FROM internal_submissions WHERE username = ?', [username]);
-            await connection.execute('DELETE FROM student_external_submissions WHERE username = ?', [username]);
-            // For marks table, we need to handle both username and evaluated_by references
-            await connection.execute('DELETE FROM student_external_marks WHERE username = ? OR evaluated_by = ?', [username, username]);
-            await connection.execute('DELETE FROM email_queue WHERE username = ?', [username]);
+            if (role === 'lead') {
+                // Revoke lead role and convert back to student
+                await connection.execute('DELETE FROM leads WHERE username = ?', [username]);
+                await connection.execute("UPDATE users SET role = 'student' WHERE username = ?", [username]);
+            } else {
+                // Delete from all related tables first (due to foreign key constraints)
+                // Delete from submission and marks tables first (they reference users)
+                await connection.execute('DELETE FROM internal_submissions WHERE username = ?', [username]);
+                await connection.execute('DELETE FROM student_external_submissions WHERE username = ?', [username]);
+                // For marks table, we need to handle both username and evaluated_by references
+                await connection.execute('DELETE FROM student_external_marks WHERE username = ? OR evaluated_by = ?', [username, username]);
+                await connection.execute('DELETE FROM email_queue WHERE username = ?', [username]);
 
-            // Delete from role-specific tables unconditionally to handle stray records
-            await connection.execute('DELETE FROM leads WHERE username = ?', [username]);
-            await connection.execute('DELETE FROM faculty WHERE username = ?', [username]);
-            await connection.execute('DELETE FROM students WHERE username = ?', [username]);
-            try {
-                // No ensureCouncilTable() here -- it runs ALTER TABLE users
-                // on a *different* pooled connection than this transaction's
-                // `connection`, which already holds a lock on `users` from
-                // the SELECT above. That ALTER blocks waiting for this
-                // transaction to end, while this code blocks awaiting the
-                // ALTER -- an unbreakable circular wait that also queues up
-                // every other query touching `users` (including login)
-                // behind it. 
-                await connection.execute('DELETE FROM council WHERE username = ?', [username]);
-            } catch (e: any) {
-                if (e.code !== 'ER_NO_SUCH_TABLE') throw e;
+                // Delete from role-specific tables unconditionally to handle stray records
+                await connection.execute('DELETE FROM leads WHERE username = ?', [username]);
+                await connection.execute('DELETE FROM faculty WHERE username = ?', [username]);
+                await connection.execute('DELETE FROM students WHERE username = ?', [username]);
+                try {
+                    // No ensureCouncilTable() here -- it runs ALTER TABLE users
+                    // on a *different* pooled connection than this transaction's
+                    // `connection`, which already holds a lock on `users` from
+                    // the SELECT above. That ALTER blocks waiting for this
+                    // transaction to end, while this code blocks awaiting the
+                    // ALTER -- an unbreakable circular wait that also queues up
+                    // every other query touching `users` (including login)
+                    // behind it. 
+                    await connection.execute('DELETE FROM council WHERE username = ?', [username]);
+                } catch (e: any) {
+                    if (e.code !== 'ER_NO_SUCH_TABLE') throw e;
+                }
+
+                // Delete from users table
+                await connection.execute('DELETE FROM users WHERE username = ?', [username]);
             }
-
-            // Delete from users table
-            await connection.execute('DELETE FROM users WHERE username = ?', [username]);
 
             await connection.commit();
 
