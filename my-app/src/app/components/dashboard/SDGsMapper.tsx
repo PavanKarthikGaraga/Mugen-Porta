@@ -297,12 +297,12 @@ export default function SDGsMapper({ role }: { role: "admin" | "analytics" }) {
                 </div>
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
                     <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full opacity-50 transition-transform group-hover:scale-110"></div>
-                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 relative z-10">Dept. Clubs</span>
+                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 relative z-10">Dept. Clubs Activities</span>
                     <span className="text-3xl font-black text-gray-900 relative z-10">{analytics.deptCount}</span>
                 </div>
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
                     <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full opacity-50 transition-transform group-hover:scale-110"></div>
-                    <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 relative z-10">MHS Clubs</span>
+                    <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 relative z-10">MHS Clubs Activities</span>
                     <span className="text-3xl font-black text-gray-900 relative z-10">{analytics.mhsCount}</span>
                 </div>
             </div>

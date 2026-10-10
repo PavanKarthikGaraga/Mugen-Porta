@@ -224,7 +224,7 @@ export default function SuperAnalyticsDashboard() {
                         </div>
                         <div className="flex items-center gap-3 mb-4 text-blue-100 relative z-10">
                             <div className="p-2.5 bg-white/20 rounded-lg text-white backdrop-blur-sm"><FiGlobe size={18} /></div>
-                            <span className="text-sm font-bold tracking-wide uppercase">SAC Clubs</span>
+                            <span className="text-sm font-bold tracking-wide uppercase">SAC CLUBS</span>
                         </div>
                         <div className="text-4xl font-black relative z-10">{data?.overall?.sac_total || 0}</div>
                     </div>
@@ -235,7 +235,7 @@ export default function SuperAnalyticsDashboard() {
                         </div>
                         <div className="flex items-center gap-3 mb-4 text-purple-100 relative z-10">
                             <div className="p-2.5 bg-white/20 rounded-lg text-white backdrop-blur-sm"><FiBriefcase size={18} /></div>
-                            <span className="text-sm font-bold tracking-wide uppercase">DEPT Clubs</span>
+                            <span className="text-sm font-bold tracking-wide uppercase">DEPT CLUBS</span>
                         </div>
                         <div className="text-4xl font-black relative z-10">{data?.overall?.dept_total || 0}</div>
                     </div>
@@ -246,7 +246,7 @@ export default function SuperAnalyticsDashboard() {
                         </div>
                         <div className="flex items-center gap-3 mb-4 text-emerald-100 relative z-10">
                             <div className="p-2.5 bg-white/20 rounded-lg text-white backdrop-blur-sm"><FiTarget size={18} /></div>
-                            <span className="text-sm font-bold tracking-wide uppercase">MHS Clubs</span>
+                            <span className="text-sm font-bold tracking-wide uppercase">MHS CLUBS</span>
                         </div>
                         <div className="text-4xl font-black relative z-10">{data?.overall?.mhs_total || 0}</div>
                     </div>
