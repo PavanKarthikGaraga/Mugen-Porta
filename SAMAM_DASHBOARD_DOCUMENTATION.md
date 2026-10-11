@@ -15,7 +15,7 @@ The platform is organized around 5 foundational activity domains:
 * **IIE:** Innovation & Entrepreneurship
 * **HWB:** Health & Well-being
 
-Students progress through 6 structured journey levels based on earned **Student Development Credits (SDC) / SAMAM Points**:
+Students progress through 6 structured journey levels based on earned **SAMAM Points**:
 1. **Explorer** (0 pts)
 2. **Foundation** (500 pts)
 3. **Practitioner** (1,250 pts)
@@ -105,7 +105,7 @@ The student experience is the central focus of SAMAM. It provides an end-to-end 
 │ • Overview        │ • Badge Wallet    │ • AI Career Dashboard          │
 │ • Catalogue       │ • Certificates    │ • AI Career Roadmap            │
 │ • My Activities   │ • Excellence      │ • Reflection Journal           │
-│ • Points (SDC)    │   Passport        │ • Club Affiliation             │
+│ • SAMAM Points    │   Passport        │ • Club Affiliation             │
 │ • Competencies    │ • Notifications   │ • Music Preference (LCH03)     │
 │ • Learning Journey│ • Analytics       │ • Profile & Security           │
 └───────────────────┴───────────────────┴────────────────────────────────┘
@@ -114,7 +114,7 @@ The student experience is the central focus of SAMAM. It provides an end-to-end 
 ### 3.1 Main Dashboard Overview (`/dashboard/student`)
 * **Dynamic Hero Header:** Timezone-aware greetings (Morning, Afternoon, Evening, Keep Hustling!), avatar upload preview, degree branch, academic year, and club affiliation.
 * **Level Progress Visualizer:** Shows the current tier (Explorer, Foundation, Practitioner, Leader, Innovator, Fellow) with an animated percentage bar displaying progress toward the next milestone.
-* **Credit Target Gauge:** SDC Points earned versus required graduation thresholds.
+* **Points Target Gauge:** SAMAM Points earned versus required graduation thresholds.
 * **Core KPI Metrics:** 4 summary cards covering Total Points, Badges Earned, Competencies Unlocked, and Current Journey Level.
 * **Interactive Competency Radar:** SVG radar chart illustrating proficiency across top skills alongside vertical progress meters.
 * **Badge Showcase:** Visual grid showing the student's 6 most recent digital badges.
@@ -127,7 +127,7 @@ The student experience is the central focus of SAMAM. It provides an end-to-end 
   * Domain filters: Technology (TEC), Liberal Arts (LCH), Social Outreach (ESO), Innovation (IIE), Health & Well-being (HWB).
   * Difficulty filters: Beginner, Intermediate, Advanced.
   * SDG filters: Filter by specific United Nations Goals (1 through 17).
-  * Sorting options: Recommended, Name (A–Z), Highest Points (SDC), Seats Remaining.
+  * Sorting options: Recommended, Name (A–Z), Highest Points, Seats Remaining.
   * Toggle between Grid View and List View with pagination (24 activities/page).
 * **Activity Detail View (`/[code]`):**
   * **Hero Banner:** Status indicator, date, start/end time, venue, points value, and seat capacity progress bar.
@@ -150,7 +150,7 @@ The student experience is the central focus of SAMAM. It provides an end-to-end 
   * *Leader* (2,000 pts)
   * *Innovator* (3,000 pts)
   * *Fellow* (4,500 pts)
-* **Gap Calculation:** Displays the exact credit delta required to reach the next tier along with recommended activities to bridge the gap.
+* **Gap Calculation:** Displays the exact points delta required to reach the next tier along with recommended activities to bridge the gap.
 
 ### 3.5 Competencies Profile (`/dashboard/student/competencies`)
 * **7 Competency Dimensions:** Technical, Professional, Leadership, Research, Innovation, Social, Personal.
@@ -158,10 +158,10 @@ The student experience is the central focus of SAMAM. It provides an end-to-end 
 * **Evidence Traceability:** Clickable references linking each competency score to the specific activity or badge that validated it.
 * **Skill Gap Identification:** Flags untouched competency areas and provides catalogue recommendations.
 
-### 3.6 My Points / SDC (`/dashboard/student/sdc`)
-* **Graduation Credit Radial Progress:** Radial visualizer comparing accumulated points to graduation requirements.
+### 3.6 SAMAM Points (`/dashboard/student/sdc`)
+* **Graduation Points Radial Progress:** Radial visualizer comparing accumulated SAMAM Points to graduation requirements.
 * **Domain Distribution Bar Chart:** Visual breakdown of points across the 5 domains (TEC, LCH, ESO, IIE, HWB).
-* **Credit Ledger:** Chronological record of credit transactions with activity code references and approval timestamps.
+* **Points Ledger:** Chronological record of points transactions with activity code references and approval timestamps.
 
 ### 3.7 Digital Badge Wallet (`/dashboard/student/badges`)
 * **Earned vs. Locked Badges:** Visual gallery of earned badges alongside locked achievements detailing missing prerequisites.

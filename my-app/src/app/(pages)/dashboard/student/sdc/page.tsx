@@ -70,7 +70,7 @@ export default function SDCPage() {
 
   if (!sdcData) {
     return (
-      <div className="p-8 text-center text-gray-500">Failed to load SDC data.</div>
+      <div className="p-8 text-center text-gray-500">Failed to load SAMAM Points data.</div>
     );
   }
 
@@ -78,7 +78,7 @@ export default function SDCPage() {
   const overallPct = target > 0 ? Math.round((total / target) * 100) : 0;
   const monthPct   = monthTarget > 0 ? Math.round((monthCurrent / monthTarget) * 100) : 0;
 
-  const trendSeries = [{ key: "credits", color: BRAND, label: "Credits Earned" }];
+  const trendSeries = [{ key: "credits", color: BRAND, label: "Points Earned" }];
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
@@ -131,7 +131,7 @@ export default function SDCPage() {
               <div key={y.year}>
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-xs font-semibold text-gray-800">{y.year}</span>
-                  <span className="text-xs font-bold" style={{ color: BRAND }}>{y.total} SDC</span>
+                  <span className="text-xs font-bold" style={{ color: BRAND }}>{y.total} pts</span>
                 </div>
                 <div className="grid grid-cols-2 gap-1 text-[10px] text-gray-500">
                   {y.sem1 !== undefined && <span className="bg-gray-50 rounded px-2 py-0.5">Sem 1: {y.sem1}</span>}
@@ -193,14 +193,14 @@ export default function SDCPage() {
         </DashboardCard>
       </div>
 
-      {/* ── Credit History Table ── */}
-      <DashboardCard title="Credit History" subtitle={`${history ? history.length : 0} transactions`}>
+      {/* ── Points History Table ── */}
+      <DashboardCard title="Points History" subtitle={`${history ? history.length : 0} transactions`}>
         <div className="overflow-x-auto">
           {history && history.length > 0 ? (
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-gray-100">
-                  {["Date","Activity","Domain","Type","Credits"].map((h) => (
+                  {["Date","Activity","Domain","Type","Points"].map((h) => (
                     <th key={h} className="py-2 px-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                       {h}
                     </th>
@@ -226,7 +226,7 @@ export default function SDCPage() {
               </tbody>
             </table>
           ) : (
-             <p className="text-sm text-gray-500 italic p-4">No credit history available.</p>
+             <p className="text-sm text-gray-500 italic p-4">No points history available.</p>
           )}
         </div>
       </DashboardCard>

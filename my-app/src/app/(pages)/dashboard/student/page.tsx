@@ -124,7 +124,7 @@ export default function SAMAMDashboardPage() {
   return (
     <div className="space-y-5 max-w-7xl mx-auto pb-10">
 
-      {/* ── Bento Row 1: Student Identity Hero + SDC Points Accumulator ── */}
+      {/* ── Bento Row 1: Student Identity Hero + SAMAM Points Accumulator ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
         {/* Card 1: Student Identity & Journey Progression */}
@@ -211,11 +211,11 @@ export default function SAMAMDashboardPage() {
           </div>
         </div>
 
-        {/* Card 2: SDC Points Gauge */}
+        {/* Card 2: SAMAM Points Gauge */}
         <div className="bg-white dark:bg-zinc-900/70 border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl shadow-xs p-6 flex flex-col justify-between backdrop-blur-md relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-              SAMAM Credits
+              SAMAM Points
             </span>
             <Link
               href="/dashboard/student/sdc"

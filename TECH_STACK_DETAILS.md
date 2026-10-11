@@ -24,7 +24,7 @@
 ┌────────────────────────────────────────▼─────────────────────────────────────────┐
 │                     BACKEND APPLICATION SERVICES (Next.js Routes)                │
 │ ├── Auth & Session Management (Bcryptjs, HttpOnly cookies, RBAC)                │
-│ ├── Activity Management & Lifecycle (Creation, Approval, Attendance, SDC)        │
+│ ├── Activity Management & Lifecycle (Creation, Approval, Attendance, SAMAM Points) │
 │ ├── AI Intelligence Engine (Google Gemini 3.8 Flash / 3.5 Fallback pipeline)     │
 │ ├── Asynchronous Job Queues (BullMQ + Redis Worker)                             │
 │ └── Export & Verification Engines (jsPDF, ExcelJS, docx, cryptographic badges)  │
@@ -67,7 +67,7 @@
 * **Use Cases:**
   * **AI Career Pathway Matcher:** Analyzes earned competencies across domains (`TEC`, `LCH`, `ESO`, `IIE`, `HWB`) and matches industry career targets.
   * **Activity Content Assistant:** Automated generation of competencies, UN SDG mappings, and learning outcomes for club leads.
-  * **Personalized Student Recommendations:** Contextual recommendations based on current SDC milestone and graduate attribute gaps.
+  * **Personalized Student Recommendations:** Contextual recommendations based on current SAMAM Points milestone and graduate attribute gaps.
 
 ---
 
@@ -79,7 +79,7 @@
   * **`bcryptjs`** (`^3.0.3`): Salted password hashing for credentials.
   * **Cookies:** Secure, `HttpOnly`, `SameSite=Lax` cookies prevent XSS credential exfiltration.
 * **Role-Based Access Control (RBAC):**
-  * `student`: SDC tracking, activity registration, badge issuance, digital certificates.
+  * `student`: SAMAM Points tracking, activity registration, badge issuance, digital certificates.
   * `club_lead`: Activity proposal submission, attendance tracking, member allotment.
   * `faculty`: Proposal review, club mentor sign-off, attendance verification.
   * `admin` / `council`: Central activity approvals, venue booking clash checks, budget oversight.
@@ -104,7 +104,7 @@
 
 ## 6. Document Generation & Digital Credentials
 
-* **PDF Reports:** **`jspdf`** (`^4.2.0`) & **`jspdf-autotable`** (`^5.0.7`) for official SDC transcripts, student certificates, and attendance rosters.
+* **PDF Reports:** **`jspdf`** (`^4.2.0`) & **`jspdf-autotable`** (`^5.0.7`) for official SAMAM transcripts, student certificates, and attendance rosters.
 * **Office Documents:** **`docx`** (`^9.5.1`) for formal administrative circulars and event proposals.
 * **Spreadsheets:** **`exceljs`** (`^4.4.0`) for high-volume tabular audit exports for NAAC/NBA criteria.
 * **Cryptographic QR Badges:** **`qrcode`** (`^1.5.4`) for tamper-evident digital certificate verification links.

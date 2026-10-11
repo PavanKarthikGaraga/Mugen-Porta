@@ -55,7 +55,7 @@ const NAVIGATION_GROUPS: NavGroup[] = [
     items: [
       { name: "Learning Journey",   href: "/dashboard/student/learning-journey",   icon: FiBookOpen },
       { name: "Competencies",       href: "/dashboard/student/competencies",        icon: FiZap },
-      { name: "My Points (SDC)",    href: "/dashboard/student/sdc",                 icon: FiStar },
+      { name: "SAMAM Points",       href: "/dashboard/student/sdc",                 icon: FiStar },
       { name: "Reflection Journal", href: "/dashboard/student/journal",            icon: FiEdit3 },
     ],
   },
