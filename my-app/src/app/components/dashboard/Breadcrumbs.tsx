@@ -45,15 +45,15 @@ export default function Breadcrumbs() {
   if (crumbs.length === 1) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs text-gray-400 py-2 px-1">
-      <FiHome size={11} className="text-gray-400" />
+    <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-zinc-400 dark:text-zinc-500 py-2.5 px-0.5">
+      <FiHome size={12} className="text-zinc-400 dark:text-zinc-500" />
       {crumbs.map((crumb, i) => (
-        <span key={crumb.href} className="flex items-center gap-1">
-          <FiChevronRight size={11} className="text-gray-300" />
+        <span key={crumb.href} className="flex items-center gap-1.5">
+          <FiChevronRight size={11} className="text-zinc-300 dark:text-zinc-700" />
           {i === crumbs.length - 1 ? (
-            <span className="font-medium text-gray-700">{crumb.label}</span>
+            <span className="font-semibold text-zinc-800 dark:text-zinc-200 tracking-tight">{crumb.label}</span>
           ) : (
-            <Link href={crumb.href} className="hover:text-red-700 transition-colors">
+            <Link href={crumb.href} className="hover:text-[#970003] dark:hover:text-red-400 transition-colors">
               {crumb.label}
             </Link>
           )}

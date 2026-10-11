@@ -45,18 +45,17 @@ function getGeminiKeys(): string[] {
 const ATTEMPT_TIMEOUT_MS = 85_000; // 85s timeout per model attempt
 
 const FALLBACK_MODELS = [
-    // 1. Primary: High reasoning, highly stable, avoids the 3.8 traffic spike
-    'gemini-3.7-flash',
+    // 1. Primary: High intelligence and advanced reasoning
+    'gemini-3.8-flash',
     
-    // 2. Secondary: The most intelligent model (currently 3.8). Placed second 
-    // so if 3.7 is down, we still try to get the smartest possible output.
+    // 2. Secondary: Latest stable alias
     'gemini-flash-latest',
     
     // 3. Fallback: Lighter model. Reasoning isn't as deep, but guarantees 
     // the student gets their roadmap instantly if the main servers are struggling.
     'gemini-3.5-flash-lite',
     
-    // 4. Final Safety Net: The lightest, oldest model on the free tier.
+    // 4. Final Safety Net: The lightest fallback model.
     'gemini-3.1-flash-lite'
 ];
 

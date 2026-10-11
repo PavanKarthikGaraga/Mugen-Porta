@@ -52,7 +52,8 @@ export default function CompetencyRadar({ data, accentColor = "rgb(151,0,3)" }) 
           key={i}
           points={pts}
           fill="none"
-          stroke="#E5E7EB"
+          stroke="currentColor"
+          className="text-zinc-200 dark:text-zinc-800"
           strokeWidth={0.8}
         />
       ))}
@@ -60,16 +61,16 @@ export default function CompetencyRadar({ data, accentColor = "rgb(151,0,3)" }) 
       {/* Spokes */}
       {Array.from({ length: n }, (_, i) => {
         const { x, y } = getCoords(i, radius);
-        return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="#E5E7EB" strokeWidth={0.8} />;
+        return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="currentColor" className="text-zinc-200 dark:text-zinc-800" strokeWidth={0.8} />;
       })}
 
       {/* Data area */}
       <polygon
         points={dataPolygon}
         fill={accentColor}
-        fillOpacity={0.15}
+        fillOpacity={0.18}
         stroke={accentColor}
-        strokeWidth={1.5}
+        strokeWidth={1.75}
         strokeLinejoin="round"
       />
 
@@ -77,7 +78,7 @@ export default function CompetencyRadar({ data, accentColor = "rgb(151,0,3)" }) 
       {data.map((d, i) => {
         const r = (d.score / 100) * radius;
         const { x, y } = getCoords(i, r);
-        return <circle key={i} cx={x} cy={y} r={3} fill={accentColor} />;
+        return <circle key={i} cx={x} cy={y} r={3} fill={accentColor} className="stroke-white dark:stroke-zinc-900" strokeWidth={1} />;
       })}
 
       {/* Labels */}
@@ -91,8 +92,7 @@ export default function CompetencyRadar({ data, accentColor = "rgb(151,0,3)" }) 
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize="7.5"
-            fill="#374151"
-            fontWeight="500"
+            className="fill-zinc-600 dark:fill-zinc-400 font-medium"
           >
             {d.name.length > 10 ? d.name.substring(0, 9) + "…" : d.name}
           </text>
