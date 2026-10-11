@@ -42,23 +42,26 @@ function getGeminiKeys(): string[] {
     return Array.from(new Set(keys)); // Deduplicate
 }
 
-const ATTEMPT_TIMEOUT_MS = 20_000; // 20s timeout per model attempt for fast fallback
+const ATTEMPT_TIMEOUT_MS = 60_000; // 60s timeout per model attempt allows full complex roadmaps to complete
 
 const FALLBACK_MODELS = [
-    // 1. Primary: Extremely fast response (1–2s) and high stability
-    'gemini-3.5-flash',
-    
-    // 2. Fast Lightweight model: Instant responses with high availability
+    // 1. Primary: Ultra-fast response (~7s for full roadmap) and highly reliable
     'gemini-3.5-flash-lite',
     
-    // 3. High reasoning model
+    // 2. Secondary: Richer reasoning model (~23s response)
+    'gemini-3.5-flash',
+    
+    // 3. Fallback: Fast stable lite model
+    'gemini-3.1-flash-lite',
+    
+    // 4. Fallback: Stable lite alias
+    'gemini-flash-lite-latest',
+    
+    // 5. Fallback: Deep reasoning model
     'gemini-3.8-flash',
     
-    // 4. Stable alias fallback
-    'gemini-flash-latest',
-    
-    // 5. Final Safety Net: Lightest fallback model
-    'gemini-3.1-flash-lite'
+    // 6. Final safety net: Standard alias
+    'gemini-flash-latest'
 ];
 
 async function fetchWithTimeout(url: string, options: RequestInit, maxWaitMs: number): Promise<Response> {
@@ -140,16 +143,14 @@ export async function callGeminiJSON(options: CallAiOptions): Promise<AiCallResu
                     const bodyText = await res.text().catch(() => '');
                     lastError = new Error(`Gemini request failed (${res.status}) for model ${model}: ${bodyText.slice(0, 300)}`);
                     
-                    if (res.status === 503) {
-                        // 503 Overloaded: Server issue. Try the next MODEL with the SAME KEY.
-                        continue;
-                    } else if (res.status === 429 || res.status === 403) {
+                    if (res.status === 429 || res.status === 403) {
                         // 429 Rate Limit or 403 Invalid: Key issue. Break to try the NEXT KEY.
                         keyFailed = true;
                         break; 
                     } else {
-                        // 400 Bad Request, etc. Prompt issue, fail immediately.
-                        throw lastError; 
+                        // 503 Overloaded, 500, 502, 504, 404, etc.: Try the next MODEL.
+                        console.warn(`Model ${model} returned ${res.status}. Falling back to next model...`);
+                        continue;
                     }
                 }
 
@@ -186,10 +187,8 @@ export async function callGeminiJSON(options: CallAiOptions): Promise<AiCallResu
                 
             } catch (err: any) {
                 lastError = err instanceof Error ? err : new Error(String(err));
-                // If it's a hard error thrown manually above (like 400 Bad Request), break the entire pipeline
-                if (err.message && !err.message.includes('503') && !err.message.includes('429') && !err.message.includes('403')) {
-                    throw lastError;
-                }
+                console.warn(`Model ${model} attempt encountered error: ${lastError.message}. Falling back to next candidate...`);
+                continue;
             }
         }
     }
