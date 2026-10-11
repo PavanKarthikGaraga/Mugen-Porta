@@ -42,20 +42,22 @@ function getGeminiKeys(): string[] {
     return Array.from(new Set(keys)); // Deduplicate
 }
 
-const ATTEMPT_TIMEOUT_MS = 85_000; // 85s timeout per model attempt
+const ATTEMPT_TIMEOUT_MS = 20_000; // 20s timeout per model attempt for fast fallback
 
 const FALLBACK_MODELS = [
-    // 1. Primary: High intelligence and advanced reasoning
-    'gemini-3.8-flash',
+    // 1. Primary: Extremely fast response (1–2s) and high stability
+    'gemini-3.5-flash',
     
-    // 2. Secondary: Latest stable alias
-    'gemini-flash-latest',
-    
-    // 3. Fallback: Lighter model. Reasoning isn't as deep, but guarantees 
-    // the student gets their roadmap instantly if the main servers are struggling.
+    // 2. Fast Lightweight model: Instant responses with high availability
     'gemini-3.5-flash-lite',
     
-    // 4. Final Safety Net: The lightest fallback model.
+    // 3. High reasoning model
+    'gemini-3.8-flash',
+    
+    // 4. Stable alias fallback
+    'gemini-flash-latest',
+    
+    // 5. Final Safety Net: Lightest fallback model
     'gemini-3.1-flash-lite'
 ];
 
