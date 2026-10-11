@@ -89,6 +89,7 @@ export default function SAMAMDashboardPage() {
   const firstName       = profileData.name?.split(" ")[0] || userData?.username;
   const levelStr        = profileData.samam?.level || "Explorer";
   const level           = LEVEL_CFG[levelStr] || LEVEL_CFG.Explorer;
+  const nextLevelStr    = profileData.samam?.nextLevel || level.next;
   const sdcPct          = sdcData.target > 0 ? Math.min(100, Math.round((sdcData.total / sdcData.target) * 100)) : 0;
   const flatComps       = (Array.isArray(competenciesData) ? competenciesData : []).flatMap((cat: any) => cat.competencies || []);
   const scoredComps     = flatComps.filter((c: any) => !c.isOpportunity && c.score > 0);
@@ -236,7 +237,7 @@ export default function SAMAMDashboardPage() {
             </div>
 
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              {sdcPct}% of institutional graduation quota completed
+              {sdcPct}% progress in current level ({levelStr}{nextLevelStr ? ` → ${nextLevelStr}` : ""})
             </p>
 
             <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden mt-3">
