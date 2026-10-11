@@ -351,12 +351,12 @@ export default function SAMAMStudentDashboardLayout({ children }: { children: Re
             {sidebarOpen ? <FiX size={18} /> : <FiMenu size={18} />}
           </button>
           
-          <Link href="/dashboard/student" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#970003] via-[#7F0002] to-[#550001] flex items-center justify-center text-white font-black text-xs shadow-xs group-hover:scale-105 transition-transform">
-              S
+          <Link href="/dashboard/student" className="flex items-center gap-2 min-w-0 group">
+            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-red-900 text-white shadow-md shadow-red-900/20 shrink-0 group-hover:scale-105 transition-transform">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="flex items-baseline">
-              <span className="font-bold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">SAMAM</span>
+              <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-red-950 dark:text-white">SAMAM</span>
               <span className="hidden sm:inline-block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 pl-2 ml-2 border-l border-zinc-200 dark:border-zinc-800">
                 KL SAC Platform
               </span>
@@ -587,11 +587,8 @@ export default function SAMAMStudentDashboardLayout({ children }: { children: Re
 
           {/* Sidebar Footer with Status & University Info */}
           <div className="p-3 border-t border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30">
-            <div className="flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 px-1">
+            <div className="text-[11px] text-zinc-400 dark:text-zinc-500 px-1">
               <span>KL University SAC</span>
-              <span className="flex items-center gap-1 font-mono text-[10px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> v2.4
-              </span>
             </div>
           </div>
         </aside>

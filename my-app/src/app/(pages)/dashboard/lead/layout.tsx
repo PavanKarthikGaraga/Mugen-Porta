@@ -7,6 +7,7 @@ import {
     FiDatabase, FiAward, FiKey, FiCheckSquare, FiBarChart2, FiMusic, FiClipboard
 } from "react-icons/fi";
 import { toast } from "sonner";
+import { Sparkles } from "lucide-react";
 import ChangePassword from "@/app/components/ChangePassword";
 
 export default function LeadDashboardLayout({ children }) {
@@ -146,14 +147,20 @@ export default function LeadDashboardLayout({ children }) {
                             >
                                 {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
                             </button>
-                            <h1 className="text-xl font-bold ml-4 lg:ml-0">
-                                Lead Dashboard
-                                {isProxySession && (
-                                    <span className="ml-2 text-sm font-normal text-orange-300">
-                                        (Student Mode)
-                                    </span>
-                                )}
-                            </h1>
+                            <Link href="/dashboard/lead" className="flex items-center gap-2.5 min-w-0 ml-3 lg:ml-0 group">
+                                <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-white text-red-900 shadow-md shrink-0 group-hover:scale-105 transition-transform">
+                                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
+                                </div>
+                                <div className="flex items-baseline">
+                                    <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">SAMAM</span>
+                                    <span className="text-xs font-semibold text-red-200 pl-2 ml-2 border-l border-red-400/40 hidden sm:inline">Club Lead</span>
+                                    {isProxySession && (
+                                        <span className="ml-2 text-xs font-normal text-orange-300">
+                                            (Student Mode)
+                                        </span>
+                                    )}
+                                </div>
+                            </Link>
                         </div>
 
                         {/* Right side */}
