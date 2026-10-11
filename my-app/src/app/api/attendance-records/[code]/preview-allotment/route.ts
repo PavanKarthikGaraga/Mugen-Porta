@@ -10,7 +10,7 @@ export async function GET(request: Request, context: any) {
 
     const [activityRows]: any = await pool.execute(
       `SELECT ac.code, ac.title, ac.sdc_credits, ac.badge_id, ac.domain, ac.category, bd.name as badge_name,
-              (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ac.code AND ae.attendance_marked = 1) as present_count
+              (SELECT COUNT(*) FROM activity_enrollments ae WHERE ae.activity_code = ac.code AND ae.attendance_percentage = 100) as present_count
        FROM activity_catalogue ac
        LEFT JOIN badge_definitions bd ON ac.badge_id = bd.id
        WHERE ac.code = ?`,

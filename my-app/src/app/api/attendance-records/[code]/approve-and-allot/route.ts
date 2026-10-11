@@ -28,10 +28,11 @@ export async function POST(request: Request, context: any) {
       [adminUser.username as string, notes, code]
     );
 
+    // Only mark present students as completed
     await pool.execute(
       `UPDATE activity_enrollments
        SET status = 'completed'
-       WHERE activity_code = ? AND status IN ('registered', 'active', 'ongoing')`,
+       WHERE activity_code = ? AND attendance_percentage = 100 AND status IN ('registered', 'active', 'ongoing')`,
       [code]
     );
 
@@ -42,7 +43,7 @@ export async function POST(request: Request, context: any) {
       [code]
     );
 
-    // 2. Fetch Activity details and present students
+    // 2. Fetch Activity details and strictly present students (attendance_percentage = 100)
     const [activityRows]: any = await pool.execute(
       `SELECT * FROM activity_catalogue WHERE code = ?`, [code]
     );
@@ -53,7 +54,7 @@ export async function POST(request: Request, context: any) {
     const sdcCredits = activity.sdc_credits || 0;
 
     const [studentRows]: any = await pool.execute(
-      `SELECT username FROM activity_enrollments WHERE activity_code = ? AND attendance_marked = 1`, [code]
+      `SELECT username FROM activity_enrollments WHERE activity_code = ? AND attendance_percentage = 100`, [code]
     );
     const presentStudents = studentRows.map((r: any) => r.username);
 
@@ -94,10 +95,17 @@ export async function POST(request: Request, context: any) {
         await pool.execute('UPDATE activity_catalogue SET badge_id = ? WHERE id = ?', [badgeId, activity.id]);
     }
 
-    // 4. Allot points, badges, certificates
+    // Check who already got points so we don't duplicate
+    const [existingPoints]: any = await pool.execute(
+      `SELECT username FROM sdc_transactions WHERE category = ?`,
+      [`Activity: ${activity.code}`]
+    );
+    const alreadyPointed = new Set(existingPoints.map((r: any) => r.username));
+
+    // 4. Allot points, badges, certificates to PRESENT students only
     for (const username of presentStudents) {
         // Points
-        if (sdcCredits > 0) {
+        if (sdcCredits > 0 && !alreadyPointed.has(username)) {
             await pool.execute(
                 `INSERT INTO sdc_transactions (username, credits, domain, category, description, granted_by, granted_at)
                  VALUES (?, ?, ?, ?, ?, ?, NOW())`,
@@ -132,7 +140,7 @@ export async function POST(request: Request, context: any) {
 
     return NextResponse.json({
         success: true,
-        message: `Approved and allotted successfully for ${presentStudents.length} students.`
+        message: `Approved and allotted successfully for ${presentStudents.length} present students.`
     });
   } catch (error: any) {
     console.error('Approve and Allot error:', error);

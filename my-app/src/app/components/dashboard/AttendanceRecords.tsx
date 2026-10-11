@@ -138,6 +138,7 @@ function Skeleton() {
 function RecordCard({
   rec, role, exportingId, reviewingCode, showNotesFor, rejectNotes,
   onExport, onReview, onToggleNotes, onNoteChange,
+  backgroundProcessing,
 }: {
   rec: AttendanceSession;
   role: string;
@@ -149,6 +150,7 @@ function RecordCard({
   onReview: (code: string, status: "verified" | "rejected") => void;
   onToggleNotes: (code: string) => void;
   onNoteChange: (code: string, val: string) => void;
+  backgroundProcessing?: Record<string, boolean>;
 }) {
   const meta = STATUS_META[rec.status];
   const presentPct = rec.total_count > 0 ? Math.round((rec.present_count / rec.total_count) * 100) : 0;
@@ -250,7 +252,12 @@ function RecordCard({
               </Link>
             )}
 
-            {canReview && (
+            {backgroundProcessing?.[rec.activity_code] ? (
+              <span className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-lg whitespace-nowrap">
+                <FiRefreshCw className="animate-spin text-amber-600" size={12} />
+                Allotting in background...
+              </span>
+            ) : canReview ? (
               <>
                 <button
                   onClick={() => onReview(rec.activity_code, "verified")}
@@ -269,7 +276,7 @@ function RecordCard({
                   <FiXCircle size={12} /> Reject
                 </button>
               </>
-            )}
+            ) : null}
 
             {rec.status !== "unsubmitted" && ["council", "lead", "faculty"].includes(role) && (
               <Link
@@ -282,7 +289,7 @@ function RecordCard({
 
             <button
               onClick={() => onExport(rec)}
-              disabled={isExporting || rec.status === "unsubmitted"}
+              disabled={isExporting || rec.status === "unsubmitted" || !!backgroundProcessing?.[rec.activity_code]}
               className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 whitespace-nowrap"
             >
               <FiDownload size={12} />
@@ -407,7 +414,7 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
   const [showPreviewFor, setShowPreviewFor] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<any>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [allotting, setAllotting] = useState(false);
+  const [backgroundProcessing, setBackgroundProcessing] = useState<Record<string, boolean>>({});
 
   const fetchRecords = async () => {
     setLoading(true);
@@ -545,32 +552,53 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
     }
   };
 
-  const confirmApproveAndAllot = async () => {
+  const confirmApproveAndAllot = () => {
     if (!showPreviewFor) return;
-    setAllotting(true);
-    try {
-      const code = showPreviewFor;
-      const notes = rejectNotes[code] ?? "";
-      const res = await fetch(`/api/attendance-records/${encodeURIComponent(code)}/approve-and-allot`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes: notes || undefined }),
+    const code = showPreviewFor;
+    const notes = rejectNotes[code] ?? "";
+    const activeRec = records.find(r => r.activity_code === code);
+    const actTitle = activeRec?.activity_title || code;
+    const countToAllot = previewData?.studentsCount ?? activeRec?.present_count ?? 0;
+
+    // Immediately close modal so user is never blocked on this screen
+    setShowPreviewFor(null);
+    setPreviewData(null);
+    setShowNotesFor(null);
+    setRejectNotes(prev => { const n = { ...prev }; delete n[code]; return n; });
+
+    // Mark as processing in background
+    setBackgroundProcessing(prev => ({ ...prev, [code]: true }));
+
+    toast.info(`Processing rewards allotment for "${actTitle}" in background...`);
+
+    // Run allotment in the background
+    fetch(`/api/attendance-records/${encodeURIComponent(code)}/approve-and-allot`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notes: notes || undefined }),
+    })
+      .then(async (res) => {
+        const d = await res.json();
+        if (!res.ok) {
+          toast.error(d.error ?? `Failed to allot rewards for "${actTitle}"`);
+          return;
+        }
+        toast.success(d.message || `Rewards allotted to ${countToAllot} present students for "${actTitle}"!`);
+        // Update local status to verified
+        setRecords(prev => prev.map(r =>
+          r.activity_code === code ? { ...r, status: "verified" } : r
+        ));
+      })
+      .catch(() => {
+        toast.error(`Network error while allotting rewards for "${actTitle}"`);
+      })
+      .finally(() => {
+        setBackgroundProcessing(prev => {
+          const next = { ...prev };
+          delete next[code];
+          return next;
+        });
       });
-      const d = await res.json();
-      if (!res.ok) { toast.error(d.error ?? "Failed to allot"); return; }
-      toast.success(d.message || "Attendance approved & rewards allotted!");
-      setShowNotesFor(null);
-      setShowPreviewFor(null);
-      setPreviewData(null);
-      setRejectNotes(prev => { const n = { ...prev }; delete n[code]; return n; });
-      setRecords(prev => prev.map(r =>
-        r.activity_code === code ? { ...r, status: "verified" } : r
-      ));
-    } catch {
-      toast.error("Network error");
-    } finally {
-      setAllotting(false);
-    }
   };
 
   const handleToggleNotes = (code: string) =>
@@ -584,7 +612,7 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
   const roleLabel = ({ admin: "Admin", faculty: "Faculty", lead: "Club Lead", council: "Council" } as Record<string, string>)[role];
 
   const cardProps = {
-    role, exportingId, reviewingCode, showNotesFor, rejectNotes,
+    role, exportingId, reviewingCode, showNotesFor, rejectNotes, backgroundProcessing,
     onExport: handleExport,
     onReview: handleReview,
     onToggleNotes: handleToggleNotes,
@@ -721,11 +749,9 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
                 </h3>
                 <p className="text-xs text-gray-500 mt-1">Review the rewards that will be distributed to present students.</p>
               </div>
-              {!allotting && (
-                <button onClick={() => { setShowPreviewFor(null); setPreviewData(null); }} className="text-gray-400 hover:bg-gray-100 p-1.5 rounded-xl transition-colors">
-                  <FiXCircle size={18} />
-                </button>
-              )}
+              <button onClick={() => { setShowPreviewFor(null); setPreviewData(null); }} className="text-gray-400 hover:bg-gray-100 p-1.5 rounded-xl transition-colors">
+                <FiXCircle size={18} />
+              </button>
             </div>
 
             <div className="p-6 bg-gray-50 flex-1 overflow-y-auto">
@@ -777,7 +803,7 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
                   <div className="mt-4 p-3 bg-blue-50 rounded-lg flex gap-2">
                      <FiInfo className="text-blue-500 shrink-0 mt-0.5" />
                      <p className="text-xs text-blue-700">
-                        This will automatically process and award these benefits to <strong>{previewData.studentsCount} present students</strong> immediately.
+                        This will automatically process and award these benefits to <strong>{previewData.studentsCount ?? (records.find(r => r.activity_code === showPreviewFor)?.present_count ?? 0)} present students</strong> immediately.
                      </p>
                   </div>
                 </div>
@@ -788,22 +814,18 @@ export default function AttendanceRecords({ role }: { role: "admin" | "faculty" 
 
             <div className="p-5 border-t border-gray-100 bg-white flex gap-3 justify-end">
                <button 
-                  disabled={allotting || previewLoading}
+                  disabled={previewLoading}
                   onClick={() => { setShowPreviewFor(null); setPreviewData(null); }}
                   className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
                >
                   Cancel
                </button>
                <button 
-                  disabled={allotting || previewLoading || !previewData}
+                  disabled={previewLoading || !previewData}
                   onClick={confirmApproveAndAllot}
                   className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm shadow-emerald-200 hover:shadow-md disabled:opacity-50"
                >
-                  {allotting ? (
-                      <><FiRefreshCw className="animate-spin" /> Processing Queue...</>
-                  ) : (
-                      <><FiCheckCircle /> Proceed & Allot</>
-                  )}
+                  <FiCheckCircle /> Proceed & Allot
                </button>
             </div>
           </div>
