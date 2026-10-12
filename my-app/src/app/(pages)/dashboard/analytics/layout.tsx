@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FiLogOut, FiMenu, FiX, FiLock, FiBarChart2, FiTarget } from "react-icons/fi";
-import { Sparkles } from "lucide-react";
+import SamamLogo from "@/components/SamamLogo";
 import { toast } from "sonner";
 import ChangePassword from "@/app/components/ChangePassword";
 
@@ -63,9 +63,7 @@ export default function AnalyticsDashboardLayout({ children }) {
                 {/* Logo & Mobile Menu Toggle */}
                 <div className="flex items-center justify-between h-16 px-4" style={{ backgroundColor: 'rgb(24, 24, 27)' }}>
                     <Link href="/dashboard/analytics" className="flex items-center gap-2.5 min-w-0 group">
-                        <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-red-900 text-white shadow-md shadow-red-900/20 shrink-0 group-hover:scale-105 transition-transform">
-                            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </div>
+                        <SamamLogo className="h-9 w-9 sm:h-10 sm:w-10 group-hover:scale-105 transition-transform" />
                         <div className="flex items-baseline">
                             <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">SAMAM</span>
                             <span className="text-xs font-semibold text-zinc-400 pl-2 ml-2 border-l border-zinc-700 hidden sm:inline">Analytics</span>

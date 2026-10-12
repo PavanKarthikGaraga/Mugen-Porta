@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import SamamLogo from "@/components/SamamLogo";
 import {
   ArrowRight,
   Sparkles,
@@ -351,11 +352,9 @@ export default function Home() {
       <nav className="fixed top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="w-full flex h-16 sm:h-20 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           {/* Left: Brand */}
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-red-900 text-white shadow-md shadow-red-900/20 shrink-0">
-              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-            <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-red-950">SAMAM</span>
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+            <SamamLogo className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl" />
+            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-red-950">SAMAM</span>
           </div>
           {/* Right: Buttons — constrained, no overflow */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0 ml-4">
@@ -889,9 +888,7 @@ export default function Home() {
       <footer className="border-t border-slate-200 bg-slate-50 py-12">
         <div className="container mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-900 text-white">
-              <Sparkles className="h-4 w-4" />
-            </div>
+            <SamamLogo className="h-10 w-10 sm:h-12 sm:w-12" />
             <span className="text-2xl font-bold tracking-tight text-red-950">SAMAM</span>
           </div>
           <p className="text-slate-600 font-semibold">
