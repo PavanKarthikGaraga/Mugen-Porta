@@ -902,8 +902,17 @@ export default function Home() {
           </div>
           <div className="mt-8 text-xs font-medium text-slate-400 flex flex-col items-center gap-2">
             <div>&copy; {new Date().getFullYear()} SAMAM. All rights reserved.</div>
-            <div>
-              Designed and Developed By{" "}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 text-slate-500">
+              <span>Designed and Developed By</span>
+              <a 
+                href="https://www.linkedin.com/in/psaivijay/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-red-800 hover:text-red-950 hover:underline font-bold transition-colors"
+              >
+                Sai Vijay Pisini
+              </a>
+              <span className="text-slate-400 font-normal">&amp;</span>
               <a 
                 href="https://www.linkedin.com/in/singananischal/" 
                 target="_blank" 

@@ -586,24 +586,57 @@ export default function SAMAMStudentDashboardLayout({ children }: { children: Re
 
           {/* Sidebar Footer with Status & University Info */}
           <div className="p-3 border-t border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30">
-            <div className="text-[11px] text-zinc-400 dark:text-zinc-500 px-1">
+            <div className="text-[11px] text-zinc-400 dark:text-zinc-500 px-1 flex flex-col gap-1">
               <span>KL University SAC</span>
+              <span className="text-[10px] leading-tight text-zinc-400/90 dark:text-zinc-500/90">
+                Designed &amp; Developed by{" "}
+                <a href="https://www.linkedin.com/in/psaivijay/" target="_blank" rel="noopener noreferrer" className="text-zinc-600 dark:text-zinc-300 hover:text-[#970003] dark:hover:text-red-400 underline-offset-2 hover:underline font-medium">Sai Vijay Pisini</a>
+                {" & "}
+                <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-zinc-600 dark:text-zinc-300 hover:text-[#970003] dark:hover:text-red-400 underline-offset-2 hover:underline font-medium">Nischal Singana</a>
+              </span>
             </div>
           </div>
         </aside>
 
         {/* Main Canvas */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <main className="flex-1 overflow-y-auto bg-zinc-50/70 dark:bg-[#090A0E] focus:outline-none">
-            {/* Breadcrumb strip */}
-            <div className="px-4 sm:px-6 lg:px-8 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-950/40 backdrop-blur-xs">
-              <Breadcrumbs />
+          <main className="flex-1 overflow-y-auto bg-zinc-50/70 dark:bg-[#090A0E] focus:outline-none flex flex-col justify-between">
+            <div>
+              {/* Breadcrumb strip */}
+              <div className="px-4 sm:px-6 lg:px-8 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-950/40 backdrop-blur-xs">
+                <Breadcrumbs />
+              </div>
+              
+              {/* Page Content Viewport */}
+              <div className="px-4 sm:px-6 lg:px-8 py-6">
+                {children}
+              </div>
             </div>
-            
-            {/* Page Content Viewport */}
-            <div className="px-4 sm:px-6 lg:px-8 py-6">
-              {children}
-            </div>
+
+            {/* Footer */}
+            <footer className="border-t border-zinc-200/60 dark:border-zinc-800/60 px-4 sm:px-6 lg:px-8 py-3 text-xs text-zinc-400 dark:text-zinc-500 flex flex-col sm:flex-row justify-between items-center gap-2 bg-white/40 dark:bg-zinc-950/40 mt-auto">
+              <span>© {new Date().getFullYear()} KL University SAC. All Rights Reserved.</span>
+              <span className="flex flex-wrap items-center justify-center gap-1">
+                <span>Designed and Developed by</span>
+                <a
+                  href="https://www.linkedin.com/in/psaivijay/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#970003] dark:hover:text-red-400 underline-offset-2 hover:underline transition-colors"
+                >
+                  Sai Vijay Pisini
+                </a>
+                <span className="text-zinc-400 dark:text-zinc-600">&amp;</span>
+                <a
+                  href="https://www.linkedin.com/in/singananischal/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#970003] dark:hover:text-red-400 underline-offset-2 hover:underline transition-colors"
+                >
+                  Nischal Singana
+                </a>
+              </span>
+            </footer>
           </main>
         </div>
       </div>

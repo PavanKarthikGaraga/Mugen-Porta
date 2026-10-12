@@ -222,13 +222,14 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
                 </div>
             </div>
 
-            <footer className="text-white py-2 px-4 text-center text-sm flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
-                <div className="flex flex-col sm:flex-row justify-between items-center">
-                    <span>© 2026 KL University SAC Activities. All Rights Reserved.</span>
-                    <span className="mt-1 sm:mt-0">
-                        Designed and Developed by{" "}
-                        <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white font-medium">Nischal Singana</a>
-                        {" "}| ZeroOne CodeClub
+            <footer className="text-white py-2 px-4 text-center text-xs sm:text-sm flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-1 sm:gap-0">
+                    <span>© {new Date().getFullYear()} KL University SAC Activities. All Rights Reserved.</span>
+                    <span className="mt-1 sm:mt-0 flex flex-wrap items-center justify-center gap-1">
+                        <span>Designed and Developed by</span>
+                        <a href="https://www.linkedin.com/in/psaivijay/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-red-200 transition-colors duration-200 font-semibold underline-offset-2 hover:underline">Sai Vijay Pisini</a>
+                        <span className="text-white/70">&amp;</span>
+                        <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-red-200 transition-colors duration-200 font-semibold underline-offset-2 hover:underline">Nischal Singana</a>
                     </span>
                 </div>
             </footer>

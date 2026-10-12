@@ -130,14 +130,20 @@ export default function AnalyticsDashboardLayout({ children }) {
                 </div>
 
                 {/* Bottom Actions */}
-                <div className="p-4 border-t border-gray-700 mt-auto">
+                <div className="p-4 border-t border-gray-700 mt-auto space-y-2">
                     <button
                         onClick={() => setChangePasswordOpen(true)}
-                        className="flex items-center w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:text-white group"
+                        className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:text-white group"
                     >
                         <FiLock className="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" />
                         Change Password
                     </button>
+                    <div className="text-[10px] text-gray-400 px-1 pt-1.5 border-t border-gray-800 leading-normal flex flex-wrap items-center gap-1">
+                        <span>Designed &amp; Developed by</span>
+                        <a href="https://www.linkedin.com/in/psaivijay/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white font-medium hover:underline">Sai Vijay Pisini</a>
+                        <span>&amp;</span>
+                        <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white font-medium hover:underline">Nischal Singana</a>
+                    </div>
                 </div>
             </div>
 
@@ -153,8 +159,34 @@ export default function AnalyticsDashboardLayout({ children }) {
                 </div>
 
                 {/* Content Area */}
-                <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
-                    {children}
+                <main className="flex-1 overflow-y-auto bg-gray-50 flex flex-col justify-between">
+                    <div className="p-4 sm:p-6 lg:p-8 flex-1">
+                        {children}
+                    </div>
+
+                    <footer className="border-t border-gray-200 bg-white px-4 sm:px-6 py-3 text-xs text-gray-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+                        <span>© {new Date().getFullYear()} KL University SAC Activities.</span>
+                        <span className="flex flex-wrap items-center justify-center gap-1">
+                            <span>Designed and Developed by</span>
+                            <a
+                                href="https://www.linkedin.com/in/psaivijay/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-gray-800 hover:text-red-700 hover:underline transition-colors"
+                            >
+                                Sai Vijay Pisini
+                            </a>
+                            <span className="text-gray-400">&amp;</span>
+                            <a
+                                href="https://www.linkedin.com/in/singananischal/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-gray-800 hover:text-red-700 hover:underline transition-colors"
+                            >
+                                Nischal Singana
+                            </a>
+                        </span>
+                    </footer>
                 </main>
             </div>
 
