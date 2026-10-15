@@ -139,6 +139,8 @@ export async function GET(request: Request) {
                 SUM(CASE WHEN year = '2nd' THEN 1 ELSE 0 END) as yr2,
                 SUM(CASE WHEN year = '3rd' THEN 1 ELSE 0 END) as yr3,
                 SUM(CASE WHEN year = '4th' THEN 1 ELSE 0 END) as yr4,
+                SUM(CASE WHEN year = '5th' THEN 1 ELSE 0 END) as yr5,
+                SUM(CASE WHEN year = '6th' THEN 1 ELSE 0 END) as yr6,
                 SUM(CASE WHEN residenceType = 'Day Scholar' THEN 1 ELSE 0 END) as dayScholar,
                 SUM(CASE WHEN residenceType = 'Hostel' THEN 1 ELSE 0 END) as hosteler,
                 COUNT(*) as total
@@ -154,7 +156,7 @@ export async function GET(request: Request) {
                 if (!mergedStudentStats.has(canonName)) {
                     mergedStudentStats.set(canonName, {
                         clubId: canonName,
-                        yr1: 0, yr2: 0, yr3: 0, yr4: 0, dayScholar: 0, hosteler: 0, total: 0
+                        yr1: 0, yr2: 0, yr3: 0, yr4: 0, yr5: 0, yr6: 0, dayScholar: 0, hosteler: 0, total: 0
                     });
                 }
                 const merged = mergedStudentStats.get(canonName);
@@ -162,6 +164,8 @@ export async function GET(request: Request) {
                 merged.yr2 += Number(s.yr2) || 0;
                 merged.yr3 += Number(s.yr3) || 0;
                 merged.yr4 += Number(s.yr4) || 0;
+                merged.yr5 += (Number(s.yr5) || 0);
+                merged.yr6 += (Number(s.yr6) || 0);
                 merged.dayScholar += Number(s.dayScholar) || 0;
                 merged.hosteler += Number(s.hosteler) || 0;
                 merged.total += Number(s.total) || 0;

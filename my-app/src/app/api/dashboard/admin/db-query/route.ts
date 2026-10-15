@@ -3,6 +3,83 @@ import { RowDataPacket } from 'mysql2';
 import pool from '@/lib/db';
 import { verifyDevAccess } from '../auth-helper';
 
+function splitSqlStatements(sql: string): string[] {
+    const statements: string[] = [];
+    let current = '';
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let inBacktick = false;
+    let inLineComment = false;
+    let inBlockComment = false;
+
+    for (let i = 0; i < sql.length; i++) {
+        const char = sql[i];
+        const nextChar = sql[i + 1];
+
+        if (inLineComment) {
+            if (char === '\n') {
+                inLineComment = false;
+                current += char;
+            }
+            continue;
+        }
+
+        if (inBlockComment) {
+            if (char === '*' && nextChar === '/') {
+                inBlockComment = false;
+                i++;
+            }
+            continue;
+        }
+
+        if (!inSingleQuote && !inDoubleQuote && !inBacktick) {
+            if (char === '-' && nextChar === '-') {
+                inLineComment = true;
+                i++;
+                continue;
+            }
+            if (char === '#') {
+                inLineComment = true;
+                continue;
+            }
+            if (char === '/' && nextChar === '*') {
+                inBlockComment = true;
+                i++;
+                continue;
+            }
+        }
+
+        if (char === "'" && !inDoubleQuote && !inBacktick) {
+            if (sql[i - 1] !== '\\') {
+                inSingleQuote = !inSingleQuote;
+            }
+        } else if (char === '"' && !inSingleQuote && !inBacktick) {
+            if (sql[i - 1] !== '\\') {
+                inDoubleQuote = !inDoubleQuote;
+            }
+        } else if (char === '`' && !inSingleQuote && !inDoubleQuote) {
+            if (sql[i - 1] !== '\\') {
+                inBacktick = !inBacktick;
+            }
+        }
+
+        if (char === ';' && !inSingleQuote && !inDoubleQuote && !inBacktick) {
+            const trimmed = current.trim();
+            if (trimmed) statements.push(trimmed);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+
+    const lastTrimmed = current.trim();
+    if (lastTrimmed) {
+        statements.push(lastTrimmed);
+    }
+
+    return statements;
+}
+
 export async function POST(request) {
     // Verify dev access (admin + specific username)
     const authResult = await verifyDevAccess(request);
@@ -21,28 +98,40 @@ export async function POST(request) {
         }
 
         const trimmedQuery = query.trim();
+        const statements = splitSqlStatements(trimmedQuery);
 
-    // Removed query type and dangerous pattern restrictions for dev use. Use with caution!
+        if (statements.length === 0) {
+            return NextResponse.json(
+                { error: 'No valid SQL statement found' },
+                { status: 400 }
+            );
+        }
 
         const startTime = Date.now();
-        
-        // Execute the query with a timeout
         const connection = await pool.getConnection();
-        
+
         try {
-            // No query timeout or row limit
-            const [rows, fields] = await connection.execute(trimmedQuery);
+            let lastRows: any = [];
+            let lastFields: any = null;
+
+            for (const stmt of statements) {
+                const [rows, fields] = await connection.query(stmt);
+                lastRows = rows;
+                lastFields = fields;
+            }
+
             const executionTime = Date.now() - startTime;
 
             return NextResponse.json({
                 success: true,
-                data: rows,
+                data: lastRows,
                 metadata: {
-                    rowCount: Array.isArray(rows) ? rows.length : 0,
-                    returnedRows: Array.isArray(rows) ? rows.length : 0,
+                    statementCount: statements.length,
+                    rowCount: Array.isArray(lastRows) ? lastRows.length : 0,
+                    returnedRows: Array.isArray(lastRows) ? lastRows.length : 0,
                     isLimited: false,
                     executionTime: `${executionTime}ms`,
-                    fields: fields ? fields.map(field => ({
+                    fields: lastFields ? lastFields.map((field: any) => ({
                         name: field.name,
                         type: field.type,
                         flags: field.flags

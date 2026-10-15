@@ -13,10 +13,10 @@ import ProgressCard from "@/app/components/dashboard/ProgressCard";
 
 const BRAND = "rgb(151,0,3)";
 
-const yearOrder  = ["1st", "2nd", "3rd", "4th"];
-const yearColors = ["#B45309", "#059669", "#2563EB", "#DC2626"];
+const yearOrder  = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+const yearColors = ["#B45309", "#059669", "#2563EB", "#DC2626", "#7C3AED", "#D97706"];
 const yearLabels: Record<string, string> = {
-  "1st": "1st Year", "2nd": "2nd Year", "3rd": "3rd Year", "4th": "4th Year",
+  "1st": "1st Year", "2nd": "2nd Year", "3rd": "3rd Year", "4th": "4th Year", "5th": "5th Year", "6th": "6th Year",
 };
 
 async function exportResidenceList(type: "Hostel" | "Day Scholar") {

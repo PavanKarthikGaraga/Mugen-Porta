@@ -2,20 +2,11 @@ import { useState } from "react";
 import { branchNames } from "../../../../Data/branches";
 import { countryCodes } from "../../../../Data/coutries";
 
-// Auto-fetch only — a convenience default, not an enforced restriction: the
-// ID field's first 2 digits are pre-filled from the selected year, but stay
-// freely editable afterward and aren't validated against this mapping.
-const YEAR_PREFIX = { "1st": "26", "2nd": "25", "3rd": "24", "4th": "23", "5th": "22" };
-
 export default function PersonalDetails({ formData, updateFormData }) {
     const [isOtherBranch, setIsOtherBranch] = useState(false);
 
-    const isCDOEBranch = formData.branch === "KL CDOE Management (OL) BBA" || formData.branch === "KL CDOE Humanities (OL) BCA";
-
     // Registration IDs are entered manually — only length and digit-only are
-    // validated. The year-prefix is auto-fetched as a starting point (see
-    // YEAR_PREFIX) but never enforced, since CDOE and other formats don't
-    // follow it.
+    // validated. Any 10 or 11-digit ID is accepted without restriction on prefixes.
     const validateUsername = (username) => {
         if (!username) return false;
         return /^\d{10,11}$/.test(username);
@@ -47,27 +38,6 @@ export default function PersonalDetails({ formData, updateFormData }) {
         } else if (name === "countryCode") {
             const selectedCountry = countryCodes.find(c => c.dial_code === value);
             updateFormData({ [name]: value, countryName: selectedCountry ? selectedCountry.name : "" });
-        } else if (name === "year") {
-            // Auto-fetch the ID prefix for the selected year — CDOE branches
-            // use their own numbering, so they're exempt entirely.
-            let currentUsername = formData.username || "";
-            if (!isCDOEBranch) {
-                const prefix = YEAR_PREFIX[value];
-                if (prefix) currentUsername = prefix + currentUsername.slice(2);
-            }
-            const email = currentUsername ? `${currentUsername}@kluniversity.in` : "";
-            updateFormData({ [name]: value, username: currentUsername, email });
-        } else if (name === "branch") {
-            const newIsCDOE = value === "KL CDOE Management (OL) BBA" || value === "KL CDOE Humanities (OL) BCA";
-            let currentUsername = formData.username || "";
-            if (!newIsCDOE && formData.year) {
-                const prefix = YEAR_PREFIX[formData.year];
-                if (prefix && !currentUsername.startsWith(prefix)) {
-                    currentUsername = prefix + currentUsername.slice(2);
-                }
-            }
-            const email = currentUsername ? `${currentUsername}@kluniversity.in` : "";
-            updateFormData({ [name]: value, username: currentUsername, email });
         } else {
             updateFormData({ [name]: value });
         }
@@ -181,6 +151,7 @@ export default function PersonalDetails({ formData, updateFormData }) {
                         <option value="3rd">3rd Year</option>
                         <option value="4th">4th Year</option>
                         <option value="5th">5th Year</option>
+                        <option value="6th">6th Year</option>
                     </select>
                 </div>
 

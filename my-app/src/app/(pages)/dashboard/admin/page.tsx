@@ -143,9 +143,9 @@ export default function AdminOverviewPage() {
   ];
 
   // ── Year breakdown ────────────────────────────────────────────────────────────
-  const yearOrder = ["1st", "2nd", "3rd", "4th"];
-  // 1st=dark yellow, 2nd=green, 3rd=blue, 4th=red
-  const yearColors = ["#B45309", "#059669", "#2563EB", "#DC2626"];
+  const yearOrder = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+  // 1st=dark yellow, 2nd=green, 3rd=blue, 4th=red, 5th=purple, 6th=amber
+  const yearColors = ["#B45309", "#059669", "#2563EB", "#DC2626", "#7C3AED", "#D97706"];
   const yearMap: Record<string, number> = {};
   (stats?.yearBreakdown ?? []).forEach((r) => { yearMap[String(r.year)] = Number(r.count); });
   const maxYear = Math.max(...yearOrder.map((y) => yearMap[y] ?? 0), 1);
@@ -245,6 +245,8 @@ export default function AdminOverviewPage() {
                   <option value="2nd">2nd Year</option>
                   <option value="3rd">3rd Year</option>
                   <option value="4th">4th Year</option>
+                  <option value="5th">5th Year</option>
+                  <option value="6th">6th Year</option>
                 </select>
               </div>
               {/* Branch */}

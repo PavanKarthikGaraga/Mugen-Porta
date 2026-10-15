@@ -54,6 +54,22 @@ export async function ensureActivitySchema() {
         // Ignore if already correct type or table doesn't exist
     }
 
+    // Ensure academic year supports 5th and 6th years
+    try {
+        await pool.query(`ALTER TABLE students MODIFY COLUMN year ENUM('1st', '2nd', '3rd', '4th', '5th', '6th') NOT NULL`);
+    } catch (e: any) {}
+    try {
+        await pool.query(`ALTER TABLE leads MODIFY COLUMN year ENUM('1st', '2nd', '3rd', '4th', '5th', '6th') NOT NULL`);
+    } catch (e: any) {}
+
+    // Ensure username supports 10-11 digit IDs
+    try {
+        await pool.query(`ALTER TABLE users MODIFY COLUMN username VARCHAR(20) NOT NULL`);
+    } catch (e: any) {}
+    try {
+        await pool.query(`ALTER TABLE students MODIFY COLUMN username VARCHAR(20) NOT NULL`);
+    } catch (e: any) {}
+
     _done = true;
 }
 

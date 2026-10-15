@@ -4,7 +4,7 @@
 
 CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(10) NOT NULL UNIQUE,
+    username VARCHAR(20) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL,
@@ -73,11 +73,11 @@ INSERT INTO clubs (id, name, description, domain, memberLimit) VALUES
 
 CREATE TABLE leads (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(10) NOT NULL UNIQUE,
+    username VARCHAR(20) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     phoneNumber VARCHAR(15) NOT NULL,
-    year ENUM('1st', '2nd', '3rd', '4th') NOT NULL,
+    year ENUM('1st', '2nd', '3rd', '4th', '5th', '6th') NOT NULL,
     branch VARCHAR(50) NOT NULL,
     clubId VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -109,14 +109,14 @@ CREATE INDEX idx_faculty_username ON faculty(username);
 
 CREATE TABLE students (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(10) NOT NULL UNIQUE,
+    username VARCHAR(20) NOT NULL UNIQUE,
     clubId VARCHAR(20) DEFAULT NULL,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     branch VARCHAR(50) NOT NULL,
     gender ENUM('Male', 'Female', 'Other') NOT NULL,
     cluster INT DEFAULT NULL,
-    year ENUM('1st', '2nd', '3rd', '4th') NOT NULL,
+    year ENUM('1st', '2nd', '3rd', '4th', '5th', '6th') NOT NULL,
     phoneNumber VARCHAR(15) UNIQUE NOT NULL,
     residenceType ENUM('Hostel', 'Day Scholar') NOT NULL,
     hostelName VARCHAR(100) DEFAULT 'N/A',

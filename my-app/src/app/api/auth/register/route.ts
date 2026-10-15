@@ -36,6 +36,33 @@ async function ensureUsernameWidth(table: string, minLength: number) {
     }
 }
 
+// Ensure students and leads tables' year column supports 5th and 6th years
+let _yearSupportDone = false;
+async function ensureYearSupport() {
+    if (_yearSupportDone) return;
+    for (const table of ['students', 'leads']) {
+        try {
+            const [rows]: any = await pool.query(
+                `SELECT COLUMN_TYPE, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'year'`,
+                [table]
+            );
+            const col = (rows as any[])[0];
+            if (col && col.DATA_TYPE === 'enum') {
+                const colType = String(col.COLUMN_TYPE || '').toLowerCase();
+                if (!colType.includes("'5th'") || !colType.includes("'6th'")) {
+                    await pool.query(
+                        `ALTER TABLE ${table} MODIFY COLUMN year ENUM('1st', '2nd', '3rd', '4th', '5th', '6th') NOT NULL`
+                    );
+                }
+            }
+        } catch (e) {
+            console.error(`Failed to widen ${table}.year enum (non-fatal):`, e);
+        }
+    }
+    _yearSupportDone = true;
+}
+
 export async function POST(req) {
     // Registration creates a DB record and sends email - protect against
     // automated mass-registration / abuse.
@@ -125,6 +152,14 @@ export async function POST(req) {
             );
         }
 
+        const validYears = ['1st', '2nd', '3rd', '4th', '5th', '6th'];
+        if (!validYears.includes(year)) {
+            return NextResponse.json(
+                { message: "Please select a valid academic year (1st to 6th Year)" },
+                { status: 400 }
+            );
+        }
+
         if (!country || !state || !district || !pincode || !residenceType) {
             return NextResponse.json(
                 { message: "Complete address information is required" },
@@ -173,10 +208,11 @@ export async function POST(req) {
         const last4Digits = phoneNumber.slice(-4);
         const generatedPassword = username + last4Digits;
 
-        // Widen username columns if needed before they're ever inserted
-        // into — see ensureUsernameWidth's comment above.
+        // Widen username and year columns if needed before they're ever inserted
+        // into — see ensureUsernameWidth and ensureYearSupport above.
         await ensureUsernameWidth('users', 20);
         await ensureUsernameWidth('students', 20);
+        await ensureYearSupport();
 
         // Check if username or email already exists
         const [existingUsers] = await pool.execute(
