@@ -4,6 +4,32 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 import { ensureIqacTables } from '@/lib/dbMigrate';
+import fs from 'fs';
+import path from 'path';
+
+function deleteUploadFile(fileUrl: string | null | undefined) {
+    if (!fileUrl || typeof fileUrl !== 'string' || !fileUrl.startsWith('/uploads/')) return;
+    try {
+        const filename = path.basename(fileUrl);
+        if (!filename || filename === '.' || filename === '..') return;
+
+        const candidateDirs = [
+            process.env.UPLOAD_DIR,
+            path.join(process.cwd(), 'uploads'),
+            path.join(process.cwd(), 'public', 'uploads'),
+        ].filter(Boolean) as string[];
+
+        for (const dir of candidateDirs) {
+            const fullPath = path.join(dir, filename);
+            if (fs.existsSync(fullPath)) {
+                fs.unlinkSync(fullPath);
+                console.log(`Deleted old upload file: ${fullPath}`);
+            }
+        }
+    } catch (err) {
+        console.warn('Error deleting old uploaded file:', err);
+    }
+}
 
 async function checkIqacUser() {
     const cookieStore = await cookies();
@@ -48,6 +74,21 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
         await ensureIqacTables();
         const { code } = await context.params;
         const data = await request.json();
+
+        if (data.report_pdf_url) {
+            try {
+                const [existingReportRows]: any = await pool.execute(
+                    'SELECT report_pdf_url FROM iqac_activity_reports WHERE activity_code = ? LIMIT 1',
+                    [code]
+                );
+                const oldPdfUrl = existingReportRows[0]?.report_pdf_url;
+                if (oldPdfUrl && oldPdfUrl !== data.report_pdf_url && oldPdfUrl.startsWith('/uploads/')) {
+                    deleteUploadFile(oldPdfUrl);
+                }
+            } catch (delErr) {
+                console.warn('Could not check/delete old IQAC report PDF:', delErr);
+            }
+        }
 
         const safeJson = (val: any) => val ? JSON.stringify(val) : null;
 

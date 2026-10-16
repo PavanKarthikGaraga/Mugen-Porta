@@ -58,10 +58,14 @@ export async function GET(
     const contentType = MIME[ext] || 'application/octet-stream';
     const fileBuffer = fs.readFileSync(filePath);
 
+    const cacheControl = ext === '.pdf'
+        ? 'no-cache, must-revalidate'
+        : 'public, max-age=31536000, immutable';
+
     return new NextResponse(fileBuffer, {
         headers: {
             'Content-Type': contentType,
-            'Cache-Control': 'public, max-age=31536000, immutable',
+            'Cache-Control': cacheControl,
         },
     });
 }

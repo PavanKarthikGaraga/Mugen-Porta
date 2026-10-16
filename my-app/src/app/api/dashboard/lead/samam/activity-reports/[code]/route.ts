@@ -5,6 +5,32 @@ import { verifyToken } from '@/lib/jwt';
 import { safeMessage } from '@/lib/apiSecurity';
 import { getLeadClubIds } from '@/lib/leadScope';
 import { ensureActivityReportsTable } from '@/lib/dbMigrate';
+import fs from 'fs';
+import path from 'path';
+
+function deleteUploadFile(fileUrl: string | null | undefined) {
+    if (!fileUrl || typeof fileUrl !== 'string' || !fileUrl.startsWith('/uploads/')) return;
+    try {
+        const filename = path.basename(fileUrl);
+        if (!filename || filename === '.' || filename === '..') return;
+
+        const candidateDirs = [
+            process.env.UPLOAD_DIR,
+            path.join(process.cwd(), 'uploads'),
+            path.join(process.cwd(), 'public', 'uploads'),
+        ].filter(Boolean) as string[];
+
+        for (const dir of candidateDirs) {
+            const fullPath = path.join(dir, filename);
+            if (fs.existsSync(fullPath)) {
+                fs.unlinkSync(fullPath);
+                console.log(`Deleted old upload file: ${fullPath}`);
+            }
+        }
+    } catch (err) {
+        console.warn('Error deleting old uploaded file:', err);
+    }
+}
 
 async function getLead() {
     const cookieStore = await cookies();
@@ -171,6 +197,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
             overview, objectives, proceedings, keyHighlights, learningOutcomes, conclusion,
             gallery, attendanceSheets, markGenerated, reportPdfUrl,
         } = body;
+
+        // If a new report PDF is being saved, delete the old report PDF file from disk
+        if (reportPdfUrl) {
+            try {
+                const [existingReportRows]: any = await pool.execute(
+                    'SELECT report_pdf_url FROM activity_reports WHERE activity_code = ? LIMIT 1',
+                    [code]
+                );
+                const oldPdfUrl = existingReportRows[0]?.report_pdf_url;
+                if (oldPdfUrl && oldPdfUrl !== reportPdfUrl && oldPdfUrl.startsWith('/uploads/')) {
+                    deleteUploadFile(oldPdfUrl);
+                }
+            } catch (delErr) {
+                console.warn('Could not check/delete old report PDF:', delErr);
+            }
+        }
 
         await pool.execute(`
             INSERT INTO activity_reports (

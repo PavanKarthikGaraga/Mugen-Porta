@@ -278,7 +278,7 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
   }, [code]);
 
   const uploadFile = async (file: File, key: string): Promise<string | null> => {
-    if (file.size > 10 * 1024 * 1024) { toast.error("File too large (max 10 MB)"); return null; }
+    if (file.size > 50 * 1024 * 1024) { toast.error("File too large (max 50 MB)"); return null; }
     setUploadingKey(key);
     try {
       const fd = new FormData();
@@ -385,18 +385,19 @@ export default function ActivityReportFormPage({ params }: { params: Promise<{ c
         clubLogoUrl: club?.logo_url,
       });
 
-      let reportPdfUrl = undefined;
+      let reportPdfUrl: string | undefined = undefined;
       if (pdfBlob) {
-        const file = new File([pdfBlob], "report.pdf", { type: "application/pdf" });
+        const file = new File([pdfBlob], `report-${code}-${Date.now()}.pdf`, { type: "application/pdf" });
         const url = await uploadFile(file, "report-pdf");
-        if (url) {
-           reportPdfUrl = url;
+        if (!url) {
+           throw new Error("Failed to upload the generated PDF report. Please try again.");
         }
+        reportPdfUrl = url;
       }
 
       await saveDraft(true, reportPdfUrl);
       setReportStatus("generated");
-      toast.success("Report generated — check your downloads");
+      toast.success("Report generated and updated successfully");
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to generate report");

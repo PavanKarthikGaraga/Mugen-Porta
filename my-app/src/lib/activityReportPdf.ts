@@ -62,15 +62,27 @@ function loadImage(url: string): Promise<LoadedImage | null> {
     img.crossOrigin = "anonymous";
     img.onload = () => {
       try {
+        const MAX_DIM = 1600;
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+        if (w > MAX_DIM || h > MAX_DIM) {
+          if (w > h) {
+            h = Math.round((h * MAX_DIM) / w);
+            w = MAX_DIM;
+          } else {
+            w = Math.round((w * MAX_DIM) / h);
+            h = MAX_DIM;
+          }
+        }
         const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
+        canvas.width = w;
+        canvas.height = h;
         const ctx = canvas.getContext("2d");
         if (!ctx) { resolve(null); return; }
         ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        resolve({ dataUrl: canvas.toDataURL("image/jpeg", 0.92), ratio: canvas.width / canvas.height });
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve({ dataUrl: canvas.toDataURL("image/jpeg", 0.85), ratio: img.naturalWidth / img.naturalHeight });
       } catch {
         resolve(null);
       }

@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { getSessionUser, safeMessage } from '@/lib/apiSecurity';
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
 
 // Accept images, PDFs, and common document formats for assignment submissions
 const ALLOWED_MIME_TYPES = new Set([
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
             formData = await request.formData();
         } catch (parseErr: any) {
             console.error("Upload: formData parse error:", parseErr);
-            return NextResponse.json({ error: 'Failed to parse upload. File may be too large (max 10 MB).' }, { status: 400 });
+            return NextResponse.json({ error: 'Failed to parse upload. File may be too large (max 50 MB).' }, { status: 400 });
         }
 
         const file = formData.get('file') as File | null;
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         }
 
         if (file.size > MAX_FILE_SIZE_BYTES) {
-            return NextResponse.json({ error: 'File is too large. Maximum size is 10 MB.' }, { status: 400 });
+            return NextResponse.json({ error: 'File is too large. Maximum size is 50 MB.' }, { status: 400 });
         }
 
         // Allow empty/unknown MIME types (some browsers don't set it for certain files)
