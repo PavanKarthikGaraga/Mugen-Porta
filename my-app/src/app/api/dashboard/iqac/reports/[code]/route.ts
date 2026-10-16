@@ -83,7 +83,7 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
                 conclusion = VALUES(conclusion),
                 gallery = VALUES(gallery),
                 attendance_sheets = VALUES(attendance_sheets),
-                status = VALUES(status),
+                status = IF(VALUES(status) = 'generated', 'generated', IF(status = 'generated', 'generated', VALUES(status))),
                 report_pdf_url = COALESCE(VALUES(report_pdf_url), report_pdf_url)
         `, [
             code, user.username, data.organizing_entity || 'SAC (Student Activity Center)',

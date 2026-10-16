@@ -201,8 +201,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ cod
                 conclusion = VALUES(conclusion),
                 gallery = VALUES(gallery),
                 attendance_sheets = VALUES(attendance_sheets),
-                status = VALUES(status),
-                generated_at = VALUES(generated_at),
+                status = IF(VALUES(status) = 'generated', 'generated', IF(status = 'generated', 'generated', VALUES(status))),
+                generated_at = IF(VALUES(status) = 'generated', VALUES(generated_at), generated_at),
                 report_pdf_url = COALESCE(VALUES(report_pdf_url), report_pdf_url)
         `, [
             code, club.id, lead.decoded.username, hodName || null, hodDesignation || null, facultyName || null, facultyId || null,
