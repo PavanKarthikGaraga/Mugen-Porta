@@ -1,4 +1,5 @@
 import Image from "next/image";
+import samamLogo from "../../public/SAMAM.png";
 
 interface SamamLogoProps {
   className?: string;
@@ -8,7 +9,7 @@ interface SamamLogoProps {
 
 export default function SamamLogo({
   className = "h-9 w-9 sm:h-10 sm:w-10",
-  size = 64,
+  size,
   priority = true,
 }: SamamLogoProps) {
   return (
@@ -16,7 +17,7 @@ export default function SamamLogo({
       className={`relative flex items-center justify-center shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/10 dark:ring-white/15 transition-transform ${className}`}
     >
       <Image
-        src="/SAMAM.png"
+        src={samamLogo}
         alt="SAMAM Logo"
         width={size}
         height={size}

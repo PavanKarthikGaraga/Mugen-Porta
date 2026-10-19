@@ -15,6 +15,13 @@ const poppins = Poppins({
 export const metadata = {
   title: "KL SAC Activities Portal",
   description: "SAC Activities",
+  icons: {
+    icon: [
+      { url: "/SAMAM.png", type: "image/png" },
+    ],
+    shortcut: "/SAMAM.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 // Disable PWA and service worker
