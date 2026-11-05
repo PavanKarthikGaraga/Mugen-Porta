@@ -327,9 +327,10 @@ export default function PublicDashboard() {
         style={{ backgroundColor: "rgb(151, 0, 3)" }}
       >
         <div className="flex flex-col sm:flex-row justify-between items-center">
-          <span>© 2025 KL University SAC Activities. All Rights Reserved.</span>
+          <span>© {new Date().getFullYear()} KL University SAC Activities. All Rights Reserved.</span>
           <span className="mt-1 sm:mt-0">
-            Designed and Developed by Pavan Karthik Garaga | ZeroOne CodeClub
+            Designed and Developed by{" "}
+            <a href="https://sac.kluniversity.in/" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-red-200 underline-offset-2 hover:underline transition-colors">Student Activity Center (SAC)</a>
           </span>
         </div>
       </footer>

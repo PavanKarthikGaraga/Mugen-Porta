@@ -139,10 +139,8 @@ export default function AnalyticsDashboardLayout({ children }) {
                         Change Password
                     </button>
                     <div className="text-[10px] text-gray-400 px-1 pt-1.5 border-t border-gray-800 leading-normal flex flex-wrap items-center gap-1">
-                        <span>Designed &amp; Developed by</span>
-                        <a href="https://www.linkedin.com/in/psaivijay/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white font-medium hover:underline">Sai Vijay Pisini</a>
-                        <span>&amp;</span>
-                        <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white font-medium hover:underline">Nischal Singana</a>
+                        <span>Designed and Developed by</span>
+                        <a href="https://sac.kluniversity.in/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white font-medium hover:underline">Student Activity Center (SAC)</a>
                     </div>
                 </div>
             </div>
@@ -169,21 +167,12 @@ export default function AnalyticsDashboardLayout({ children }) {
                         <span className="flex flex-wrap items-center justify-center gap-1">
                             <span>Designed and Developed by</span>
                             <a
-                                href="https://www.linkedin.com/in/psaivijay/"
+                                href="https://sac.kluniversity.in/"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="font-semibold text-gray-800 hover:text-red-700 hover:underline transition-colors"
                             >
-                                Sai Vijay Pisini
-                            </a>
-                            <span className="text-gray-400">&amp;</span>
-                            <a
-                                href="https://www.linkedin.com/in/singananischal/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-semibold text-gray-800 hover:text-red-700 hover:underline transition-colors"
-                            >
-                                Nischal Singana
+                                Student Activity Center (SAC)
                             </a>
                         </span>
                     </footer>

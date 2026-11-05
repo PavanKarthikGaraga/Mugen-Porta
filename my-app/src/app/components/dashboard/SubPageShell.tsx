@@ -73,10 +73,8 @@ export default function SubPageShell({ icon: Icon, title, subtitle, features = [
       </div>
 
       <p className="text-center text-xs text-gray-400 mt-5 flex flex-wrap items-center justify-center gap-1">
-        <span>Designed &amp; Developed by</span>{" "}
-        <a href="https://www.linkedin.com/in/psaivijay/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors duration-200 font-medium hover:underline">Sai Vijay Pisini</a>
-        <span>&amp;</span>
-        <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors duration-200 font-medium hover:underline">Nischal Singana</a>
+        <span>Designed and Developed by</span>{" "}
+        <a href="https://sac.kluniversity.in/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors duration-200 font-medium hover:underline">Student Activity Center (SAC)</a>
       </p>
     </div>
   );

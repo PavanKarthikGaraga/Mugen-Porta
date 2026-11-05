@@ -284,9 +284,10 @@ export default function Register() {
                 <div className="bg-red-800 text-white py-2 px-4 flex-shrink-0">
                     <div className="max-w-7xl mx-auto text-center text-sm">
                         <div className="flex flex-col sm:flex-row justify-between items-center">
-                            <span>© 2025 KL University SAC Activities. All Rights Reserved.</span>
+                            <span>© {new Date().getFullYear()} KL University SAC Activities. All Rights Reserved.</span>
                             <span className="mt-1 sm:mt-0">
-                                Designed and Developed by Pavan Karthik Garaga | ZeroOne CodeClub
+                                Designed and Developed by{" "}
+                                <a href="https://sac.kluniversity.in/" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-red-200 underline-offset-2 hover:underline transition-colors">Student Activity Center (SAC)</a>
                             </span>
                         </div>
                     </div>
@@ -364,7 +365,9 @@ export default function Register() {
                     </div> */}
                 </div>
                     <div className="text-center mt-4">
-                        <p className="text-sm py-1 bg-red-800 text-white">© {new Date().getFullYear()} KLEF - Student Activity Center | Designed & Developed by ZeroOne CodeClub</p>
+                        <p className="text-sm py-1 bg-red-800 text-white">© {new Date().getFullYear()} KL University SAC Activities. All Rights Reserved. | Designed and Developed by{" "}
+                            <a href="https://sac.kluniversity.in/" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-red-200 underline-offset-2 hover:underline transition-colors">Student Activity Center (SAC)</a>
+                        </p>
                     </div>
             </div>
 

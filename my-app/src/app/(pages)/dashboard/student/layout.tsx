@@ -589,10 +589,8 @@ export default function SAMAMStudentDashboardLayout({ children }: { children: Re
             <div className="text-[11px] text-zinc-400 dark:text-zinc-500 px-1 flex flex-col gap-1">
               <span>KL University SAC</span>
               <span className="text-[10px] leading-tight text-zinc-400/90 dark:text-zinc-500/90">
-                Designed &amp; Developed by{" "}
-                <a href="https://www.linkedin.com/in/psaivijay/" target="_blank" rel="noopener noreferrer" className="text-zinc-600 dark:text-zinc-300 hover:text-[#970003] dark:hover:text-red-400 underline-offset-2 hover:underline font-medium">Sai Vijay Pisini</a>
-                {" & "}
-                <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-zinc-600 dark:text-zinc-300 hover:text-[#970003] dark:hover:text-red-400 underline-offset-2 hover:underline font-medium">Nischal Singana</a>
+                Designed and Developed by{" "}
+                <a href="https://sac.kluniversity.in/" target="_blank" rel="noopener noreferrer" className="text-zinc-600 dark:text-zinc-300 hover:text-[#970003] dark:hover:text-red-400 underline-offset-2 hover:underline font-medium">Student Activity Center (SAC)</a>
               </span>
             </div>
           </div>
@@ -619,21 +617,12 @@ export default function SAMAMStudentDashboardLayout({ children }: { children: Re
               <span className="flex flex-wrap items-center justify-center gap-1">
                 <span>Designed and Developed by</span>
                 <a
-                  href="https://www.linkedin.com/in/psaivijay/"
+                  href="https://sac.kluniversity.in/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#970003] dark:hover:text-red-400 underline-offset-2 hover:underline transition-colors"
                 >
-                  Sai Vijay Pisini
-                </a>
-                <span className="text-zinc-400 dark:text-zinc-600">&amp;</span>
-                <a
-                  href="https://www.linkedin.com/in/singananischal/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#970003] dark:hover:text-red-400 underline-offset-2 hover:underline transition-colors"
-                >
-                  Nischal Singana
+                  Student Activity Center (SAC)
                 </a>
               </span>
             </footer>

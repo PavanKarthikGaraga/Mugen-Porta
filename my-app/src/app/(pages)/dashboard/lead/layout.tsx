@@ -328,9 +328,7 @@ export default function LeadDashboardLayout({ children }) {
                     <span>© {new Date().getFullYear()} KL University SAC Activities. All Rights Reserved.</span>
                     <span className="mt-1 sm:mt-0 flex flex-wrap items-center justify-center gap-1">
                         <span>Designed and Developed by</span>
-                        <a href="https://www.linkedin.com/in/psaivijay/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-red-200 transition-colors duration-200 font-semibold underline-offset-2 hover:underline">Sai Vijay Pisini</a>
-                        <span className="text-white/70">&amp;</span>
-                        <a href="https://www.linkedin.com/in/singananischal/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-red-200 transition-colors duration-200 font-semibold underline-offset-2 hover:underline">Nischal Singana</a>
+                        <a href="https://sac.kluniversity.in/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-red-200 transition-colors duration-200 font-semibold underline-offset-2 hover:underline">Student Activity Center (SAC)</a>
                     </span>
                 </div>
             </footer>
