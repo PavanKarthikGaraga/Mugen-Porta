@@ -37,24 +37,68 @@ export async function GET() {
 
         const activities = rows as any[];
 
-        // Attach the organizing club(s) to each activity. An activity can be
-        // mapped to more than one club, so this is a separate lookup (joining it
-        // into the query above would multiply the enrollment counts).
+        // Attach the ORGANIZING club to each activity -- the parent club it was
+        // created under, not every club it ended up mapped to. Leads can manage
+        // child clubs on top of their parent club, and the attendance/auto-fix
+        // flows add a club_activity_mappings row for each of those, so one
+        // activity can be mapped to a dozen clubs. Showing all of them lists the
+        // same activity under every sibling club, which is not wanted here.
+        //
+        // Resolution order:
+        //   1. the creating lead's parent club (leads.clubId via created_by)
+        //   2. the earliest club_activity_mappings row (the one written when the
+        //      activity was created; later rows are auto-added child clubs)
         const clubsByActivity: Record<string, { id: string; name: string }[]> = {};
         try {
             const codes = activities.map(a => a.code);
             if (codes.length > 0) {
                 const placeholders = codes.map(() => '?').join(',');
+
+                // Earliest mapping per activity (lowest id) -> fallback parent.
+                const firstMapping: Record<string, { id: string; name: string }> = {};
+                const mappedIds: Record<string, Set<string>> = {};
                 const [mapRows]: any = await pool.execute(
                     `SELECT m.activity_code, c.id AS club_id, c.name AS club_name
                      FROM club_activity_mappings m
                      JOIN clubs c ON c.id = m.club_id
                      WHERE m.activity_code IN (${placeholders})
-                     ORDER BY c.name ASC`,
+                     ORDER BY m.id ASC`,
                     codes
                 );
                 for (const r of mapRows as any[]) {
-                    (clubsByActivity[r.activity_code] ||= []).push({ id: String(r.club_id), name: r.club_name });
+                    const club = { id: String(r.club_id), name: r.club_name };
+                    if (!firstMapping[r.activity_code]) firstMapping[r.activity_code] = club;
+                    (mappedIds[r.activity_code] ||= new Set()).add(club.id);
+                }
+
+                // Creating lead's parent club, when the activity was created by a lead.
+                const creatorClub: Record<string, { id: string; name: string }> = {};
+                try {
+                    const [creatorRows]: any = await pool.execute(
+                        `SELECT ac.code, c.id AS club_id, c.name AS club_name
+                         FROM activity_catalogue ac
+                         JOIN leads l ON l.username = ac.created_by
+                         JOIN clubs c ON c.id = l.clubId
+                         WHERE ac.code IN (${placeholders})`,
+                        codes
+                    );
+                    for (const r of creatorRows as any[]) {
+                        creatorClub[r.code] = { id: String(r.club_id), name: r.club_name };
+                    }
+                } catch (e) {
+                    console.warn('Completed activities: could not resolve creating lead clubs', e);
+                }
+
+                for (const code of codes) {
+                    const mapped = mappedIds[code];
+                    const fromCreator = creatorClub[code];
+                    // Trust the creator's parent club only when the activity is actually
+                    // mapped to it (or has no mappings at all); otherwise the creator was
+                    // a lead from a different club and the first mapping is the better answer.
+                    const parent = fromCreator && (!mapped || mapped.has(fromCreator.id))
+                        ? fromCreator
+                        : (firstMapping[code] ?? fromCreator);
+                    if (parent) clubsByActivity[code] = [parent];
                 }
             }
         } catch (e) {
