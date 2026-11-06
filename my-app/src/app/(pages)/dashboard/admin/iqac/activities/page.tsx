@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { FiPlus, FiList } from "react-icons/fi";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
+import { useScrollMemory } from "@/lib/hooks/useScrollMemory";
 
 export default function IqacActivitiesPage() {
     const [activities, setActivities] = useState([]);
@@ -18,6 +20,9 @@ export default function IqacActivitiesPage() {
     const [submitting, setSubmitting] = useState(false);
 
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = usePersistedState('iqac_activities_search', '');
+    // Remember the list's scroll offset across the inline edit form and across navigation.
+    const { ref: pageRef, scrollToTop } = useScrollMemory('iqac_activities', !loading && !showForm);
 
     useEffect(() => {
         fetchActivities();
@@ -90,6 +95,7 @@ export default function IqacActivitiesPage() {
         });
         setEditingId(activity.id);
         setShowForm(true);
+        scrollToTop();
     };
 
     const handleDelete = async (id) => {
@@ -118,9 +124,9 @@ export default function IqacActivitiesPage() {
         });
         setEditingId(null);
         setShowForm(!showForm);
+        if (!showForm) scrollToTop();
     };
 
-    const [searchQuery, setSearchQuery] = useState('');
 
     const filteredActivities = activities.filter((a: any) => 
         (a.activity_code || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -128,7 +134,7 @@ export default function IqacActivitiesPage() {
     );
 
     return (
-        <div className="space-y-6">
+        <div ref={pageRef} className="space-y-6">
             <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-100">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">IQAC Activities</h1>

@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { FiEdit } from "react-icons/fi";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
+import { useScrollMemory } from "@/lib/hooks/useScrollMemory";
 
 export default function IqacReportsPage() {
     const [reports, setReports] = useState([]);
@@ -25,7 +27,9 @@ export default function IqacReportsPage() {
         fetchReports();
     }, []);
 
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = usePersistedState('iqac_reports_search', '');
+    // Restore scroll position when coming back from the report editor.
+    const { ref: pageRef } = useScrollMemory('iqac_reports', !loading);
 
     const filteredReports = reports.filter((r: any) => 
         (r.activity_code || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -33,7 +37,7 @@ export default function IqacReportsPage() {
     );
 
     return (
-        <div className="space-y-6">
+        <div ref={pageRef} className="space-y-6">
             <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-100">
                 <h1 className="text-2xl font-bold text-gray-900">IQAC Reports</h1>
                 <p className="text-gray-500 mt-1">Manage and generate reports for IQAC activities.</p>
@@ -65,7 +69,7 @@ export default function IqacReportsPage() {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredReports.map((r: any) => (
-                                <tr key={r.id}>
+                                <tr key={r.activity_id ?? r.activity_code}>
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-medium text-gray-900">{r.title}</div>
                                         <div className="text-xs text-gray-500">{r.activity_code}</div>

@@ -37,6 +37,30 @@ export async function GET() {
 
         const activities = rows as any[];
 
+        // Attach the organizing club(s) to each activity. An activity can be
+        // mapped to more than one club, so this is a separate lookup (joining it
+        // into the query above would multiply the enrollment counts).
+        const clubsByActivity: Record<string, { id: string; name: string }[]> = {};
+        try {
+            const codes = activities.map(a => a.code);
+            if (codes.length > 0) {
+                const placeholders = codes.map(() => '?').join(',');
+                const [mapRows]: any = await pool.execute(
+                    `SELECT m.activity_code, c.id AS club_id, c.name AS club_name
+                     FROM club_activity_mappings m
+                     JOIN clubs c ON c.id = m.club_id
+                     WHERE m.activity_code IN (${placeholders})
+                     ORDER BY c.name ASC`,
+                    codes
+                );
+                for (const r of mapRows as any[]) {
+                    (clubsByActivity[r.activity_code] ||= []).push({ id: String(r.club_id), name: r.club_name });
+                }
+            }
+        } catch (e) {
+            console.warn('Completed activities: could not load club mappings', e);
+        }
+
         // Group by domain for the frontend
         const byDomain: Record<string, any[]> = {};
         for (const row of activities) {
@@ -54,6 +78,7 @@ export async function GET() {
                 locked_at:       row.locked_at,
                 report_status:   row.report_status,
                 report_generated_at: row.report_generated_at,
+                clubs:           clubsByActivity[row.code] ?? [],
             });
         }
 

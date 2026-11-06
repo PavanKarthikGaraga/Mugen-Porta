@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { FiCheckCircle, FiXCircle, FiUsers, FiCalendar, FiMapPin, FiFilter, FiRefreshCw, FiDownload } from "react-icons/fi";
+import { FiCheckCircle, FiXCircle, FiUsers, FiCalendar, FiMapPin, FiFilter, FiRefreshCw, FiDownload, FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { toast } from "sonner";
 import { generateActivityReportPdf } from "@/lib/activityReportPdf";
 import { SDG_MAP } from "@/app/Data/activities-mock";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
 
 const DOMAIN_COLORS: Record<string, string> = {
   TEC: "#0284c7", LCH: "#7c3aed", ESO: "#ea580c", IIE: "#059669", HWB: "#e11d48",
@@ -31,11 +32,112 @@ function AttendancePill({ present, total }: { present: number; total: number }) 
   );
 }
 
+const NO_CLUB = "__none__";
+type SortOrder = "newest" | "oldest";
+
+function sortActivities(acts: any[], order: SortOrder) {
+  // Activities without a date always go last, whichever way we sort.
+  return [...acts].sort((a, b) => {
+    const ta = a.activity_date ? new Date(a.activity_date).getTime() : NaN;
+    const tb = b.activity_date ? new Date(b.activity_date).getTime() : NaN;
+    if (isNaN(ta) && isNaN(tb)) return String(a.code).localeCompare(String(b.code));
+    if (isNaN(ta)) return 1;
+    if (isNaN(tb)) return -1;
+    if (ta === tb) return String(a.code).localeCompare(String(b.code));
+    return order === "newest" ? tb - ta : ta - tb;
+  });
+}
+
+function activityClubs(a: any): { id: string; name: string }[] {
+  return a.clubs && a.clubs.length > 0 ? a.clubs : [{ id: NO_CLUB, name: "No club assigned" }];
+}
+
+function ActivityTable({
+  acts, color, downloadingCode, onDownload,
+}: { acts: any[]; color: string; downloadingCode: string | null; onDownload: (code: string) => void }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-[13px]">
+        <thead>
+          <tr className="border-b border-gray-100 bg-gray-50">
+            <th className="text-left px-5 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">Activity</th>
+            <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">Code</th>
+            <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">Category</th>
+            <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">
+              <span className="flex items-center gap-1"><FiCalendar size={11} /> Date</span>
+            </th>
+            <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">
+              <span className="flex items-center gap-1"><FiMapPin size={11} /> Venue</span>
+            </th>
+            <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">
+              <span className="flex items-center gap-1"><FiUsers size={11} /> Present / Enrolled</span>
+            </th>
+            <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">Report</th>
+            <th className="px-4 py-2.5"></th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-50">
+          {acts.map((a: any) => (
+            <tr key={a.code} className="hover:bg-gray-50 transition-colors">
+              <td className="px-5 py-3">
+                <span className="font-medium text-gray-900">{a.title}</span>
+              </td>
+              <td className="px-4 py-3">
+                <span className="font-mono text-[12px] px-2 py-0.5 rounded"
+                  style={{ backgroundColor: `${color}15`, color }}>
+                  {a.code}
+                </span>
+              </td>
+              <td className="px-4 py-3 text-gray-600">{a.category || "—"}</td>
+              <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(a.activity_date)}</td>
+              <td className="px-4 py-3 text-gray-500 text-[12px] max-w-[160px] truncate" title={a.venue}>
+                {a.venue || "—"}
+              </td>
+              <td className="px-4 py-3">
+                <AttendancePill present={a.students_present} total={a.total_enrolled} />
+              </td>
+              <td className="px-4 py-3">
+                {a.report_status ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <FiCheckCircle size={11} /> Generated
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
+                    <FiXCircle size={11} /> Not generated
+                  </span>
+                )}
+              </td>
+              <td className="px-4 py-3 text-right">
+                {a.report_status && (
+                  <button
+                    onClick={() => onDownload(a.code)}
+                    disabled={downloadingCode === a.code}
+                    className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg text-white disabled:opacity-50 whitespace-nowrap"
+                    style={{ backgroundColor: color }}
+                  >
+                    {downloadingCode === a.code ? <FiRefreshCw size={11} className="animate-spin" /> : <FiDownload size={11} />}
+                    View / Download
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function CompletedActivitiesPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDomain, setSelectedDomain] = useState<string>("ALL");
-  const [search, setSearch] = useState("");
+  // Filters live in sessionStorage so they survive opening a report / navigating away and back.
+  const [selectedDomain, setSelectedDomain] = usePersistedState<string>("admin_completed_domain", "ALL");
+  const [selectedClub, setSelectedClub] = usePersistedState<string>("admin_completed_club", "ALL");
+  const [sortOrder, setSortOrder] = usePersistedState<SortOrder>("admin_completed_sort", "newest");
+  const [groupByClub, setGroupByClub] = usePersistedState<boolean>("admin_completed_group_by_club", true);
+  const [expandedClubs, setExpandedClubs] = usePersistedState<string[]>("admin_completed_expanded_clubs", []);
+  const [search, setSearch] = usePersistedState("admin_completed_search", "");
   const [downloadingCode, setDownloadingCode] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -109,15 +211,79 @@ export default function CompletedActivitiesPage() {
     ? allDomains.filter(d => ["TEC", "LCH", "ESO", "IIE", "HWB"].includes(d))
     : allDomains.filter(d => d === selectedDomain);
 
+  // Club options for the dropdown: clubs that have completed activities in the
+  // domains currently in view, with how many activities each has.
+  const clubOptions: { id: string; name: string; count: number }[] = (() => {
+    const map = new Map<string, { id: string; name: string; count: number }>();
+    for (const d of visibleDomains) {
+      for (const a of data?.byDomain?.[d] ?? []) {
+        for (const c of activityClubs(a)) {
+          const cur = map.get(c.id);
+          if (cur) cur.count++;
+          else map.set(c.id, { id: c.id, name: c.name, count: 1 });
+        }
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => {
+      if (a.id === NO_CLUB) return 1;
+      if (b.id === NO_CLUB) return -1;
+      return a.name.localeCompare(b.name);
+    });
+  })();
+
+  // If the chosen club has no activities in the current domain selection, treat it as "All".
+  const effectiveClub = selectedClub !== "ALL" && !clubOptions.some(c => c.id === selectedClub) ? "ALL" : selectedClub;
+
   const filterActivities = (acts: any[]) => {
-    if (!search) return acts;
-    const q = search.toLowerCase();
-    return acts.filter(a =>
-      a.title?.toLowerCase().includes(q) ||
-      a.code?.toLowerCase().includes(q) ||
-      a.category?.toLowerCase().includes(q)
-    );
+    const q = search.trim().toLowerCase();
+    return acts.filter(a => {
+      if (effectiveClub !== "ALL" && !activityClubs(a).some(c => c.id === effectiveClub)) return false;
+      if (!q) return true;
+      return (
+        a.title?.toLowerCase().includes(q) ||
+        a.code?.toLowerCase().includes(q) ||
+        a.category?.toLowerCase().includes(q) ||
+        activityClubs(a).some(c => c.name?.toLowerCase().includes(q))
+      );
+    });
   };
+
+  // Group a domain's (already filtered) activities by club. Activities mapped to
+  // several clubs appear under each of them.
+  const groupByClubs = (acts: any[]) => {
+    const groups = new Map<string, { id: string; name: string; acts: any[] }>();
+    for (const a of acts) {
+      for (const c of activityClubs(a)) {
+        if (effectiveClub !== "ALL" && c.id !== effectiveClub) continue;
+        if (!groups.has(c.id)) groups.set(c.id, { id: c.id, name: c.name, acts: [] });
+        groups.get(c.id)!.acts.push(a);
+      }
+    }
+    return Array.from(groups.values())
+      .map(g => ({ ...g, acts: sortActivities(g.acts, sortOrder) }))
+      .sort((a, b) => {
+        if (a.id === NO_CLUB) return 1;
+        if (b.id === NO_CLUB) return -1;
+        return a.name.localeCompare(b.name);
+      });
+  };
+
+  // While searching or filtering to one club, show everything open so matches are visible.
+  const forceOpen = search.trim() !== "" || effectiveClub !== "ALL";
+  const clubKey = (domain: string, clubId: string) => `${domain}::${clubId}`;
+  const isClubOpen = (domain: string, clubId: string) => forceOpen || expandedClubs.includes(clubKey(domain, clubId));
+  const toggleClub = (domain: string, clubId: string) => {
+    const k = clubKey(domain, clubId);
+    setExpandedClubs(prev => prev.includes(k) ? prev.filter(x => x !== k) : [...prev, k]);
+  };
+  const expandAllClubs = () => {
+    const keys: string[] = [];
+    for (const d of visibleDomains) {
+      for (const g of groupByClubs(filterActivities(data?.byDomain?.[d] ?? []))) keys.push(clubKey(d, g.id));
+    }
+    setExpandedClubs(keys);
+  };
+  const collapseAllClubs = () => setExpandedClubs([]);
 
   const summary = data?.domainSummary ?? [];
 
@@ -226,6 +392,66 @@ export default function CompletedActivitiesPage() {
         </div>
       </div>
 
+      {/* Club / sort / grouping controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
+        <label className="flex items-center gap-2 text-[12px] text-gray-500">
+          Club
+          <select
+            value={effectiveClub}
+            onChange={e => setSelectedClub(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-[13px] text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300 max-w-[260px]"
+          >
+            <option value="ALL">All clubs ({clubOptions.length})</option>
+            {clubOptions.map(c => (
+              <option key={c.id} value={c.id}>{c.name} ({c.count})</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex items-center gap-2 text-[12px] text-gray-500">
+          Sort by date
+          <select
+            value={sortOrder}
+            onChange={e => setSortOrder(e.target.value as SortOrder)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-[13px] text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300"
+          >
+            <option value="newest">Newest to oldest</option>
+            <option value="oldest">Oldest to newest</option>
+          </select>
+        </label>
+
+        <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden text-[12px] font-medium">
+          <button
+            onClick={() => setGroupByClub(true)}
+            className={`px-3 py-2 transition-colors ${groupByClub ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"}`}
+          >
+            Group by club
+          </button>
+          <button
+            onClick={() => setGroupByClub(false)}
+            className={`px-3 py-2 border-l border-gray-200 transition-colors ${!groupByClub ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"}`}
+          >
+            Flat list
+          </button>
+        </div>
+
+        {groupByClub && (
+          <div className="flex items-center gap-3 text-[12px]">
+            <button onClick={expandAllClubs} className="text-gray-600 hover:text-gray-900 underline-offset-2 hover:underline">Expand all</button>
+            <button onClick={collapseAllClubs} className="text-gray-600 hover:text-gray-900 underline-offset-2 hover:underline">Collapse all</button>
+          </div>
+        )}
+
+        {(effectiveClub !== "ALL" || search || selectedDomain !== "ALL" || sortOrder !== "newest") && (
+          <button
+            onClick={() => { setSelectedClub("ALL"); setSearch(""); setSelectedDomain("ALL"); setSortOrder("newest"); }}
+            className="text-[12px] text-red-700 hover:underline"
+          >
+            Reset filters
+          </button>
+        )}
+      </div>
+
       {/* Domain sections */}
       {loading ? (
         <div className="space-y-6">
@@ -247,7 +473,7 @@ export default function CompletedActivitiesPage() {
       ) : (
         <div className="space-y-6">
           {visibleDomains.map(domain => {
-            const acts = filterActivities(data.byDomain[domain] ?? []);
+            const acts = sortActivities(filterActivities(data.byDomain[domain] ?? []), sortOrder);
             if (!acts.length) return null;
             const color = DOMAIN_COLORS[domain] ?? "#6b7280";
             const totalPresent = acts.reduce((s: number, a: any) => s + a.students_present, 0);
@@ -273,76 +499,40 @@ export default function CompletedActivitiesPage() {
                   </div>
                 </div>
 
-                {/* Table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-[13px]">
-                    <thead>
-                      <tr className="border-b border-gray-100 bg-gray-50">
-                        <th className="text-left px-5 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">Activity</th>
-                        <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">Code</th>
-                        <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">Category</th>
-                        <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">
-                          <span className="flex items-center gap-1"><FiCalendar size={11} /> Date</span>
-                        </th>
-                        <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">
-                          <span className="flex items-center gap-1"><FiMapPin size={11} /> Venue</span>
-                        </th>
-                        <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">
-                          <span className="flex items-center gap-1"><FiUsers size={11} /> Present / Enrolled</span>
-                        </th>
-                        <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-[11px] uppercase tracking-wide">Report</th>
-                        <th className="px-4 py-2.5"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {acts.map((a: any) => (
-                        <tr key={a.code} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-5 py-3">
-                            <span className="font-medium text-gray-900">{a.title}</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="font-mono text-[12px] px-2 py-0.5 rounded"
-                              style={{ backgroundColor: `${color}15`, color }}>
-                              {a.code}
+                {groupByClub ? (
+                  <div className="divide-y divide-gray-100">
+                    {groupByClubs(acts).map(g => {
+                      const open = isClubOpen(domain, g.id);
+                      const gPresent = g.acts.reduce((n: number, a: any) => n + a.students_present, 0);
+                      const gEnrolled = g.acts.reduce((n: number, a: any) => n + a.total_enrolled, 0);
+                      return (
+                        <div key={g.id}>
+                          <button
+                            onClick={() => toggleClub(domain, g.id)}
+                            aria-expanded={open}
+                            className="w-full flex items-center justify-between gap-3 px-5 py-3 text-left hover:bg-gray-50 transition-colors"
+                          >
+                            <span className="flex items-center gap-2 min-w-0">
+                              {open ? <FiChevronDown size={15} className="text-gray-500 shrink-0" /> : <FiChevronRight size={15} className="text-gray-500 shrink-0" />}
+                              <span className={`text-[13px] font-semibold truncate ${g.id === NO_CLUB ? "text-gray-500 italic" : "text-gray-900"}`}>{g.name}</span>
                             </span>
-                          </td>
-                          <td className="px-4 py-3 text-gray-600">{a.category || "—"}</td>
-                          <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(a.activity_date)}</td>
-                          <td className="px-4 py-3 text-gray-500 text-[12px] max-w-[160px] truncate" title={a.venue}>
-                            {a.venue || "—"}
-                          </td>
-                          <td className="px-4 py-3">
-                            <AttendancePill present={a.students_present} total={a.total_enrolled} />
-                          </td>
-                          <td className="px-4 py-3">
-                            {a.report_status ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <FiCheckCircle size={11} /> Generated
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
-                                <FiXCircle size={11} /> Not generated
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            {a.report_status && (
-                              <button
-                                onClick={() => downloadReport(a.code)}
-                                disabled={downloadingCode === a.code}
-                                className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg text-white disabled:opacity-50 whitespace-nowrap"
-                                style={{ backgroundColor: color }}
-                              >
-                                {downloadingCode === a.code ? <FiRefreshCw size={11} className="animate-spin" /> : <FiDownload size={11} />}
-                                View / Download
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                            <span className="flex items-center gap-4 text-[12px] text-gray-500 shrink-0">
+                              <span className="font-medium" style={{ color }}>{g.acts.length} {g.acts.length === 1 ? "activity" : "activities"}</span>
+                              <span className="hidden sm:inline">{gPresent}/{gEnrolled} attended</span>
+                            </span>
+                          </button>
+                          {open && (
+                            <div className="border-t border-gray-100">
+                              <ActivityTable acts={g.acts} color={color} downloadingCode={downloadingCode} onDownload={downloadReport} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <ActivityTable acts={acts} color={color} downloadingCode={downloadingCode} onDownload={downloadReport} />
+                )}
               </div>
             );
           })}
