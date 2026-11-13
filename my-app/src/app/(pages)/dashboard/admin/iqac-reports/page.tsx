@@ -88,6 +88,10 @@ export default function AdminIqacPage() {
   const [busyCode, setBusyCode] = useState<string | null>(null);
   // Academic years the admin has collapsed (everything is open by default).
   const [collapsedYears, setCollapsedYears] = usePersistedState<string[]>("admin_iqac_collapsed_years", []);
+  // Months the admin has collapsed, stored as "<academic year>::<YYYY-MM>" (also open by default).
+  const [collapsedMonths, setCollapsedMonths] = usePersistedState<string[]>("admin_iqac_collapsed_months", []);
+  const [selectedYear, setSelectedYear] = usePersistedState<string>("admin_iqac_year", "ALL");
+  const [selectedMonth, setSelectedMonth] = usePersistedState<string>("admin_iqac_month", "ALL");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -140,6 +144,35 @@ export default function AdminIqacPage() {
 
   const toggleYear = (ay: string) =>
     setCollapsedYears(prev => prev.includes(ay) ? prev.filter(x => x !== ay) : [...prev, ay]);
+
+  const monthKey = (ay: string, key: string) => `${ay}::${key}`;
+  const toggleMonth = (ay: string, key: string) => {
+    const k = monthKey(ay, key);
+    setCollapsedMonths(prev => prev.includes(k) ? prev.filter(x => x !== k) : [...prev, k]);
+  };
+
+  // Filters. A stored selection that no longer exists (e.g. data changed) falls back to "All".
+  const effectiveYear = selectedYear !== "ALL" && !years.list.some(y => y.ay === selectedYear) ? "ALL" : selectedYear;
+  const yearsInScope = effectiveYear === "ALL" ? years.list : years.list.filter(y => y.ay === effectiveYear);
+  const monthOptions = yearsInScope.flatMap(y => y.months.map(m => ({ key: m.key, label: m.label, count: m.acts.length })));
+  const effectiveMonth = selectedMonth !== "ALL" && !monthOptions.some(m => m.key === selectedMonth) ? "ALL" : selectedMonth;
+  const filtering = effectiveYear !== "ALL" || effectiveMonth !== "ALL";
+
+  const visibleYears = yearsInScope
+    .map(y => ({
+      ...y,
+      months: effectiveMonth === "ALL" ? y.months : y.months.filter(m => m.key === effectiveMonth),
+    }))
+    .filter(y => y.months.length > 0)
+    .map(y => ({ ...y, total: y.months.reduce((n, m) => n + m.acts.length, 0) }));
+
+  const expandAll = () => { setCollapsedYears([]); setCollapsedMonths([]); };
+  const collapseAll = () => {
+    setCollapsedYears([]); // keep years open so the month headers stay visible
+    const all: string[] = [];
+    for (const y of years.list) for (const m of y.months) all.push(monthKey(y.ay, m.key));
+    setCollapsedMonths(all);
+  };
 
   const viewReport = async (r: IqacRow) => {
     // Normal path: the PDF was generated and stored by the IQAC user.
@@ -213,6 +246,45 @@ export default function AdminIqacPage() {
         </button>
       </div>
 
+      {!loading && rows.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
+          <label className="flex items-center gap-2 text-[12px] text-gray-500">
+            Academic year
+            <select
+              value={effectiveYear}
+              onChange={e => { setSelectedYear(e.target.value); setSelectedMonth("ALL"); }}
+              className="px-3 py-2 border border-gray-200 rounded-lg text-[13px] text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300"
+            >
+              <option value="ALL">All academic years</option>
+              {years.list.map(y => <option key={y.ay} value={y.ay}>{y.ay} ({y.total})</option>)}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-[12px] text-gray-500">
+            Month
+            <select
+              value={effectiveMonth}
+              onChange={e => setSelectedMonth(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-lg text-[13px] text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300"
+            >
+              <option value="ALL">All months</option>
+              {monthOptions.map(m => <option key={m.key} value={m.key}>{m.label} ({m.count})</option>)}
+            </select>
+          </label>
+          <div className="flex items-center gap-3 text-[12px]">
+            <button onClick={expandAll} className="text-gray-600 hover:text-gray-900 underline-offset-2 hover:underline">Expand all</button>
+            <button onClick={collapseAll} className="text-gray-600 hover:text-gray-900 underline-offset-2 hover:underline">Collapse all months</button>
+          </div>
+          {filtering && (
+            <button
+              onClick={() => { setSelectedYear("ALL"); setSelectedMonth("ALL"); }}
+              className="text-[12px] text-red-700 hover:underline"
+            >
+              Reset filters
+            </button>
+          )}
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-4">
           {[1, 2].map(i => <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse" />)}
@@ -225,7 +297,7 @@ export default function AdminIqacPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {years.list.map(({ ay, months, total }) => {
+          {visibleYears.map(({ ay, months, total }) => {
             const open = !collapsedYears.includes(ay);
             return (
               <div key={ay} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -242,22 +314,33 @@ export default function AdminIqacPage() {
                 </button>
                 {open && (
                   <div className="divide-y divide-gray-100">
-                    {months.map(m => (
-                      <div key={m.key}>
-                        <div className="flex items-center justify-between px-5 py-2.5 bg-gray-50 border-y border-gray-100">
-                          <span className="text-[13px] font-semibold text-gray-800">{m.label}</span>
-                          <span className="text-[11px] text-gray-500">{m.acts.length} {m.acts.length === 1 ? "activity" : "activities"}</span>
+                    {months.map(m => {
+                      // A month picked in the filter is always shown open.
+                      const monthOpen = effectiveMonth !== "ALL" || !collapsedMonths.includes(monthKey(ay, m.key));
+                      return (
+                        <div key={m.key}>
+                          <button
+                            onClick={() => toggleMonth(ay, m.key)}
+                            aria-expanded={monthOpen}
+                            className="w-full flex items-center justify-between px-5 py-2.5 bg-gray-50 border-y border-gray-100 text-left hover:bg-gray-100 transition-colors"
+                          >
+                            <span className="flex items-center gap-2">
+                              {monthOpen ? <FiChevronDown size={14} className="text-gray-500" /> : <FiChevronRight size={14} className="text-gray-500" />}
+                              <span className="text-[13px] font-semibold text-gray-800">{m.label}</span>
+                            </span>
+                            <span className="text-[11px] text-gray-500">{m.acts.length} {m.acts.length === 1 ? "activity" : "activities"}</span>
+                          </button>
+                          {monthOpen && <ActivityTable acts={m.acts} busyCode={busyCode} onView={viewReport} />}
                         </div>
-                        <ActivityTable acts={m.acts} busyCode={busyCode} onView={viewReport} />
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
             );
           })}
 
-          {years.undated.length > 0 && (
+          {!filtering && years.undated.length > 0 && (
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
               <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 text-[13px] font-semibold text-gray-700">No date set</div>
               <ActivityTable acts={years.undated} busyCode={busyCode} onView={viewReport} />
