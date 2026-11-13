@@ -352,6 +352,27 @@ export default function AdminDashboardLayout({ children }) {
                                             );
                                         })()}
 
+                                        {/* IQAC (read-only view of the IQAC workspace) */}
+                                        {(() => {
+                                            const isActive = pathname === '/dashboard/admin/iqac-reports';
+                                            return (
+                                                <Link
+                                                    href="/dashboard/admin/iqac-reports"
+                                                    className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
+                                                        isActive
+                                                            ? 'bg-red-700 text-white shadow-lg'
+                                                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                    }`}
+                                                    onClick={() => setSidebarOpen(false)}
+                                                >
+                                                    <FiFileText className={`mr-3 h-5 w-5 ${
+                                                        isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                                    }`} />
+                                                    IQAC
+                                                </Link>
+                                            );
+                                        })()}
+
                                         {navigation.slice(4).map((item) => {
                                             const isActive = pathname === item.href;
                                             return (
