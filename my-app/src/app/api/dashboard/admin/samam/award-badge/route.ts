@@ -65,15 +65,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'Badge not found' }, { status: 404 });
         }
 
-        // Check if already awarded
-        const [existing] = await pool.execute(
-            'SELECT id FROM student_badges WHERE username = ? AND badge_id = ?',
-            [username, badge_id]
-        ) as any[];
-        if ((existing as any[]).length > 0) {
-            return NextResponse.json({ message: 'Student already has this badge' }, { status: 409 });
-        }
-
         // Generate cryptographically unique verification ID
         const crypto = await import('crypto');
         const verificationId = `SAMAM-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
@@ -83,14 +74,62 @@ export async function POST(request: Request) {
         // Store a recipient-facing reason, never the awarding admin's
         // username (that's an internal detail, not something that should
         // show up on a public credential as "Awarded by admin: 24...").
+        const badgeName: string = (badgeRows as any[])[0].name;
         const recognitionText = (reason && reason.trim())
             ? reason.trim()
-            : `Participating in "${(badgeRows as any[])[0].name}"`;
+            : `Participating in "${badgeName}"`;
 
-        await pool.execute(`
-            INSERT INTO student_badges (username, badge_id, earned_from, verification_id, share_url, issued_on)
-            VALUES (?, ?, ?, ?, ?, NOW())
-        `, [username, badge_id, recognitionText, verificationId, shareUrl]);
+        // Never block an award. If the student already holds this badge it is
+        // replaced with a freshly issued one (new verification ID and date)
+        // instead of failing with a 409. If the recognition text is too long for
+        // the column (long activity title), retry with progressively shorter
+        // text rather than failing.
+        const shorten = (t: string, max: number) => t.length > max ? `${t.slice(0, Math.max(0, max - 1)).trimEnd()}…` : t;
+        const reasonAttempts = Array.from(new Set([
+            recognitionText,
+            shorten(recognitionText, 250),
+            shorten(recognitionText, 120),
+            shorten(`Participating in "${badgeName}"`, 80),
+        ]));
+
+        const conn = await pool.getConnection();
+        let replaced = false;
+        let storedReason = recognitionText;
+        try {
+            await conn.beginTransaction();
+
+            const [deleted]: any = await conn.execute(
+                'DELETE FROM student_badges WHERE username = ? AND badge_id = ?',
+                [username, badge_id]
+            );
+            replaced = deleted.affectedRows > 0;
+
+            let inserted = false;
+            let lastErr: any = null;
+            for (const text of reasonAttempts) {
+                try {
+                    await conn.execute(`
+                        INSERT INTO student_badges (username, badge_id, earned_from, verification_id, share_url, issued_on)
+                        VALUES (?, ?, ?, ?, ?, NOW())
+                    `, [username, badge_id, text, verificationId, shareUrl]);
+                    storedReason = text;
+                    inserted = true;
+                    break;
+                } catch (e: any) {
+                    lastErr = e;
+                    // Only a too-long value is worth retrying with shorter text.
+                    if (e?.code !== 'ER_DATA_TOO_LONG' && e?.errno !== 1406) throw e;
+                }
+            }
+            if (!inserted) throw lastErr;
+
+            await conn.commit();
+        } catch (txErr) {
+            try { await conn.rollback(); } catch { /* ignore */ }
+            throw txErr;
+        } finally {
+            conn.release();
+        }
 
         const { logUserAction } = require('@/lib/apiSecurity');
         await logUserAction(
@@ -98,12 +137,15 @@ export async function POST(request: Request) {
             `Awarded badge "${(badgeRows as any[])[0].name}" to ${username}`, 
             'POST', 
             '/api/dashboard/admin/samam/award-badge', 
-            { student: username, badgeId: badge_id, reason: recognitionText }
+            { student: username, badgeId: badge_id, reason: storedReason, replaced }
         );
 
         return NextResponse.json({
             success: true,
-            message: `Badge "${(badgeRows as any[])[0].name}" awarded to ${(studentRows as any[])[0].name}`,
+            message: replaced
+                ? `Badge "${badgeName}" re-issued to ${(studentRows as any[])[0].name}`
+                : `Badge "${badgeName}" awarded to ${(studentRows as any[])[0].name}`,
+            replaced,
             verificationId,
             shareUrl,
         }, { status: 201 });

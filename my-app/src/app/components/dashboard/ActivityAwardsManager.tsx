@@ -201,7 +201,8 @@ export default function ActivityAwardsManager() {
     if (selected.size === 0) return toast.error("Select at least one student");
     if (!selectedBadge) return toast.error("Select a badge");
     setSubmitting(true);
-    let ok = 0, failed = 0;
+    let ok = 0, failed = 0, reissued = 0;
+    let lastError = "";
     // Leaving the reason blank falls back to a generic badge-name-based
     // line server-side. Since this flow is always scoped to one activity,
     // default it to that activity's title instead, so "Recognition For" on
@@ -215,10 +216,25 @@ export default function ActivityAwardsManager() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, badge_id: selectedBadge, reason }),
         });
-        if (res.ok) ok++; else failed++;
+        if (res.ok) {
+          ok++;
+          const d = await res.json().catch(() => ({}));
+          if (d?.replaced) reissued++;
+        } else {
+          failed++;
+          const d = await res.json().catch(() => ({}));
+          lastError = d?.message || d?.error || lastError;
+        }
       }
-      if (ok > 0) { toast.success(`Badge awarded to ${ok} student${ok === 1 ? "" : "s"}${failed ? ` (${failed} failed)` : ""}`); await refreshRoster(activityCode); }
-      else toast.error("Failed to award badge");
+      if (ok > 0) {
+        toast.success(
+          `Badge awarded to ${ok} student${ok === 1 ? "" : "s"}` +
+          `${reissued ? ` (${reissued} already had it and ${reissued === 1 ? "was" : "were"} re-issued)` : ""}` +
+          `${failed ? ` (${failed} failed${lastError ? `: ${lastError}` : ""})` : ""}`
+        );
+        await refreshRoster(activityCode);
+      }
+      else toast.error(lastError ? `Failed to award badge: ${lastError}` : "Failed to award badge");
     } finally { setSubmitting(false); }
   };
 
