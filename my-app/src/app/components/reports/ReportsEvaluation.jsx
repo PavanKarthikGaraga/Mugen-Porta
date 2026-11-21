@@ -314,13 +314,11 @@ const ReportsEvaluation = ({
     };
 
     const handleEvaluate = (day, action) => {
-        console.log('handleEvaluate called with:', { day, action, typeofDay: typeof day });
 
         if (reportType === 'internal') {
             // For internal reports, handle day approval/rejection directly
             // Ensure we only store plain data, not DOM elements
             const dayValue = typeof day === 'object' && day?.target ? parseInt(day.target.value) : parseInt(day);
-            console.log('dayValue calculated as:', dayValue, 'from day:', day);
             setSelectedItem({ day: dayValue, action });
             if (action === 'reject') {
                 setShowEvaluationModal(true);
@@ -435,14 +433,11 @@ const ReportsEvaluation = ({
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.message || errorMessage;
-                    console.log('Error response data:', errorData);
                 } catch (parseError) {
                     // If JSON parsing fails, try to get text
                     try {
                         const errorText = await response.text();
-                        console.log('Error response text:', errorText);
                     } catch (textError) {
-                        console.log('Could not read error response');
                     }
                 }
                 toast.error(errorMessage);
@@ -750,7 +745,6 @@ const ReportsEvaluation = ({
                                                     </Button>
                                                     <Button
                                                         onClick={() => {
-                                                            console.log('Reject button clicked, dayNumber:', dayNumber, 'typeof:', typeof dayNumber);
                                                             handleEvaluate(dayNumber, 'reject');
                                                         }}
                                                         variant="outline"
@@ -1265,7 +1259,6 @@ const ReportsEvaluation = ({
                                 </Button>
                                 <Button
                                     onClick={() => {
-                                        console.log('Submit button clicked, selectedItem:', selectedItem);
                                         handleMarksSubmit(selectedItem?.day, selectedItem?.action);
                                     }}
                                     disabled={submitting}

@@ -53,9 +53,11 @@ export default function SAMAMDashboardPage() {
   const [competenciesData,setCompetenciesData] = useState<any[]>([]);
   const [badgesData,      setBadgesData     ] = useState<any>({ earned: [], locked: [] });
   const [loading,         setLoading        ] = useState(true);
+  const [reloadKey,       setReloadKey      ] = useState(0);
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       try {
         const res = await fetch("/api/dashboard/student/overview");
         if (!res.ok) throw new Error("Overview fetch failed");
@@ -71,7 +73,7 @@ export default function SAMAMDashboardPage() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [reloadKey]);
 
   if (loading) return <LoadingSkeleton />;
   if (!profileData || !sdcData) {
@@ -81,7 +83,14 @@ export default function SAMAMDashboardPage() {
           <FiActivity size={20} />
         </div>
         <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Unable to load student metrics</p>
-        <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Please refresh the page to retry.</p>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Check your connection and try again.</p>
+        <button
+          type="button"
+          onClick={() => setReloadKey((k) => k + 1)}
+          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#970003] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#7d0003] transition-colors"
+        >
+          Try again
+        </button>
       </div>
     );
   }

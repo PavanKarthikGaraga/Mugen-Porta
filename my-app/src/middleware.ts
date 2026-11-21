@@ -1,134 +1,84 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from './lib/jwt';
+import { roleHome, canOpenPath } from './lib/roleHome';
+
+// Methods that change data. Reads (GET/HEAD/OPTIONS) are not written to the
+// audit log: every dashboard poll used to add a "mutation" row and a DB write.
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+function toLogin(request) {
+    const url = new URL('/auth/login', request.url);
+    const { pathname, search } = request.nextUrl;
+    if (pathname !== '/dashboard') url.searchParams.set('next', pathname + search);
+    return NextResponse.redirect(url);
+}
 
 export async function middleware(request, event) {
     const pathname = request.nextUrl.pathname;
 
-    // --- API Logging Interceptor ---
+    // --- API audit logging (mutations only) ---
     if (pathname.startsWith('/api/')) {
-        // Skip logging for the internal log route itself and auth routes
-        if (!pathname.startsWith('/api/internal/log') && !pathname.startsWith('/api/auth/')) {
+        if (
+            MUTATING_METHODS.has(request.method) &&
+            !pathname.startsWith('/api/internal/log') &&
+            !pathname.startsWith('/api/auth/')
+        ) {
             const token = request.cookies.get('tck')?.value;
             if (token) {
-                // Fire and forget logging
+                // Fire and forget. The log route re-verifies this cookie and
+                // takes the username/role from it, never from the body.
                 event.waitUntil(
-                    (async () => {
-                        try {
-                            const payload = await verifyToken(token);
-                            if (payload && payload.username) {
-                                await fetch(new URL('/api/internal/log', request.url), {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        username: payload.username,
-                                        role: payload.role || 'unknown',
-                                        action: `API Mutation: ${pathname}`,
-                                        method: request.method,
-                                        url: pathname,
-                                    })
-                                }).catch(() => {});
-                            }
-                        } catch (e) {
-                            // Silently fail if token is invalid or fetch fails
-                        }
-                    })()
+                    fetch(new URL('/api/internal/log', request.url), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Cookie: `tck=${token}` },
+                        body: JSON.stringify({
+                            action: `API Mutation: ${pathname}`,
+                            method: request.method,
+                            url: pathname,
+                        }),
+                    }).catch(() => {})
                 );
             }
         }
+        return NextResponse.next();
     }
 
-    // Check if the request is for auth routes (login, register, etc.)
+    // Logged-in users opening /auth/* go straight to their dashboard.
     if (pathname.startsWith('/auth/')) {
         const token = request.cookies.get('tck')?.value;
-
-        // If user is logged in and trying to access auth pages, redirect to dashboard
         if (token) {
-            try {
-                const payload = await verifyToken(token);
-
-                if (payload) {
-                    // Redirect logged-in users to their respective dashboards
-                    if (['admin', 'analytics'].includes(payload.role as string)) {
-                        return NextResponse.redirect(new URL('/dashboard/admin', request.url));
-                    } else if (payload.role === 'transport') {
-                        return NextResponse.redirect(new URL('/dashboard/admin/transport', request.url));
-                    }
-                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
-                }
-            } catch (error) {
-                // Token is invalid, continue to auth page
-                console.log('Invalid token in auth route, allowing access');
+            const payload = await verifyToken(token);
+            if (payload) {
+                return NextResponse.redirect(new URL(roleHome(payload.role), request.url));
             }
         }
+        return NextResponse.next();
     }
 
-    // Check if the request is for dashboard routes
-    if (pathname.startsWith('/dashboard')) {
+    if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
         const token = request.cookies.get('tck')?.value;
+        if (!token) return toLogin(request);
 
-        if (!token) {
-            // Redirect to login if no token
-            return NextResponse.redirect(new URL('/auth/login', request.url));
+        const payload = await verifyToken(token);
+        if (!payload) return toLogin(request);
+
+        // Bare /dashboard has no page of its own.
+        if (pathname === '/dashboard') {
+            return NextResponse.redirect(new URL(roleHome(payload.role), request.url));
         }
 
-        try {
-            const payload = await verifyToken(token);
-
-            // Check if token verification failed (expired or invalid)
-            if (!payload) {
-                return NextResponse.redirect(new URL('/auth/login', request.url));
-            }
-
-            // Check if accessing admin routes
-            if (pathname.startsWith('/dashboard/admin')) {
-                if (!['admin', 'analytics', 'transport'].includes(payload.role as string)) {
-                    // Redirect to regular dashboard if not admin
-                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
-                }
-            }
-
-            if (pathname.startsWith('/dashboard/lead')) {
-                if (payload.role !== 'lead') {
-                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
-                }
-            }
-
-            if (pathname.startsWith('/dashboard/faculty')) {
-                if (payload.role !== 'faculty') {
-                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
-                }
-            }
-
-            if (pathname.startsWith('/dashboard/student')) {
-                if (payload.role !== 'student') {
-                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
-                }
-            }
-
-            if (pathname.startsWith('/dashboard/council')) {
-                if (payload.role !== 'council') {
-                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
-                }
-            }
-
-            if (pathname.startsWith('/dashboard/analytics')) {
-                if (payload.role !== 'analytics' && payload.role !== 'admin') {
-                    return NextResponse.redirect(new URL(`/dashboard/${payload.role}`, request.url));
-                }
-            }
-
-            // Allow access if token is valid
-            return NextResponse.next();
-        } catch (error) {
-            console.error('Middleware token verification failed:', error);
-            // Redirect to login if token is invalid
-            return NextResponse.redirect(new URL('/auth/login', request.url));
+        // Someone else's area -> back to your own home. (Previously this
+        // redirected to `/dashboard/${role}`, which 404s for transport.)
+        if (!canOpenPath(payload.role, pathname)) {
+            return NextResponse.redirect(new URL(roleHome(payload.role), request.url));
         }
+
+        return NextResponse.next();
     }
 
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/auth/:path*', '/api/:path*']
+    matcher: ['/dashboard', '/dashboard/:path*', '/auth/:path*', '/api/:path*']
 };

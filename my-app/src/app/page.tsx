@@ -394,11 +394,26 @@ export default function Home() {
                 <p className="max-w-2xl text-base sm:text-xl text-slate-600 leading-relaxed mx-auto lg:mx-0 font-medium">
                   Discover what you can become. Every activity, experience, and achievement builds the ultimate portfolio of your university journey.
                 </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                  <Link
+                    href="/auth/register"
+                    className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-900 px-7 text-base font-semibold text-white shadow-lg shadow-red-900/25 transition-all hover:bg-red-800 hover:shadow-xl hover:shadow-red-900/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-900 focus-visible:ring-offset-2"
+                  >
+                    Start your journey
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link
+                    href="/auth/login"
+                    className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-7 text-base font-semibold text-slate-700 shadow-sm transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+                  >
+                    Sign in
+                  </Link>
+                </div>
               </div>
 
               {/* Interactive Dashboard Mockup */}
               <div className="relative flex h-[380px] min-[375px]:h-[400px] sm:h-[480px] lg:h-[580px] w-full justify-center items-center mt-8 lg:mt-0">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] h-[550px] rounded-3xl bg-white/90 backdrop-blur-xl border border-slate-200 shadow-2xl z-20 overflow-hidden flex origin-center scale-[0.55] min-[375px]:scale-[0.6] sm:scale-[0.8] lg:scale-100">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] h-[550px] rounded-3xl bg-white/90 backdrop-blur-xl border border-slate-200 shadow-2xl z-20 overflow-hidden flex origin-center scale-[0.55] min-[375px]:scale-[0.6] sm:scale-[0.8] lg:scale-[0.78] xl:scale-100">
                   {/* Sidebar */}
                   <div className="w-[35%] border-r border-slate-100 bg-white flex flex-col shrink-0">
                     <div className="p-4 border-b border-slate-100 flex items-center gap-3">

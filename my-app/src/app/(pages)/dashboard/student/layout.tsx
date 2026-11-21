@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useMobileSidebar } from "@/lib/hooks/useMobileSidebar";
 import {
   FiHome, FiBookOpen, FiGrid, FiList, FiZap, FiStar, FiAward,
   FiFileText, FiBriefcase, FiEdit3, FiCheckSquare,
@@ -110,6 +111,8 @@ export default function SAMAMStudentDashboardLayout({ children }: { children: Re
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const pathname = usePathname();
+
+  useMobileSidebar(sidebarOpen, setSidebarOpen, pathname);
   const router   = useRouter();
 
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -345,9 +348,8 @@ export default function SAMAMStudentDashboardLayout({ children }: { children: Re
         {/* Left Brand and Navigation Toggle */}
         <div className="flex items-center gap-3.5">
           <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            onClick={() => setSidebarOpen(!sidebarOpen)} aria-label={sidebarOpen ? "Close menu" : "Open menu"} aria-expanded={sidebarOpen}
             className="lg:hidden p-2 rounded-lg text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-            aria-label="Toggle navigation"
           >
             {sidebarOpen ? <FiX size={18} /> : <FiMenu size={18} />}
           </button>

@@ -16,18 +16,24 @@ import { Badge } from "@/components/ui/badge";
 export default function PublicDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  // A failed request used to fall through to the normal view and show every
+  // figure as 0 / "No data available", which reads as real (empty) data.
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let isMounted = true; // Prevents state update if unmounted
     const fetchStats = async () => {
+      setLoading(true);
+      setLoadError(false);
       try {
         const response = await fetch("/api/public-stats");
-        if (response.ok) {
-          const data = await response.json();
-          if (isMounted) setStats(data.data);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (isMounted) setStats(data.data);
       } catch (error) {
         console.error("Error fetching stats:", error);
+        if (isMounted) setLoadError(true);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -36,7 +42,7 @@ export default function PublicDashboard() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const getColorClasses = (color) => {
     switch (color) {
@@ -137,10 +143,25 @@ export default function PublicDashboard() {
         <div className="flex-1 bg-gray-50 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-800"></div>
         </div>
+      ) : loadError ? (
+        <div className="flex-1 bg-gray-50 flex items-center justify-center px-4">
+          <div className="max-w-sm w-full text-center bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
+            <h2 className="text-lg font-semibold text-gray-900">Statistics are unavailable right now</h2>
+            <p className="mt-2 text-sm text-gray-500">We couldn&apos;t load the latest figures. Please try again in a moment.</p>
+            <button
+              type="button"
+              onClick={() => setReloadKey((k) => k + 1)}
+              className="mt-6 inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: "rgb(151, 0, 3)" }}
+            >
+              Try again
+            </button>
+          </div>
+        </div>
       ) : (
         // Main Content - Scrollable
         <div className="flex-1 bg-gray-50 overflow-y-auto">
-          <div className="w-[85%] mx-auto px-4 py-6">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="mb-8">
               <div className="flex justify-between items-center">
                 <div>
@@ -155,7 +176,7 @@ export default function PublicDashboard() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
               {statCards.map((stat, index) => {
                 const Icon = stat.icon;
                 const colorClasses = getColorClasses(stat.color);

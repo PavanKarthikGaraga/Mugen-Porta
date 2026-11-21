@@ -179,12 +179,6 @@ export default function Register() {
             // Prepare form data for submission
             let submissionData = { ...formData };
 
-            // Debug: log the final submission data
-            console.log('Final form submission data:', {
-                selectedDomain: submissionData.selectedDomain,
-                selectedClub: submissionData.selectedClub,
-            });
-
             const response = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -192,7 +186,6 @@ export default function Register() {
             });
 
             if (response.ok) {
-                console.log("Registration Successful!",JSON.stringify(submissionData));
                 // Generate password pattern for display
                 const last4Digits = formData.phoneNumber.slice(-4);
                 const passwordPattern = `${formData.username}${last4Digits}`;
@@ -201,7 +194,6 @@ export default function Register() {
                 toast.success("Registration Successful!");
             } else {
                 const error = await response.json();
-                console.log("Registration Failed!",JSON.stringify(error));
                 // Handle structured error responses
                 if (error.errorType === "PROJECT_FULL") {
                     toast.error(`${error.message}\n${error.suggestion}`, {

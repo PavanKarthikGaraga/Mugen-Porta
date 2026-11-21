@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "sonner";
 import { useRef, useState, useEffect, useCallback } from "react";
 import { FiX, FiZoomIn, FiZoomOut, FiCheck, FiRotateCw } from "react-icons/fi";
 
@@ -192,7 +193,7 @@ export default function ImageCropper({ src, type, onConfirm, onCancel }: Props) 
         if (blob) {
           onConfirm(blob);
         } else {
-          alert("Could not process image — please try a different photo.");
+          toast.error("Could not process image — please try a different photo.");
         }
       },
       type === "logo" ? "image/png" : "image/jpeg",

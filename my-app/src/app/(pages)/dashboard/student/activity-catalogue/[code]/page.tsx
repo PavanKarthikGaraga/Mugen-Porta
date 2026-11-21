@@ -176,12 +176,12 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
       if (res.ok) {
         setEnrolled(true);
         setEnrolledCount(c => c + 1);
-        alert(data.message);
+        toast.success(data.message || "You're enrolled!");
       } else {
-        alert(data.message || "Enrollment failed");
+        toast.error(data.message || "Enrollment failed");
       }
     } catch {
-      alert("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     }
     setEnrollLoading(false);
     setEnrollModalOpen(false);
@@ -196,9 +196,10 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
       if (res.ok) {
         setEnrolled(false);
         setEnrolledCount(c => Math.max(0, c - 1));
-      } else alert(data.message || "Failed");
+        toast.success("You've left this activity.");
+      } else toast.error(data.message || "Couldn't unenroll. Please try again.");
     } catch {
-      alert("Network error.");
+      toast.error("Network error. Please try again.");
     }
     setEnrollLoading(false);
   };
@@ -279,6 +280,15 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
   const fillPct = maxSeats > 0 ? Math.round((currentEnrolled / maxSeats) * 100) : 0;
   const isRegistrationOpen = activity.registration_open !== 0;
   const isCompleted = activity.status === 'completed' || activity.approval_status === 'completed' || !!activity.is_attendance_locked;
+  // Date already passed: the catalogue hides these, but an old link still
+  // opens the page, so don't offer "Enroll Now" (the API refuses it too).
+  const isPast = (() => {
+    if (!activity.activity_date) return false;
+    const d = new Date(String(activity.activity_date).slice(0, 10) + "T00:00:00");
+    if (isNaN(d.getTime())) return false;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return d.getTime() < today.getTime();
+  })();
 
   const handleSaveReflection = () => {
     setReflectionSaved(true);
@@ -339,6 +349,10 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ code:
                     {enrollLoading ? "Please wait..." : "Unenroll"}
                   </button>
                 </>
+              ) : isPast ? (
+                <button disabled className="px-6 py-2.5 text-sm font-semibold text-gray-600 rounded-lg bg-gray-200 cursor-not-allowed">
+                  Event Ended
+                </button>
               ) : !isRegistrationOpen ? (
                 <div className="relative">
                   <button disabled className="peer px-6 py-2.5 text-sm font-semibold text-white rounded-lg bg-gray-400 cursor-not-allowed">

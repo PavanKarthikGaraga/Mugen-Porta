@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useMobileSidebar } from "@/lib/hooks/useMobileSidebar";
+import { isNavActive } from "@/lib/navActive";
 import { FiLogOut, FiMenu, FiX, FiLock, FiBarChart2, FiTarget } from "react-icons/fi";
 import SamamLogo from "@/components/SamamLogo";
 import { toast } from "sonner";
@@ -12,6 +14,7 @@ export default function AnalyticsDashboardLayout({ children }) {
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
     const [userData, setUserData] = useState({ username: '', name: '' });
     const pathname = usePathname();
+    useMobileSidebar(sidebarOpen, setSidebarOpen, pathname);
     const router = useRouter();
 
     useEffect(() => {
@@ -55,7 +58,7 @@ export default function AnalyticsDashboardLayout({ children }) {
     };
 
     return (
-        <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <div className="flex h-dvh bg-gray-50 overflow-hidden">
             {/* Desktop Sidebar */}
             <div className={`fixed inset-y-0 left-0 z-20 w-64 transform ${
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -106,7 +109,7 @@ export default function AnalyticsDashboardLayout({ children }) {
                                 Menu
                             </div>
                             {navigation.map((item) => {
-                                const isActive = pathname === item.href;
+                                const isActive = isNavActive(pathname, item.href);
                                 return (
                                     <Link
                                         key={item.name}
@@ -149,7 +152,7 @@ export default function AnalyticsDashboardLayout({ children }) {
             <div className="flex-1 flex flex-col min-w-0 bg-white">
                 {/* Mobile header */}
                 <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
-                    <button onClick={() => setSidebarOpen(true)} className="text-gray-500 focus:outline-none">
+                    <button onClick={() => setSidebarOpen(true)} aria-label="Open menu" className="text-gray-500 focus:outline-none">
                         <FiMenu className="h-6 w-6" />
                     </button>
                     <span className="text-lg font-bold text-gray-900">Analytics Dashboard</span>
@@ -182,7 +185,7 @@ export default function AnalyticsDashboardLayout({ children }) {
             {/* Mobile Overlay */}
             {sidebarOpen && (
                 <div 
-                    className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden" 
+                    className="fixed inset-0 bg-black/50 z-10 lg:hidden" 
                     onClick={() => setSidebarOpen(false)}
                 />
             )}

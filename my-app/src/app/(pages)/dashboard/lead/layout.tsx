@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useMobileSidebar } from "@/lib/hooks/useMobileSidebar";
+import { isNavActive } from "@/lib/navActive";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronUp, FiFileText, FiUserCheck, FiActivity,
     FiDatabase, FiAward, FiKey, FiCheckSquare, FiBarChart2, FiMusic, FiClipboard
@@ -18,6 +20,7 @@ export default function LeadDashboardLayout({ children }) {
     const [isProxySession, setIsProxySession] = useState(false);
     const [proxyStudentInfo, setProxyStudentInfo] = useState(null);
     const pathname = usePathname();
+    useMobileSidebar(sidebarOpen, setSidebarOpen, pathname);
     const router = useRouter();
 
     useEffect(() => {
@@ -132,7 +135,7 @@ export default function LeadDashboardLayout({ children }) {
     };
 
     return (
-        <div className="h-screen flex flex-col" style={{ backgroundColor: '#1a1a1a' }}>
+        <div className="h-dvh flex flex-col" style={{ backgroundColor: '#1a1a1a' }}>
             {/* Top Navbar - Fixed */}
             <nav className="text-white shadow-lg relative z-30 flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
                 <div className="px-4 sm:px-6 lg:px-8">
@@ -140,7 +143,7 @@ export default function LeadDashboardLayout({ children }) {
                         {/* Left side */}
                         <div className="flex items-center">
                             <button
-                                onClick={() => setSidebarOpen(!sidebarOpen)}
+                                onClick={() => setSidebarOpen(!sidebarOpen)} aria-label={sidebarOpen ? "Close menu" : "Open menu"} aria-expanded={sidebarOpen}
                                 className="lg:hidden p-2 rounded-md transition-colors"
                                 onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'}
@@ -218,7 +221,7 @@ export default function LeadDashboardLayout({ children }) {
                         <div className="flex-1 px-0 py-1 overflow-y-auto">
                             <nav className="space-y-1">
                                 {navigation.slice(0, 3).map((item) => {
-                                    const isActive = pathname === item.href;
+                                    const isActive = isNavActive(pathname, item.href);
                                     return (
                                         <Link
                                             key={item.name}
@@ -259,7 +262,7 @@ export default function LeadDashboardLayout({ children }) {
                                             {isOpen && (
                                                 <div className="pb-2 ml-6 space-y-1">
                                                     {samamNavigation.map((item) => {
-                                                        const isActive = pathname === item.href;
+                                                        const isActive = isNavActive(pathname, item.href);
                                                         return (
                                                             <Link
                                                                 key={item.name}
@@ -281,7 +284,7 @@ export default function LeadDashboardLayout({ children }) {
                                 })()}
 
                                 {navigation.slice(3).map((item) => {
-                                    const isActive = pathname === item.href;
+                                    const isActive = isNavActive(pathname, item.href);
                                     return (
                                         <Link
                                             key={item.name}
@@ -335,7 +338,7 @@ export default function LeadDashboardLayout({ children }) {
 
             {sidebarOpen && (
                 <button
-                    className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
+                    className="fixed inset-0 bg-black/50 z-10 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                     aria-label="Close sidebar"
                 ></button>

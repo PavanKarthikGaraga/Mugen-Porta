@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   FiBookmark, FiStar, FiUsers, FiCheckCircle,
   FiCpu, FiBookOpen, FiHeart, FiZap, FiActivity,
@@ -53,11 +54,12 @@ export default function CatalogueCard({ activity, bookmarked = false, onBookmark
       const data = await res.json();
       if (res.ok) {
         setLocalEnrolled(true);
+        toast.success(data.message || "You're enrolled!");
       } else {
-        alert(data.message || "Enrollment failed");
+        toast.error(data.message || "Enrollment failed");
       }
     } catch {
-      alert("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     }
     setEnrollLoading(false);
     setEnrollModalOpen(false);

@@ -62,10 +62,17 @@ export async function GET(
         ? 'no-cache, must-revalidate'
         : 'public, max-age=31536000, immutable';
 
-    return new NextResponse(fileBuffer, {
-        headers: {
-            'Content-Type': contentType,
-            'Cache-Control': cacheControl,
-        },
-    });
+    const headers: Record<string, string> = {
+        'Content-Type': contentType,
+        'Cache-Control': cacheControl,
+        'X-Content-Type-Options': 'nosniff',
+    };
+    // Uploaded SVGs can carry <script>. Served from our own origin, opening one
+    // directly would run that script with the user's session (stored XSS).
+    // A sandbox CSP keeps it rendering as an image but blocks script.
+    if (ext === '.svg') {
+        headers['Content-Security-Policy'] = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox";
+    }
+
+    return new NextResponse(fileBuffer, { headers });
 }

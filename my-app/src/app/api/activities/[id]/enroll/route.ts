@@ -57,6 +57,17 @@ export async function GET(
     }
 }
 
+function isCompletedOrPast(a: any): boolean {
+    if (a.status === 'completed' || a.approval_status === 'completed' || Number(a.is_attendance_locked) === 1) return true;
+    if (!a.activity_date) return false;
+    const d = a.activity_date instanceof Date ? new Date(a.activity_date) : new Date(String(a.activity_date).slice(0, 10) + 'T00:00:00');
+    if (isNaN(d.getTime())) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() < today.getTime();
+}
+
 // POST /api/activities/[id]/enroll — enroll student
 export async function POST(
     _req: Request,
@@ -69,10 +80,12 @@ export async function POST(
         const { id } = await params;
 
         // Fetch activity to check seats and the registration gate
+        // SELECT * because older databases may lack some of the optional
+        // status/date columns checked below.
         const [actRows] = await pool.execute(
-            `SELECT id, code, title, max_seats,
-                    COALESCE(registration_open, 1) AS registration_open
-             FROM activity_catalogue WHERE code = ? OR id = ? LIMIT 1`,
+            `SELECT ac.*,
+                    (SELECT 1 FROM activity_enrollments ae WHERE ae.activity_code = ac.code AND ae.attendance_marked = TRUE LIMIT 1) AS is_attendance_locked
+             FROM activity_catalogue ac WHERE ac.code = ? OR ac.id = ? LIMIT 1`,
             [id, id]
         ) as any[];
 
@@ -86,8 +99,13 @@ export async function POST(
         // Enforce the gate server-side: the catalogue already hides closed
         // activities, but a stale page or a direct API call must not be able
         // to slip an enrolment through.
-        if (Number(activity.registration_open) !== 1) {
+        if (Number(activity.registration_open ?? 1) !== 1) {
             return NextResponse.json({ message: 'Registration is closed for this activity' }, { status: 409 });
+        }
+        // Completed / past-dated activities are hidden from the catalogue, but
+        // an old link to the activity page still offered "Enroll".
+        if (isCompletedOrPast(activity)) {
+            return NextResponse.json({ message: 'This activity has already taken place' }, { status: 409 });
         }
 
         // Check already enrolled
@@ -111,11 +129,19 @@ export async function POST(
             return NextResponse.json({ message: 'This activity is full' }, { status: 409 });
         }
 
-        // Enroll
-        await pool.execute(
-            `INSERT INTO activity_enrollments (activity_code, username, status, enrolled_at) VALUES (?, ?, 'active', NOW())`,
-            [activityCode, user.username] as string[]
-        );
+        // Enroll. A double-click can race past the "already enrolled" check
+        // above; the unique key then rejects the second insert.
+        try {
+            await pool.execute(
+                `INSERT INTO activity_enrollments (activity_code, username, status, enrolled_at) VALUES (?, ?, 'active', NOW())`,
+                [activityCode, user.username] as string[]
+            );
+        } catch (e: any) {
+            if (e?.code === 'ER_DUP_ENTRY') {
+                return NextResponse.json({ message: 'Already enrolled in this activity' }, { status: 409 });
+            }
+            throw e;
+        }
 
         // Milestone Badges Logic
         const newEnrolledCount = enrolled + 1; 
@@ -183,6 +209,22 @@ export async function DELETE(
         if (!user) return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
 
         const { id } = await params;
+
+        // Once attendance is recorded (or the enrolment is completed) the
+        // row backs certificates, points and reports — don't let a student
+        // delete it.
+        const [rows] = await pool.execute(
+            `SELECT status, attendance_marked FROM activity_enrollments WHERE activity_code = ? AND username = ? LIMIT 1`,
+            [id, user.username] as string[]
+        ) as any[];
+        const row = (rows as any[])[0];
+        if (!row) {
+            return NextResponse.json({ message: 'You are not enrolled in this activity' }, { status: 404 });
+        }
+        if (row.status === 'completed' || Number(row.attendance_marked) === 1) {
+            return NextResponse.json({ message: 'Attendance has already been recorded for this activity, so you can no longer unenroll.' }, { status: 409 });
+        }
+
         await pool.execute(
             `DELETE FROM activity_enrollments WHERE activity_code = ? AND username = ?`,
             [id, user.username] as string[]

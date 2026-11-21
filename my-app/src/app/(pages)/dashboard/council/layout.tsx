@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useMobileSidebar } from "@/lib/hooks/useMobileSidebar";
+import { isNavActive } from "@/lib/navActive";
 import {
     FiHome, FiUser, FiUsers, FiLogOut, FiMenu, FiX,
     FiActivity, FiCheckSquare, FiAward, FiKey, FiUnlock, FiStar,
@@ -24,6 +26,7 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
     const [changePasswordOpen, setChangePasswordOpen] = useState(false);
     const [userData, setUserData] = useState<{ username: string; assignedDomains: string[] }>({ username: '', assignedDomains: [] });
     const pathname = usePathname();
+    useMobileSidebar(sidebarOpen, setSidebarOpen, pathname);
     const router = useRouter();
 
     useEffect(() => {
@@ -72,13 +75,13 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
     const domainLabels = userData.assignedDomains.map(d => DOMAIN_LABELS[d] || d);
 
     return (
-        <div className="h-screen flex flex-col" style={{ backgroundColor: '#1a1a1a' }}>
+        <div className="h-dvh flex flex-col" style={{ backgroundColor: '#1a1a1a' }}>
             <nav className="text-white shadow-lg relative z-30 flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
                 <div className="px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-14">
                         <div className="flex items-center">
                             <button
-                                onClick={() => setSidebarOpen(!sidebarOpen)}
+                                onClick={() => setSidebarOpen(!sidebarOpen)} aria-label={sidebarOpen ? "Close menu" : "Open menu"} aria-expanded={sidebarOpen}
                                 className="lg:hidden p-2 rounded-md transition-colors"
                             >
                                 {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
@@ -145,7 +148,7 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
                                 })}
 
                                 {(() => {
-                                    const inSamam = samamNavigation.some((item) => pathname === item.href);
+                                    const inSamam = samamNavigation.some((item) => isNavActive(pathname, item.href));
                                     const isOpen = samamDropdownOpen || inSamam;
                                     return (
                                         <div className="border-b border-gray-600">
@@ -233,7 +236,7 @@ export default function CouncilDashboardLayout({ children }: { children: React.R
             </footer>
 
             {sidebarOpen && (
-                <button className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar" />
+                <button className="fixed inset-0 bg-black/50 z-10 lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar" />
             )}
 
             <ChangePassword isOpen={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />

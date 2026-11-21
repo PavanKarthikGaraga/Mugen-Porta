@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useMobileSidebar } from "@/lib/hooks/useMobileSidebar";
+import { isNavActive } from "@/lib/navActive";
 import {
     FiHome, FiFolder, FiLogOut, FiMenu, FiX, FiDatabase, FiMail,
     FiTool, FiChevronDown, FiChevronUp, FiLock, FiUnlock, FiSettings, FiUsers, FiAward, FiStar, FiKey, FiMap, FiCheckSquare,
@@ -23,6 +25,7 @@ export default function AdminDashboardLayout({ children }) {
     const [isProxySession, setIsProxySession] = useState(false);
     const [proxyAdminInfo, setProxyAdminInfo] = useState(null);
     const pathname = usePathname();
+    useMobileSidebar(sidebarOpen, setSidebarOpen, pathname);
     const router = useRouter();
 
     useEffect(() => {
@@ -163,7 +166,7 @@ export default function AdminDashboardLayout({ children }) {
     };
 
     return (
-        <div className="h-screen flex flex-col" style={{ backgroundColor: '#1a1a1a' }}>
+        <div className="h-dvh flex flex-col" style={{ backgroundColor: '#1a1a1a' }}>
             {/* Top Navbar - Fixed */}
             <nav className="text-white shadow-lg relative z-30 flex-shrink-0" style={{ backgroundColor: 'rgb(151, 0, 3)' }}>
                 <div className="px-4 sm:px-6 lg:px-8">
@@ -171,7 +174,7 @@ export default function AdminDashboardLayout({ children }) {
                         {/* Left side */}
                         <div className="flex items-center">
                             <button
-                                onClick={() => setSidebarOpen(!sidebarOpen)}
+                                onClick={() => setSidebarOpen(!sidebarOpen)} aria-label={sidebarOpen ? "Close menu" : "Open menu"} aria-expanded={sidebarOpen}
                                 className="lg:hidden p-2 rounded-md transition-colors"
                                 onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}
@@ -230,21 +233,21 @@ export default function AdminDashboardLayout({ children }) {
                                     <Link
                                         href="/dashboard/admin/transport"
                                         className={`flex items-center px-3 m-0 py-3 text-sm font-medium transition-all duration-200 group border-b border-gray-600 ${
-                                            pathname === '/dashboard/admin/transport'
+                                            isNavActive(pathname, '/dashboard/admin/transport')
                                                 ? 'bg-red-700 text-white shadow-lg'
                                                 : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                                         }`}
                                         onClick={() => setSidebarOpen(false)}
                                     >
                                         <FiMap className={`mr-3 h-5 w-5 ${
-                                            pathname === '/dashboard/admin/transport' ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                            isNavActive(pathname, '/dashboard/admin/transport') ? 'text-white' : 'text-gray-400 group-hover:text-white'
                                         }`} />
                                         Transport Details
                                     </Link>
                                 ) : userData.role === 'analytics' ? (
                                     <>
                                         {analyticsNavigation.map((item) => {
-                                            const isActive = pathname === item.href;
+                                            const isActive = isNavActive(pathname, item.href);
                                             return (
                                                 <Link
                                                     key={item.name}
@@ -267,7 +270,7 @@ export default function AdminDashboardLayout({ children }) {
                                 ) : userData.username === 'iqac' ? (
                                     <>
                                         {iqacNavigation.map((item) => {
-                                            const isActive = pathname === item.href;
+                                            const isActive = isNavActive(pathname, item.href);
                                             return (
                                                 <Link
                                                     key={item.name}
@@ -290,7 +293,7 @@ export default function AdminDashboardLayout({ children }) {
                                 ) : (
                                     <>
                                         {navigation.slice(0, 4).map((item) => {
-                                            const isActive = pathname === item.href;
+                                            const isActive = isNavActive(pathname, item.href);
                                             return (
                                                 <Link
                                                     key={item.name}
@@ -312,7 +315,7 @@ export default function AdminDashboardLayout({ children }) {
 
                                         {/* SAMAM Control group */}
                                         {(() => {
-                                            const inSamam = samamNavigation.some((item) => pathname === item.href);
+                                            const inSamam = samamNavigation.some((item) => isNavActive(pathname, item.href));
                                             const isOpen = samamDropdownOpen || inSamam;
                                             return (
                                                 <div className="border-b border-gray-600">
@@ -331,7 +334,7 @@ export default function AdminDashboardLayout({ children }) {
                                                     {isOpen && (
                                                         <div className="pb-2 ml-6 space-y-1">
                                                             {samamNavigation.map((item) => {
-                                                                const isActive = pathname === item.href;
+                                                                const isActive = isNavActive(pathname, item.href);
                                                                 return (
                                                                     <Link
                                                                         key={item.name}
@@ -354,7 +357,7 @@ export default function AdminDashboardLayout({ children }) {
 
                                         {/* IQAC (read-only view of the IQAC workspace) */}
                                         {(() => {
-                                            const isActive = pathname === '/dashboard/admin/iqac-reports';
+                                            const isActive = isNavActive(pathname, '/dashboard/admin/iqac-reports');
                                             return (
                                                 <Link
                                                     href="/dashboard/admin/iqac-reports"
@@ -374,7 +377,7 @@ export default function AdminDashboardLayout({ children }) {
                                         })()}
 
                                         {navigation.slice(4).map((item) => {
-                                            const isActive = pathname === item.href;
+                                            const isActive = isNavActive(pathname, item.href);
                                             return (
                                                 <Link
                                                     key={item.name}
@@ -405,17 +408,17 @@ export default function AdminDashboardLayout({ children }) {
                                                         <FiTool className="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" />
                                                         Dev
                                                     </div>
-                                                    {devDropdownOpen ? (
+                                                    {(devDropdownOpen || pathname?.startsWith("/dashboard/admin/dev/")) ? (
                                                         <FiChevronUp className="h-4 w-4" />
                                                     ) : (
                                                         <FiChevronDown className="h-4 w-4" />
                                                     )}
                                                 </button>
                                                 
-                                                {devDropdownOpen && (
+                                                {(devDropdownOpen || pathname?.startsWith("/dashboard/admin/dev/")) && (
                                                     <div className="mt-2 ml-6 space-y-1">
                                                     {devNavigation.map((item) => {
-                                                        const isActive = pathname === item.href;
+                                                        const isActive = isNavActive(pathname, item.href);
                                                         return (
                                                             <Link
                                                                 key={item.name}
@@ -480,7 +483,7 @@ export default function AdminDashboardLayout({ children }) {
             {/* Mobile sidebar overlay */}
             {sidebarOpen && (
                 <button 
-                    className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
+                    className="fixed inset-0 bg-black/50 z-10 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                     aria-label="Close sidebar"
                 ></button>
